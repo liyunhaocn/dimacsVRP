@@ -1,0 +1,114 @@
+﻿  main.cpp
+E:\dimacsVRP\VRPTW\Utility.h(69,45): warning C4244: “参数”: 从“LL”转换到“const unsigned int”，可能丢失数据
+E:\dimacsVRP\VRPTW\Utility.h(71,34): warning C4244: “参数”: 从“LL”转换到“const unsigned int”，可能丢失数据
+E:\dimacsVRP\VRPTW\Problem.h(147,34): warning C4244: “参数”: 从“LL”转换到“const unsigned int”，可能丢失数据
+E:\dimacsVRP\VRPTW\Problem.h(149,9): warning C4244: “参数”: 从“LL”转换到“const unsigned int”，可能丢失数据
+E:\dimacsVRP\VRPTW\Problem.h(149,25): warning C4244: “参数”: 从“LL”转换到“const unsigned int”，可能丢失数据
+E:\dimacsVRP\VRPTW\Problem.h(150,9): warning C4244: “参数”: 从“LL”转换到“const unsigned int”，可能丢失数据
+E:\dimacsVRP\VRPTW\Problem.h(150,43): warning C4244: “参数”: 从“LL”转换到“const unsigned int”，可能丢失数据
+E:\dimacsVRP\VRPTW\Problem.h(150,78): warning C4244: “参数”: 从“LL”转换到“const unsigned int”，可能丢失数据
+E:\dimacsVRP\VRPTW\Problem.h(155,30): warning C4244: “参数”: 从“LL”转换到“const unsigned int”，可能丢失数据
+E:\dimacsVRP\VRPTW\Problem.h(156,28): warning C4244: “参数”: 从“LL”转换到“const unsigned int”，可能丢失数据
+E:\dimacsVRP\VRPTW\Problem.h(157,37): warning C4244: “参数”: 从“LL”转换到“const unsigned int”，可能丢失数据
+E:\dimacsVRP\VRPTW\Problem.h(159,44): warning C4244: “参数”: 从“LL”转换到“const unsigned int”，可能丢失数据
+E:\dimacsVRP\VRPTW\Problem.h(160,38): warning C4244: “参数”: 从“LL”转换到“const unsigned int”，可能丢失数据
+E:\dimacsVRP\VRPTW\Problem.h(163,10): warning C4244: “参数”: 从“LL”转换到“const unsigned int”，可能丢失数据
+E:\dimacsVRP\VRPTW\Problem.h(163,26): warning C4244: “参数”: 从“LL”转换到“const unsigned int”，可能丢失数据
+E:\dimacsVRP\VRPTW\Problem.h(164,50): warning C4244: “参数”: 从“LL”转换到“const unsigned int”，可能丢失数据
+E:\dimacsVRP\VRPTW\Problem.h(164,16): warning C4244: “初始化”: 从“const _Ty”转换到“LL”，可能丢失数据
+          with
+          [
+              _Ty=double
+          ]
+E:\dimacsVRP\VRPTW\Problem.h(165,48): warning C4244: “参数”: 从“LL”转换到“const unsigned int”，可能丢失数据
+E:\dimacsVRP\VRPTW\Problem.h(167,32): warning C4244: “参数”: 从“LL”转换到“const unsigned int”，可能丢失数据
+E:\dimacsVRP\VRPTW\Problem.h(168,20): warning C4244: “参数”: 从“LL”转换到“const unsigned int”，可能丢失数据
+E:\dimacsVRP\VRPTW\Problem.h(214,32): warning C4244: “参数”: 从“LL”转换到“const unsigned int”，可能丢失数据
+E:\dimacsVRP\VRPTW\Problem.h(229,22): warning C4244: “参数”: 从“LL”转换到“const unsigned int”，可能丢失数据
+E:\dimacsVRP\VRPTW\Problem.h(231,22): warning C4244: “参数”: 从“LL”转换到“const unsigned int”，可能丢失数据
+E:\dimacsVRP\VRPTW\Problem.h(232,22): warning C4244: “参数”: 从“LL”转换到“const unsigned int”，可能丢失数据
+E:\dimacsVRP\VRPTW\Problem.h(233,22): warning C4244: “参数”: 从“LL”转换到“const unsigned int”，可能丢失数据
+E:\dimacsVRP\VRPTW\Problem.h(234,22): warning C4244: “参数”: 从“LL”转换到“const unsigned int”，可能丢失数据
+E:\dimacsVRP\VRPTW\Problem.h(235,22): warning C4244: “参数”: 从“LL”转换到“const unsigned int”，可能丢失数据
+E:\dimacsVRP\VRPTW\Problem.h(236,22): warning C4244: “参数”: 从“LL”转换到“const unsigned int”，可能丢失数据
+E:\dimacsVRP\VRPTW\Problem.h(239,15): warning C4244: “参数”: 从“LL”转换到“const unsigned int”，可能丢失数据
+E:\dimacsVRP\VRPTW\Problem.h(240,15): warning C4244: “参数”: 从“LL”转换到“const unsigned int”，可能丢失数据
+E:\dimacsVRP\VRPTW\Problem.h(241,15): warning C4244: “参数”: 从“LL”转换到“const unsigned int”，可能丢失数据
+E:\dimacsVRP\VRPTW\Problem.h(242,15): warning C4244: “参数”: 从“LL”转换到“const unsigned int”，可能丢失数据
+E:\dimacsVRP\VRPTW\Problem.h(243,15): warning C4244: “参数”: 从“LL”转换到“const unsigned int”，可能丢失数据
+E:\dimacsVRP\VRPTW\Problem.h(244,15): warning C4244: “参数”: 从“LL”转换到“const unsigned int”，可能丢失数据
+E:\dimacsVRP\VRPTW\Problem.h(254,37): warning C4244: “参数”: 从“LL”转换到“const unsigned int”，可能丢失数据
+E:\dimacsVRP\VRPTW\Problem.h(254,13): warning C4244: “参数”: 从“LL”转换到“const unsigned int”，可能丢失数据
+E:\dimacsVRP\VRPTW\Problem.h(265,22): warning C4244: “参数”: 从“LL”转换到“const unsigned int”，可能丢失数据
+E:\dimacsVRP\VRPTW\Problem.h(266,22): warning C4244: “参数”: 从“LL”转换到“const unsigned int”，可能丢失数据
+E:\dimacsVRP\VRPTW\Problem.h(268,6): warning C4244: “参数”: 从“LL”转换到“long double”，可能丢失数据
+E:\dimacsVRP\VRPTW\Problem.h(269,11): warning C4244: “参数”: 从“LL”转换到“const unsigned int”，可能丢失数据
+E:\dimacsVRP\VRPTW\Problem.h(269,14): warning C4244: “参数”: 从“LL”转换到“const unsigned int”，可能丢失数据
+E:\dimacsVRP\VRPTW\Problem.h(269,25): warning C4244: “参数”: 从“LL”转换到“const unsigned int”，可能丢失数据
+E:\dimacsVRP\VRPTW\Problem.h(269,28): warning C4244: “参数”: 从“LL”转换到“const unsigned int”，可能丢失数据
+E:\dimacsVRP\VRPTW\Problem.h(269,37): warning C4244: “=”: 从“double”转换到“_Ty”，可能丢失数据
+          with
+          [
+              _Ty=LL
+          ]
+E:\dimacsVRP\VRPTW\Problem.h(274,44): warning C4244: “参数”: 从“LL”转换到“const unsigned int”，可能丢失数据
+E:\dimacsVRP\VRPTW\Problem.h(279,25): warning C4244: “参数”: 从“LL”转换到“const unsigned int”，可能丢失数据
+E:\dimacsVRP\VRPTW\Problem.h(286,57): warning C4244: “参数”: 从“const LL”转换到“const unsigned int”，可能丢失数据
+E:\dimacsVRP\VRPTW\Problem.h(286,60): warning C4244: “参数”: 从“const LL”转换到“const unsigned int”，可能丢失数据
+E:\dimacsVRP\VRPTW\Problem.h(286,71): warning C4244: “参数”: 从“const LL”转换到“const unsigned int”，可能丢失数据
+E:\dimacsVRP\VRPTW\Problem.h(286,74): warning C4244: “参数”: 从“const LL”转换到“const unsigned int”，可能丢失数据
+E:\dimacsVRP\VRPTW\Problem.h(289,15): warning C4244: “参数”: 从“LL”转换到“const unsigned int”，可能丢失数据
+E:\dimacsVRP\VRPTW\Problem.h(293,37): warning C4244: “参数”: 从“LL”转换到“const unsigned int”，可能丢失数据
+E:\dimacsVRP\VRPTW\Problem.h(293,13): warning C4244: “参数”: 从“LL”转换到“const unsigned int”，可能丢失数据
+E:\dimacsVRP\VRPTW\Problem.h(297,19): warning C4244: “参数”: 从“LL”转换到“const unsigned int”，可能丢失数据
+E:\dimacsVRP\VRPTW\Problem.h(297,33): warning C4244: “参数”: 从“LL”转换到“const unsigned int”，可能丢失数据
+E:\dimacsVRP\VRPTW\Problem.h(297,36): warning C4244: “参数”: 从“LL”转换到“const unsigned int”，可能丢失数据
+E:\dimacsVRP\VRPTW\Problem.h(297,37): warning C4244: “参数”: 从“_Ty”转换到“const unsigned int”，可能丢失数据
+          with
+          [
+              _Ty=LL
+          ]
+E:\dimacsVRP\VRPTW\Problem.h(307,24): warning C4244: “参数”: 从“LL”转换到“const unsigned int”，可能丢失数据
+E:\dimacsVRP\VRPTW\Problem.h(310,14): warning C4244: “参数”: 从“LL”转换到“const unsigned int”，可能丢失数据
+E:\dimacsVRP\VRPTW\Problem.h(313,19): warning C4244: “参数”: 从“LL”转换到“const unsigned int”，可能丢失数据
+E:\dimacsVRP\VRPTW\Problem.h(313,30): warning C4244: “参数”: 从“LL”转换到“const unsigned int”，可能丢失数据
+E:\dimacsVRP\VRPTW\Problem.h(318,24): warning C4244: “参数”: 从“LL”转换到“const unsigned int”，可能丢失数据
+E:\dimacsVRP\VRPTW\Problem.h(318,27): warning C4244: “参数”: 从“LL”转换到“const unsigned int”，可能丢失数据
+E:\dimacsVRP\VRPTW\Problem.h(319,20): warning C4244: “参数”: 从“LL”转换到“const unsigned int”，可能丢失数据
+E:\dimacsVRP\VRPTW\Problem.h(322,34): warning C4244: “参数”: 从“LL”转换到“const unsigned int”，可能丢失数据
+E:\dimacsVRP\VRPTW\Problem.h(322,66): warning C4244: “参数”: 从“LL”转换到“const unsigned int”，可能丢失数据
+E:\dimacsVRP\VRPTW\Problem.h(326,35): warning C4244: “参数”: 从“LL”转换到“const unsigned int”，可能丢失数据
+E:\dimacsVRP\VRPTW\Problem.h(326,38): warning C4244: “参数”: 从“LL”转换到“const unsigned int”，可能丢失数据
+E:\dimacsVRP\VRPTW\Problem.h(327,18): warning C4244: “参数”: 从“LL”转换到“const unsigned int”，可能丢失数据
+E:\dimacsVRP\VRPTW\Problem.h(327,41): warning C4244: “参数”: 从“LL”转换到“const unsigned int”，可能丢失数据
+E:\dimacsVRP\VRPTW\Problem.h(327,54): warning C4244: “参数”: 从“LL”转换到“const int”，可能丢失数据
+E:\dimacsVRP\VRPTW\Problem.h(329,44): warning C4244: “参数”: 从“LL”转换到“const unsigned int”，可能丢失数据
+E:\dimacsVRP\VRPTW\Problem.h(331,27): warning C4244: “参数”: 从“LL”转换到“const unsigned int”，可能丢失数据
+E:\dimacsVRP\VRPTW\Problem.h(331,30): warning C4244: “参数”: 从“LL”转换到“const unsigned int”，可能丢失数据
+E:\dimacsVRP\VRPTW\Problem.h(332,24): warning C4244: “参数”: 从“LL”转换到“const unsigned int”，可能丢失数据
+E:\dimacsVRP\VRPTW\Problem.h(332,27): warning C4244: “参数”: 从“LL”转换到“const unsigned int”，可能丢失数据
+E:\dimacsVRP\VRPTW\Problem.h(333,37): warning C4244: “参数”: 从“LL”转换到“const unsigned int”，可能丢失数据
+E:\dimacsVRP\VRPTW\Problem.h(333,40): warning C4244: “参数”: 从“LL”转换到“const unsigned int”，可能丢失数据
+E:\dimacsVRP\VRPTW\Problem.h(347,13): warning C4244: “参数”: 从“LL”转换到“const unsigned int”，可能丢失数据
+E:\dimacsVRP\VRPTW\Problem.h(350,15): warning C4244: “参数”: 从“LL”转换到“const unsigned int”，可能丢失数据
+E:\dimacsVRP\VRPTW\Problem.h(350,26): warning C4244: “参数”: 从“LL”转换到“const unsigned int”，可能丢失数据
+E:\dimacsVRP\VRPTW\Problem.h(355,16): warning C4244: “参数”: 从“LL”转换到“const unsigned int”，可能丢失数据
+E:\dimacsVRP\VRPTW\Problem.h(358,18): warning C4244: “参数”: 从“LL”转换到“const unsigned int”，可能丢失数据
+E:\dimacsVRP\VRPTW\Problem.h(358,21): warning C4244: “参数”: 从“LL”转换到“const unsigned int”，可能丢失数据
+E:\dimacsVRP\VRPTW\Problem.h(358,32): warning C4244: “参数”: 从“LL”转换到“const unsigned int”，可能丢失数据
+E:\dimacsVRP\VRPTW\Problem.h(359,12): warning C4244: “参数”: 从“LL”转换到“const unsigned int”，可能丢失数据
+E:\dimacsVRP\VRPTW\Problem.h(359,15): warning C4244: “参数”: 从“LL”转换到“const unsigned int”，可能丢失数据
+E:\dimacsVRP\VRPTW\Problem.h(359,26): warning C4244: “参数”: 从“LL”转换到“const unsigned int”，可能丢失数据
+E:\dimacsVRP\VRPTW\Problem.h(361,20): warning C4244: “参数”: 从“LL”转换到“const unsigned int”，可能丢失数据
+E:\dimacsVRP\VRPTW\Problem.h(361,43): warning C4244: “参数”: 从“LL”转换到“const unsigned int”，可能丢失数据
+E:\dimacsVRP\VRPTW\Problem.h(365,37): warning C4244: “参数”: 从“LL”转换到“const unsigned int”，可能丢失数据
+E:\dimacsVRP\VRPTW\Problem.h(365,13): warning C4244: “参数”: 从“LL”转换到“const unsigned int”，可能丢失数据
+E:\dimacsVRP\VRPTW\Problem.h(368,40): warning C4244: “参数”: 从“LL”转换到“const unsigned int”，可能丢失数据
+E:\dimacsVRP\VRPTW\Problem.h(369,23): warning C4244: “参数”: 从“LL”转换到“const unsigned int”，可能丢失数据
+E:\dimacsVRP\VRPTW\Problem.h(369,26): warning C4244: “参数”: 从“LL”转换到“const unsigned int”，可能丢失数据
+E:\dimacsVRP\VRPTW\Problem.h(370,24): warning C4244: “参数”: 从“LL”转换到“const unsigned int”，可能丢失数据
+E:\dimacsVRP\VRPTW\Problem.h(370,27): warning C4244: “参数”: 从“LL”转换到“const unsigned int”，可能丢失数据
+E:\dimacsVRP\VRPTW\Problem.h(398,10): warning C4244: “初始化”: 从“double”转换到“LL”，可能丢失数据
+E:\dimacsVRP\main.cpp(13,1): warning C4005: “debug”: 宏重定义
+E:\dimacsVRP\VRPTW\Problem.h(10): message : 参见“debug”的前一个定义
+  dimacsVRP.vcxproj -> E:\dimacsVRP\Debug\dimacsVRP.exe
