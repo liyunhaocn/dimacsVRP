@@ -13,10 +13,9 @@
 #define LINUX 0
 #define ATTRIBUTETABU 1
 
-#define SETCOVERING 0
 #define LOGINFO 1
 
-#define CHECKING 1
+#define CHECKING 0
 #define DISDOUBLE 0
 
 #define max(a,b)  (((a) > (b)) ? (a) : (b))

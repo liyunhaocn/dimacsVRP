@@ -174,6 +174,8 @@ bool solverByEAX(int argc, char* argv[]) {
 	return true;
 }
 
+#if MAKECASE
+
 bool makeOneCase(string exName, vrpSln::Input& input, int minDe, int maxDe, int minTw, int maxTw, int minSt, int maxSt) {
 
 	vrpSln::Random mr;
@@ -465,15 +467,15 @@ bool makeCases(int argc, char* argv[]) {
 	return true;
 }
 
-
+#endif // MAKECASE
 
 int main(int argc, char* argv[])
 {
 
-	solverByEAX(argc, argv);
+	//solverByEAX(argc, argv);
 	//makeCases(argc, argv);
 	//for(;;)
-	//run(argc, argv);
+	run(argc, argv);
 	
 	return 0;
 }
