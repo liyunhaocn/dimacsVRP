@@ -3887,7 +3887,7 @@ namespace vrptwNew {
 			int v_ = customers[v].pre;
 			int vj = customers[v].next;
 
-			if (vj > input.custCnt || vj==w) {
+			if (vj > input.custCnt || vj == w) {
 				return bestM;
 			}
 
@@ -6447,11 +6447,9 @@ namespace vrptwNew {
 				//outrelocatevvjTowwj(v, w); 扔两个 v v+  | w w+
 
 				int vj = customers[v].next > input.custCnt ? 0 : customers[v].next;
-				int w_ = customers[w].pre > input.custCnt ? 0 : customers[w].pre;
 				int wj = customers[w].next > input.custCnt ? 0 : customers[w].next;
-				int wjj = customers[wj].next > input.custCnt ? 0 : customers[wj].next;
 
-				sumYear = (yearTable[v][w_] + yearTable[vj][wjj] + yearTable[v][vj]) / 3;
+				sumYear = (yearTable[v][w] + yearTable[vj][wj] + yearTable[v][vj]) / 3;
 			}
 			else if (t.kind == 14) {
 
@@ -7189,10 +7187,10 @@ namespace vrptwNew {
 
 		bool managerCusMem() {
 
-			for (int i = input.custCnt + 3; i < customers.size() - 1; i += 1) {
+			for (int i = input.custCnt + 3; i < customers.size(); i ++) {
 				if (customers[i].routeID == -1) {
 
-					for (int j = input.custCnt + 399; j > i; j -= 1) {
+					for (int j = customers.size() - 1; j > i; j -= 1) {
 
 						if (customers[j].routeID != -1) {
 
@@ -7219,14 +7217,14 @@ namespace vrptwNew {
 				}
 			}
 			
-			while (customers.back().routeID==-1)
+			while (customers.back().routeID == -1)
 			{
 				customers.pop_back();
 			} 
-			while (input.datas.size()> customers.size())
+			/*while (input.datas.size() > customers.size())
 			{
 				input.datas.pop_back();
-			}
+			}*/
 
 			return true;
 		}
@@ -7557,24 +7555,6 @@ namespace vrptwNew {
 
 			auto updateBestM = [&](TwoNodeMove& t, TwoNodeMove& bestM)->bool {
 
-				/*LL tYear = getYearOfMove(t);
-				bool isTabu = (squIter <= tYear);
-				/*bool isTabu = false;
-				if (isTabu) {
-					if (t.deltPen.deltPc + t.deltPen.deltPtw
-						< golbalTabuBestM.deltPen.deltPc + golbalTabuBestM.deltPen.deltPtw) {
-						golbalTabuBestM = t;
-					}
-					else if (t.deltPen.deltPc + t.deltPen.deltPtw
-						== golbalTabuBestM.deltPen.deltPc + golbalTabuBestM.deltPen.deltPtw) {
-
-						if (getYearOfMove(t) < getYearOfMove(golbalTabuBestM)) {
-							golbalTabuBestM = t;
-						}
-					}
-				}
-				else {*/
-
 				if (t.deltPen.deltPc == DisInf || t.deltPen.deltPtw == DisInf) {
 					return false;
 				}
@@ -7667,10 +7647,13 @@ namespace vrptwNew {
 				doMoves(bestM);
 
 				squIter++;
-				/*solTabuTurnSolToBitArr();
-				solTabuUpBySolToBitArr();*/
+				
+
+#if CHECKING
 				updatePen();
-				//updatePen(bestM.deltPen);
+#else
+				updatePen(bestM.deltPen);
+#endif // CHECKING
 
 #if CHECKING
 
@@ -7686,6 +7669,14 @@ namespace vrptwNew {
 					//!DISlfeq(oldRcost + bestM.deltPen.deltCost, RoutesCost);
 				for (int i = 0; i < rts.cnt; i++) {
 					Route& r = rts[i];
+
+					for (int c : rPutCusInve(r)) {
+						if (customers[c].routeID != r.routeID) {
+							debug(customers[c].routeID)
+							debug(r.routeID)
+							debug(r.routeID)
+						}
+					}
 					if (rPutCusInve(r).size() != r.rCustCnt) {
 						debug(rPutCusInve(r).size() != r.rCustCnt)
 							debug(rPutCusInve(r).size() != r.rCustCnt)
@@ -7883,13 +7874,6 @@ namespace vrptwNew {
 					debug(penalty)
 				}
 #endif // CHECKING		
-				/*debug(PtwNoWei)
-				debug(Pc)
-				debug(penalty)*/
-
-				/*PtwNoWei = bestPool[index].PtwNoWei;
-				Pc = bestPool[index].Pc;
-				penalty = bestPool[index].penalty;*/
 
 				return false;
 			}
@@ -8369,19 +8353,20 @@ namespace vrptwNew {
 
 			while (!lyhTimer.isTimeOut()) {
 
-				removeOneRouteRandomly();
-				bool isDelete = ejectLocalSearch();
-				Log(Log::Level::Warning) << "rts.size(): " << rts.size() << endl;
 				if (rts.size() <= ourTarget) {
 					if ((EPsize() == 0 && penalty == 0)) {
 						isSucceed = true;
 					}
 					break;
 				}
+				removeOneRouteRandomly();
+				bool isDelete = ejectLocalSearch();
+				minEPcus = min(minEPcus, EPr.rCustCnt);
+				Log(Log::Level::Warning) << "rts.size(): " << rts.size() << endl;
 			}
 
 			DisType state = verify();
-
+			
 			if (state > 0) {
 
 				Log(Log::Level::Warning) << "success: "
@@ -8600,6 +8585,17 @@ namespace vrptwNew {
 				//updatePen(bestM.deltPen);
 
 #if CHECKING
+				for (int i = 0; i < rts.cnt; i++) {
+					Route& r = rts[i];
+
+					for (int c : rPutCusInve(r)) {
+						if (customers[c].routeID != r.routeID) {
+							debug(customers[c].routeID)
+								debug(r.routeID)
+								debug(r.routeID)
+						}
+					}
+				}
 
 				updateRtsCost();
 				updatePen();
@@ -8773,7 +8769,7 @@ namespace vrptwNew {
 					if (customers[v].routeID == -1) {
 						continue;
 					}
-					for (int wpos = 0; wpos < 100; wpos++) {
+					for (int wpos = 0; wpos < 50; wpos++) {
 
 						int w = input.allCloseOf[v][wpos];
 						if (customers[w].routeID == -1) {
@@ -8830,24 +8826,33 @@ namespace vrptwNew {
 
 			LL contiNotDe = 0;
 
-			bestSol bestS(customers, rts, 
-				EPr, Pc, Ptw, PtwNoWei, penalty,RoutesCost);
-			
+			/*bestSol bestS(customers, rts, 
+				EPr, Pc, Ptw, PtwNoWei, penalty,RoutesCost);*/
 			
 			while (!lyhTimer.isTimeOut()) {
 
-				if (RoutesCost < bestS.RoutesCost) {
-					bestS = bestSol(customers, rts,
-						EPr, Pc, Ptw, PtwNoWei, penalty, RoutesCost);
-					contiNotDe = 0;
-					debug(RoutesCost)
-				}
-				else {
-					contiNotDe++;
+				TwoNodeMove bestM = getMRLPartMoves();
+				if (bestM.deltPen.PtwOnly > 0 || bestM.deltPen.PcOnly > 0 
+					|| bestM.deltPen.deltCost > 0) {
+					bestM = getMRLAllMoves();
 				}
 
-				if (contiNotDe > 30) {
+				if (bestM.deltPen.PtwOnly > 0 || bestM.deltPen.PcOnly > 0 
+					|| bestM.deltPen.deltCost > 0) {
+					break;
 
+					/*if (RoutesCost < bestS.RoutesCost) {
+						bestS = bestSol(customers, rts,
+							EPr, Pc, Ptw, PtwNoWei, penalty, RoutesCost);
+						contiNotDe = 0;
+					}
+					else {
+						contiNotDe++;
+						deOut(contiNotDe)debug(RoutesCost)
+						if (contiNotDe > 0) {
+							break;
+						}
+					}
 					customers = bestS.customers;
 					rts = bestS.rts;
 					PtwNoWei = bestS.PtwNoWei;
@@ -8855,30 +8860,9 @@ namespace vrptwNew {
 					Pc = bestS.Pc;
 					penalty = bestS.penalty;
 					RoutesCost = bestS.RoutesCost;
-					contiNotDe = 0;
-					patternAdjustment(-1, 50);
+					patternAdjustment(-1, 40);
 					updateRtsCost();
-					continue;
-					//break;
-				}
-
-				TwoNodeMove bestM = getMRLPartMoves();
-				if (bestM.deltPen.PtwOnly > 0
-					|| bestM.deltPen.PcOnly > 0
-					|| bestM.deltPen.deltCost > 0) {
-
-					contiNotDe = 31;
-					continue;
-
-					bestM = getMRLAllMoves();
-				}
-
-				if (bestM.deltPen.PtwOnly > 0
-					|| bestM.deltPen.PcOnly > 0
-					|| bestM.deltPen.deltCost > 0) {
-					contiNotDe = 31;
-					continue;
-					//break;
+					continue;*/
 				}
 
 #if CHECKING
@@ -8902,7 +8886,7 @@ namespace vrptwNew {
 
 #endif // CHECKING
 
-				updateYearTable(bestM);
+				//updateYearTable(bestM);
 				int rvId = customers[bestM.v].routeID;
 				int rwId = customers[bestM.w].routeID;
 
@@ -8920,6 +8904,22 @@ namespace vrptwNew {
 				//deOut(bestM.deltPen.deltCost) updateRtsCost();
 
 #if CHECKING
+
+				for (int v = 1; v <= input.custCnt; v++) {
+					
+					Route& r = rts.getRouteByRid(customers[v].routeID);
+
+					Vec<int> veCus = rPutCusInve(r);
+					vector<int>::iterator result = find(veCus.begin(), veCus.end(), v); //查找3
+
+					if (result == veCus.end()) {
+						rNextDisp(r);
+						debug(r.routeID)
+						debug(customers[v].routeID)
+						debug(v)
+						debug(v)
+					}
+				}
 
 				bool iderror = false;
 				bool penaltyWeiError =
@@ -9026,14 +9026,24 @@ namespace vrptwNew {
 #endif // CHECKING
 
 			}
+
+			/*customers = bestS.customers;
+			rts = bestS.rts;
+			PtwNoWei = bestS.PtwNoWei;
+			Ptw = bestS.Ptw;
+			Pc = bestS.Pc;
+			penalty = bestS.penalty;
+			RoutesCost = bestS.RoutesCost;*/
+
 			return true;
 		}
 
 		bool minimizeRL() {
 
 			gamma = 1;
-
 			mRLLocalSearch();
+
+			
 			return true;
 		}
 
@@ -9058,40 +9068,6 @@ namespace vrptwNew {
 
 		bool testRoute() {
 
-/*
-			"squeeze penalty update error!": squeeze penalty update error!
-bestM.v: 431
-bestM.w: 211
-bestM.kind: 1
-rv.routeID == rw.routeID: 0
-iderror: 0
-penaltyWeiError: 0
-penaltyError: 0
-RoutesCostError: 1
-oldRcost: 5459193620
-bestM.deltPen.deltCost: -3050905
-RoutesCost: 5459193620
-RoutesCost-oldRcost: 0
-oldPtw: 7447251
-bestM.deltPen.deltPtw: -1994393
-Ptw: 5452858
-Ptw - oldPtw: -1994393
-oldPtwNoWei: 7447251
-bestM.deltPen.PtwOnly: -1994393
-PtwNoWei: 5452858
-oldPc: 0
-bestM.deltPen.deltPc: 0
-bestM.deltPen.PcOnly: 0
-Pc: 0
-oldrv: 119 ,431 ,203 ,522 ,480 ,273 ,283 ,507 ,549 ,11 ,
-oldrw: 405 ,211 ,183 ,550 ,377 ,271 ,195 ,422 ,
-nextdisp: 655 ,119 ,431 ,211 ,183 ,550 ,377 ,271 ,195 ,422 ,690 ,
-nextdisp: 689 ,405 ,203 ,522 ,480 ,273 ,283 ,507 ,549 ,11 ,656 ,
-squIter: 21
-DEFabs(oldpenalty + bestM.deltPen.deltPc + bestM.deltPen.deltPtw, penalty): 0
-"false false": false false
-
-			*/
 			vector<int>oldrv = { 119 ,431 ,203 ,522 ,480 ,273 ,283 ,507 ,549 ,11  };
 			vector<int>oldrw = { 405 ,211 ,183 ,550 ,377 ,271 ,195 ,422 };
 

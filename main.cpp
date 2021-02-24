@@ -21,7 +21,7 @@ namespace vrpSln = vrptwNew;
 using namespace std;
 
 
-bool run(int argc, char* argv[]) {
+bool run(int argc, char* argv[],string ex="") {
 
 	vrpSln::Environment env;
 	vrpSln::Configuration cfg;
@@ -46,8 +46,16 @@ bool run(int argc, char* argv[]) {
 	for (string c : e3) {
 	allCase.push_back(a + b + c);*/
 	//cfg.breakRecord = 1;
+	if (env.example == "") {
+		if (ex == "") {
+			env.example = "C1_8_2";
+		}
+		else {
+			env.example = ex;
+		}
+	}
 
-	vrpSln::Input input(env.example != "" ? env.example : "C1_8_2", cfg);
+	vrpSln::Input input(env.example, cfg);
 	vrpSln::Solver solver(input, cfg, env);
 	
 	//solver.gamma = 0;
@@ -66,6 +74,8 @@ bool run(int argc, char* argv[]) {
 
 bool solverByEAX(int argc, char* argv[]) {
 
+	
+
 	vrpSln::Environment env;
 	vrpSln::Configuration cfg;
 	//lyh::MyString ms;
@@ -80,81 +90,67 @@ bool solverByEAX(int argc, char* argv[]) {
 	//env.seed = 1611589828;
 	//cfg.breakRecord = 1;
 
-	vrpSln::Input input(env.example != "" ? env.example : "C1_8_2", cfg);
+	vrpSln::Input input(env.example != "" ? env.example : "C1_8_1", cfg);
+
+	debug(input.sintefRecRL)
+	debug(input.sintefRecRL)
 
 	vrpSln::Solver pa(input, cfg, env);
 	vrpSln::Solver pb(input, cfg, env);
 	
-	/*pa.initBybestSolution();
-	pa.patternAdjustment(-1,1000);
-	pb.initBybestSolution();*/
 	
-	//pa.minimizeRN();
-	//pa.updateRtsCost();
-	////pa.initBybestSolution();
-	//debug(pa.RoutesCost)
+	pa.minimizeRN();
+	pa.minimizeRL();
+	pa.updateRtsCost();
+	debug(pa.RoutesCost)
+	/*pa.initBybestSolution();
+	pa.updateRtsCost();
+	debug(pa.RoutesCost)*/
 	//pa.patternAdjustment(-1,1000);
-	//pa.minimizeRL();
+	
 	//debug(pa.RoutesCost)
-	//debug(pa.verify())
-	//debug(pa.verify())
+	debug(pa.verify())
+	debug(pa.verify())
 
 	pb.minimizeRN();
-	//pb.patternAdjustment(-1, 1000);
+	pb.patternAdjustment(-1, 1000);
 	pb.minimizeRL();
+	pa.updateRtsCost();
+
 	debug(pb.RoutesCost)
 
-	return true;
-
 	vrpSln::Solver pc(pa);
-	vrpSln::Solver pBest(pa);
+	vrpSln::Solver pBest(pb);
 	int contiNoDown = 0;
+	//pBest.RoutesCost > input.sintefRecRL
+	vrpSln::Timer t1(pa.cfg.runTimer);
+	t1.reStart();
 
-	while (pa.RoutesCost > input.sintefRecRL){
+	while (pBest.RoutesCost >= input.sintefRecRL && !t1.isTimeOut() ){
 
 		pc = pa;
 		vrpSln::EAX eax(input.custCnt, pa.rts.cnt, env.seed);
 		bool eaSucceed = eax.doEAX(pa, pb, pc);
 
-		while (!eaSucceed) {
-			debug(eaSucceed)
+		debug(eaSucceed)
+
+		if (!eaSucceed) {
 			pb.patternAdjustment(-1, 100);
 			pb.minimizeRL();
-			pc = pa;
-			vrpSln::EAX eax(input.custCnt, pa.rts.cnt, env.seed);
-			eaSucceed = eax.doEAX(pa, pb, pc);
+			continue;
 		}
-
-		bool reSucceed = pc.repair();
-
-		while(!reSucceed) {
-
-			debug(reSucceed)
-			pb.patternAdjustment(-1, 500);
-			pb.minimizeRL();
-			pc = pa;
-			vrpSln::EAX eax(input.custCnt, pa.rts.cnt, env.seed);
-			eax.doEAX(pa, pb, pc);
-			reSucceed = pc.repair();
-		}
-
-		pc.minimizeRL();
 
 		if (pc.RoutesCost < pa.RoutesCost) {
 			pa = pc;
 			contiNoDown = 0;
-
-			//pc.saveToOutPut();
-			//vrpSln::saveSln(input, pc.output, cfg, env);
-			//debug(pc.RoutesCost)
 		}
 		
 		if (pc.RoutesCost < pBest.RoutesCost) {
 			pBest = pc;
 			contiNoDown = 0;
-			pBest.saveToOutPut();
+			/*pBest.saveToOutPut();
 			vrpSln::saveSln(input, pBest.output, cfg, env);
-			debug(pc.RoutesCost)
+			debug(pc.RoutesCost)*/
 		}
 		else {
 			contiNoDown++;
@@ -168,8 +164,9 @@ bool solverByEAX(int argc, char* argv[]) {
 			contiNoDown = 0;
 		}
 	}
-	
-	vrpSln::saveSln(input, pa.output, cfg, env);
+
+	pBest.saveToOutPut();
+	vrpSln::saveSln(input, pBest.output, cfg, env);
 
 	return true;
 }
@@ -472,10 +469,11 @@ bool makeCases(int argc, char* argv[]) {
 int main(int argc, char* argv[])
 {
 
-	//solverByEAX(argc, argv);
+	solverByEAX(argc, argv);
 	//makeCases(argc, argv);
+
 	//for(;;)
-	run(argc, argv);
+	//run(argc, argv,"");
 	
 	return 0;
 }

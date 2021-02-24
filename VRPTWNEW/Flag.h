@@ -15,7 +15,7 @@
 
 #define LOGINFO 1
 
-#define CHECKING 0
+#define CHECKING 1
 #define DISDOUBLE 0
 
 #define max(a,b)  (((a) > (b)) ? (a) : (b))

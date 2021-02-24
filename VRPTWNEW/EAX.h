@@ -481,9 +481,23 @@ public:
 			int w = cusSet.ve[0];
 			int pt = w;
 
-			int v = mr.pick(cusCnt) + 1;
-			while (pc.customers[v].routeID==-1){
-				v = mr.pick(cusCnt) + 1;
+			int v = -1;
+			for (int vpos = 0; vpos < 50; vpos++) {
+				v = pc.input.allCloseOf[w][vpos];
+				if (cusSet.pos[v] < 0) {
+					break;
+				}
+			}
+
+			Route& r = pc.rts.getRouteByRid(pc.customers[v].routeID);
+
+			Vec<int> veCus = pc.rPutCusInve(r);
+			vector<int>::iterator result = find(veCus.begin(), veCus.end(), v); //≤È’“3
+
+			if (result == veCus.end()) {
+				pc.rNextDisp(r);
+				debug(v)
+					debug(v)
 			}
 
 			while (pt != -1) {
@@ -567,7 +581,7 @@ public:
 				Alleset.push_back(i);
 			}
 
-			Vec<eRchNode> arrE;
+			/*Vec<eRchNode> arrE;
 			for (int i = 0; i < abCycleSet.size(); i++) {
 				eRchNode ern;
 				ern.deleABCost = 0;
@@ -582,10 +596,9 @@ public:
 				}
 				arrE.push_back(ern);
 			}
-
 			auto cmp = [&](int a, int b) {
 				return arrE[a].deleABCost < arrE[b].deleABCost;
-			};
+			};*/
 
 			//sort(Alleset.begin(), Alleset.end(),cmp);
 
@@ -593,17 +606,15 @@ public:
 			sc.makeItDisorder(Alleset);
 
 			int maxCycleCnt = mr.pick(Alleset.size()) + 1;
-			maxCycleCnt = min(Alleset.size() / 2+1, maxCycleCnt);
+			maxCycleCnt = min(1, maxCycleCnt);
 			for (int i = 0; i < maxCycleCnt; i++) {
 				eset.push_back(Alleset[i]);
 			}
 
 			//pc.RTSDisPlay();
 			applyCycles(eset, pc);
-			/*debug(pc.getCusCnt())
-			debug(11111111111)*/
+			pc.updateRtsValsAndPen();
 			removeSubring(pc);
-
 			pc.updateRtsValsAndPen();
 			pc.rtsCheck();
 
@@ -615,19 +626,17 @@ public:
 			pc.updatePen();
 			pc.updateRtsCost();
 			if (pc.repair()) {
-				if (isSucceed == false) {
+				pc.minimizeRL();
+				if (!isSucceed) {
+					sbest = pc;
 					isSucceed = true;
+				}
+				else if (pc.RoutesCost < sbest.RoutesCost) {
 					sbest = pc;
 				}
-				else {
-					if (pc.RoutesCost < sbest.RoutesCost) {
-						sbest = pc;
-					}
-				}
-				
 			}
-			
 		}
+		
 		if (isSucceed) {
 			pc = sbest;
 		}

@@ -86,9 +86,9 @@ struct Input {
 	int nagataRec = 0;
 
 #if DISDOUBLE
-	int mul = 1;
+	LL mul = 1;
 #else
-	int mul = 100000;
+	LL mul = 100000;
 
 #endif // DISDOUBLE
 
@@ -129,6 +129,7 @@ struct Input {
 
 		getSintefBestRec();
 		getNatagaRec();
+		//C1_10_1 100 42478.95
 
 		initInput(ex);
 		//initPolar();
@@ -288,7 +289,7 @@ struct Input {
 			for (int j = i + 1; j <= custCnt + 1; j++) {
 				Data& d1 = datas[i];
 				Data& d2 = datas[j];
-				double dis = sqrtl((d1.XCOORD - d2.XCOORD) * (d1.XCOORD - d2.XCOORD)
+				long double dis = sqrtl((d1.XCOORD - d2.XCOORD) * (d1.XCOORD - d2.XCOORD)
 					+ (d1.YCOORD - d2.YCOORD) * (d1.YCOORD - d2.YCOORD));
 
 #if DISDOUBLE
@@ -489,10 +490,11 @@ struct Input {
 			fin >> ins;
 			fin >> veh;
 			fin >> dis;
+			//debug(dis)
 			bestRec[ins] = veh;
 
 			sintefMinlen[ins] = dis;
-
+			
 		} while (getline(fin, str));
 
 		fin.clear();

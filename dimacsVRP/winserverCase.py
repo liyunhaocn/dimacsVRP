@@ -83,17 +83,17 @@ EP12Cases = [
 "C1_8_7",
 
 ]
-cases = EP012Cases
+cases = all63Cases
 
 # strBase = "start cmd /k \"dimacsVRP.exe 1 C2_10_2 36000\""
-path = "./breakEP012_10h.bat"
+path = "./all63mRL.bat"
 
 print(str(sys.argv))
 print(len(sys.argv))
 
 part = 8
-runTime = "36000"
-isBreak = "1"
+runTime = "3600"
+isBreak = "0"
 
 if len(sys.argv) > 1:
 	isBreak = sys.argv[1]

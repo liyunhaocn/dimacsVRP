@@ -1,33 +1,33 @@
 ﻿C:\Program Files (x86)\Microsoft Visual Studio\2019\Community\MSBuild\Microsoft\VC\v160\Microsoft.CppBuild.targets(445,5): warning MSB8004: Output Directory does not end with a trailing slash.  This build instance will add the slash as it is required to allow proper evaluation of the Output Directory.
   main.cpp
-E:\dimacsVRP\VRPTWNEW\Problem.h(153,26): warning C4244: “=”: 从“_Ty”转换到“int”，可能丢失数据
+E:\dimacsVRP\VRPTWNEW\Problem.h(154,26): warning C4244: “=”: 从“_Ty”转换到“int”，可能丢失数据
           with
           [
               _Ty=vrptwNew::DisType
           ]
-E:\dimacsVRP\VRPTWNEW\Problem.h(167,27): warning C4244: “=”: 从“_Ty”转换到“int”，可能丢失数据
+E:\dimacsVRP\VRPTWNEW\Problem.h(168,27): warning C4244: “=”: 从“_Ty”转换到“int”，可能丢失数据
           with
           [
               _Ty=vrptwNew::DisType
           ]
-E:\dimacsVRP\VRPTWNEW\Problem.h(168,17): warning C4244: “初始化”: 从“double”转换到“int”，可能丢失数据
-E:\dimacsVRP\VRPTWNEW\Problem.h(204,22): warning C4244: “=”: 从“vrptwNew::LL”转换到“int”，可能丢失数据
-E:\dimacsVRP\VRPTWNEW\Problem.h(292,6): warning C4244: “参数”: 从“vrptwNew::LL”转换到“long double”，可能丢失数据
-E:\dimacsVRP\VRPTWNEW\Problem.h(297,37): warning C4244: “=”: 从“double”转换到“_Ty”，可能丢失数据
+E:\dimacsVRP\VRPTWNEW\Problem.h(169,17): warning C4244: “初始化”: 从“double”转换到“int”，可能丢失数据
+E:\dimacsVRP\VRPTWNEW\Problem.h(205,22): warning C4244: “=”: 从“vrptwNew::LL”转换到“int”，可能丢失数据
+E:\dimacsVRP\VRPTWNEW\Problem.h(293,6): warning C4244: “参数”: 从“vrptwNew::LL”转换到“long double”，可能丢失数据
+E:\dimacsVRP\VRPTWNEW\Problem.h(298,37): warning C4244: “=”: 从“long double”转换到“_Ty”，可能丢失数据
           with
           [
               _Ty=vrptwNew::DisType
           ]
-E:\dimacsVRP\VRPTWNEW\Problem.h(364,53): warning C4244: “参数”: 从“vrptwNew::LL”转换到“const _Ty”，可能丢失数据
+E:\dimacsVRP\VRPTWNEW\Problem.h(365,53): warning C4244: “参数”: 从“vrptwNew::LL”转换到“const _Ty”，可能丢失数据
           with
           [
               _Ty=int
           ]
-E:\dimacsVRP\VRPTWNEW\Problem.h(402,38): warning C4244: “=”: 从“double”转换到“vrptwNew::DisType”，可能丢失数据
-E:\dimacsVRP\VRPTWNEW\Problem.h(405,30): warning C4244: “=”: 从“vrptwNew::LL”转换到“int”，可能丢失数据
-E:\dimacsVRP\VRPTWNEW\Problem.h(423,10): warning C4244: “初始化”: 从“double”转换到“vrptwNew::LL”，可能丢失数据
-E:\dimacsVRP\VRPTWNEW\Problem.h(492,19): warning C4244: “=”: 从“vrptwNew::LL”转换到“int”，可能丢失数据
-E:\dimacsVRP\VRPTWNEW\Problem.h(545,27): warning C4244: “=”: 从“vrptwNew::LL”转换到“int”，可能丢失数据
+E:\dimacsVRP\VRPTWNEW\Problem.h(403,38): warning C4244: “=”: 从“double”转换到“vrptwNew::DisType”，可能丢失数据
+E:\dimacsVRP\VRPTWNEW\Problem.h(406,30): warning C4244: “=”: 从“vrptwNew::LL”转换到“int”，可能丢失数据
+E:\dimacsVRP\VRPTWNEW\Problem.h(424,10): warning C4244: “初始化”: 从“double”转换到“vrptwNew::LL”，可能丢失数据
+E:\dimacsVRP\VRPTWNEW\Problem.h(494,19): warning C4244: “=”: 从“vrptwNew::LL”转换到“int”，可能丢失数据
+E:\dimacsVRP\VRPTWNEW\Problem.h(547,27): warning C4244: “=”: 从“vrptwNew::LL”转换到“int”，可能丢失数据
 E:\dimacsVRP\VRPTWNEW\Solver.h(333,1): warning C4267: “初始化”: 从“size_t”转换到“int”，可能丢失数据
 E:\dimacsVRP\VRPTWNEW\Solver.h(346,1): warning C4267: “初始化”: 从“size_t”转换到“int”，可能丢失数据
 E:\dimacsVRP\VRPTWNEW\Solver.h(364,27): warning C4244: “参数”: 从“vrptwNew::LL”转换到“unsigned int”，可能丢失数据
@@ -43,7 +43,7 @@ E:\dimacsVRP\VRPTWNEW\Solver.h(2639,1): warning C4819: 该文件包含不能在�
 E:\dimacsVRP\VRPTWNEW\Solver.h(3726,1): warning C4819: 该文件包含不能在当前代码页(936)中表示的字符。请将该文件保存为 Unicode 格式以防止数据丢失
 E:\dimacsVRP\VRPTWNEW\Solver.h(5015,1): warning C4819: 该文件包含不能在当前代码页(936)中表示的字符。请将该文件保存为 Unicode 格式以防止数据丢失
 E:\dimacsVRP\VRPTWNEW\Solver.h(5923,1): warning C4819: 该文件包含不能在当前代码页(936)中表示的字符。请将该文件保存为 Unicode 格式以防止数据丢失
-E:\dimacsVRP\VRPTWNEW\Solver.h(7082,1): warning C4819: 该文件包含不能在当前代码页(936)中表示的字符。请将该文件保存为 Unicode 格式以防止数据丢失
+E:\dimacsVRP\VRPTWNEW\Solver.h(7087,1): warning C4819: 该文件包含不能在当前代码页(936)中表示的字符。请将该文件保存为 Unicode 格式以防止数据丢失
 E:\dimacsVRP\VRPTWNEW\Solver.h(767,38): warning C4244: “参数”: 从“vrptwNew::LL”转换到“int”，可能丢失数据
 E:\dimacsVRP\VRPTWNEW\Solver.h(1559,17): warning C4244: “初始化”: 从“vrptwNew::LL”转换到“int”，可能丢失数据
 E:\dimacsVRP\VRPTWNEW\Solver.h(1708,39): warning C4244: “参数”: 从“vrptwNew::LL”转换到“int”，可能丢失数据
@@ -128,39 +128,42 @@ E:\dimacsVRP\VRPTWNEW\Solver.h(5648,70): warning C4244: “参数”: 从“vrpt
 E:\dimacsVRP\VRPTWNEW\Solver.h(5762,1): warning C4267: “初始化”: 从“size_t”转换到“int”，可能丢失数据
 E:\dimacsVRP\VRPTWNEW\Solver.h(5831,15): warning C4244: “初始化”: 从“__int64”转换到“int”，可能丢失数据
 E:\dimacsVRP\VRPTWNEW\Solver.h(5859,1): warning C4267: “参数”: 从“size_t”转换到“int”，可能丢失数据
-E:\dimacsVRP\VRPTWNEW\Solver.h(6510,1): warning C4244: “*=”: 从“double”转换到“int”，可能丢失数据
-E:\dimacsVRP\VRPTWNEW\Solver.h(6542,1): warning C4244: “*=”: 从“double”转换到“int”，可能丢失数据
-E:\dimacsVRP\VRPTWNEW\Solver.h(6582,1): warning C4244: “*=”: 从“double”转换到“int”，可能丢失数据
-E:\dimacsVRP\VRPTWNEW\Solver.h(6629,1): warning C4244: “*=”: 从“double”转换到“int”，可能丢失数据
-E:\dimacsVRP\VRPTWNEW\Solver.h(6675,1): warning C4267: “初始化”: 从“size_t”转换到“int”，可能丢失数据
-E:\dimacsVRP\VRPTWNEW\Solver.h(6866,15): warning C4244: “初始化”: 从“vrptwNew::DisType”转换到“int”，可能丢失数据
-E:\dimacsVRP\VRPTWNEW\Solver.h(6894,1): warning C4267: “初始化”: 从“size_t”转换到“int”，可能丢失数据
-E:\dimacsVRP\VRPTWNEW\Solver.h(7335,16): warning C4244: “=”: 从“vrptwNew::DisType”转换到“int”，可能丢失数据
-E:\dimacsVRP\VRPTWNEW\Solver.h(7342,1): warning C4267: “参数”: 从“size_t”转换到“int”，可能丢失数据
-E:\dimacsVRP\VRPTWNEW\Solver.h(7407,1): warning C4244: “+=”: 从“vrptwNew::LL”转换到“int”，可能丢失数据
-E:\dimacsVRP\VRPTWNEW\Solver.h(7830,1): warning C4267: “=”: 从“size_t”转换到“int”，可能丢失数据
-E:\dimacsVRP\VRPTWNEW\Solver.h(8106,1): warning C4267: “=”: 从“size_t”转换到“int”，可能丢失数据
-E:\dimacsVRP\VRPTWNEW\Solver.h(8110,1): warning C4267: “=”: 从“size_t”转换到“int”，可能丢失数据
-E:\dimacsVRP\VRPTWNEW\Solver.h(8111,1): warning C4267: “=”: 从“size_t”转换到“int”，可能丢失数据
-E:\dimacsVRP\VRPTWNEW\Solver.h(8125,1): warning C4267: “=”: 从“size_t”转换到“int”，可能丢失数据
-E:\dimacsVRP\VRPTWNEW\Solver.h(8132,1): warning C4267: “初始化”: 从“size_t”转换到“int”，可能丢失数据
+E:\dimacsVRP\VRPTWNEW\Solver.h(6508,1): warning C4244: “*=”: 从“double”转换到“int”，可能丢失数据
+E:\dimacsVRP\VRPTWNEW\Solver.h(6540,1): warning C4244: “*=”: 从“double”转换到“int”，可能丢失数据
+E:\dimacsVRP\VRPTWNEW\Solver.h(6580,1): warning C4244: “*=”: 从“double”转换到“int”，可能丢失数据
+E:\dimacsVRP\VRPTWNEW\Solver.h(6627,1): warning C4244: “*=”: 从“double”转换到“int”，可能丢失数据
+E:\dimacsVRP\VRPTWNEW\Solver.h(6673,1): warning C4267: “初始化”: 从“size_t”转换到“int”，可能丢失数据
+E:\dimacsVRP\VRPTWNEW\Solver.h(6864,15): warning C4244: “初始化”: 从“vrptwNew::DisType”转换到“int”，可能丢失数据
+E:\dimacsVRP\VRPTWNEW\Solver.h(6892,1): warning C4267: “初始化”: 从“size_t”转换到“int”，可能丢失数据
+E:\dimacsVRP\VRPTWNEW\Solver.h(7193,1): warning C4267: “初始化”: 从“size_t”转换到“int”，可能丢失数据
+E:\dimacsVRP\VRPTWNEW\Solver.h(7333,16): warning C4244: “=”: 从“vrptwNew::DisType”转换到“int”，可能丢失数据
+E:\dimacsVRP\VRPTWNEW\Solver.h(7340,1): warning C4267: “参数”: 从“size_t”转换到“int”，可能丢失数据
+E:\dimacsVRP\VRPTWNEW\Solver.h(7405,1): warning C4244: “+=”: 从“vrptwNew::LL”转换到“int”，可能丢失数据
+E:\dimacsVRP\VRPTWNEW\Solver.h(7821,1): warning C4267: “=”: 从“size_t”转换到“int”，可能丢失数据
+E:\dimacsVRP\VRPTWNEW\Solver.h(8090,1): warning C4267: “=”: 从“size_t”转换到“int”，可能丢失数据
+E:\dimacsVRP\VRPTWNEW\Solver.h(8094,1): warning C4267: “=”: 从“size_t”转换到“int”，可能丢失数据
+E:\dimacsVRP\VRPTWNEW\Solver.h(8095,1): warning C4267: “=”: 从“size_t”转换到“int”，可能丢失数据
+E:\dimacsVRP\VRPTWNEW\Solver.h(8109,1): warning C4267: “=”: 从“size_t”转换到“int”，可能丢失数据
+E:\dimacsVRP\VRPTWNEW\Solver.h(8116,1): warning C4267: “初始化”: 从“size_t”转换到“int”，可能丢失数据
+E:\dimacsVRP\VRPTWNEW\Solver.h(8222,6): warning C4477: “printf”: 格式字符串“%.15lf”需要类型“double”的参数，但可变参数 1 拥有了类型“vrptwNew::DisType”
+E:\dimacsVRP\VRPTWNEW\Solver.h(8223,6): warning C4477: “printf”: 格式字符串“%.15lf”需要类型“double”的参数，但可变参数 1 拥有了类型“vrptwNew::DisType”
+E:\dimacsVRP\VRPTWNEW\Solver.h(8224,6): warning C4477: “printf”: 格式字符串“%.15lf”需要类型“double”的参数，但可变参数 1 拥有了类型“vrptwNew::DisType”
+E:\dimacsVRP\VRPTWNEW\Solver.h(8225,6): warning C4477: “printf”: 格式字符串“%.15lf”需要类型“double”的参数，但可变参数 1 拥有了类型“vrptwNew::DisType”
+E:\dimacsVRP\VRPTWNEW\Solver.h(8226,6): warning C4477: “printf”: 格式字符串“%.15lf”需要类型“double”的参数，但可变参数 1 拥有了类型“vrptwNew::DisType”
+E:\dimacsVRP\VRPTWNEW\Solver.h(8227,6): warning C4477: “printf”: 格式字符串“%.15lf”需要类型“double”的参数，但可变参数 1 拥有了类型“vrptwNew::DisType”
+E:\dimacsVRP\VRPTWNEW\Solver.h(8228,6): warning C4477: “printf”: 格式字符串“%.15lf”需要类型“double”的参数，但可变参数 1 拥有了类型“vrptwNew::DisType”
+E:\dimacsVRP\VRPTWNEW\Solver.h(8230,6): warning C4477: “printf”: 格式字符串“%.15lf”需要类型“double”的参数，但可变参数 1 拥有了类型“vrptwNew::DisType”
+E:\dimacsVRP\VRPTWNEW\Solver.h(8231,6): warning C4477: “printf”: 格式字符串“%.15lf”需要类型“double”的参数，但可变参数 1 拥有了类型“vrptwNew::DisType”
+E:\dimacsVRP\VRPTWNEW\Solver.h(8233,5): warning C4477: “printf”: 格式字符串“%.15lf”需要类型“double”的参数，但可变参数 1 拥有了类型“vrptwNew::DisType”
+E:\dimacsVRP\VRPTWNEW\Solver.h(8234,6): warning C4477: “printf”: 格式字符串“%.15lf”需要类型“double”的参数，但可变参数 1 拥有了类型“vrptwNew::DisType”
+E:\dimacsVRP\VRPTWNEW\Solver.h(8235,6): warning C4477: “printf”: 格式字符串“%.15lf”需要类型“double”的参数，但可变参数 1 拥有了类型“vrptwNew::DisType”
+E:\dimacsVRP\VRPTWNEW\Solver.h(8364,16): warning C4244: “=”: 从“vrptwNew::DisType”转换到“int”，可能丢失数据
 E:\dimacsVRP\VRPTWNEW\EAX.h(46,93): warning C4244: “参数”: 从“vrptwNew::LL”转换到“int”，可能丢失数据
-E:\dimacsVRP\VRPTWNEW\EAX.h(577,1): warning C4244: “-=”: 从“_Ty”转换到“int”，可能丢失数据
-          with
-          [
-              _Ty=vrptwNew::DisType
-          ]
-E:\dimacsVRP\VRPTWNEW\EAX.h(580,1): warning C4244: “+=”: 从“_Ty”转换到“int”，可能丢失数据
-          with
-          [
-              _Ty=vrptwNew::DisType
-          ]
-E:\dimacsVRP\VRPTWNEW\EAX.h(595,1): warning C4267: “参数”: 从“size_t”转换到“int”，可能丢失数据
-E:\dimacsVRP\VRPTWNEW\EAX.h(596,1): warning C4267: “=”: 从“size_t”转换到“int”，可能丢失数据
-E:\dimacsVRP\VRPTWNEW\EAX.h(638,1): warning C4267: “+=”: 从“size_t”转换到“int”，可能丢失数据
+E:\dimacsVRP\VRPTWNEW\EAX.h(608,1): warning C4267: “参数”: 从“size_t”转换到“int”，可能丢失数据
+E:\dimacsVRP\VRPTWNEW\EAX.h(647,1): warning C4267: “+=”: 从“size_t”转换到“int”，可能丢失数据
   正在生成代码
-  967 of 1683 functions (57.5%) were compiled, the rest were copied from previous compilation.
+  115 of 2032 functions ( 5.7%) were compiled, the rest were copied from previous compilation.
     0 functions were new in current compilation
-    105 functions had inline decision re-evaluated but remain unchanged
+    46 functions had inline decision re-evaluated but remain unchanged
   已完成代码的生成
   dimacsVRP.vcxproj -> E:\dimacsVRP\dimacsVRP\dimacsVRP.exe
