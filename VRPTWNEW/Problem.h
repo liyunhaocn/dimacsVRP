@@ -125,12 +125,12 @@ struct Input {
 
 	vector<PolarCo> vPos;
 
-	Input(string ex,Configuration cfg):cfg(cfg) {
+	Input(Environment& env,Configuration& cfg):cfg(cfg) {
 
-		getSintefBestRec();
+		getSintefBestRec(env);
 		getNatagaRec();
 
-		initInput(ex);
+		initInput(env);
 		//initPolar();
 	}
 
@@ -187,35 +187,27 @@ struct Input {
 		return true;
 	}
 
-	bool initInput(string example) {
+	bool initInput(Environment env) {
 
-		if (example == "") {
-			example = "C1_2_1";
+		if (env.example == "") {
 			this->example = "C1_2_1";
 		}
 		else {
-			this->example = example;
+			this->example = env.example;
 		}
 
 		MyString ms;
 		vector<string> mssp = ms.split(example, "_");
 		string customersNum = mssp[1] + "00";
 
-		custCnt = ms.str_LL(customersNum);
+		this->custCnt = ms.str_LL(customersNum);
 		//10 11 20
-		string basePath = "./homberger_" + customersNum + "_customer_instances/";
-
-		if (mssp[2].size()==2 && mssp[2] >= "11" && mssp[2] <= "20") {
-			basePath = "./hustlyh_" + customersNum + "_customer_instances/";
-		}
 		
-		string path = basePath + example + ".TXT";
-
-		ifstream fin(path);
+		ifstream fin(env.inputPath);
 
 		if (!fin.good()) {
 			Log(Log::Level::Error) << "input file open error!" << endl;
-			Log(Log::Level::Error) << path << endl;
+			Log(Log::Level::Error) << env.inputPath << endl;
 			return false;
 		}
 
@@ -404,7 +396,7 @@ struct Input {
 		nagataRec = nagataRecs[mssp[0] + "_" + mssp[1] + "_"];
 		sumQToQ = getTheMinRouteNum();
 
-		Log(Log::Level::Warning) <<"path: " << path  << endl;
+		Log(Log::Level::Warning) <<"path: " << env.inputPath << endl;
 		Log(Log::Level::Warning) <<"sintefRecRN: " << sintefRecRN << endl;
 		Log(Log::Level::Warning) <<"sintefRecRL: " << sintefRecRL << endl;
 		Log(Log::Level::Warning) <<"nagataRec: " << nagataRec << endl;
@@ -465,9 +457,9 @@ struct Input {
 		return true;
 	}
 
-	bool getSintefBestRec() {
+	bool getSintefBestRec(Environment& env) {
 
-		string file = "./bestRec.txt";
+		string file = env.sinRecPath;
 
 		string ins;
 		LL veh;
@@ -529,7 +521,7 @@ struct Output
 
 };
 
-bool solveCommandLine(int argc, char* argv[], Configuration &cfg,Environment &env) {
+bool solveCommandLine(int argc, char* argv[], Configuration& cfg,Environment& env) {
 	
 	MyString ms;
 	if (argc >= 2) {
@@ -538,7 +530,7 @@ bool solveCommandLine(int argc, char* argv[], Configuration &cfg,Environment &en
 
 	if (argc >= 3) {
 		string example = argv[2];
-		env.example = example;
+		env.setExample(example);
 	}
 
 	if (argc >= 4) {
@@ -578,7 +570,7 @@ bool saveSln(Input& input, Output& output,Configuration& cfg,Environment& env) {
 	string type = output.rts.size() < input.sintefRecRN ? "br" : "Ej";
 
 	std::ofstream rgbData;
-	string wrPath = "./"
+	string wrPath = env.outputPath 
 		+ type + day
 		/*+ "PW" + pwe0 + pwe1
 		+ "KM" + minKmax + maxKmax

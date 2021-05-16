@@ -27,7 +27,7 @@
     </ProjectConfiguration>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="..\main.cpp" />
+    <ClCompile Include="..\VRPTWNEW\main.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\VRPTWNEW\Configuration.h" />
@@ -124,7 +124,8 @@
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <LinkIncremental>false</LinkIncremental>
-    <OutDir>$(SolutionDir)dimacsVRP</OutDir>
+    <OutDir>$(SolutionDir)Dev</OutDir>
+    <IntDir>$(SolutionDir)$(Configuration)</IntDir>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='O0opt|x64'">
     <LinkIncremental>false</LinkIncremental>

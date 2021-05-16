@@ -1538,7 +1538,7 @@ namespace vrptwNew {
 
 			MyString ms;
 			string csCnt = ms.LL_str(input.custCnt);
-			string path = "./results" + csCnt + "/" + input.example + ".txt";
+			string path = env.sinBKSPath + "results" + csCnt + "/" + input.example + ".txt";
 			ifstream fin(path);
 			string str;
 
@@ -1669,7 +1669,7 @@ namespace vrptwNew {
 			}
 
 			//_root_vrptw_data_200_R1_2_1.TXT_11.sol
-			path = "./betterInit/_root_vrptw_data_" + csCnt + "_" + input.example + ".TXT_" + caseNoStr + ".sol";
+			path = env.linBKSPath+"./betterInit/_root_vrptw_data_" + csCnt + "_" + input.example + ".TXT_" + caseNoStr + ".sol";
 
 			ifstream f(path.c_str());
 			Log(Log::Info) << "path: " << path << endl;

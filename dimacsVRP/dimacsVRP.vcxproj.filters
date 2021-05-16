@@ -18,8 +18,8 @@
     </Filter>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="..\main.cpp">
-      <Filter>源文件</Filter>
+    <ClCompile Include="..\VRPTWNEW\main.cpp">
+      <Filter>VRPTWNEW</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
