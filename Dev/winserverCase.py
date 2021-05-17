@@ -1,10 +1,4 @@
-import requests
-from bs4 import BeautifulSoup
-from datetime import datetime
-import re
-import json
-import pandas
-import random
+
 import sys
 
 
@@ -86,13 +80,14 @@ EP12Cases = [
 cases = EP012Cases
 
 # strBase = "start cmd /k \"dimacsVRP.exe 1 C2_10_2 36000\""
-path = "./breakEP012_10h.bat"
+path = "./breakEP012_24h.bat"
 
 print(str(sys.argv))
 print(len(sys.argv))
 
 part = 8
-runTime = "36000"
+# runTime = "36000"
+runTime = "86400"
 isBreak = "1"
 
 if len(sys.argv) > 1:
