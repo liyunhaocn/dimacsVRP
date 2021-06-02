@@ -294,17 +294,39 @@ struct Input {
 
 		allCloseOf = vector< vector<int>>(custCnt + 1, vector<int>(0));
 
+
+		auto canLinkNode = [&](int a, int b) {
+			DisType abp = datas[a].READYTIME + datas[a].SERVICETIME + disOf[a][b];
+			DisType aap = datas[b].READYTIME + datas[b].SERVICETIME + disOf[a][b];
+			if (aap > datas[a].DUEDATE && abp > datas[b].DUEDATE) {
+				return false;
+			}
+			return true;
+		};
+
 		for (int v = 0; v <= custCnt; v++) {
 
 			vector<int> nums;
 			nums.reserve(custCnt + 1);
+
 			for (int pos = 0; pos <= custCnt; pos++) {
 				if (pos != v) {
 					nums.push_back(pos);
 				}
 			}
 
-			auto cmp = [=](const LL a, const LL b) {return disOf[a][v] < disOf[b][v]; };
+			auto cmp = [=](const LL a, const LL b) {
+				int aLinkv = canLinkNode(a, v);
+				int bLinkv = canLinkNode(b, v);
+				if ( (aLinkv && bLinkv) || (!aLinkv && !bLinkv)) {
+					return disOf[a][v] < disOf[b][v];
+				}
+				else {
+					return aLinkv ? true : false;
+				}
+				return false;
+			};
+
 			sort(nums.begin(), nums.end(), cmp);
 
 			allCloseOf[v] = nums;
@@ -372,8 +394,17 @@ struct Input {
 			}
 
 			auto cmp = [&](LL a, LL b) {
-				return disOf[v][a] + datas[a].SERVICETIME <
-					disOf[v][b] + datas[b].SERVICETIME;
+
+				int aLinkv = canLinkNode(a, v);
+				int bLinkv = canLinkNode(b, v);
+				if ((aLinkv && bLinkv) || (!aLinkv && !bLinkv)) {
+					return disOf[v][a] + datas[a].SERVICETIME <
+						disOf[v][b] + datas[b].SERVICETIME;
+				}
+				else {
+					return aLinkv ? true : false;
+				}
+
 			};
 
 			sort(addSTclose[v].begin(), addSTclose[v].end(), cmp);
