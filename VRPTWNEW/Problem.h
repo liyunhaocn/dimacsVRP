@@ -149,13 +149,13 @@ struct Input {
 		vInsectorGroups = vector<vector<LL>>(polarCaseNum);*/
 
 		vPos = vector<PolarCo>(custCnt + 1);
-		for (int v = 1; v <= custCnt; ++v) {
+		for (int v = 1; v <= custCnt; v++) {
 			vPos[v].P = disOf[0][v];
 			vPos[v].theta = cartesianToPolar(datas[v].XCOORD - datas[0].XCOORD, datas[v].YCOORD - datas[0].YCOORD);
 		}
 
 
-		for (int c = 0; c < polarCaseNum; ++c) {
+		for (int c = 0; c < polarCaseNum; c++) {
 			int angleNum = arrAngleNum[c];
 			int ringNum = arrRingNum[c];
 			double initAngle = arrInitAngles[c];
@@ -163,7 +163,7 @@ struct Input {
 			vector<vector<int>> sectorGroup(angleNum * ringNum);
 			vector<int> vInsectorGroup(custCnt + 1);
 
-			for (int v = 1; v <= custCnt; ++v) {
+			for (int v = 1; v <= custCnt; v++) {
 				vPos[v].P = disOf[0][v];
 				int angleNO = min((double)angleNum - 1, (vPos[v].theta - initAngle) / (2 * PI / angleNum));
 				int PNO = min(ringNum - 1, jIsxthcloseOf[0][v] / (custCnt / ringNum));
@@ -172,9 +172,9 @@ struct Input {
 				vInsectorGroup[v] = PNO * angleNum + angleNO;
 			}
 			/*LL cnt = 0;
-			for (int i = 0; i < sectorGroup.size(); ++i) {
+			for (int i = 0; i < sectorGroup.size(); i++) {
 				cnt += sectorGroup[i].size();
-				for (int j = 0; j < sectorGroup[i].size(); ++j) {
+				for (int j = 0; j < sectorGroup[i].size(); j++) {
 					cout << sectorGroup[i][j] << " ";
 				}
 				cout << endl;
@@ -219,7 +219,7 @@ struct Input {
 		line = 0;
 		while (getline(fin, str)) {
 
-			++line;
+			line++;
 			istringstream is(str);
 
 			if (line == 5) {
@@ -252,7 +252,7 @@ struct Input {
 			if (line == 10) {
 				
 				datas[line - 10] = data0;
-				for (int i = custCnt + 1; i <= custCnt + 400; ++i) {
+				for (int i = custCnt + 1; i <= custCnt + 400; i++) {
 					data0.CUSTNO = i;
 					datas[i] = data0;
 				}
@@ -276,8 +276,8 @@ struct Input {
 			float精度最低，double较高，long double精度最高
 		*/
 
-		for (int i = 0; i <= custCnt + 1; ++i) {
-			for (int j = i + 1; j <= custCnt + 1; ++j) {
+		for (int i = 0; i <= custCnt + 1; i++) {
+			for (int j = i + 1; j <= custCnt + 1; j++) {
 				Data& d1 = datas[i];
 				Data& d2 = datas[j];
 				double dis = sqrtl((d1.XCOORD - d2.XCOORD) * (d1.XCOORD - d2.XCOORD)
@@ -304,16 +304,12 @@ struct Input {
 			return true;
 		};
 
-		//freopen("com.csv","a",stdout);
-
-		for (int v = 0; v <= custCnt; ++v) {
+		for (int v = 0; v <= custCnt; v++) {
 
 			vector<int> nums;
 			nums.reserve(custCnt + 1);
 
-			int cnt = 0;
-			for (int pos = 0; pos <= custCnt; ++pos) {
-
+			for (int pos = 0; pos <= custCnt; pos++) {
 				if (pos != v) {
 					nums.push_back(pos);
 				}
@@ -330,31 +326,17 @@ struct Input {
 				}
 				return false;
 			};
-			auto ncop = nums;
+
 			sort(nums.begin(), nums.end(), cmp);
+
 			allCloseOf[v] = nums;
-
-			/*auto cmp1 = [=](const LL a, const LL b) {
-				return disOf[a][v] < disOf[b][v];
-			};
-
-			sort(ncop.begin(), ncop.end(), cmp1);
-			for (auto i : ncop) {
-				cout << i << ", ";
-			}
-			cout << endl;
-			for (auto i : nums) {
-				cout << i << ", ";
-			}
-			cout << endl;*/
-			
 		}
 
 		jIsxthcloseOf = vector< vector<int> >
 			(custCnt + 1, vector<int>(custCnt + 1, -1));
 
-		for (int i = 0; i <= custCnt; ++i) {
-			for (int j = 0; j < custCnt; ++j) {
+		for (int i = 0; i <= custCnt; i++) {
+			for (int j = 0; j < custCnt; j++) {
 				jIsxthcloseOf[i][allCloseOf[i][j]] = j;
 			}
 		}
@@ -363,19 +345,19 @@ struct Input {
 
 		vector<int> devs = cfg.outNeiSize;
 
-		for (int i = 0; i < devs.size(); ++i) {
+		for (int i = 0; i < devs.size(); i++) {
 
 			LL deNeiSize = devs[i];
 
 			iInNeicloseOf = vector< vector<int> >
 				(custCnt + 1, vector<int>());
 
-			for (int i = 0; i < custCnt + 1; ++i) {
+			for (int i = 0; i < custCnt + 1; i++) {
 				iInNeicloseOf[i].reserve(custCnt);
 			}
 
-			for (int v = 0; v <= custCnt; ++v) {
-				for (int wpos = 0; wpos < deNeiSize; ++wpos) {
+			for (int v = 0; v <= custCnt; v++) {
+				for (int wpos = 0; wpos < deNeiSize; wpos++) {
 					LL w = allCloseOf[v][wpos];
 					iInNeicloseOf[w].push_back(v);
 				}
@@ -384,12 +366,12 @@ struct Input {
 			iInNeicloseOfUnionNeiCloseOfI[i] 
 				= vector<vector<int>>(custCnt + 1);
 
-			for (int v = 0; v <= custCnt; ++v) {
+			for (int v = 0; v <= custCnt; v++) {
 
 				iInNeicloseOfUnionNeiCloseOfI[i][v] = vector<int>
 					(allCloseOf[v].begin(), allCloseOf[v].begin() + deNeiSize);
 
-				for (int wpos = 0; wpos < iInNeicloseOf[v].size(); ++wpos) {
+				for (int wpos = 0; wpos < iInNeicloseOf[v].size(); wpos++) {
 
 					LL w = iInNeicloseOf[v][wpos];
 					if (jIsxthcloseOf[v][w] >= deNeiSize) {
@@ -402,9 +384,9 @@ struct Input {
 		addSTclose = vector< vector<int>>
 			(custCnt + 1, vector<int>());
 
-		for (int v = 0; v <= custCnt; ++v) {
+		for (int v = 0; v <= custCnt; v++) {
 			addSTclose[v].reserve(custCnt);
-			for (int w = 0; w <= custCnt; ++w) {
+			for (int w = 0; w <= custCnt; w++) {
 				if (w == v) {
 					continue;
 				}
@@ -431,8 +413,8 @@ struct Input {
 		addSTJIsxthcloseOf = vector< vector<int>>
 			(custCnt + 1, vector<int>(custCnt + 1, -1));
 
-		for (int v = 0; v <= custCnt; ++v) {
-			for (int wpos = 0; wpos < addSTclose[v].size(); ++wpos) {
+		for (int v = 0; v <= custCnt; v++) {
+			for (int wpos = 0; wpos < addSTclose[v].size(); wpos++) {
 				LL w = addSTclose[v][wpos];
 				addSTJIsxthcloseOf[v][w] = wpos;
 			}
@@ -458,7 +440,7 @@ struct Input {
 	// 得到容量下界：sumQ/Q
 	LL getTheMinRouteNum() {
 		double sumQ = 0;
-		for (int i = 1; i <= custCnt; ++i) {
+		for (int i = 1; i <= custCnt; i++) {
 			sumQ += (double)datas[i].DEMAND;
 		}
 		LL ret = ceil(sumQ / (double)Q);
@@ -644,7 +626,7 @@ bool saveSln(Input& input, Output& output,Configuration& cfg,Environment& env) {
 	rgbData << output.runTime << "s ,";
 	rgbData << "EPs " << output.EP.size() << ": ";
 
-	for (int i = 0; i < output.EP.size(); ++i) {
+	for (int i = 0; i < output.EP.size(); i++) {
 		rgbData << output.EP[i]<< "|";
 		
 	}
@@ -653,9 +635,9 @@ bool saveSln(Input& input, Output& output,Configuration& cfg,Environment& env) {
 	rgbData << "minEP " << output.minEP << ",";
 	rgbData << "Ptw " << output.PtwNoWei << ",";
 	rgbData << "Pc " << output.Pc << ",";
-	for (int i = 0; i < output.rts.size(); ++i) {
+	for (int i = 0; i < output.rts.size(); i++) {
 		rgbData << "Route  " << i + 1 << " : ";
-		for (int j = 0; j < output.rts[i].size(); ++j) {
+		for (int j = 0; j < output.rts[i].size(); j++) {
 			rgbData << output.rts[i][j] << " ";
 		}
 		rgbData << "| ";
