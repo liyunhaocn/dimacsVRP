@@ -23,7 +23,7 @@ using namespace std;
 
 bool run(int argc, char* argv[]) {
 
-	vrpSln::Environment env("C1_8_2");
+	vrpSln::Environment env("C1_6_6");
 	vrpSln::Configuration cfg;
 	//cfg.breakRecord = 1;
 	cfg.runTimer = 900;
@@ -494,7 +494,7 @@ int main(int argc, char* argv[])
 
 	//solverByEAX(argc, argv);
 	//makeCases(argc, argv);
-	//for(;;)
+	for(;;)
 	run(argc, argv);
 	
 	return 0;

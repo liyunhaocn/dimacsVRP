@@ -8140,7 +8140,7 @@ namespace vrptwNew {
 			auto cmp = [&](const int& a,const int& b) {
 
 				if (P[a] == P[b]) {
-					return input.datas[a].DUEDATE - input.datas[a].READYTIME >
+					return input.datas[a].DUEDATE - input.datas[a].READYTIME <
 						input.datas[b].DUEDATE - input.datas[b].READYTIME;
 				}
 				else {

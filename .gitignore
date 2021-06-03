@@ -1,1 +1,8 @@
 /.vs
+/Results/*.csv
+/Dev/*.exe
+/Dev/dimacsVRP.pdb
+/Dev/dimacsVRP.iobj
+/Dev/dimacsVRP.ipdb
+/Release
+dimacsVRP.tlog
