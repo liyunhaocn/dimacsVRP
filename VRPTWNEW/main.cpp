@@ -23,14 +23,14 @@ using namespace std;
 
 bool run(int argc, char* argv[]) {
 
-	vrpSln::Environment env("C1_6_6");
+	vrpSln::Environment env("C1_8_2");
 	vrpSln::Configuration cfg;
-
+	//cfg.breakRecord = 1;
 	solveCommandLine(argc, argv, cfg, env);
 
 	vrpSln::DateTime d(time(0));
 	cout << d << endl;
-	deOut("compile tag:")debug("0424-2")
+	deOut("compile tag:")debug("0602-1")
 	debug(argc)
 
 	
@@ -158,7 +158,7 @@ bool solverByEAX(int argc, char* argv[]) {
 			debug(pc.RoutesCost)
 		}
 		else {
-			contiNoDown++;
+			++contiNoDown;
 		}
 
 		if (contiNoDown > 5) {
@@ -207,7 +207,7 @@ bool makeOneCase(string exName, vrpSln::Input& input, int minDe, int maxDe, int 
 	vector<Pos> cusVe;
 
 	int cluSize = input.custCnt / 20;
-	for (int i = 0; i < cluSize; i++) {
+	for (int i = 0; i < cluSize; ++i) {
 		Pos p1;
 		//pick from[min, max).
 		p1.XCOORD = mr.pick(0, deopt.XCOORD * 2);
@@ -263,7 +263,7 @@ bool makeOneCase(string exName, vrpSln::Input& input, int minDe, int maxDe, int 
 	}
 
 
-	for (int i = 0; i < input.custCnt; i++) {
+	for (int i = 0; i < input.custCnt; ++i) {
 
 		Pos& p = cusVe[i];
 		p.CUSTNO = i+1;
@@ -425,7 +425,7 @@ bool makeCases(int argc, char* argv[]) {
 		int avgSt = 0;
 
 
-		for (int i = 1; i <= input.custCnt; i++) {
+		for (int i = 1; i <= input.custCnt; ++i) {
 			avgDe += input.datas[i].DEMAND;
 			maxDe = max(maxDe, input.datas[i].DEMAND);
 			minDe = min(minDe, input.datas[i].DEMAND);
@@ -460,7 +460,7 @@ bool makeCases(int argc, char* argv[]) {
 		debug(sp[0])
 		debug(sp[1])
 		debug(sp[2])
-		for (int ca = 11; ca <= 20; ca++) {
+		for (int ca = 11; ca <= 20; ++ca) {
 			makeOneCase(sp[0]+"_"+ sp[1]+"_" + ms.LL_str(ca) ,input, minDe, maxDe, minTw, maxTw,minSt,maxSt);
 		}
 	}

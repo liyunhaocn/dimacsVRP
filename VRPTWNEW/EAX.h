@@ -164,7 +164,7 @@ public:
 
 		auto getAllEdgeInSol = [&](Solver& ps, Owner owner) {
 
-			for (int i = 0; i < ps.rts.cnt; i++) {
+			for (int i = 0; i < ps.rts.cnt; ++i) {
 				Route& r = ps.rts[i];
 				int pt = r.head;
 				int ptn = ps.customers[r.head].next;
@@ -219,7 +219,7 @@ public:
 			}
 		};
 			
-		for (int i = 0; i < curSize; i++) {
+		for (int i = 0; i < curSize; ++i) {
 			RichEdge& re = richEdges[i];
 			/*if (re.owner == Owner::Pa || re.owner == Owner::Pb) {
 				++adjNodeSizes[re.e.a];
@@ -293,7 +293,7 @@ public:
 					RichEdge& re1 = richEdges[i];
 					if (re1.visited == false) {
 						if (re1.owner == Owner::Pa && re1.e.a == curCus) {
-							cnt++;
+							++cnt;
 							if (mr.pick(cnt) == 0) {
 								reIndex = re1.index;
 							}
@@ -309,7 +309,7 @@ public:
 					RichEdge& re1 = richEdges[i];
 					if (re1.visited == false) {
 						if (re1.owner == Owner::Pb && re1.e.b == curCus) {
-							cnt++;
+							++cnt;
 							if (mr.pick(cnt) == 0) {
 								reIndex = re1.index;
 							}
@@ -347,7 +347,7 @@ public:
 			if (cusVisitTime[curCus].size() > 0) {
 
 				int abcStart = -1;
-				for (int i = 0; i < cusVisitTime[curCus].size(); i++) {
+				for (int i = 0; i < cusVisitTime[curCus].size(); ++i) {
 					if (genSize - cusVisitTime[curCus][i] > 0
 						&& (genSize - cusVisitTime[curCus][i]) % 2 == 0) {
 						abcStart = cusVisitTime[curCus][i];
@@ -461,18 +461,18 @@ public:
 
 		ConfSet cusSet(cusCnt+1);
 
-		for (int i = 1; i <= cusCnt; i++) {
+		for (int i = 1; i <= cusCnt; ++i) {
 			cusSet.ins(i);
 		}
 
-		for (int i = 0; i < pc.rts.cnt; i++) {
+		for (int i = 0; i < pc.rts.cnt; ++i) {
 			vector<int> arr = pc.rPutCusInve(pc.rts[i]);
 			for (int c : arr) {
 				cusSet.removeVal(c);
 			}
 		}
 
-		for (int i = 0; i < cusSet.cnt; i++) {
+		for (int i = 0; i < cusSet.cnt; ++i) {
 			pc.customers[cusSet.ve[i]].routeID = -1;
 		}
 
@@ -557,18 +557,18 @@ public:
 
 		bool isSucceed = false;
 
-		for (int i = 0; i < 10; i++) {
+		for (int i = 0; i < 10; ++i) {
 
 			pc = pa;
 			Vec<int> Alleset;
 			Vec<int> eset;
 			Alleset.reserve(abCycleSet.size());
-			for (int i = 0; i < abCycleSet.size(); i++) {
+			for (int i = 0; i < abCycleSet.size(); ++i) {
 				Alleset.push_back(i);
 			}
 
 			Vec<eRchNode> arrE;
-			for (int i = 0; i < abCycleSet.size(); i++) {
+			for (int i = 0; i < abCycleSet.size(); ++i) {
 				eRchNode ern;
 				ern.deleABCost = 0;
 				for (int eIndex : abCycleSet[i]) {
@@ -594,7 +594,7 @@ public:
 
 			int maxCycleCnt = mr.pick(Alleset.size()) + 1;
 			maxCycleCnt = min(Alleset.size() / 2+1, maxCycleCnt);
-			for (int i = 0; i < maxCycleCnt; i++) {
+			for (int i = 0; i < maxCycleCnt; ++i) {
 				eset.push_back(Alleset[i]);
 			}
 
@@ -607,7 +607,7 @@ public:
 			pc.updateRtsValsAndPen();
 			pc.rtsCheck();
 
-			for (int i = 0; i < pc.rts.cnt; i++) {
+			for (int i = 0; i < pc.rts.cnt; ++i) {
 				pc.rUpdateAvQfrom(pc.rts[i], pc.rts[i].head);
 				pc.rUpdateZvQfrom(pc.rts[i], pc.rts[i].tail);
 			}

@@ -121,7 +121,7 @@ namespace vrptwNew {
 
 		RTS() {
 			cnt = 0;
-			for (int i = 0; i < 200; i++) {
+			for (int i = 0; i < 200; ++i) {
 				Route r;
 				ve.push_back(r);
 			}
@@ -160,7 +160,7 @@ namespace vrptwNew {
 
 			ve[cnt] = r1;
 			posOf[r1.routeID] = cnt;
-			cnt++;
+			++cnt;
 			return true;
 		}
 
@@ -217,7 +217,7 @@ namespace vrptwNew {
 		}
 
 		bool reSet() {
-			for (int i = 0; i < cnt; i++) {
+			for (int i = 0; i < cnt; ++i) {
 				posOf[ve[i].routeID] = -1;
 			}
 			cnt = 0;
@@ -246,13 +246,13 @@ namespace vrptwNew {
 
 		bool reSet() {
 
-			for (int i = 0; i < cnt; i++) {
+			for (int i = 0; i < cnt; ++i) {
 				// 
 				pos[ve[i]] = -1;
 				ve[i] = -1;
 			}
 
-			/*for (int i = 0; i < pos.size(); i++) {
+			/*for (int i = 0; i < pos.size(); ++i) {
 				pos[i] = -1;
 			}*/
 
@@ -270,7 +270,7 @@ namespace vrptwNew {
 
 			ve[cnt] = val;
 			pos[val] = cnt;
-			cnt++;
+			++cnt;
 			return true;
 		}
 
@@ -298,7 +298,7 @@ namespace vrptwNew {
 		}
 
 		void disp() {
-			for (int i = 0; i < cnt; i++) {
+			for (int i = 0; i < cnt; ++i) {
 				cout << ve[i] << " ";
 			}
 			cout << endl;
@@ -314,7 +314,7 @@ namespace vrptwNew {
 
 		vector<int> disorder(int range) {
 			ve = vector<int>(range, 0);
-			for (int i = 0; i < range; i++) {
+			for (int i = 0; i < range; ++i) {
 				ve[i] = i;
 			}
 			for (int i = range - 1; i > 1; i--) {
@@ -370,9 +370,9 @@ namespace vrptwNew {
 		bool initMpLLArr() {
 			mpLLArr = vector< vector<int> >(maxRange);
 
-			for (int n = 1; n < mpLLArr.size(); n++) {
+			for (int n = 1; n < mpLLArr.size(); ++n) {
 				mpLLArr[n] = vector<int>(n, 0);
-				for (int i = 0; i < n; i++) {
+				for (int i = 0; i < n; ++i) {
 					mpLLArr[n][i] = i;
 				}
 			}
@@ -404,7 +404,7 @@ namespace vrptwNew {
 		bool getMN(LL M, int N) {
 
 			vector<int>& ve = mpLLArr[M];
-			for (int i = 0; i < N; i++) {
+			for (int i = 0; i < N; ++i) {
 				int index = pick(i, M);
 				swap(ve[i], ve[index]);
 			}
@@ -430,15 +430,15 @@ namespace vrptwNew {
 		bool nextPer(vector<int>& ve, int Kmax, int& k, int N) {
 
 			if (k < Kmax && ve[k] < N) {
-				k++;
+				++k;
 				ve[k] = ve[k - 1] + 1;
 			}
 			else if (ve[k] == N) {
 				k--;
-				ve[k]++;
+				++ve[k];
 			}
 			else if (k == Kmax && ve[k] < N) {
-				ve[k]++;
+				++ve[k];
 			}
 
 			return true;
@@ -462,28 +462,28 @@ namespace vrptwNew {
 
 			vector<int> ve(Kmax + 1, 0);
 
-			for (int i = 1; i <= Kmax; i++) {
+			for (int i = 1; i <= Kmax; ++i) {
 				ve[i] = i - 1;
 			}
 
 			do {
 
 				ret.push_back(vector<int>(ve.begin() + 1, ve.begin() + Kmax + 1));
-				/*for (int i = 1; i <= Kmax; i++) {
+				/*for (int i = 1; i <= Kmax; ++i) {
 					cout << ve[i] << " ";
 				}
 				cout << endl;*/
 
-				ve[k]++;
+				++ve[k];
 				if (ve[k] >= N) {
 					while (k >= 1 && ve[k] >= N - (Kmax - k)) {
 						k--;
-						ve[k]++;
+						++ve[k];
 					}
-					k++;
+					++k;
 					while (k <= Kmax) {
 						ve[k] = ve[k - 1] + 1;
-						k++;
+						++k;
 					}
 					k = Kmax;
 				}
@@ -516,7 +516,7 @@ namespace vrptwNew {
 
 		DisType alpha = 1;
 		DisType beta = 1;
-		DisType gamma = 1;
+		DisType gamma = 0;
 
 		DisType RoutesCost = 0;
 		LL squIter = 1;
@@ -604,7 +604,10 @@ namespace vrptwNew {
 			int pos;
 			DisType pen;
 			DisType cost;
-			Position() :rIndex(-1), pos(0), pen(DisInf), cost(DisInf) {}
+			LL year;
+			Position() :rIndex(-1), pos(-1), pen(DisInf), cost(DisInf) ,year(DisInf) {}
+			Position(int rIndex,int pos,DisType pen,DisType cost,LL year) :
+				rIndex(rIndex), pos(pos), pen(pen), cost(cost), year(year) {}
 		};
 
 		struct eOneRNode {
@@ -710,6 +713,10 @@ namespace vrptwNew {
 
 			r.head = input.custCnt + 1;
 			r.tail = input.custCnt + 2;
+
+			customers.push_back(Customer());
+			customers.push_back(Customer());
+
 			customers[r.head].next = r.tail;
 			customers[r.tail].pre = r.head;
 
@@ -742,8 +749,8 @@ namespace vrptwNew {
 			customers = vector<Customer>(input.custCnt + 403);
 			yearTable = vector<vector<LL>>(input.custCnt + 1, vector<LL>(input.custCnt + 1, 0));
 			
-			for (int i = 0; i < yearTable.size(); i++) {
-				for (int j = 0; j < yearTable[i].size(); j++) {
+			for (int i = 0; i < yearTable.size(); ++i) {
+				for (int j = 0; j < yearTable[i].size(); ++j) {
 					yearTable[i][j] = 0;
 				}
 			}
@@ -768,7 +775,7 @@ namespace vrptwNew {
 		{
 
 			P = vector<int>(input.custCnt + 1, 1);
-			customers = vector<Customer>(input.custCnt + 403);
+			customers = vector<Customer>(input.custCnt + 1);
 			yearTable = vector<vector<LL>>(input.custCnt + 1, vector<LL>(input.custCnt + 1, 0));
 			//EPYearTable = vector<int> (input.custCnt + 1,  1);
 			alpha = 1;
@@ -843,8 +850,13 @@ namespace vrptwNew {
 
 			Route r(id);
 			int index = (rts.cnt + 1) * 2 + input.custCnt + 1;
+
 			r.head = index;
 			r.tail = index + 1;
+
+			customers.push_back(Customer());
+			customers.push_back(Customer());
+
 			customers[r.head].next = r.tail;
 			customers[r.tail].pre = r.head;
 
@@ -933,7 +945,7 @@ namespace vrptwNew {
 			customers[pos].next = node;
 			customers[anext].pre = node;
 
-			r.rCustCnt++;
+			++r.rCustCnt;
 
 			return true;
 		}
@@ -949,7 +961,7 @@ namespace vrptwNew {
 			customers[node].next = pos;
 			customers[pos].pre = node;
 			customers[apre].next = node;
-			r.rCustCnt++;
+			++r.rCustCnt;
 
 			return true;
 		}
@@ -1178,7 +1190,7 @@ namespace vrptwNew {
 			int pt = customers[r.head].next;
 			int ret = 0;
 			while (pt <= input.custCnt) {
-				ret++;
+				++ret;
 				pt = customers[pt].next;
 			}
 			return ret;
@@ -1235,7 +1247,7 @@ namespace vrptwNew {
 				debug(cus1.size() != cus2.size())
 			}
 
-			for (int i = 0; i < cus1.size(); i++) {
+			for (int i = 0; i < cus1.size(); ++i) {
 			
 				if (cus1[i] != cus2[cus1.size()-1-i]) {
 					debug(cus1[i] != cus2[cus1.size() - 1 - i])
@@ -1253,7 +1265,7 @@ namespace vrptwNew {
 		}
 
 		bool rtsCheck() {
-			for (int i = 0; i < rts.cnt; i++) {
+			for (int i = 0; i < rts.cnt; ++i) {
 				rCheck(rts[i]);
 			}
 			return true;
@@ -1267,7 +1279,7 @@ namespace vrptwNew {
 				customers[pt].routeID = r.routeID;
 				r.tail = pt;
 				if (pt <= input.custCnt) {
-					r.rCustCnt++;
+					++r.rCustCnt;
 				}
 				pt = customers[pt].next;
 			}
@@ -1276,7 +1288,7 @@ namespace vrptwNew {
 		}
 
 		bool updateRtsValsAndPen() {
-			for (int i = 0; i < rts.cnt; i++) {
+			for (int i = 0; i < rts.cnt; ++i) {
 				Route& r = rts[i];
 				rUpdateRtsValsAndPen(r);
 				rUpdateAvQfrom(r,r.head);
@@ -1289,14 +1301,14 @@ namespace vrptwNew {
 
 		int getCusCnt() {
 			int ret = 0;
-			for (int i = 0; i < rts.cnt; i++) {
+			for (int i = 0; i < rts.cnt; ++i) {
 				ret += rGetCusCnt(rts[i]);
 			}
 			return ret;
 		}
 
 		bool RTSDisPlay() {
-			for (int i = 0; i < rts.cnt; i++) {
+			for (int i = 0; i < rts.cnt; ++i) {
 				rNextDisp(rts[i]);
 			}
 			return true;
@@ -1308,7 +1320,7 @@ namespace vrptwNew {
 			Ptw = 0;
 			PtwNoWei = 0;
 
-			for (int i = 0; i < rts.size(); i++) {
+			for (int i = 0; i < rts.size(); ++i) {
 
 				Route& r = rts[i];
 				PtwNoWei += r.rPtw;
@@ -1334,7 +1346,7 @@ namespace vrptwNew {
 		DisType updateRtsCost() {
 
 			RoutesCost = 0;
-			for (int i = 0; i < rts.size(); i++) {
+			for (int i = 0; i < rts.size(); ++i) {
 				RoutesCost += rUpdateRCost(rts[i]);
 			}
 			return RoutesCost;
@@ -1348,11 +1360,35 @@ namespace vrptwNew {
 
 		Position findBestPosInSol(int w) {
 
-			Position bestPos;
+			Vec<Position> posPool = { Position(),Position(),Position(),Position(), };
+			
+			// 惩罚最大的排在最前面
+			auto cmp = [&](const Position a, const Position& b) {
+				if (a.pen == b.pen) {
+					return  a.year < b.year;
+				}
+				else {
+					return a.pen < b.pen;
+				}
+			};
 
-			int posCnt = 1;
+			priority_queue<Position,Vec<Position>,decltype(cmp)> qu(cmp);
+			qu.push(Position());
 
-			for (int i = 0; i < rts.size(); i++) {
+			auto updatePool = [&](Position& pos) {
+				
+				if (qu.size() < 32) {
+					qu.push(pos);
+				}
+				else {
+					if (pos.pen <= qu.top().pen) {
+						qu.push(pos);
+						qu.pop();
+					}
+				}
+			};
+
+			for (int i = 0; i < rts.size(); ++i) {
 				//debug(i)
 				Route& rt = rts[i];
 
@@ -1382,33 +1418,118 @@ namespace vrptwNew {
 					Ptw = Ptw - oldPtw;
 					Pc = Pc - oldPc;
 
-					if (bestPos.pen > Ptw + Pc) {
-						posCnt = 1;
-						bestPos.pen = Ptw + Pc;
-						bestPos.pos = v;
-						bestPos.rIndex = i;
+					DisType cost = input.disOf[reCusNo(w)][reCusNo(v)] + input.disOf[reCusNo(w)][reCusNo(vj)];
+					
+					int vre = v > input.custCnt ? 0 : v;
+					int vjre = vj > input.custCnt ? 0 : vj;
 
-					}
-					else if (bestPos.pen == Ptw + Pc) {
-						posCnt++;
-						if (myRand.pick(posCnt) == 0) {
-							bestPos.pen = Ptw + Pc;
-							bestPos.pos = v;
-							bestPos.rIndex = i;
-						}
-					}
+					LL year = yearTable[vre][w] + yearTable[w][vjre];
+					
+					Position pos(i,v, Ptw + Pc, cost,year);
+					updatePool(pos);
+
 					v = vj;
 					vj = customers[vj].next;
 				}
 			}
-			return bestPos;
+
+			int p0cnt = 1;
+			int p1cnt = 1;
+			int p2cnt = 1;
+			int p3cnt = 1;
+
+			while (!qu.empty()){
+
+				Position pos = qu.top();
+				qu.pop();
+
+				if (pos.pen == DisInf) {
+					continue;
+				}
+
+				if (pos.pen < posPool[0].pen) {
+					p0cnt = 1;
+					posPool[0] = pos;
+				}
+				else if (pos.pen == posPool[0].pen) {
+					++p0cnt;
+					if (myRand.pick(p0cnt)==0) {
+						posPool[0] = pos;
+					}
+				}
+				
+				if (pos.year < posPool[1].year) {
+					p1cnt = 1;
+					posPool[1] = pos;
+				}
+				else if (pos.year == posPool[1].year) {
+					++p1cnt;
+					if (myRand.pick(p1cnt)==0) {
+						posPool[1] = pos;
+					}
+				}
+				
+				if (pos.cost < posPool[2].cost) {
+					p2cnt = 1;
+					posPool[2] = pos;
+				}
+				else if (pos.cost == posPool[2].cost) {
+					++p2cnt;
+					if (myRand.pick(p2cnt)==0) {
+						posPool[2] = pos;
+					}
+				}
+
+				if (posPool[3].rIndex == -1) {
+					posPool[3] = pos;
+				}
+				else {
+					Route& rpos = rts[pos.rIndex];
+					Route& rpool = rts[posPool[3].rIndex];
+
+					if (rpos.rCustCnt > rpool.rCustCnt) {
+						p3cnt = 1;
+						posPool[3] = pos;
+					}
+					else if (rpos.rCustCnt == rpool.rCustCnt) {
+						++p3cnt;
+						if (myRand.pick(p3cnt) == 0) {
+							posPool[3] = pos;
+						}
+					}
+				}
+			}
+			
+			
+			if (posPool[0].pen > 0) {
+				int index = myRand.pick(posPool.size());
+				//debug(index);
+				return posPool[index];
+			}
+			else {
+				int cnt = 0;
+				Position retP;
+				for (int i = 0; i < posPool.size(); ++i) {
+					if (posPool[i].pen == 0) {
+						++cnt;
+						if (myRand.pick(cnt) == 0) {
+							retP = posPool[i];
+						}
+					}
+				}
+				
+				return retP;
+			}
+
+			return Position();
+			
 		}
 
 		Position findBestPosInSolForInit(int w) {
 
 			Position bestPos;
 
-			for (int i = 0; i < rts.size(); i++) {
+			for (int i = 0; i < rts.size(); ++i) {
 				//debug(i)
 				Route& rt = rts[i];
 
@@ -1443,18 +1564,19 @@ namespace vrptwNew {
 					Ptw = Ptw - oldPtw;
 					Pc = Pc - oldPc;
 
+					DisType cost = input.disOf[reCusNo(w)][reCusNo(v)] + input.disOf[reCusNo(w)][reCusNo(vj)];
 					if (bestPos.pen > Ptw + Pc) {
-						bestPos.cost = input.disOf[reCusNo(v)][reCusNo(w)] + input.disOf[reCusNo(vj)][reCusNo(w)];
+						bestPos.cost = cost;
 						bestPos.pen = Ptw + Pc;
 						bestPos.pos = v;
 						bestPos.rIndex = i;
 					}
 					else if (bestPos.pen == Ptw + Pc) {
-						if (input.disOf[reCusNo(v)][reCusNo(w)] + input.disOf[reCusNo(w)][reCusNo(vj)] < bestPos.cost) {
+						if (cost < bestPos.cost) {
 							bestPos.pen = Ptw + Pc;
 							bestPos.pos = v;
 							bestPos.rIndex = i;
-							bestPos.cost = input.disOf[reCusNo(v)][reCusNo(w)] + input.disOf[reCusNo(w)][reCusNo(vj)];
+							bestPos.cost = cost;
 						}
 					}
 					v = vj;
@@ -1473,7 +1595,7 @@ namespace vrptwNew {
 
 			vector<int>que1;
 
-			for (int i = 1; i <= input.custCnt; i++) {
+			for (int i = 1; i <= input.custCnt; ++i) {
 				que1.push_back(i);
 			}
 
@@ -1481,7 +1603,7 @@ namespace vrptwNew {
 
 			int rid = 0;
 
-			for (int i = 0; i < customers.size(); i++) {
+			for (int i = 0; i < customers.size(); ++i) {
 				customers[i].id = i;
 			}
 
@@ -1491,7 +1613,7 @@ namespace vrptwNew {
 				que1.pop_back();
 
 				bool isSucceed = false;
-				for (int i = 0; i < rts.size(); i++) {
+				for (int i = 0; i < rts.size(); ++i) {
 
 					rInsAtPosPre(rts[i], rts[i].tail, tp);
 					if (rUpdateAvfrom(rts[i], tp) == 0 && rts[i].rQ <= input.Q) {
@@ -1520,7 +1642,7 @@ namespace vrptwNew {
 			Log(Log::Info) << "rts.size(): " << rts.size() << endl;
 
 
-			for (int i = 0; i < rts.size(); i++) {
+			for (int i = 0; i < rts.size(); ++i) {
 
 				rUpdateZvQfrom(rts[i], rts[i].tail);
 				rUpdateAQfrom(rts[i], rts[i].head);
@@ -1544,7 +1666,7 @@ namespace vrptwNew {
 
 			int rid = 0;
 
-			for (int i = 0; i < customers.size(); i++) {
+			for (int i = 0; i < customers.size(); ++i) {
 				customers[i].id = i;
 			}
 
@@ -1555,7 +1677,7 @@ namespace vrptwNew {
 					//debug(cus)
 					Route r = rCreateRoute(rid++);
 					vector<string> custs = ms.split(cus, " ");
-					for (int i = 0; i < custs.size(); i++) {
+					for (int i = 0; i < custs.size(); ++i) {
 						int cusno = ms.str_LL(custs[i]);
 						rInsAtPosPre(r, r.tail, cusno);
 					}
@@ -1589,7 +1711,7 @@ namespace vrptwNew {
 
 			vector<int>que1;
 
-			for (int i = 1; i <= input.custCnt; i++) {
+			for (int i = 1; i <= input.custCnt; ++i) {
 				que1.push_back(i);
 			}
 
@@ -1599,7 +1721,7 @@ namespace vrptwNew {
 
 			int rid = 0;
 
-			for (int i = 0; i < customers.size(); i++) {
+			for (int i = 0; i < customers.size(); ++i) {
 				customers[i].id = i;
 			}
 
@@ -1610,7 +1732,7 @@ namespace vrptwNew {
 				bool isSucceed = false;
 				int eaIndex = -1;
 
-				for (int i = 0; i < que1.size(); i++) {
+				for (int i = 0; i < que1.size(); ++i) {
 					int cus = que1[i];
 					Position tPos = findBestPosInSolForInit(cus);
 
@@ -1641,7 +1763,7 @@ namespace vrptwNew {
 
 			} while (!que1.empty());
 
-			for (int i = 0; i < rts.size(); i++) {
+			for (int i = 0; i < rts.size(); ++i) {
 				Route& r = rts[i];
 
 				rUpdateZvQfrom(r, r.tail);
@@ -1693,12 +1815,12 @@ namespace vrptwNew {
 			int line = 1;
 			int rid = 0;
 
-			for (int i = 0; i < customers.size(); i++) {
+			for (int i = 0; i < customers.size(); ++i) {
 				customers[i].id = i;
 			}
 
 			while (getline(fin, str)) {
-				line++;
+				++line;
 				//debug(str)
 				vector<string> arr = ms.split(str, " ");
 
@@ -4295,7 +4417,7 @@ namespace vrptwNew {
 				rv.rCustCnt = 0;
 				pt = customers[rv.head].next;
 				while (pt != -1) {
-					rv.rCustCnt++;
+					++rv.rCustCnt;
 					customers[pt].routeID = rv.routeID;
 					pt = customers[pt].next;
 				}
@@ -4304,7 +4426,7 @@ namespace vrptwNew {
 				pt = customers[rw.head].next;
 				rw.rCustCnt = 0;
 				while (pt != -1) {
-					rw.rCustCnt++;
+					++rw.rCustCnt;
 					customers[pt].routeID = rw.routeID;
 					pt = customers[pt].next;
 				}
@@ -4334,7 +4456,7 @@ namespace vrptwNew {
 				rv.rCustCnt = 0;
 				int pt = customers[rv.head].next;
 				while (pt != -1) {
-					rv.rCustCnt++;
+					++rv.rCustCnt;
 					customers[pt].routeID = rv.routeID;
 					pt = customers[pt].next;
 				}
@@ -4343,7 +4465,7 @@ namespace vrptwNew {
 				rw.rCustCnt = 0;
 				pt = customers[rw.head].next;
 				while (pt != -1) {
-					rw.rCustCnt++;
+					++rw.rCustCnt;
 					customers[pt].routeID = rw.routeID;
 					pt = customers[pt].next;
 				}
@@ -5034,320 +5156,22 @@ namespace vrptwNew {
 			return true;
 		}
 
-		bool updateYearTable1(TwoNodeMove& bestM) {
-
-			int v = bestM.v;
-			int w = bestM.w;
-
-			if (bestM.kind == 0) {
-
-				int v_ = customers[v].pre > input.custCnt ? 0 : customers[v].pre;
-				int wj = customers[w].next > input.custCnt ? 0 : customers[w].next;
-				yearTable[v][v_] = squIter;
-				yearTable[v_][v] = squIter;
-
-				yearTable[w][wj] = squIter;
-				yearTable[wj][w] = squIter;
-			}
-			else if (bestM.kind == 1) {
-
-				int vj = customers[v].next > input.custCnt ? 0 : customers[v].next;
-				int w_ = customers[w].pre > input.custCnt ? 0 : customers[w].pre;
-				yearTable[v][vj] = squIter;
-				yearTable[vj][v] = squIter;
-
-				yearTable[w][w_] = squIter;
-				yearTable[w_][w] = squIter;
-			}
-			else if (bestM.kind == 2 || bestM.kind == 3) {
-
-				int vj = customers[v].next > input.custCnt ? 0 : customers[v].next;
-				int v_ = customers[v].pre > input.custCnt ? 0 : customers[v].pre;
-
-				yearTable[v][vj] = squIter;
-				yearTable[vj][v] = squIter;
-
-				yearTable[v][v_] = squIter;
-				yearTable[v_][v] = squIter;
-
-				if (bestM.kind == 2) {
-					int w_ = customers[w].pre > input.custCnt ? 0 : customers[w].pre;
-					yearTable[w][w_] = squIter;
-					yearTable[w_][w] = squIter;
-				}
-				else {
-					int wj = customers[w].next > input.custCnt ? 0 : customers[w].next;
-					yearTable[w][wj] = squIter;
-					yearTable[wj][w] = squIter;
-				}
-			}
-			else if (bestM.kind == 4 || bestM.kind == 5) {
-
-				int wj = customers[w].next > input.custCnt ? 0 : customers[w].next;
-				int w_ = customers[w].pre > input.custCnt ? 0 : customers[w].pre;
-
-				yearTable[w][wj] = squIter;
-				yearTable[wj][w] = squIter;
-
-				yearTable[w][w_] = squIter;
-				yearTable[w_][w] = squIter;
-
-				if (bestM.kind == 4) {
-					int v_ = customers[v].pre > input.custCnt ? 0 : customers[v].pre;
-					yearTable[v][v_] = squIter;
-					yearTable[v_][v] = squIter;
-				}
-				else {
-					int vj = customers[v].next > input.custCnt ? 0 : customers[v].next;
-					yearTable[v][vj] = squIter;
-					yearTable[vj][v] = squIter;
-				}
-
-			}
-			else if (bestM.kind == 6) {
-
-				int vj = customers[v].next > input.custCnt ? 0 : customers[v].next;
-				int v_ = customers[v].pre > input.custCnt ? 0 : customers[v].pre;
-				int w_ = customers[w].pre > input.custCnt ? 0 : customers[w].pre;
-				int w__ = customers[w_].pre > input.custCnt ? 0 : customers[w_].pre;
-
-				yearTable[v][vj] = squIter;
-				yearTable[vj][v] = squIter;
-
-				yearTable[v][v_] = squIter;
-				yearTable[v_][v] = squIter;
-
-				yearTable[w][w_] = squIter;
-				yearTable[w_][w] = squIter;
-
-				yearTable[w_][w__] = squIter;
-				yearTable[w__][w_] = squIter;
-
-			}
-			else if (bestM.kind == 7) {
-
-				// exchangevwj
-				int vj = customers[v].next > input.custCnt ? 0 : customers[v].next;
-				int v_ = customers[v].pre > input.custCnt ? 0 : customers[v].pre;
-				int wj = customers[w].next > input.custCnt ? 0 : customers[w].next;
-				int wjj = customers[wj].next > input.custCnt ? 0 : customers[wj].next;
-
-				yearTable[v][vj] = squIter;
-				yearTable[vj][v] = squIter;
-
-				yearTable[v][v_] = squIter;
-				yearTable[v_][v] = squIter;
-
-				yearTable[w][wj] = squIter;
-				yearTable[wj][w] = squIter;
-
-				yearTable[wj][wjj] = squIter;
-				yearTable[wjj][wj] = squIter;
-
-			}
-			else if (bestM.kind == 8) {
-
-				int wj = customers[w].next > input.custCnt ? 0 : customers[w].next;
-				int w_ = customers[w].pre > input.custCnt ? 0 : customers[w].pre;
-				int vj = customers[v].next > input.custCnt ? 0 : customers[v].next;
-				int v_ = customers[v].pre > input.custCnt ? 0 : customers[v].pre;
-
-				yearTable[w][wj] = squIter;
-				yearTable[wj][w] = squIter;
-
-				yearTable[w][w_] = squIter;
-				yearTable[w_][w] = squIter;
-
-				yearTable[v][vj] = squIter;
-				yearTable[vj][v] = squIter;
-
-				yearTable[v][v_] = squIter;
-				yearTable[v_][v] = squIter;
-
-			}
-			else if (bestM.kind == 9) {
-				//exchangevvjvjjwwj(v, w); 三换二 v v+ v++ | w w+
-				int v_ = customers[v].pre > input.custCnt ? 0 : customers[v].pre;
-				int vj = customers[v].next > input.custCnt ? 0 : customers[v].next;
-				int vjj = customers[vj].next > input.custCnt ? 0 : customers[vj].next;
-				int v3j = customers[vjj].next > input.custCnt ? 0 : customers[vjj].next;
-
-				int w_ = customers[w].pre > input.custCnt ? 0 : customers[w].pre;
-				int wj = customers[w].next > input.custCnt ? 0 : customers[w].next;
-				int wjj = customers[wj].next > input.custCnt ? 0 : customers[wj].next;
-
-				yearTable[v][v_] = squIter;
-				yearTable[v_][v] = squIter;
-
-				yearTable[vjj][v3j] = squIter;
-				yearTable[v3j][vjj] = squIter;
-
-				yearTable[w][w_] = squIter;
-				yearTable[w_][w] = squIter;
-
-				yearTable[wj][wjj] = squIter;
-				yearTable[wjj][wj] = squIter;
-
-			}
-			else if (bestM.kind == 10) {
-
-				//exchangevvjvjjw(v, w); 三换一 v v + v++ | w
-
-				int v_ = customers[v].pre > input.custCnt ? 0 : customers[v].pre;
-				int vj = customers[v].next > input.custCnt ? 0 : customers[v].next;
-				int vjj = customers[vj].next > input.custCnt ? 0 : customers[vj].next;
-				int v3j = customers[vjj].next > input.custCnt ? 0 : customers[vjj].next;
-
-				int w_ = customers[w].pre > input.custCnt ? 0 : customers[w].pre;
-				int wj = customers[w].next > input.custCnt ? 0 : customers[w].next;
-
-				yearTable[v][v_] = squIter;
-				yearTable[v_][v] = squIter;
-
-				yearTable[vjj][v3j] = squIter;
-				yearTable[v3j][vjj] = squIter;
-
-				yearTable[w][w_] = squIter;
-				yearTable[w_][w] = squIter;
-
-				yearTable[w][wj] = squIter;
-				yearTable[wj][w] = squIter;
-
-			}
-			else if (bestM.kind == 11) {
-				//exchangevvjw(v, w); 二换一 v v +  | w
-
-				int v_ = customers[v].pre > input.custCnt ? 0 : customers[v].pre;
-				int vj = customers[v].next > input.custCnt ? 0 : customers[v].next;
-				int vjj = customers[vj].next > input.custCnt ? 0 : customers[vj].next;
-
-				int w_ = customers[w].pre > input.custCnt ? 0 : customers[w].pre;
-				int wj = customers[w].next > input.custCnt ? 0 : customers[w].next;
-
-				yearTable[v][v_] = squIter;
-				yearTable[v_][v] = squIter;
-
-				yearTable[vj][vjj] = squIter;
-				yearTable[vjj][vj] = squIter;
-
-				yearTable[w][w_] = squIter;
-				yearTable[w_][w] = squIter;
-
-				yearTable[w][wj] = squIter;
-				yearTable[wj][w] = squIter;
-			}
-			else if (bestM.kind == 12) {
-
-				//exchangevwwj(v, w); 一换二 v  | w w+
-
-				int v_ = customers[v].pre > input.custCnt ? 0 : customers[v].pre;
-				int vj = customers[v].next > input.custCnt ? 0 : customers[v].next;
-
-				int w_ = customers[w].pre > input.custCnt ? 0 : customers[w].pre;
-				int wj = customers[w].next > input.custCnt ? 0 : customers[w].next;
-				int wjj = customers[wj].next > input.custCnt ? 0 : customers[wj].next;
-
-				yearTable[v][v_] = squIter;
-				yearTable[v_][v] = squIter;
-
-				yearTable[v][vj] = squIter;
-				yearTable[vj][v] = squIter;
-
-				yearTable[w][w_] = squIter;
-				yearTable[w_][w] = squIter;
-
-				yearTable[wj][wjj] = squIter;
-				yearTable[wjj][wj] = squIter;
-
-			}
-			else if (bestM.kind == 13) {
-
-				//outrelocatevvjTowwj(v, w); 扔两个 v v+  | w w+
-
-				int v_ = customers[v].pre > input.custCnt ? 0 : customers[v].pre;
-				int vj = customers[v].next > input.custCnt ? 0 : customers[v].next;
-				int vjj = customers[vj].next > input.custCnt ? 0 : customers[vj].next;
-
-				int w_ = customers[w].pre > input.custCnt ? 0 : customers[w].pre;
-				int wj = customers[w].next > input.custCnt ? 0 : customers[w].next;
-				int wjj = customers[wj].next > input.custCnt ? 0 : customers[wj].next;
-
-				yearTable[v][v_] = squIter;
-				yearTable[v_][v] = squIter;
-
-				yearTable[vj][vjj] = squIter;
-				yearTable[vjj][vj] = squIter;
-
-				yearTable[w][wjj] = squIter;
-				yearTable[wjj][w] = squIter;
-			}
-			else if (bestM.kind == 14) {
-
-				//outrelocatevv_Toww_  | w-  v- v w
-
-				int v_ = customers[v].pre > input.custCnt ? 0 : customers[v].pre;
-				int v__ = customers[v_].pre > input.custCnt ? 0 : customers[v_].pre;
-				int vj = customers[v].next > input.custCnt ? 0 : customers[v].next;
-				int vjj = customers[vj].next > input.custCnt ? 0 : customers[vj].next;
-
-				int w_ = customers[w].pre > input.custCnt ? 0 : customers[w].pre;
-				int wj = customers[w].next > input.custCnt ? 0 : customers[w].next;
-
-				yearTable[v_][v__] = squIter;
-				yearTable[v__][v_] = squIter;
-
-				yearTable[v][vj] = squIter;
-				yearTable[vj][v] = squIter;
-
-				yearTable[w][w_] = squIter;
-				yearTable[w_][w] = squIter;
-
-			}
-			else if (bestM.kind == 15) {
-
-				//reverse [v,w]
-
-				int v_ = customers[v].pre > input.custCnt ? 0 : customers[v].pre;
-				int wj = customers[w].next > input.custCnt ? 0 : customers[w].next;
-
-				yearTable[v][v_] = squIter;
-				yearTable[v_][v] = squIter;
-
-				yearTable[w][wj] = squIter;
-				yearTable[wj][w] = squIter;
-
-			}
-			else if (bestM.kind == 16) {
-				//Nopt
-				for (int i = 0; i < bestM.ve.size(); i += 2) {
-					int vi = bestM.ve[i];
-					int vip1 = bestM.ve[i + 1];
-					yearTable[vi][vip1] = squIter;
-					yearTable[vip1][vi] = squIter;
-				}
-			}
-			else {
-				debug("yearTable error")
-			}
-			return true;
-		};
-
 		bool updateYearTable(TwoNodeMove& t) {
 
 			int v = t.v;
 			int w = t.w;
 
 			if (t.kind == 0) {
-
+				//_2optOpenvv_
 				int wj = customers[w].next > input.custCnt ? 0 : customers[w].next;
 				int v_ = customers[v].pre > input.custCnt ? 0 : customers[v].pre;
 
-				yearTable[v][v_] = squIter + cfg.yearTabuLen + myRand.pick(cfg.yearTabuRand);
+				yearTable[v_][v] = squIter + cfg.yearTabuLen + myRand.pick(cfg.yearTabuRand);
 				yearTable[w][wj] = squIter + cfg.yearTabuLen + myRand.pick(cfg.yearTabuRand);
 
 			}
 			else if (t.kind == 1) {
-
+				//_2optOpenvvj
 				int w_ = customers[w].pre > input.custCnt ? 0 : customers[w].pre;
 				int vj = customers[v].next > input.custCnt ? 0 : customers[v].next;
 
@@ -5700,7 +5524,7 @@ namespace vrptwNew {
 					m = max(1, m);
 					myRandX.getMN(N, m);
 					vector<int>& ve = myRandX.mpLLArr[N];
-					for (int i = 0; i < m; i++) {
+					for (int i = 0; i < m; ++i) {
 						int wpos = ve[i];
 
 						int w = input.allCloseOf[v][wpos];
@@ -5780,7 +5604,7 @@ namespace vrptwNew {
 						m = max(1, m);
 						myRandX.getMN(N, m);
 						vector<int>& ve = myRandX.mpLLArr[N];
-						for (int i = 0; i < m; i++) {
+						for (int i = 0; i < m; ++i) {
 							int wpos = ve[i];
 
 							int w = input.allCloseOf[v][wpos];
@@ -5824,7 +5648,7 @@ namespace vrptwNew {
 				vector<int> relRts;
 				vector<int> notRelRts;
 
-				for (int i = 0; i < 10; i++) {
+				for (int i = 0; i < 10; ++i) {
 					int v = input.allCloseOf[node][i];
 					if (customers[v].routeID >= 0) {
 
@@ -5835,7 +5659,7 @@ namespace vrptwNew {
 					}
 				}
 
-				for (int i = 0; i < rts.cnt; i++) {
+				for (int i = 0; i < rts.cnt; ++i) {
 					if (count(relRts.begin(), relRts.end(), rts[i].routeID) == 0) {
 						notRelRts.push_back(rts[i].routeID);
 					}
@@ -5861,7 +5685,7 @@ namespace vrptwNew {
 						m = max(1, m);
 						myRandX.getMN(N, m);
 						vector<int>& ve = myRandX.mpLLArr[N];
-						for (int i = 0; i < m; i++) {
+						for (int i = 0; i < m; ++i) {
 							int wpos = ve[i];
 
 							int w = input.allCloseOf[v][wpos];
@@ -5890,7 +5714,7 @@ namespace vrptwNew {
 
 			ShuffleCards sc;
 
-			squIter++;
+			++squIter;
 
 			do {
 
@@ -5940,7 +5764,7 @@ namespace vrptwNew {
 
 				updateYearTable(bestM);
 				doMoves(bestM);
-				squIter++;
+				++squIter;
 
 #if CHECKING
 
@@ -6239,50 +6063,50 @@ namespace vrptwNew {
 			LL sumYear = 0;
 
 			if (t.kind == 0) {
-
+				//_2optOpenvv_
 				int wj = customers[w].next > input.custCnt ? 0 : customers[w].next;
 				int v_ = customers[v].pre > input.custCnt ? 0 : customers[v].pre;
 				sumYear = (yearTable[w][v] + yearTable[v_][wj]) / 2;
 			}
 			else if (t.kind == 1) {
-
+				//_2optOpenvvj
 				int w_ = customers[w].pre > input.custCnt ? 0 : customers[w].pre;
 				int vj = customers[v].next > input.custCnt ? 0 : customers[v].next;
 				sumYear = (yearTable[v][w] + yearTable[w_][vj]) / 2;
 			}
 			else if (t.kind == 2) {
-
+				//outrelocatevToww_
 				int w_ = customers[w].pre > input.custCnt ? 0 : customers[w].pre;
 				int v_ = customers[v].pre > input.custCnt ? 0 : customers[v].pre;
 				int vj = customers[v].next > input.custCnt ? 0 : customers[v].next;
-				sumYear = (yearTable[v_][vj] + yearTable[w_][v] + yearTable[w][v]) / 3;
+				sumYear = (yearTable[v_][vj] + yearTable[w_][v] + yearTable[v][w]) / 3;
 
 			}
 			else if (t.kind == 3) {
-
+				//outrelocatevTowwj
 				int wj = customers[w].next > input.custCnt ? 0 : customers[w].next;
 				int v_ = customers[v].pre > input.custCnt ? 0 : customers[v].pre;
 				int vj = customers[v].next > input.custCnt ? 0 : customers[v].next;
-				sumYear = (yearTable[v_][vj] + yearTable[wj][v] + yearTable[w][v]) / 3;
+				sumYear = (yearTable[v_][vj] + yearTable[w][v] + yearTable[v][wj]) / 3;
 			}
 			else if (t.kind == 4) {
-
+				//inrelocatevv_
 				int w_ = customers[w].pre > input.custCnt ? 0 : customers[w].pre;
 				int wj = customers[w].next > input.custCnt ? 0 : customers[w].next;
 				int v_ = customers[v].pre > input.custCnt ? 0 : customers[v].pre;
 
-				sumYear = (yearTable[w_][wj] + yearTable[w][v_] + yearTable[w][v]) / 3;
+				sumYear = (yearTable[w_][wj] + yearTable[v_][w] + yearTable[w][v]) / 3;
 			}
 			else if (t.kind == 5) {
-
+				//inrelocatevvj
 				int w_ = customers[w].pre > input.custCnt ? 0 : customers[w].pre;
 				int wj = customers[w].next > input.custCnt ? 0 : customers[w].next;
 				int vj = customers[v].next > input.custCnt ? 0 : customers[v].next;
 
-				sumYear = (yearTable[w_][wj] + yearTable[w][vj] + yearTable[w][v]) / 3;
+				sumYear = (yearTable[w_][wj] + yearTable[v][w] + yearTable[w][vj]) / 3;
 			}
 			else if (t.kind == 6) {
-
+				//exchangevw_
 				int w_ = customers[w].pre > input.custCnt ? 0 : customers[w].pre;
 				int v_ = customers[v].pre > input.custCnt ? 0 : customers[v].pre;
 				int vj = customers[v].next > input.custCnt ? 0 : customers[v].next;
@@ -6299,7 +6123,7 @@ namespace vrptwNew {
 							+ yearTable[v][w]) / 3;
 					}
 					else {
-
+						// v- v vj | w-- w- w
 						sumYear = (yearTable[w__][v] + yearTable[v][w]
 							+ yearTable[v_][w_] + yearTable[w_][vj]) / 4;
 
@@ -6313,7 +6137,7 @@ namespace vrptwNew {
 				}
 			}
 			else if (t.kind == 7) {
-
+				//exchangevwj
 				int w_ = customers[w].pre > input.custCnt ? 0 : customers[w].pre;
 				int v_ = customers[v].pre > input.custCnt ? 0 : customers[v].pre;
 				int vj = customers[v].next > input.custCnt ? 0 : customers[v].next;
@@ -6334,7 +6158,7 @@ namespace vrptwNew {
 							+ yearTable[wj][vj]) / 3;
 					}
 					else {
-
+						// v- v vj |  w wj wjj
 						sumYear = (yearTable[w][v] + yearTable[v][wjj]
 							+ yearTable[v_][wj] + yearTable[wj][vj]) / 4;
 					}
@@ -6347,7 +6171,7 @@ namespace vrptwNew {
 				}
 			}
 			else if (t.kind == 8) {
-
+				//exchangevw
 				int w_ = customers[w].pre > input.custCnt ? 0 : customers[w].pre;
 				int v_ = customers[v].pre > input.custCnt ? 0 : customers[v].pre;
 				int vj = customers[v].next > input.custCnt ? 0 : customers[v].next;
@@ -6369,7 +6193,7 @@ namespace vrptwNew {
 							+ yearTable[v][wj]) / 3;
 					}
 					else {
-
+						// v- v vj |  w- w wj
 						sumYear = (yearTable[w_][v] + yearTable[v][wj]
 							+ yearTable[v_][w] + yearTable[w][vj]) / 4;
 					}
@@ -6396,7 +6220,7 @@ namespace vrptwNew {
 				int wjj = customers[wj].next > input.custCnt ? 0 : customers[wj].next;
 
 				sumYear = (yearTable[v][w_] + yearTable[vjj][wjj]
-					+ yearTable[w][v_] + yearTable[wj][v3j]) / 4;
+					+ yearTable[v_][w] + yearTable[wj][v3j]) / 4;
 
 			}
 			else if (t.kind == 10) {
@@ -6406,12 +6230,13 @@ namespace vrptwNew {
 				int v_ = customers[v].pre > input.custCnt ? 0 : customers[v].pre;
 				int vj = customers[v].next > input.custCnt ? 0 : customers[v].next;
 				int vjj = customers[vj].next > input.custCnt ? 0 : customers[vj].next;
+				int v3j = customers[vjj].next > input.custCnt ? 0 : customers[vjj].next;
 
 				int w_ = customers[w].pre > input.custCnt ? 0 : customers[w].pre;
 				int wj = customers[w].next > input.custCnt ? 0 : customers[w].next;
 
 				sumYear = (yearTable[v][w_] + yearTable[vjj][wj]
-					+ yearTable[w][v_] + yearTable[w][vj]) / 4;
+					+ yearTable[v_][w] + yearTable[w][v3j]) / 4;
 
 			}
 			else if (t.kind == 11) {
@@ -6425,7 +6250,7 @@ namespace vrptwNew {
 				int wj = customers[w].next > input.custCnt ? 0 : customers[w].next;
 
 				sumYear = (yearTable[v][w_] + yearTable[vj][wj]
-					+ yearTable[w][v_] + yearTable[w][vjj]) / 4;
+					+ yearTable[v_][w] + yearTable[w][vjj]) / 4;
 			}
 			else if (t.kind == 12) {
 
@@ -6438,8 +6263,8 @@ namespace vrptwNew {
 				int wj = customers[w].next > input.custCnt ? 0 : customers[w].next;
 				int wjj = customers[wj].next > input.custCnt ? 0 : customers[wj].next;
 
-				sumYear = (yearTable[v][w_] + yearTable[v][wjj]
-					+ yearTable[w][v_] + yearTable[wj][vj]) / 4;
+				sumYear = (yearTable[w_][v] + yearTable[v][wjj]
+					+ yearTable[v_][w] + yearTable[wj][vj]) / 4;
 
 			}
 			else if (t.kind == 13) {
@@ -6449,9 +6274,9 @@ namespace vrptwNew {
 				int vj = customers[v].next > input.custCnt ? 0 : customers[v].next;
 				int w_ = customers[w].pre > input.custCnt ? 0 : customers[w].pre;
 				int wj = customers[w].next > input.custCnt ? 0 : customers[w].next;
-				int wjj = customers[wj].next > input.custCnt ? 0 : customers[wj].next;
+				//int wjj = customers[wj].next > input.custCnt ? 0 : customers[wj].next;
 
-				sumYear = (yearTable[v][w_] + yearTable[vj][wjj] + yearTable[v][vj]) / 3;
+				sumYear = (yearTable[v][w] + yearTable[vj][wj] + yearTable[v][vj]) / 3;
 			}
 			else if (t.kind == 14) {
 
@@ -6460,7 +6285,7 @@ namespace vrptwNew {
 				int v__ = customers[v_].pre > input.custCnt ? 0 : customers[v_].pre;
 				int vj = customers[v].next > input.custCnt ? 0 : customers[v].next;
 				int w_ = customers[w].pre > input.custCnt ? 0 : customers[w].pre;
-				sumYear = (yearTable[v_][w_] + yearTable[v][w] + yearTable[v__][vj]) / 3;
+				sumYear = (yearTable[w_][v_] + yearTable[v][w] + yearTable[v__][vj]) / 3;
 			}
 			else if (t.kind == 15) {
 
@@ -6511,7 +6336,7 @@ namespace vrptwNew {
 				}
 				v_pos = min(v_pos, input.custCnt);
 
-				for (int wpos = 0; wpos < v_pos; wpos++) {
+				for (int wpos = 0; wpos < v_pos; ++wpos) {
 
 					int w = input.addSTclose[v][wpos];
 					//int w = input.allCloseOf[v][wpos];
@@ -6543,7 +6368,7 @@ namespace vrptwNew {
 				}
 				vjpos = min(vjpos, input.custCnt);
 
-				for (int wpos = 0; wpos < vjpos; wpos++) {
+				for (int wpos = 0; wpos < vjpos; ++wpos) {
 
 					int w = input.addSTclose[v][wpos];
 					//int w = input.allCloseOf[v][wpos];
@@ -6590,7 +6415,7 @@ namespace vrptwNew {
 					int m = max(1, N / devided);
 					myRandX.getMN(N, m);
 					vector<int>& ve = myRandX.mpLLArr[N];
-					for (int i = 0; i < m; i++) {
+					for (int i = 0; i < m; ++i) {
 						int wpos = ve[i];
 
 						int w = input.addSTclose[vpre][wpos];
@@ -6640,7 +6465,7 @@ namespace vrptwNew {
 					myRandX.getMN(N, m);
 					vector<int>& ve = myRandX.mpLLArr[N];
 
-					for (int i = 0; i < m; i++) {
+					for (int i = 0; i < m; ++i) {
 						int wpos = ve[i];
 						wpos %= N;
 						int w = input.addSTclose[vnext][wpos];
@@ -6677,7 +6502,7 @@ namespace vrptwNew {
 
 				myRandX.getMN(N, m);
 				vector<int>& ve = myRandX.mpLLArr[N];
-				for (int i = 0; i < m; i++) {
+				for (int i = 0; i < m; ++i) {
 					int wpos = ve[i];
 					int w = relatedToV[wpos];
 
@@ -6732,7 +6557,7 @@ namespace vrptwNew {
 
 				myRandX.getMN(N, m);
 				vector<int>& ve = myRandX.mpLLArr[N];
-				for (int i = 0; i < m; i++) {
+				for (int i = 0; i < m; ++i) {
 					int wpos = ve[i];
 
 					int w = input.allCloseOf[v][wpos];
@@ -6837,7 +6662,7 @@ namespace vrptwNew {
 
 				int v = ptwNodes[0];
 				int w = v;
-				for (int i = 0; i < 5; i++) {
+				for (int i = 0; i < 5; ++i) {
 					w = customers[w].pre;
 					if (w > input.custCnt) {
 						break;
@@ -6865,7 +6690,7 @@ namespace vrptwNew {
 					int w = v;
 					int maxL = max(3, r.rCustCnt / 5);
 
-					for (int i = 1; i <= maxL; i++) {
+					for (int i = 1; i <= maxL; ++i) {
 						w = customers[w].next;
 						if (w > input.custCnt) {
 							break;
@@ -6897,7 +6722,7 @@ namespace vrptwNew {
 
 					myRandX.getMN(N, m);
 					vector<int>& ve = myRandX.mpLLArr[N];
-					for (int i = 0; i < m; i++) {
+					for (int i = 0; i < m; ++i) {
 						int wpos = ve[i];
 
 						int w = relatedToV[wpos];
@@ -6960,7 +6785,7 @@ namespace vrptwNew {
 			PtwConfRts.reSet();
 			PcConfRts.reSet();
 
-			for (int i = 0; i < rts.size(); i++) {
+			for (int i = 0; i < rts.size(); ++i) {
 				if (rts[i].rPtw > 0) {
 					PtwConfRts.ins(rts[i].routeID);
 				}
@@ -7008,7 +6833,7 @@ namespace vrptwNew {
 					return false;
 			}
 
-			for (int i = 0; i < next.size(); i++) {
+			for (int i = 0; i < next.size(); ++i) {
 				if (next[i] != pre[next.size() - 1 - i]) {
 					debug("not same ele in two arr")
 						return false;
@@ -7027,7 +6852,7 @@ namespace vrptwNew {
 			int cnt = 0;
 			for (int i : PtwConfRts.pos) {
 				if (i >= 0) {
-					cnt++;
+					++cnt;
 				}
 			}
 			if (cnt != PtwConfRts.cnt) {
@@ -7035,7 +6860,7 @@ namespace vrptwNew {
 					debug(cnt != PtwConfRts.cnt)
 			}
 
-			for (int i = 0; i < PtwConfRts.cnt; i++) {
+			for (int i = 0; i < PtwConfRts.cnt; ++i) {
 				Route& r = rts.getRouteByRid(PtwConfRts.ve[i]);
 
 				if (r.rPtw == 0) {
@@ -7046,7 +6871,7 @@ namespace vrptwNew {
 				}
 			}
 
-			for (int i = 0; i < PcConfRts.cnt; i++) {
+			for (int i = 0; i < PcConfRts.cnt; ++i) {
 				Route& r = rts.getRouteByRid(PcConfRts.ve[i]);
 
 				if (r.rPc == 0) {
@@ -7070,7 +6895,7 @@ namespace vrptwNew {
 				}
 			}
 
-			for (int i = 0; i < rts.cnt; i++) {
+			for (int i = 0; i < rts.cnt; ++i) {
 				if (rts[i].rPtw > 0) {
 					if (PtwConfRts.pos[rts[i].routeID] < 0) {
 						debug(PtwConfRts.pos[rts[i].routeID])
@@ -7180,7 +7005,7 @@ namespace vrptwNew {
 
 				}
 				else {
-					EPIndex++;
+					++EPIndex;
 				}
 
 			}
@@ -7189,10 +7014,10 @@ namespace vrptwNew {
 
 		bool managerCusMem() {
 
-			for (int i = input.custCnt + 3; i < customers.size() - 1; i += 1) {
+			for (int i = input.custCnt + 3; i < customers.size(); ++i) {
 				if (customers[i].routeID == -1) {
 
-					for (int j = input.custCnt + 399; j > i; j -= 1) {
+					for (int j = customers.size()-1; j > i; --j) {
 
 						if (customers[j].routeID != -1) {
 
@@ -7236,7 +7061,7 @@ namespace vrptwNew {
 			//disUsangeOfHashArr();
 			// delete one route randomly
 
-			/*for (int i = 0; i <= input.custCnt; i++) {
+			/*for (int i = 0; i <= input.custCnt; ++i) {
 				P[i] = 1;
 			}*/
 
@@ -7272,7 +7097,7 @@ namespace vrptwNew {
 			Ptw = 0;
 			Pc = 0;
 
-			for (int i = 0; i < rts.size(); i++) {
+			for (int i = 0; i < rts.size(); ++i) {
 
 				Route& r = rts[i];
 
@@ -7282,8 +7107,8 @@ namespace vrptwNew {
 
 				vector<int> cusve = rPutCusInve(r);
 				for (int pt : cusve) {
-					cusCnt++;
-					visitCnt[pt]++;
+					++cusCnt;
+					++visitCnt[pt];
 					if (visitCnt[pt] > 1) {
 						return -1;
 					}
@@ -7292,7 +7117,7 @@ namespace vrptwNew {
 				//debug(routesCost)
 			}
 
-			for (int i = 0; i < rts.cnt; i++) {
+			for (int i = 0; i < rts.cnt; ++i) {
 				rts[i].rWeight = 1;
 			}
 
@@ -7323,11 +7148,11 @@ namespace vrptwNew {
 
 			while (!lyhTimer.isTimeOut()) {
 
-				EPIter++;
+				++EPIter;
 				EPNodesCanEasilyPut();
 
 				if (EPr.rCustCnt >= minEPcus) {
-					contiNoReduce++;
+					++contiNoReduce;
 				}
 				else {
 					contiNoReduce = 0;
@@ -7343,7 +7168,10 @@ namespace vrptwNew {
 				Position bestP = findBestPosInSol(top);
 				Route& r = rts[bestP.rIndex];
 				EPremoveByVal(top);
+
 				P[top] += cfg.Pwei0;
+				//P[top] += 5;
+
 				maxPVal = max(maxPVal, P[top]);
 				//EPYearTable[top] = EPIter + cfg.EPTabuStep + myRand.pick(cfg.EPTabuRand);
 				DisType oldpenalty = PtwNoWei + Pc;
@@ -7402,7 +7230,7 @@ namespace vrptwNew {
 
 			if (bestM.deltPen.PcOnly + bestM.deltPen.PtwOnly >= 0) {
 
-				for (int i = 0; i < PtwConfRts.cnt; i++) {
+				for (int i = 0; i < PtwConfRts.cnt; ++i) {
 					Route& r = rts.getRouteByRid(PtwConfRts.ve[i]);
 					r.rWeight += cfg.weightUpStep;
 					Ptw += r.rPtw;
@@ -7443,7 +7271,7 @@ namespace vrptwNew {
 						break;
 					}
 					else {
-						it++;
+						++it;
 					}
 				}
 
@@ -7461,7 +7289,7 @@ namespace vrptwNew {
 
 				DisType min1 = DisInf;
 				int index = 0;
-				for (int i = 0; i < bestPool.size(); i++) {
+				for (int i = 0; i < bestPool.size(); ++i) {
 					//debug(i)
 					DisType temp = bestPool[i].Pc + bestPool[i].PtwNoWei;
 					if (temp < min1) {
@@ -7477,7 +7305,7 @@ namespace vrptwNew {
 				int min1 = IntInf;
 				int index = 0;
 
-				for (int i = 0; i < bestPool.size(); i++) {
+				for (int i = 0; i < bestPool.size(); ++i) {
 					customers = bestPool[i].customers;
 					rts = bestPool[i].rts;
 					resetConfRts();
@@ -7497,7 +7325,7 @@ namespace vrptwNew {
 						ejeNodesAfterSqueeze = ret;
 					}
 					else if (sum == min1) {
-						bestCnt++;
+						++bestCnt;
 						if (myRand.pick(bestCnt) == 0) {
 							index = i;
 							ejeNodesAfterSqueeze = ret;
@@ -7511,7 +7339,7 @@ namespace vrptwNew {
 			alpha = 1;
 			beta = 1;
 
-			for (int i = 0; i < rts.cnt; i++) {
+			for (int i = 0; i < rts.cnt; ++i) {
 				rts[i].rWeight = 1;
 			}
 
@@ -7605,7 +7433,7 @@ namespace vrptwNew {
 				if (bestM.deltPen.PcOnly == DisInf || bestM.deltPen.PtwOnly == DisInf) {
 					debug("squeeze fail find move")
 						debug(squIter)
-						contiNotDe++;
+						++contiNotDe;
 						continue;
 				}
 				/*else if (bestM.deltPen.PcOnly + bestM.deltPen.PtwOnly <= 0) {
@@ -7634,7 +7462,7 @@ namespace vrptwNew {
 				oldrv = rPutCusInve(rv);
 				oldrw = rPutCusInve(rw);
 
-				for (int i = 0; i < rts.cnt; i++) {
+				for (int i = 0; i < rts.cnt; ++i) {
 					Route& r = rts[i];
 					if (rPutCusInve(r).size() != r.rCustCnt) {
 						debug(rPutCusInve(r).size() != r.rCustCnt)
@@ -7666,7 +7494,7 @@ namespace vrptwNew {
 
 				doMoves(bestM);
 
-				squIter++;
+				++squIter;
 				/*solTabuTurnSolToBitArr();
 				solTabuUpBySolToBitArr();*/
 				updatePen();
@@ -7684,7 +7512,7 @@ namespace vrptwNew {
 				
 				bool RoutesCostError = false;
 					//!DISlfeq(oldRcost + bestM.deltPen.deltCost, RoutesCost);
-				for (int i = 0; i < rts.cnt; i++) {
+				for (int i = 0; i < rts.cnt; ++i) {
 					Route& r = rts[i];
 					if (rPutCusInve(r).size() != r.rCustCnt) {
 						debug(rPutCusInve(r).size() != r.rCustCnt)
@@ -7788,7 +7616,7 @@ namespace vrptwNew {
 					pBestThisTurn = penalty;
 				}
 				else {
-					contiNotDe++;
+					++contiNotDe;
 				}
 
 				bool isDown = updateBestPool(Pc, PtwNoWei);
@@ -7810,11 +7638,11 @@ namespace vrptwNew {
 					//}
 					//penalty =  alpha*Ptw +  beta*Pc;
 					//LL minW = squCon.inf;
-					//for (int i = 0; i < rts.size(); i++) {
+					//for (int i = 0; i < rts.size(); ++i) {
 					//	minW = min(minW, rts[i].rWeight);
 					//}
 					//minW = minW/3 + 1;
-					//for (int i = 0; i < rts.size(); i++) {
+					//for (int i = 0; i < rts.size(); ++i) {
 					//	//rts[i].rWeight = rts[i].rWeight - minW +1;
 					//	rts[i].rWeight = rts[i].rWeight/ minW +1;
 					//}
@@ -7844,7 +7672,7 @@ namespace vrptwNew {
 			}
 
 			if (penalty == 0) {
-				for (int i = 0; i < rts.cnt; i++) {
+				for (int i = 0; i < rts.cnt; ++i) {
 					rts[i].rWeight = 1;
 				}
 
@@ -7864,7 +7692,7 @@ namespace vrptwNew {
 				Pc = bestPool[index].Pc;
 				penalty = bestPool[index].penalty;
 
-				/*for (int i = 0; i < rts.cnt; i++) {
+				/*for (int i = 0; i < rts.cnt; ++i) {
 					rts[i].rWeight = 1;
 				}*/
 
@@ -7903,10 +7731,10 @@ namespace vrptwNew {
 			vector<int>confRSet;
 
 			confRSet.reserve(PtwConfRts.cnt + PcConfRts.cnt);
-			for (int i = 0; i < PtwConfRts.cnt; i++) {
+			for (int i = 0; i < PtwConfRts.cnt; ++i) {
 				confRSet.push_back(PtwConfRts.ve[i]);
 			}
-			for (int i = 0; i < PcConfRts.cnt; i++) {
+			for (int i = 0; i < PcConfRts.cnt; ++i) {
 				confRSet.push_back(PcConfRts.ve[i]);
 			}
 
@@ -7920,14 +7748,14 @@ namespace vrptwNew {
 				while (en.ejeVe.size() == 0 && tKmax <= cfg.maxKmax) {
 
 					en = ejectOneRouteOnlyP(r, -1, tKmax);
-					tKmax++;
+					++tKmax;
 				}
 
 				tKmax = cfg.minKmax;
 				while (en.ejeVe.size() == 0 && tKmax <= cfg.maxKmax) {
 
 					en = ejectOneRouteOnlyP(r, 2, tKmax);
-					tKmax++;
+					++tKmax;
 				}
 
 				if (en.ejeVe.size() == 0) {
@@ -7972,7 +7800,7 @@ namespace vrptwNew {
 					noTabuN = etemp;
 				}
 				else if (etemp.Psum == noTabuN.Psum) {
-					sameCnt++;
+					++sameCnt;
 					if (myRand.pick(sameCnt) == 0) {
 						noTabuN = etemp;
 					}
@@ -8138,7 +7966,7 @@ namespace vrptwNew {
 			do {
 
 				if (k < Kmax && ve[k] < N) { // k increase
-					k++;
+					++k;
 					ve[k] = ve[k - 1] + 1;
 
 					int delv = ptwArr[ve[k]];
@@ -8146,7 +7974,7 @@ namespace vrptwNew {
 					// 考虑相同所有Psum 的方案 >
 					// 不考虑相同所有Psum 的方案 >=
 					while (etemp.Psum + P[delv] > noTabuN.Psum && ve[k] < N) {
-						ve[k]++;
+						++ve[k];
 						delv = ptwArr[ve[k]];
 					}
 
@@ -8172,7 +8000,7 @@ namespace vrptwNew {
 				}
 				else if (k == Kmax && ve[k] < N) { // i(k) increase
 
-					ve[k]++;
+					++ve[k];
 
 					// 考虑相同所有Psum 的方案 >
 					// 不考虑相同所有Psum 的方案 >=
@@ -8193,7 +8021,7 @@ namespace vrptwNew {
 				else if (ve[k] == N) {
 
 					k--;
-					ve[k]++;
+					++ve[k];
 
 					int delv = ptwArr[ve[k]];
 					delOneNodeInPreOrder(delv);
@@ -8411,7 +8239,7 @@ namespace vrptwNew {
 			output.PtwNoWei = PtwNoWei;
 			output.Pc = Pc;
 
-			for (int i = 0; i < rts.size(); i++) {
+			for (int i = 0; i < rts.size(); ++i) {
 				output.rts.push_back(rPutCusInve(rts[i]));
 			}
 			//lyhTimer.disp();
@@ -8436,13 +8264,13 @@ namespace vrptwNew {
 					if (customers[v].routeID == -1) {
 						continue;
 					}
-					for (int wpos = 0; wpos < 50; wpos++) {
+					for (int wpos = 0; wpos < 50; ++wpos) {
 
 						int w = input.allCloseOf[v][wpos];
 						if (customers[w].routeID == -1) {
 							continue;
 						}
-						for (int i = 0; i < 15; i++) {
+						for (int i = 0; i < 15; ++i) {
 
 							TwoNodeMove m;
 							m = TwoNodeMove(v, w, i, estimatevw(i, v, w, 0));
@@ -8460,7 +8288,7 @@ namespace vrptwNew {
 
 			LL contiNotDe = 0;
 
-			for (int i = 0; i < rts.cnt; i++) {
+			for (int i = 0; i < rts.cnt; ++i) {
 				rts[i].rWeight = 1;
 			}
 
@@ -8530,7 +8358,7 @@ namespace vrptwNew {
 					/*debug("penaltyAndRLRepair fail find move")
 						debug(++iter)
 						debug(++iter)*/
-						contiNotDe++;
+						++contiNotDe;
 
 					return false;
 					continue;
@@ -8561,7 +8389,7 @@ namespace vrptwNew {
 				oldrv = rPutCusInve(rv);
 				oldrw = rPutCusInve(rw);
 
-				for (int i = 0; i < rts.cnt; i++) {
+				for (int i = 0; i < rts.cnt; ++i) {
 					Route& r = rts[i];
 					if (rPutCusInve(r).size() != r.rCustCnt) {
 						debug(rPutCusInve(r).size() != r.rCustCnt)
@@ -8593,7 +8421,7 @@ namespace vrptwNew {
 
 				doMoves(bestM);
 
-				squIter++;
+				++squIter;
 				/*solTabuTurnSolToBitArr();
 				solTabuUpBySolToBitArr();*/
 				updatePen();
@@ -8611,7 +8439,7 @@ namespace vrptwNew {
 
 				bool RoutesCostError = false;
 				//!DISlfeq(oldRcost + bestM.deltPen.deltCost, RoutesCost);
-				for (int i = 0; i < rts.cnt; i++) {
+				for (int i = 0; i < rts.cnt; ++i) {
 					Route& r = rts[i];
 					if (rPutCusInve(r).size() != r.rCustCnt) {
 						debug(rPutCusInve(r).size() != r.rCustCnt)
@@ -8714,7 +8542,7 @@ namespace vrptwNew {
 					contiNotDe = 0;
 				}
 				else {
-					contiNotDe++;
+					++contiNotDe;
 				}
 
 				if (contiTurnNoDe > 100) {
@@ -8768,18 +8596,18 @@ namespace vrptwNew {
 
 				MRLbestM.reSet();
 				
-				for (int v = 1; v <= input.custCnt; v++) {
+				for (int v = 1; v <= input.custCnt; ++v) {
 
 					if (customers[v].routeID == -1) {
 						continue;
 					}
-					for (int wpos = 0; wpos < 100; wpos++) {
+					for (int wpos = 0; wpos < 100; ++wpos) {
 
 						int w = input.allCloseOf[v][wpos];
 						if (customers[w].routeID == -1) {
 							continue;
 						}
-						for (int i = 0; i < 15; i++) {
+						for (int i = 0; i < 15; ++i) {
 
 							if (MRLbestM.deltPen.deltCost < 0) {
 								return MRLbestM;
@@ -8798,7 +8626,7 @@ namespace vrptwNew {
 
 				MRLbestM.reSet();
 
-				for (int v = 1; v <= input.custCnt; v++) {
+				for (int v = 1; v <= input.custCnt; ++v) {
 
 					if (customers[v].routeID == -1) {
 						continue;
@@ -8806,13 +8634,13 @@ namespace vrptwNew {
 
 					Vec<int> reV = input.allCloseOf[v];
 
-					for (int wpos = 0; wpos < 20; wpos++) {
+					for (int wpos = 0; wpos < 20; ++wpos) {
 						//int w = myRand.pick(input.custCnt) + 1;
 						int w = reV[wpos];
 						if (customers[w].routeID == -1) {
 							continue;
 						}
-						for (int i = 0; i < 15; i++) {
+						for (int i = 0; i < 15; ++i) {
 
 							if (MRLbestM.deltPen.deltCost < 0) {
 								return MRLbestM;
@@ -8843,7 +8671,7 @@ namespace vrptwNew {
 					debug(RoutesCost)
 				}
 				else {
-					contiNotDe++;
+					++contiNotDe;
 				}
 
 				if (contiNotDe > 30) {
@@ -8932,7 +8760,7 @@ namespace vrptwNew {
 
 				bool penAb0 = verify() < 0;
 
-				for (int i = 0; i < rts.cnt; i++) {
+				for (int i = 0; i < rts.cnt; ++i) {
 					Route& r = rts[i];
 					if (rPutCusInve(r).size() != r.rCustCnt) {
 						debug(rPutCusInve(r).size() != r.rCustCnt)
@@ -9047,7 +8875,7 @@ namespace vrptwNew {
 			output.Pc = Pc;
 
 			output.rts.clear();
-			for (int i = 0; i < rts.size(); i++) {
+			for (int i = 0; i < rts.size(); ++i) {
 				output.rts.push_back(rPutCusInve(rts[i]));
 			}
 			lyhTimer.disp();

@@ -19,20 +19,20 @@ D:\dimacsVRP\VRPTWNEW\Problem.h(289,37): warning C4244: “=”: 从“double”
           [
               _Ty=vrptwNew::DisType
           ]
-D:\dimacsVRP\VRPTWNEW\Problem.h(319,30): warning C4244: “参数”: 从“const vrptwNew::LL”转换到“int”，可能丢失数据
-D:\dimacsVRP\VRPTWNEW\Problem.h(320,30): warning C4244: “参数”: 从“const vrptwNew::LL”转换到“int”，可能丢失数据
-D:\dimacsVRP\VRPTWNEW\Problem.h(378,53): warning C4244: “参数”: 从“vrptwNew::LL”转换到“const _Ty”，可能丢失数据
+D:\dimacsVRP\VRPTWNEW\Problem.h(323,30): warning C4244: “参数”: 从“const vrptwNew::LL”转换到“int”，可能丢失数据
+D:\dimacsVRP\VRPTWNEW\Problem.h(324,30): warning C4244: “参数”: 从“const vrptwNew::LL”转换到“int”，可能丢失数据
+D:\dimacsVRP\VRPTWNEW\Problem.h(396,53): warning C4244: “参数”: 从“vrptwNew::LL”转换到“const _Ty”，可能丢失数据
           with
           [
               _Ty=int
           ]
-D:\dimacsVRP\VRPTWNEW\Problem.h(398,30): warning C4244: “参数”: 从“vrptwNew::LL”转换到“int”，可能丢失数据
-D:\dimacsVRP\VRPTWNEW\Problem.h(399,30): warning C4244: “参数”: 从“vrptwNew::LL”转换到“int”，可能丢失数据
-D:\dimacsVRP\VRPTWNEW\Problem.h(425,38): warning C4244: “=”: 从“double”转换到“vrptwNew::DisType”，可能丢失数据
-D:\dimacsVRP\VRPTWNEW\Problem.h(428,30): warning C4244: “=”: 从“vrptwNew::LL”转换到“int”，可能丢失数据
-D:\dimacsVRP\VRPTWNEW\Problem.h(446,10): warning C4244: “初始化”: 从“double”转换到“vrptwNew::LL”，可能丢失数据
-D:\dimacsVRP\VRPTWNEW\Problem.h(515,19): warning C4244: “=”: 从“vrptwNew::LL”转换到“int”，可能丢失数据
-D:\dimacsVRP\VRPTWNEW\Problem.h(568,27): warning C4244: “=”: 从“vrptwNew::LL”转换到“int”，可能丢失数据
+D:\dimacsVRP\VRPTWNEW\Problem.h(416,30): warning C4244: “参数”: 从“vrptwNew::LL”转换到“int”，可能丢失数据
+D:\dimacsVRP\VRPTWNEW\Problem.h(417,30): warning C4244: “参数”: 从“vrptwNew::LL”转换到“int”，可能丢失数据
+D:\dimacsVRP\VRPTWNEW\Problem.h(443,38): warning C4244: “=”: 从“double”转换到“vrptwNew::DisType”，可能丢失数据
+D:\dimacsVRP\VRPTWNEW\Problem.h(446,30): warning C4244: “=”: 从“vrptwNew::LL”转换到“int”，可能丢失数据
+D:\dimacsVRP\VRPTWNEW\Problem.h(464,10): warning C4244: “初始化”: 从“double”转换到“vrptwNew::LL”，可能丢失数据
+D:\dimacsVRP\VRPTWNEW\Problem.h(533,19): warning C4244: “=”: 从“vrptwNew::LL”转换到“int”，可能丢失数据
+D:\dimacsVRP\VRPTWNEW\Problem.h(586,27): warning C4244: “=”: 从“vrptwNew::LL”转换到“int”，可能丢失数据
 D:\dimacsVRP\VRPTWNEW\Solver.h(333,1): warning C4267: “初始化”: 从“size_t”转换到“int”，可能丢失数据
 D:\dimacsVRP\VRPTWNEW\Solver.h(346,1): warning C4267: “初始化”: 从“size_t”转换到“int”，可能丢失数据
 D:\dimacsVRP\VRPTWNEW\Solver.h(364,27): warning C4244: “参数”: 从“vrptwNew::LL”转换到“unsigned int”，可能丢失数据
@@ -43,112 +43,114 @@ D:\dimacsVRP\VRPTWNEW\Solver.h(383,18): warning C4244: “初始化”: 从“_R
               _Rep=std::chrono::system_clock::rep
           ]
 D:\dimacsVRP\VRPTWNEW\Solver.h(408,15): warning C4244: “初始化”: 从“vrptwNew::LL”转换到“int”，可能丢失数据
-D:\dimacsVRP\VRPTWNEW\Solver.h(1435,1): warning C4819: 该文件包含不能在当前代码页(936)中表示的字符。请将该文件保存为 Unicode 格式以防止数据丢失
-D:\dimacsVRP\VRPTWNEW\Solver.h(2638,1): warning C4819: 该文件包含不能在当前代码页(936)中表示的字符。请将该文件保存为 Unicode 格式以防止数据丢失
-D:\dimacsVRP\VRPTWNEW\Solver.h(3724,1): warning C4819: 该文件包含不能在当前代码页(936)中表示的字符。请将该文件保存为 Unicode 格式以防止数据丢失
-D:\dimacsVRP\VRPTWNEW\Solver.h(5014,1): warning C4819: 该文件包含不能在当前代码页(936)中表示的字符。请将该文件保存为 Unicode 格式以防止数据丢失
-D:\dimacsVRP\VRPTWNEW\Solver.h(5922,1): warning C4819: 该文件包含不能在当前代码页(936)中表示的字符。请将该文件保存为 Unicode 格式以防止数据丢失
-D:\dimacsVRP\VRPTWNEW\Solver.h(7082,1): warning C4819: 该文件包含不能在当前代码页(936)中表示的字符。请将该文件保存为 Unicode 格式以防止数据丢失
-D:\dimacsVRP\VRPTWNEW\Solver.h(767,38): warning C4244: “参数”: 从“vrptwNew::LL”转换到“int”，可能丢失数据
-D:\dimacsVRP\VRPTWNEW\Solver.h(1559,17): warning C4244: “初始化”: 从“vrptwNew::LL”转换到“int”，可能丢失数据
-D:\dimacsVRP\VRPTWNEW\Solver.h(1708,39): warning C4244: “参数”: 从“vrptwNew::LL”转换到“int”，可能丢失数据
-D:\dimacsVRP\VRPTWNEW\Solver.h(1834,14): warning C4244: “return”: 从“vrptwNew::DisType”转换到“int”，可能丢失数据
-D:\dimacsVRP\VRPTWNEW\Solver.h(5345,67): warning C4244: “参数”: 从“vrptwNew::LL”转换到“int”，可能丢失数据
-D:\dimacsVRP\VRPTWNEW\Solver.h(5346,67): warning C4244: “参数”: 从“vrptwNew::LL”转换到“int”，可能丢失数据
-D:\dimacsVRP\VRPTWNEW\Solver.h(5354,67): warning C4244: “参数”: 从“vrptwNew::LL”转换到“int”，可能丢失数据
-D:\dimacsVRP\VRPTWNEW\Solver.h(5355,67): warning C4244: “参数”: 从“vrptwNew::LL”转换到“int”，可能丢失数据
-D:\dimacsVRP\VRPTWNEW\Solver.h(5364,67): warning C4244: “参数”: 从“vrptwNew::LL”转换到“int”，可能丢失数据
-D:\dimacsVRP\VRPTWNEW\Solver.h(5365,67): warning C4244: “参数”: 从“vrptwNew::LL”转换到“int”，可能丢失数据
-D:\dimacsVRP\VRPTWNEW\Solver.h(5366,67): warning C4244: “参数”: 从“vrptwNew::LL”转换到“int”，可能丢失数据
-D:\dimacsVRP\VRPTWNEW\Solver.h(5375,67): warning C4244: “参数”: 从“vrptwNew::LL”转换到“int”，可能丢失数据
-D:\dimacsVRP\VRPTWNEW\Solver.h(5376,67): warning C4244: “参数”: 从“vrptwNew::LL”转换到“int”，可能丢失数据
-D:\dimacsVRP\VRPTWNEW\Solver.h(5377,67): warning C4244: “参数”: 从“vrptwNew::LL”转换到“int”，可能丢失数据
-D:\dimacsVRP\VRPTWNEW\Solver.h(5387,67): warning C4244: “参数”: 从“vrptwNew::LL”转换到“int”，可能丢失数据
-D:\dimacsVRP\VRPTWNEW\Solver.h(5388,67): warning C4244: “参数”: 从“vrptwNew::LL”转换到“int”，可能丢失数据
-D:\dimacsVRP\VRPTWNEW\Solver.h(5389,67): warning C4244: “参数”: 从“vrptwNew::LL”转换到“int”，可能丢失数据
-D:\dimacsVRP\VRPTWNEW\Solver.h(5399,67): warning C4244: “参数”: 从“vrptwNew::LL”转换到“int”，可能丢失数据
-D:\dimacsVRP\VRPTWNEW\Solver.h(5400,67): warning C4244: “参数”: 从“vrptwNew::LL”转换到“int”，可能丢失数据
-D:\dimacsVRP\VRPTWNEW\Solver.h(5401,67): warning C4244: “参数”: 从“vrptwNew::LL”转换到“int”，可能丢失数据
-D:\dimacsVRP\VRPTWNEW\Solver.h(5419,69): warning C4244: “参数”: 从“vrptwNew::LL”转换到“int”，可能丢失数据
-D:\dimacsVRP\VRPTWNEW\Solver.h(5420,69): warning C4244: “参数”: 从“vrptwNew::LL”转换到“int”，可能丢失数据
-D:\dimacsVRP\VRPTWNEW\Solver.h(5421,69): warning C4244: “参数”: 从“vrptwNew::LL”转换到“int”，可能丢失数据
-D:\dimacsVRP\VRPTWNEW\Solver.h(5426,69): warning C4244: “参数”: 从“vrptwNew::LL”转换到“int”，可能丢失数据
-D:\dimacsVRP\VRPTWNEW\Solver.h(5427,69): warning C4244: “参数”: 从“vrptwNew::LL”转换到“int”，可能丢失数据
-D:\dimacsVRP\VRPTWNEW\Solver.h(5428,71): warning C4244: “参数”: 从“vrptwNew::LL”转换到“int”，可能丢失数据
-D:\dimacsVRP\VRPTWNEW\Solver.h(5429,69): warning C4244: “参数”: 从“vrptwNew::LL”转换到“int”，可能丢失数据
-D:\dimacsVRP\VRPTWNEW\Solver.h(5436,68): warning C4244: “参数”: 从“vrptwNew::LL”转换到“int”，可能丢失数据
-D:\dimacsVRP\VRPTWNEW\Solver.h(5437,68): warning C4244: “参数”: 从“vrptwNew::LL”转换到“int”，可能丢失数据
-D:\dimacsVRP\VRPTWNEW\Solver.h(5438,70): warning C4244: “参数”: 从“vrptwNew::LL”转换到“int”，可能丢失数据
-D:\dimacsVRP\VRPTWNEW\Solver.h(5439,68): warning C4244: “参数”: 从“vrptwNew::LL”转换到“int”，可能丢失数据
-D:\dimacsVRP\VRPTWNEW\Solver.h(5462,69): warning C4244: “参数”: 从“vrptwNew::LL”转换到“int”，可能丢失数据
-D:\dimacsVRP\VRPTWNEW\Solver.h(5463,69): warning C4244: “参数”: 从“vrptwNew::LL”转换到“int”，可能丢失数据
-D:\dimacsVRP\VRPTWNEW\Solver.h(5464,69): warning C4244: “参数”: 从“vrptwNew::LL”转换到“int”，可能丢失数据
-D:\dimacsVRP\VRPTWNEW\Solver.h(5469,69): warning C4244: “参数”: 从“vrptwNew::LL”转换到“int”，可能丢失数据
-D:\dimacsVRP\VRPTWNEW\Solver.h(5470,69): warning C4244: “参数”: 从“vrptwNew::LL”转换到“int”，可能丢失数据
-D:\dimacsVRP\VRPTWNEW\Solver.h(5471,69): warning C4244: “参数”: 从“vrptwNew::LL”转换到“int”，可能丢失数据
-D:\dimacsVRP\VRPTWNEW\Solver.h(5472,71): warning C4244: “参数”: 从“vrptwNew::LL”转换到“int”，可能丢失数据
-D:\dimacsVRP\VRPTWNEW\Solver.h(5479,68): warning C4244: “参数”: 从“vrptwNew::LL”转换到“int”，可能丢失数据
-D:\dimacsVRP\VRPTWNEW\Solver.h(5480,68): warning C4244: “参数”: 从“vrptwNew::LL”转换到“int”，可能丢失数据
-D:\dimacsVRP\VRPTWNEW\Solver.h(5481,68): warning C4244: “参数”: 从“vrptwNew::LL”转换到“int”，可能丢失数据
-D:\dimacsVRP\VRPTWNEW\Solver.h(5482,70): warning C4244: “参数”: 从“vrptwNew::LL”转换到“int”，可能丢失数据
-D:\dimacsVRP\VRPTWNEW\Solver.h(5502,69): warning C4244: “参数”: 从“vrptwNew::LL”转换到“int”，可能丢失数据
-D:\dimacsVRP\VRPTWNEW\Solver.h(5503,69): warning C4244: “参数”: 从“vrptwNew::LL”转换到“int”，可能丢失数据
-D:\dimacsVRP\VRPTWNEW\Solver.h(5504,69): warning C4244: “参数”: 从“vrptwNew::LL”转换到“int”，可能丢失数据
-D:\dimacsVRP\VRPTWNEW\Solver.h(5509,69): warning C4244: “参数”: 从“vrptwNew::LL”转换到“int”，可能丢失数据
-D:\dimacsVRP\VRPTWNEW\Solver.h(5510,69): warning C4244: “参数”: 从“vrptwNew::LL”转换到“int”，可能丢失数据
-D:\dimacsVRP\VRPTWNEW\Solver.h(5511,69): warning C4244: “参数”: 从“vrptwNew::LL”转换到“int”，可能丢失数据
-D:\dimacsVRP\VRPTWNEW\Solver.h(5516,69): warning C4244: “参数”: 从“vrptwNew::LL”转换到“int”，可能丢失数据
-D:\dimacsVRP\VRPTWNEW\Solver.h(5517,69): warning C4244: “参数”: 从“vrptwNew::LL”转换到“int”，可能丢失数据
-D:\dimacsVRP\VRPTWNEW\Solver.h(5518,69): warning C4244: “参数”: 从“vrptwNew::LL”转换到“int”，可能丢失数据
-D:\dimacsVRP\VRPTWNEW\Solver.h(5519,69): warning C4244: “参数”: 从“vrptwNew::LL”转换到“int”，可能丢失数据
-D:\dimacsVRP\VRPTWNEW\Solver.h(5526,68): warning C4244: “参数”: 从“vrptwNew::LL”转换到“int”，可能丢失数据
-D:\dimacsVRP\VRPTWNEW\Solver.h(5527,68): warning C4244: “参数”: 从“vrptwNew::LL”转换到“int”，可能丢失数据
-D:\dimacsVRP\VRPTWNEW\Solver.h(5528,68): warning C4244: “参数”: 从“vrptwNew::LL”转换到“int”，可能丢失数据
-D:\dimacsVRP\VRPTWNEW\Solver.h(5529,68): warning C4244: “参数”: 从“vrptwNew::LL”转换到“int”，可能丢失数据
-D:\dimacsVRP\VRPTWNEW\Solver.h(5547,67): warning C4244: “参数”: 从“vrptwNew::LL”转换到“int”，可能丢失数据
-D:\dimacsVRP\VRPTWNEW\Solver.h(5548,70): warning C4244: “参数”: 从“vrptwNew::LL”转换到“int”，可能丢失数据
-D:\dimacsVRP\VRPTWNEW\Solver.h(5549,67): warning C4244: “参数”: 从“vrptwNew::LL”转换到“int”，可能丢失数据
-D:\dimacsVRP\VRPTWNEW\Solver.h(5550,69): warning C4244: “参数”: 从“vrptwNew::LL”转换到“int”，可能丢失数据
-D:\dimacsVRP\VRPTWNEW\Solver.h(5566,67): warning C4244: “参数”: 从“vrptwNew::LL”转换到“int”，可能丢失数据
-D:\dimacsVRP\VRPTWNEW\Solver.h(5567,70): warning C4244: “参数”: 从“vrptwNew::LL”转换到“int”，可能丢失数据
-D:\dimacsVRP\VRPTWNEW\Solver.h(5568,67): warning C4244: “参数”: 从“vrptwNew::LL”转换到“int”，可能丢失数据
-D:\dimacsVRP\VRPTWNEW\Solver.h(5569,67): warning C4244: “参数”: 从“vrptwNew::LL”转换到“int”，可能丢失数据
-D:\dimacsVRP\VRPTWNEW\Solver.h(5581,67): warning C4244: “参数”: 从“vrptwNew::LL”转换到“int”，可能丢失数据
-D:\dimacsVRP\VRPTWNEW\Solver.h(5582,69): warning C4244: “参数”: 从“vrptwNew::LL”转换到“int”，可能丢失数据
-D:\dimacsVRP\VRPTWNEW\Solver.h(5583,67): warning C4244: “参数”: 从“vrptwNew::LL”转换到“int”，可能丢失数据
-D:\dimacsVRP\VRPTWNEW\Solver.h(5584,67): warning C4244: “参数”: 从“vrptwNew::LL”转换到“int”，可能丢失数据
-D:\dimacsVRP\VRPTWNEW\Solver.h(5598,67): warning C4244: “参数”: 从“vrptwNew::LL”转换到“int”，可能丢失数据
-D:\dimacsVRP\VRPTWNEW\Solver.h(5599,67): warning C4244: “参数”: 从“vrptwNew::LL”转换到“int”，可能丢失数据
-D:\dimacsVRP\VRPTWNEW\Solver.h(5600,67): warning C4244: “参数”: 从“vrptwNew::LL”转换到“int”，可能丢失数据
-D:\dimacsVRP\VRPTWNEW\Solver.h(5601,69): warning C4244: “参数”: 从“vrptwNew::LL”转换到“int”，可能丢失数据
-D:\dimacsVRP\VRPTWNEW\Solver.h(5615,67): warning C4244: “参数”: 从“vrptwNew::LL”转换到“int”，可能丢失数据
-D:\dimacsVRP\VRPTWNEW\Solver.h(5616,69): warning C4244: “参数”: 从“vrptwNew::LL”转换到“int”，可能丢失数据
-D:\dimacsVRP\VRPTWNEW\Solver.h(5617,67): warning C4244: “参数”: 从“vrptwNew::LL”转换到“int”，可能丢失数据
-D:\dimacsVRP\VRPTWNEW\Solver.h(5629,69): warning C4244: “参数”: 从“vrptwNew::LL”转换到“int”，可能丢失数据
-D:\dimacsVRP\VRPTWNEW\Solver.h(5630,67): warning C4244: “参数”: 从“vrptwNew::LL”转换到“int”，可能丢失数据
-D:\dimacsVRP\VRPTWNEW\Solver.h(5631,67): warning C4244: “参数”: 从“vrptwNew::LL”转换到“int”，可能丢失数据
-D:\dimacsVRP\VRPTWNEW\Solver.h(5641,67): warning C4244: “参数”: 从“vrptwNew::LL”转换到“int”，可能丢失数据
-D:\dimacsVRP\VRPTWNEW\Solver.h(5642,67): warning C4244: “参数”: 从“vrptwNew::LL”转换到“int”，可能丢失数据
-D:\dimacsVRP\VRPTWNEW\Solver.h(5648,70): warning C4244: “参数”: 从“vrptwNew::LL”转换到“int”，可能丢失数据
-D:\dimacsVRP\VRPTWNEW\Solver.h(5762,1): warning C4267: “初始化”: 从“size_t”转换到“int”，可能丢失数据
-D:\dimacsVRP\VRPTWNEW\Solver.h(5831,15): warning C4244: “初始化”: 从“__int64”转换到“int”，可能丢失数据
-D:\dimacsVRP\VRPTWNEW\Solver.h(5859,1): warning C4267: “参数”: 从“size_t”转换到“int”，可能丢失数据
-D:\dimacsVRP\VRPTWNEW\Solver.h(6510,1): warning C4244: “*=”: 从“double”转换到“int”，可能丢失数据
-D:\dimacsVRP\VRPTWNEW\Solver.h(6542,1): warning C4244: “*=”: 从“double”转换到“int”，可能丢失数据
-D:\dimacsVRP\VRPTWNEW\Solver.h(6582,1): warning C4244: “*=”: 从“double”转换到“int”，可能丢失数据
-D:\dimacsVRP\VRPTWNEW\Solver.h(6629,1): warning C4244: “*=”: 从“double”转换到“int”，可能丢失数据
-D:\dimacsVRP\VRPTWNEW\Solver.h(6675,1): warning C4267: “初始化”: 从“size_t”转换到“int”，可能丢失数据
-D:\dimacsVRP\VRPTWNEW\Solver.h(6866,15): warning C4244: “初始化”: 从“vrptwNew::DisType”转换到“int”，可能丢失数据
-D:\dimacsVRP\VRPTWNEW\Solver.h(6894,1): warning C4267: “初始化”: 从“size_t”转换到“int”，可能丢失数据
-D:\dimacsVRP\VRPTWNEW\Solver.h(7335,16): warning C4244: “=”: 从“vrptwNew::DisType”转换到“int”，可能丢失数据
-D:\dimacsVRP\VRPTWNEW\Solver.h(7342,1): warning C4267: “参数”: 从“size_t”转换到“int”，可能丢失数据
-D:\dimacsVRP\VRPTWNEW\Solver.h(7407,1): warning C4244: “+=”: 从“vrptwNew::LL”转换到“int”，可能丢失数据
-D:\dimacsVRP\VRPTWNEW\Solver.h(7830,1): warning C4267: “=”: 从“size_t”转换到“int”，可能丢失数据
-D:\dimacsVRP\VRPTWNEW\Solver.h(8106,1): warning C4267: “=”: 从“size_t”转换到“int”，可能丢失数据
-D:\dimacsVRP\VRPTWNEW\Solver.h(8110,1): warning C4267: “=”: 从“size_t”转换到“int”，可能丢失数据
-D:\dimacsVRP\VRPTWNEW\Solver.h(8111,1): warning C4267: “=”: 从“size_t”转换到“int”，可能丢失数据
-D:\dimacsVRP\VRPTWNEW\Solver.h(8125,1): warning C4267: “=”: 从“size_t”转换到“int”，可能丢失数据
-D:\dimacsVRP\VRPTWNEW\Solver.h(8132,1): warning C4267: “初始化”: 从“size_t”转换到“int”，可能丢失数据
+D:\dimacsVRP\VRPTWNEW\Solver.h(1432,1): warning C4819: 该文件包含不能在当前代码页(936)中表示的字符。请将该文件保存为 Unicode 格式以防止数据丢失
+D:\dimacsVRP\VRPTWNEW\Solver.h(2661,1): warning C4819: 该文件包含不能在当前代码页(936)中表示的字符。请将该文件保存为 Unicode 格式以防止数据丢失
+D:\dimacsVRP\VRPTWNEW\Solver.h(3728,1): warning C4819: 该文件包含不能在当前代码页(936)中表示的字符。请将该文件保存为 Unicode 格式以防止数据丢失
+D:\dimacsVRP\VRPTWNEW\Solver.h(5004,1): warning C4819: 该文件包含不能在当前代码页(936)中表示的字符。请将该文件保存为 Unicode 格式以防止数据丢失
+D:\dimacsVRP\VRPTWNEW\Solver.h(6067,1): warning C4819: 该文件包含不能在当前代码页(936)中表示的字符。请将该文件保存为 Unicode 格式以防止数据丢失
+D:\dimacsVRP\VRPTWNEW\Solver.h(7234,1): warning C4819: 该文件包含不能在当前代码页(936)中表示的字符。请将该文件保存为 Unicode 格式以防止数据丢失
+D:\dimacsVRP\VRPTWNEW\Solver.h(774,38): warning C4244: “参数”: 从“vrptwNew::LL”转换到“int”，可能丢失数据
+D:\dimacsVRP\VRPTWNEW\Solver.h(1505,1): warning C4267: “参数”: 从“size_t”转换到“int”，可能丢失数据
+D:\dimacsVRP\VRPTWNEW\Solver.h(1681,17): warning C4244: “初始化”: 从“vrptwNew::LL”转换到“int”，可能丢失数据
+D:\dimacsVRP\VRPTWNEW\Solver.h(1830,39): warning C4244: “参数”: 从“vrptwNew::LL”转换到“int”，可能丢失数据
+D:\dimacsVRP\VRPTWNEW\Solver.h(1956,14): warning C4244: “return”: 从“vrptwNew::DisType”转换到“int”，可能丢失数据
+D:\dimacsVRP\VRPTWNEW\Solver.h(5169,67): warning C4244: “参数”: 从“vrptwNew::LL”转换到“int”，可能丢失数据
+D:\dimacsVRP\VRPTWNEW\Solver.h(5170,67): warning C4244: “参数”: 从“vrptwNew::LL”转换到“int”，可能丢失数据
+D:\dimacsVRP\VRPTWNEW\Solver.h(5178,67): warning C4244: “参数”: 从“vrptwNew::LL”转换到“int”，可能丢失数据
+D:\dimacsVRP\VRPTWNEW\Solver.h(5179,67): warning C4244: “参数”: 从“vrptwNew::LL”转换到“int”，可能丢失数据
+D:\dimacsVRP\VRPTWNEW\Solver.h(5188,67): warning C4244: “参数”: 从“vrptwNew::LL”转换到“int”，可能丢失数据
+D:\dimacsVRP\VRPTWNEW\Solver.h(5189,67): warning C4244: “参数”: 从“vrptwNew::LL”转换到“int”，可能丢失数据
+D:\dimacsVRP\VRPTWNEW\Solver.h(5190,67): warning C4244: “参数”: 从“vrptwNew::LL”转换到“int”，可能丢失数据
+D:\dimacsVRP\VRPTWNEW\Solver.h(5199,67): warning C4244: “参数”: 从“vrptwNew::LL”转换到“int”，可能丢失数据
+D:\dimacsVRP\VRPTWNEW\Solver.h(5200,67): warning C4244: “参数”: 从“vrptwNew::LL”转换到“int”，可能丢失数据
+D:\dimacsVRP\VRPTWNEW\Solver.h(5201,67): warning C4244: “参数”: 从“vrptwNew::LL”转换到“int”，可能丢失数据
+D:\dimacsVRP\VRPTWNEW\Solver.h(5211,67): warning C4244: “参数”: 从“vrptwNew::LL”转换到“int”，可能丢失数据
+D:\dimacsVRP\VRPTWNEW\Solver.h(5212,67): warning C4244: “参数”: 从“vrptwNew::LL”转换到“int”，可能丢失数据
+D:\dimacsVRP\VRPTWNEW\Solver.h(5213,67): warning C4244: “参数”: 从“vrptwNew::LL”转换到“int”，可能丢失数据
+D:\dimacsVRP\VRPTWNEW\Solver.h(5223,67): warning C4244: “参数”: 从“vrptwNew::LL”转换到“int”，可能丢失数据
+D:\dimacsVRP\VRPTWNEW\Solver.h(5224,67): warning C4244: “参数”: 从“vrptwNew::LL”转换到“int”，可能丢失数据
+D:\dimacsVRP\VRPTWNEW\Solver.h(5225,67): warning C4244: “参数”: 从“vrptwNew::LL”转换到“int”，可能丢失数据
+D:\dimacsVRP\VRPTWNEW\Solver.h(5243,69): warning C4244: “参数”: 从“vrptwNew::LL”转换到“int”，可能丢失数据
+D:\dimacsVRP\VRPTWNEW\Solver.h(5244,69): warning C4244: “参数”: 从“vrptwNew::LL”转换到“int”，可能丢失数据
+D:\dimacsVRP\VRPTWNEW\Solver.h(5245,69): warning C4244: “参数”: 从“vrptwNew::LL”转换到“int”，可能丢失数据
+D:\dimacsVRP\VRPTWNEW\Solver.h(5250,69): warning C4244: “参数”: 从“vrptwNew::LL”转换到“int”，可能丢失数据
+D:\dimacsVRP\VRPTWNEW\Solver.h(5251,69): warning C4244: “参数”: 从“vrptwNew::LL”转换到“int”，可能丢失数据
+D:\dimacsVRP\VRPTWNEW\Solver.h(5252,71): warning C4244: “参数”: 从“vrptwNew::LL”转换到“int”，可能丢失数据
+D:\dimacsVRP\VRPTWNEW\Solver.h(5253,69): warning C4244: “参数”: 从“vrptwNew::LL”转换到“int”，可能丢失数据
+D:\dimacsVRP\VRPTWNEW\Solver.h(5260,68): warning C4244: “参数”: 从“vrptwNew::LL”转换到“int”，可能丢失数据
+D:\dimacsVRP\VRPTWNEW\Solver.h(5261,68): warning C4244: “参数”: 从“vrptwNew::LL”转换到“int”，可能丢失数据
+D:\dimacsVRP\VRPTWNEW\Solver.h(5262,70): warning C4244: “参数”: 从“vrptwNew::LL”转换到“int”，可能丢失数据
+D:\dimacsVRP\VRPTWNEW\Solver.h(5263,68): warning C4244: “参数”: 从“vrptwNew::LL”转换到“int”，可能丢失数据
+D:\dimacsVRP\VRPTWNEW\Solver.h(5286,69): warning C4244: “参数”: 从“vrptwNew::LL”转换到“int”，可能丢失数据
+D:\dimacsVRP\VRPTWNEW\Solver.h(5287,69): warning C4244: “参数”: 从“vrptwNew::LL”转换到“int”，可能丢失数据
+D:\dimacsVRP\VRPTWNEW\Solver.h(5288,69): warning C4244: “参数”: 从“vrptwNew::LL”转换到“int”，可能丢失数据
+D:\dimacsVRP\VRPTWNEW\Solver.h(5293,69): warning C4244: “参数”: 从“vrptwNew::LL”转换到“int”，可能丢失数据
+D:\dimacsVRP\VRPTWNEW\Solver.h(5294,69): warning C4244: “参数”: 从“vrptwNew::LL”转换到“int”，可能丢失数据
+D:\dimacsVRP\VRPTWNEW\Solver.h(5295,69): warning C4244: “参数”: 从“vrptwNew::LL”转换到“int”，可能丢失数据
+D:\dimacsVRP\VRPTWNEW\Solver.h(5296,71): warning C4244: “参数”: 从“vrptwNew::LL”转换到“int”，可能丢失数据
+D:\dimacsVRP\VRPTWNEW\Solver.h(5303,68): warning C4244: “参数”: 从“vrptwNew::LL”转换到“int”，可能丢失数据
+D:\dimacsVRP\VRPTWNEW\Solver.h(5304,68): warning C4244: “参数”: 从“vrptwNew::LL”转换到“int”，可能丢失数据
+D:\dimacsVRP\VRPTWNEW\Solver.h(5305,68): warning C4244: “参数”: 从“vrptwNew::LL”转换到“int”，可能丢失数据
+D:\dimacsVRP\VRPTWNEW\Solver.h(5306,70): warning C4244: “参数”: 从“vrptwNew::LL”转换到“int”，可能丢失数据
+D:\dimacsVRP\VRPTWNEW\Solver.h(5326,69): warning C4244: “参数”: 从“vrptwNew::LL”转换到“int”，可能丢失数据
+D:\dimacsVRP\VRPTWNEW\Solver.h(5327,69): warning C4244: “参数”: 从“vrptwNew::LL”转换到“int”，可能丢失数据
+D:\dimacsVRP\VRPTWNEW\Solver.h(5328,69): warning C4244: “参数”: 从“vrptwNew::LL”转换到“int”，可能丢失数据
+D:\dimacsVRP\VRPTWNEW\Solver.h(5333,69): warning C4244: “参数”: 从“vrptwNew::LL”转换到“int”，可能丢失数据
+D:\dimacsVRP\VRPTWNEW\Solver.h(5334,69): warning C4244: “参数”: 从“vrptwNew::LL”转换到“int”，可能丢失数据
+D:\dimacsVRP\VRPTWNEW\Solver.h(5335,69): warning C4244: “参数”: 从“vrptwNew::LL”转换到“int”，可能丢失数据
+D:\dimacsVRP\VRPTWNEW\Solver.h(5340,69): warning C4244: “参数”: 从“vrptwNew::LL”转换到“int”，可能丢失数据
+D:\dimacsVRP\VRPTWNEW\Solver.h(5341,69): warning C4244: “参数”: 从“vrptwNew::LL”转换到“int”，可能丢失数据
+D:\dimacsVRP\VRPTWNEW\Solver.h(5342,69): warning C4244: “参数”: 从“vrptwNew::LL”转换到“int”，可能丢失数据
+D:\dimacsVRP\VRPTWNEW\Solver.h(5343,69): warning C4244: “参数”: 从“vrptwNew::LL”转换到“int”，可能丢失数据
+D:\dimacsVRP\VRPTWNEW\Solver.h(5350,68): warning C4244: “参数”: 从“vrptwNew::LL”转换到“int”，可能丢失数据
+D:\dimacsVRP\VRPTWNEW\Solver.h(5351,68): warning C4244: “参数”: 从“vrptwNew::LL”转换到“int”，可能丢失数据
+D:\dimacsVRP\VRPTWNEW\Solver.h(5352,68): warning C4244: “参数”: 从“vrptwNew::LL”转换到“int”，可能丢失数据
+D:\dimacsVRP\VRPTWNEW\Solver.h(5353,68): warning C4244: “参数”: 从“vrptwNew::LL”转换到“int”，可能丢失数据
+D:\dimacsVRP\VRPTWNEW\Solver.h(5371,67): warning C4244: “参数”: 从“vrptwNew::LL”转换到“int”，可能丢失数据
+D:\dimacsVRP\VRPTWNEW\Solver.h(5372,70): warning C4244: “参数”: 从“vrptwNew::LL”转换到“int”，可能丢失数据
+D:\dimacsVRP\VRPTWNEW\Solver.h(5373,67): warning C4244: “参数”: 从“vrptwNew::LL”转换到“int”，可能丢失数据
+D:\dimacsVRP\VRPTWNEW\Solver.h(5374,69): warning C4244: “参数”: 从“vrptwNew::LL”转换到“int”，可能丢失数据
+D:\dimacsVRP\VRPTWNEW\Solver.h(5390,67): warning C4244: “参数”: 从“vrptwNew::LL”转换到“int”，可能丢失数据
+D:\dimacsVRP\VRPTWNEW\Solver.h(5391,70): warning C4244: “参数”: 从“vrptwNew::LL”转换到“int”，可能丢失数据
+D:\dimacsVRP\VRPTWNEW\Solver.h(5392,67): warning C4244: “参数”: 从“vrptwNew::LL”转换到“int”，可能丢失数据
+D:\dimacsVRP\VRPTWNEW\Solver.h(5393,67): warning C4244: “参数”: 从“vrptwNew::LL”转换到“int”，可能丢失数据
+D:\dimacsVRP\VRPTWNEW\Solver.h(5405,67): warning C4244: “参数”: 从“vrptwNew::LL”转换到“int”，可能丢失数据
+D:\dimacsVRP\VRPTWNEW\Solver.h(5406,69): warning C4244: “参数”: 从“vrptwNew::LL”转换到“int”，可能丢失数据
+D:\dimacsVRP\VRPTWNEW\Solver.h(5407,67): warning C4244: “参数”: 从“vrptwNew::LL”转换到“int”，可能丢失数据
+D:\dimacsVRP\VRPTWNEW\Solver.h(5408,67): warning C4244: “参数”: 从“vrptwNew::LL”转换到“int”，可能丢失数据
+D:\dimacsVRP\VRPTWNEW\Solver.h(5422,67): warning C4244: “参数”: 从“vrptwNew::LL”转换到“int”，可能丢失数据
+D:\dimacsVRP\VRPTWNEW\Solver.h(5423,67): warning C4244: “参数”: 从“vrptwNew::LL”转换到“int”，可能丢失数据
+D:\dimacsVRP\VRPTWNEW\Solver.h(5424,67): warning C4244: “参数”: 从“vrptwNew::LL”转换到“int”，可能丢失数据
+D:\dimacsVRP\VRPTWNEW\Solver.h(5425,69): warning C4244: “参数”: 从“vrptwNew::LL”转换到“int”，可能丢失数据
+D:\dimacsVRP\VRPTWNEW\Solver.h(5439,67): warning C4244: “参数”: 从“vrptwNew::LL”转换到“int”，可能丢失数据
+D:\dimacsVRP\VRPTWNEW\Solver.h(5440,69): warning C4244: “参数”: 从“vrptwNew::LL”转换到“int”，可能丢失数据
+D:\dimacsVRP\VRPTWNEW\Solver.h(5441,67): warning C4244: “参数”: 从“vrptwNew::LL”转换到“int”，可能丢失数据
+D:\dimacsVRP\VRPTWNEW\Solver.h(5453,69): warning C4244: “参数”: 从“vrptwNew::LL”转换到“int”，可能丢失数据
+D:\dimacsVRP\VRPTWNEW\Solver.h(5454,67): warning C4244: “参数”: 从“vrptwNew::LL”转换到“int”，可能丢失数据
+D:\dimacsVRP\VRPTWNEW\Solver.h(5455,67): warning C4244: “参数”: 从“vrptwNew::LL”转换到“int”，可能丢失数据
+D:\dimacsVRP\VRPTWNEW\Solver.h(5465,67): warning C4244: “参数”: 从“vrptwNew::LL”转换到“int”，可能丢失数据
+D:\dimacsVRP\VRPTWNEW\Solver.h(5466,67): warning C4244: “参数”: 从“vrptwNew::LL”转换到“int”，可能丢失数据
+D:\dimacsVRP\VRPTWNEW\Solver.h(5472,70): warning C4244: “参数”: 从“vrptwNew::LL”转换到“int”，可能丢失数据
+D:\dimacsVRP\VRPTWNEW\Solver.h(5586,1): warning C4267: “初始化”: 从“size_t”转换到“int”，可能丢失数据
+D:\dimacsVRP\VRPTWNEW\Solver.h(5655,15): warning C4244: “初始化”: 从“__int64”转换到“int”，可能丢失数据
+D:\dimacsVRP\VRPTWNEW\Solver.h(5683,1): warning C4267: “参数”: 从“size_t”转换到“int”，可能丢失数据
+D:\dimacsVRP\VRPTWNEW\Solver.h(6335,1): warning C4244: “*=”: 从“double”转换到“int”，可能丢失数据
+D:\dimacsVRP\VRPTWNEW\Solver.h(6367,1): warning C4244: “*=”: 从“double”转换到“int”，可能丢失数据
+D:\dimacsVRP\VRPTWNEW\Solver.h(6407,1): warning C4244: “*=”: 从“double”转换到“int”，可能丢失数据
+D:\dimacsVRP\VRPTWNEW\Solver.h(6454,1): warning C4244: “*=”: 从“double”转换到“int”，可能丢失数据
+D:\dimacsVRP\VRPTWNEW\Solver.h(6500,1): warning C4267: “初始化”: 从“size_t”转换到“int”，可能丢失数据
+D:\dimacsVRP\VRPTWNEW\Solver.h(6691,15): warning C4244: “初始化”: 从“vrptwNew::DisType”转换到“int”，可能丢失数据
+D:\dimacsVRP\VRPTWNEW\Solver.h(6719,1): warning C4267: “初始化”: 从“size_t”转换到“int”，可能丢失数据
+D:\dimacsVRP\VRPTWNEW\Solver.h(7020,1): warning C4267: “初始化”: 从“size_t”转换到“int”，可能丢失数据
+D:\dimacsVRP\VRPTWNEW\Solver.h(7160,16): warning C4244: “=”: 从“vrptwNew::DisType”转换到“int”，可能丢失数据
+D:\dimacsVRP\VRPTWNEW\Solver.h(7167,1): warning C4267: “参数”: 从“size_t”转换到“int”，可能丢失数据
+D:\dimacsVRP\VRPTWNEW\Solver.h(7235,1): warning C4244: “+=”: 从“vrptwNew::LL”转换到“int”，可能丢失数据
+D:\dimacsVRP\VRPTWNEW\Solver.h(7658,1): warning C4267: “=”: 从“size_t”转换到“int”，可能丢失数据
+D:\dimacsVRP\VRPTWNEW\Solver.h(7934,1): warning C4267: “=”: 从“size_t”转换到“int”，可能丢失数据
+D:\dimacsVRP\VRPTWNEW\Solver.h(7938,1): warning C4267: “=”: 从“size_t”转换到“int”，可能丢失数据
+D:\dimacsVRP\VRPTWNEW\Solver.h(7939,1): warning C4267: “=”: 从“size_t”转换到“int”，可能丢失数据
+D:\dimacsVRP\VRPTWNEW\Solver.h(7953,1): warning C4267: “=”: 从“size_t”转换到“int”，可能丢失数据
+D:\dimacsVRP\VRPTWNEW\Solver.h(7960,1): warning C4267: “初始化”: 从“size_t”转换到“int”，可能丢失数据
 D:\dimacsVRP\VRPTWNEW\EAX.h(46,93): warning C4244: “参数”: 从“vrptwNew::LL”转换到“int”，可能丢失数据
 D:\dimacsVRP\VRPTWNEW\EAX.h(577,1): warning C4244: “-=”: 从“_Ty”转换到“int”，可能丢失数据
           with
@@ -164,8 +166,8 @@ D:\dimacsVRP\VRPTWNEW\EAX.h(595,1): warning C4267: “参数”: 从“size_t”
 D:\dimacsVRP\VRPTWNEW\EAX.h(596,1): warning C4267: “=”: 从“size_t”转换到“int”，可能丢失数据
 D:\dimacsVRP\VRPTWNEW\EAX.h(638,1): warning C4267: “+=”: 从“size_t”转换到“int”，可能丢失数据
   正在生成代码
-  1 of 1696 functions (<0.1%) were compiled, the rest were copied from previous compilation.
+  1 of 1805 functions (<0.1%) were compiled, the rest were copied from previous compilation.
     0 functions were new in current compilation
-    15 functions had inline decision re-evaluated but remain unchanged
+    16 functions had inline decision re-evaluated but remain unchanged
   已完成代码的生成
   dimacsVRP.vcxproj -> D:\dimacsVRP\Dev\dimacsVRP.exe

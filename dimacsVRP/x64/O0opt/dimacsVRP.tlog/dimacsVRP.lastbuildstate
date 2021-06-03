@@ -1,2 +1,2 @@
-#TargetFrameworkVersion=v4.0:PlatformToolSet=v142:EnableManagedIncrementalBuild=false:VCToolArchitecture=Native32Bit:WindowsTargetPlatformVersion=10.0
-O0opt|x64|E:\dimacsVRP\|
+PlatformToolSet=v142:VCToolArchitecture=Native32Bit:VCToolsVersion=14.28.29910:VCServicingVersionCompilers=14.28.29915:TargetPlatformVersion=10.0.17763.0:
+O0opt|x64|D:\dimacsVRP\|
