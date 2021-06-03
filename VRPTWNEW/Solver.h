@@ -973,7 +973,7 @@ namespace vrptwNew {
 			}
 
 			r.rQ -= input.datas[a].DEMAND;
-			r.rPc = max((int)0, r.rQ - input.Q);
+			r.rPc = max((DisType)0, r.rQ - input.Q);
 
 			Customer& temp = customers[a];
 			Customer& tpre = customers[temp.pre];
@@ -1404,7 +1404,7 @@ namespace vrptwNew {
 					Ptw += customers[vj].TWX_;
 
 					DisType awp = customers[v].av + input.datas[v].SERVICETIME + input.disOf[reCusNo(v)][reCusNo(w)];
-					Ptw += max(0, awp - input.datas[w].DUEDATE);
+					Ptw += max((DisType)0, awp - input.datas[w].DUEDATE);
 					DisType aw =
 						awp <= input.datas[w].DUEDATE ? max(input.datas[w].READYTIME, awp) : input.datas[w].DUEDATE;
 
@@ -1549,7 +1549,7 @@ namespace vrptwNew {
 
 
 					DisType awp = customers[v].av + input.datas[v].SERVICETIME + input.disOf[reCusNo(v)][reCusNo(w)];
-					Ptw += max(0, awp - input.datas[w].DUEDATE);
+					Ptw += max((DisType)0, awp - input.datas[w].DUEDATE);
 					DisType aw =
 						awp <= input.datas[w].DUEDATE ? max(input.datas[w].READYTIME, awp) : input.datas[w].DUEDATE;
 
@@ -2100,8 +2100,8 @@ namespace vrptwNew {
 				rvQ += customers[v_].Q_X;
 				rvQ += customers[wj].QX_;
 
-				bestM.deltPc = max(0, rwQ - input.Q) +
-					max(0, rvQ - input.Q) -
+				bestM.deltPc = max((DisType)0, rwQ - input.Q) +
+					max((DisType)0, rvQ - input.Q) -
 					rv.rPc - rw.rPc;
 				bestM.PcOnly = bestM.deltPc;
 				bestM.deltPc *= beta;
@@ -2196,8 +2196,8 @@ namespace vrptwNew {
 				rw_vjQ += customers[w_].Q_X;
 				rw_vjQ += customers[vj].QX_;
 
-				bestM.deltPc = max(0, rvwQ - input.Q)
-					+ max(0, rw_vjQ - input.Q)
+				bestM.deltPc = max((DisType)0, rvwQ - input.Q)
+					+ max((DisType)0, rw_vjQ - input.Q)
 					- rv.rPc - rw.rPc;
 				bestM.PcOnly = bestM.deltPc;
 				bestM.deltPc *= beta;
@@ -2293,7 +2293,7 @@ namespace vrptwNew {
 
 						DisType avjp = customers[v_].av + input.datas[v_].SERVICETIME + input.disOf[reCusNo(v_)][reCusNo(vj)];
 
-						newvwPtw += max(0, avjp - input.datas[vj].DUEDATE);
+						newvwPtw += max((DisType)0, avjp - input.datas[vj].DUEDATE);
 						newvwPtw += customers[v_].TW_X;
 
 						DisType avj = avjp > input.datas[vj].DUEDATE ? input.datas[vj].DUEDATE :
@@ -2315,7 +2315,7 @@ namespace vrptwNew {
 								}
 
 								DisType aptp = lastav + input.datas[lastv].SERVICETIME + input.disOf[reCusNo(lastv)][reCusNo(pt)];
-								newvwPtw += max(0, aptp - input.datas[pt].DUEDATE);
+								newvwPtw += max((DisType)0, aptp - input.datas[pt].DUEDATE);
 
 								DisType apt = aptp > input.datas[pt].DUEDATE ? input.datas[pt].DUEDATE :
 									max(aptp, input.datas[pt].READYTIME);
@@ -2327,13 +2327,13 @@ namespace vrptwNew {
 						}
 
 						DisType avp = lastav + input.datas[lastv].SERVICETIME + input.disOf[reCusNo(lastv)][reCusNo(v)];
-						newvwPtw += max(0, avp - input.datas[v].DUEDATE);
+						newvwPtw += max((DisType)0, avp - input.datas[v].DUEDATE);
 
 						DisType av = avp > input.datas[v].DUEDATE ? input.datas[v].DUEDATE :
 							max(avp, input.datas[v].READYTIME);
 
 						DisType awp = av + input.datas[v].SERVICETIME + input.disOf[reCusNo(v)][reCusNo(w)];
-						newvwPtw += max(0, awp - customers[w].zv);
+						newvwPtw += max((DisType)0, awp - customers[w].zv);
 
 						newvwPtw += customers[w].TWX_;
 
@@ -2343,7 +2343,7 @@ namespace vrptwNew {
 						DisType avp = customers[w_].av + input.datas[w_].SERVICETIME + input.disOf[reCusNo(w_)][reCusNo(v)];
 
 						newvwPtw += customers[w_].TW_X;
-						newvwPtw += max(0, avp - input.datas[v].DUEDATE);
+						newvwPtw += max((DisType)0, avp - input.datas[v].DUEDATE);
 
 						DisType av = avp > input.datas[v].DUEDATE ? input.datas[v].DUEDATE :
 							max(avp, input.datas[v].READYTIME);
@@ -2353,7 +2353,7 @@ namespace vrptwNew {
 
 						DisType awp = lastav + input.datas[v].SERVICETIME + input.disOf[reCusNo(v)][reCusNo(w)];
 
-						newvwPtw += max(0, awp - input.datas[w].DUEDATE);
+						newvwPtw += max((DisType)0, awp - input.datas[w].DUEDATE);
 
 						DisType aw = awp > input.datas[w].DUEDATE ? input.datas[w].DUEDATE :
 							max(awp, input.datas[w].READYTIME);
@@ -2366,7 +2366,7 @@ namespace vrptwNew {
 						while (pt != -1) {
 
 							DisType aptp = lastav + input.datas[lastv].SERVICETIME + input.disOf[reCusNo(lastv)][reCusNo(pt)];
-							newvwPtw += max(0, aptp - input.datas[pt].DUEDATE);
+							newvwPtw += max((DisType)0, aptp - input.datas[pt].DUEDATE);
 
 							DisType apt = aptp > input.datas[pt].DUEDATE ? input.datas[pt].DUEDATE :
 								max(aptp, input.datas[pt].READYTIME);
@@ -2381,7 +2381,7 @@ namespace vrptwNew {
 						}
 
 						DisType avjp = lastav + input.datas[lastv].SERVICETIME + input.disOf[reCusNo(lastv)][reCusNo(vj)];
-						newvwPtw += max(0, avjp - customers[vj].zv);
+						newvwPtw += max((DisType)0, avjp - customers[vj].zv);
 						newvwPtw += customers[vj].TWX_;
 					}
 					else {
@@ -2407,13 +2407,13 @@ namespace vrptwNew {
 
 					DisType avp = customers[w_].av + input.datas[w_].SERVICETIME + input.disOf[reCusNo(w_)][reCusNo(v)];
 					DisType zvp = customers[w].zv - input.disOf[reCusNo(w)][reCusNo(v)] - input.datas[v].SERVICETIME;
-					newvwPtw += max(0, max(avp, input.datas[v].READYTIME) - min(input.datas[v].DUEDATE, zvp));
+					newvwPtw += max((DisType)0, max(avp, input.datas[v].READYTIME) - min(input.datas[v].DUEDATE, zvp));
 
 					newv_vjPtw += customers[v_].TW_X;
 					newv_vjPtw += customers[vj].TWX_;
 
 					DisType avjp = customers[v_].av + input.datas[v_].SERVICETIME + input.disOf[reCusNo(v_)][reCusNo(vj)];
-					newv_vjPtw += max(0, avjp - customers[vj].zv);
+					newv_vjPtw += max((DisType)0, avjp - customers[vj].zv);
 
 					bestM.PtwOnly = newvwPtw + newv_vjPtw - rv.rPtw - rw.rPtw;
 					bestM.deltPtw = newvwPtw * rw.rWeight + newv_vjPtw * rv.rWeight - vPtw - wPtw;
@@ -2431,8 +2431,8 @@ namespace vrptwNew {
 					bestM.PcOnly = 0;
 				}
 				else {
-					bestM.deltPc = max(0, rw.rQ + input.datas[v].DEMAND - input.Q)
-						+ max(0, rv.rQ - input.datas[v].DEMAND - input.Q)
+					bestM.deltPc = max((DisType)0, rw.rQ + input.datas[v].DEMAND - input.Q)
+						+ max((DisType)0, rv.rQ - input.datas[v].DEMAND - input.Q)
 						- rv.rPc - rw.rPc;
 					bestM.PcOnly = bestM.deltPc;
 					bestM.deltPc *= beta;
@@ -2534,7 +2534,7 @@ namespace vrptwNew {
 
 						DisType avjp = customers[v_].av + input.datas[v_].SERVICETIME + input.disOf[reCusNo(v_)][reCusNo(vj)];
 
-						newvwPtw += max(0, avjp - input.datas[vj].DUEDATE);
+						newvwPtw += max((DisType)0, avjp - input.datas[vj].DUEDATE);
 						newvwPtw += customers[v_].TW_X;
 
 						DisType avj = avjp > input.datas[vj].DUEDATE ? input.datas[vj].DUEDATE :
@@ -2552,7 +2552,7 @@ namespace vrptwNew {
 							while (pt != -1) {
 
 								DisType aptp = lastav + input.datas[lastv].SERVICETIME + input.disOf[reCusNo(lastv)][reCusNo(pt)];
-								newvwPtw += max(0, aptp - input.datas[pt].DUEDATE);
+								newvwPtw += max((DisType)0, aptp - input.datas[pt].DUEDATE);
 
 								DisType apt = aptp > input.datas[pt].DUEDATE ? input.datas[pt].DUEDATE :
 									max(aptp, input.datas[pt].READYTIME);
@@ -2569,13 +2569,13 @@ namespace vrptwNew {
 						}
 
 						DisType avp = lastav + input.datas[lastv].SERVICETIME + input.disOf[reCusNo(lastv)][reCusNo(v)];
-						newvwPtw += max(0, avp - input.datas[v].DUEDATE);
+						newvwPtw += max((DisType)0, avp - input.datas[v].DUEDATE);
 
 						DisType av = avp > input.datas[v].DUEDATE ? input.datas[v].DUEDATE :
 							max(avp, input.datas[v].READYTIME);
 
 						DisType awjp = av + input.datas[v].SERVICETIME + input.disOf[reCusNo(v)][reCusNo(wj)];
-						newvwPtw += max(0, awjp - customers[wj].zv);
+						newvwPtw += max((DisType)0, awjp - customers[wj].zv);
 						newvwPtw += customers[wj].TWX_;
 
 					}
@@ -2584,13 +2584,13 @@ namespace vrptwNew {
 						DisType avp = customers[w].av + input.datas[w].SERVICETIME + input.disOf[reCusNo(w)][reCusNo(v)];
 
 						newvwPtw += customers[w].TW_X;
-						newvwPtw += max(0, avp - input.datas[v].DUEDATE);
+						newvwPtw += max((DisType)0, avp - input.datas[v].DUEDATE);
 
 						DisType av = avp > input.datas[v].DUEDATE ? input.datas[v].DUEDATE :
 							max(avp, input.datas[v].READYTIME);
 
 						DisType awjp = av + input.datas[v].SERVICETIME + input.disOf[reCusNo(v)][reCusNo(wj)];
-						newvwPtw += max(0, awjp - input.datas[wj].DUEDATE);
+						newvwPtw += max((DisType)0, awjp - input.datas[wj].DUEDATE);
 
 						DisType awj = awjp > input.datas[wj].DUEDATE ? input.datas[wj].DUEDATE :
 							max(awjp, input.datas[wj].READYTIME);
@@ -2602,7 +2602,7 @@ namespace vrptwNew {
 						while (pt != -1) {
 
 							DisType aptp = lastav + input.datas[lastv].SERVICETIME + input.disOf[reCusNo(lastv)][reCusNo(pt)];
-							newvwPtw += max(0, aptp - input.datas[pt].DUEDATE);
+							newvwPtw += max((DisType)0, aptp - input.datas[pt].DUEDATE);
 
 							DisType apt = aptp > input.datas[pt].DUEDATE ? input.datas[pt].DUEDATE :
 								max(aptp, input.datas[pt].READYTIME);
@@ -2617,7 +2617,7 @@ namespace vrptwNew {
 						}
 
 						DisType avjp = lastav + input.datas[lastv].SERVICETIME + input.disOf[reCusNo(lastv)][reCusNo(vj)];
-						newvwPtw += max(0, avjp - customers[vj].zv);
+						newvwPtw += max((DisType)0, avjp - customers[vj].zv);
 						newvwPtw += customers[vj].TWX_;
 
 					}
@@ -2635,14 +2635,14 @@ namespace vrptwNew {
 					newvwPtw += customers[wj].TWX_;
 					DisType avp = customers[w].av + input.datas[w].SERVICETIME + input.disOf[reCusNo(w)][reCusNo(v)];
 					DisType zvp = customers[wj].zv - input.disOf[reCusNo(wj)][reCusNo(v)] - input.datas[v].SERVICETIME;
-					newvwPtw += max(0, max(avp, input.datas[v].READYTIME) - min(input.datas[v].DUEDATE, zvp));
+					newvwPtw += max((DisType)0, max(avp, input.datas[v].READYTIME) - min(input.datas[v].DUEDATE, zvp));
 
 					// insert v to (w,w-)
 					newv_vjPtw += customers[v_].TW_X;
 					newv_vjPtw += customers[vj].TWX_;
 
 					DisType avjp = customers[v_].av + input.datas[v_].SERVICETIME + input.disOf[reCusNo(v_)][reCusNo(vj)];
-					newv_vjPtw += max(0, avjp - customers[vj].zv);
+					newv_vjPtw += max((DisType)0, avjp - customers[vj].zv);
 
 					bestM.PtwOnly = newvwPtw + newv_vjPtw - rv.rPtw - rw.rPtw;
 					bestM.deltPtw = newvwPtw * rw.rWeight + newv_vjPtw * rv.rWeight - vPtw - wPtw;
@@ -2661,8 +2661,8 @@ namespace vrptwNew {
 					bestM.PcOnly = 0;
 				}
 				else {
-					bestM.deltPc = max(0, rw.rQ + input.datas[v].DEMAND - input.Q)
-						+ max(0, rv.rQ - input.datas[v].DEMAND - input.Q)
+					bestM.deltPc = max((DisType)0, rw.rQ + input.datas[v].DEMAND - input.Q)
+						+ max((DisType)0, rv.rQ - input.datas[v].DEMAND - input.Q)
 						- rv.rPc - rw.rPc;
 					bestM.PcOnly = bestM.deltPc;
 					bestM.deltPc *= beta;
@@ -2755,13 +2755,13 @@ namespace vrptwNew {
 					newwvPtw += customers[v].TWX_;
 					DisType awp = customers[v_].av + input.datas[v_].SERVICETIME + input.disOf[reCusNo(v_)][reCusNo(w)];
 					DisType zwp = customers[v].zv - input.disOf[reCusNo(w)][reCusNo(v)] - input.datas[w].SERVICETIME;
-					newwvPtw += max(0, max(awp, input.datas[w].READYTIME) - min(input.datas[w].DUEDATE, zwp));
+					newwvPtw += max((DisType)0, max(awp, input.datas[w].READYTIME) - min(input.datas[w].DUEDATE, zwp));
 
 					// insert w to (v,v-)
 					neww_wjPtw += customers[w_].TW_X;
 					neww_wjPtw += customers[wj].TWX_;
 					DisType awjp = customers[w_].av + input.datas[w_].SERVICETIME + input.disOf[reCusNo(w_)][reCusNo(wj)];
-					neww_wjPtw += max(0, awjp - customers[wj].zv);
+					neww_wjPtw += max((DisType)0, awjp - customers[wj].zv);
 
 					bestM.PtwOnly = newwvPtw + neww_wjPtw - rv.rPtw - rw.rPtw;
 					bestM.deltPtw = newwvPtw * rv.rWeight + neww_wjPtw * rw.rWeight - vPtw - wPtw;
@@ -2781,8 +2781,8 @@ namespace vrptwNew {
 					bestM.PcOnly = 0;
 				}
 				else {
-					bestM.deltPc = max(0, rw.rQ - input.datas[w].DEMAND - input.Q)
-						+ max(0, rv.rQ + input.datas[w].DEMAND - input.Q)
+					bestM.deltPc = max((DisType)0, rw.rQ - input.datas[w].DEMAND - input.Q)
+						+ max((DisType)0, rv.rQ + input.datas[w].DEMAND - input.Q)
 						- rv.rPc - rw.rPc;
 					bestM.PcOnly = bestM.deltPc;
 					bestM.deltPc *= beta;
@@ -2875,12 +2875,12 @@ namespace vrptwNew {
 					newwvPtw += customers[vj].TWX_;
 					DisType awp = customers[v].av + input.datas[v].SERVICETIME + input.disOf[reCusNo(v)][reCusNo(w)];
 					DisType zwp = customers[vj].zv - input.disOf[reCusNo(vj)][reCusNo(w)] - input.datas[w].SERVICETIME;
-					newwvPtw += max(0, max(awp, input.datas[w].READYTIME) - min(input.datas[w].DUEDATE, zwp));
+					newwvPtw += max((DisType)0, max(awp, input.datas[w].READYTIME) - min(input.datas[w].DUEDATE, zwp));
 
 					neww_wjPtw += customers[w_].TW_X;
 					neww_wjPtw += customers[wj].TWX_;
 					DisType awjp = customers[w_].av + input.datas[w_].SERVICETIME + input.disOf[reCusNo(w_)][reCusNo(wj)];
-					neww_wjPtw += max(0, awjp - customers[wj].zv);
+					neww_wjPtw += max((DisType)0, awjp - customers[wj].zv);
 
 					bestM.PtwOnly = newwvPtw + neww_wjPtw - rv.rPtw - rw.rPtw;
 					bestM.deltPtw = newwvPtw * rv.rWeight + neww_wjPtw * rw.rWeight - vPtw - wPtw;
@@ -2896,8 +2896,8 @@ namespace vrptwNew {
 				}
 				else {
 					// insert w to (v,v+)
-					bestM.deltPc = max(0, rw.rQ - input.datas[w].DEMAND - input.Q)
-						+ max(0, rv.rQ + input.datas[w].DEMAND - input.Q)
+					bestM.deltPc = max((DisType)0, rw.rQ - input.datas[w].DEMAND - input.Q)
+						+ max((DisType)0, rv.rQ + input.datas[w].DEMAND - input.Q)
 						- rv.rPc - rw.rPc;
 					bestM.PcOnly = bestM.deltPc;
 					bestM.deltPc *= beta;
@@ -2980,19 +2980,19 @@ namespace vrptwNew {
 						newvPtw = 0;
 
 						DisType avp = customers[v__].av + input.datas[v__].SERVICETIME + input.disOf[reCusNo(v__)][reCusNo(v)];
-						newvPtw += max(0, avp - input.datas[v].DUEDATE);
+						newvPtw += max((DisType)0, avp - input.datas[v].DUEDATE);
 						newvPtw += customers[v__].TW_X;
 						av = avp > input.datas[v].DUEDATE ? input.datas[v].DUEDATE :
 							max(avp, input.datas[v].READYTIME);
 
 						DisType awp = av + input.datas[v].SERVICETIME + input.disOf[reCusNo(v)][reCusNo(w)];
-						newvPtw += max(0, awp - input.datas[w].DUEDATE);
+						newvPtw += max((DisType)0, awp - input.datas[w].DUEDATE);
 
 						DisType aw = awp > input.datas[w].DUEDATE ? input.datas[w].DUEDATE :
 							max(awp, input.datas[w].READYTIME);
 
 						DisType avjp = aw + input.datas[w].SERVICETIME + input.disOf[reCusNo(w)][reCusNo(vj)];
-						newvPtw += max(0, avjp - customers[vj].zv);
+						newvPtw += max((DisType)0, avjp - customers[vj].zv);
 						newvPtw += customers[vj].TWX_;
 
 						newwPtw = newvPtw;
@@ -3005,19 +3005,19 @@ namespace vrptwNew {
 						newvPtw = 0;
 
 						DisType awp = customers[w__].av + input.datas[w__].SERVICETIME + input.disOf[reCusNo(w__)][reCusNo(w)];
-						newvPtw += max(0, awp - input.datas[w].DUEDATE);
+						newvPtw += max((DisType)0, awp - input.datas[w].DUEDATE);
 						newvPtw += customers[w__].TW_X;
 						aw = awp > input.datas[w].DUEDATE ? input.datas[w].DUEDATE :
 							max(awp, input.datas[w].READYTIME);
 
 						DisType avp = aw + input.datas[w].SERVICETIME + input.disOf[reCusNo(w)][reCusNo(v)];
-						newvPtw += max(0, avp - input.datas[v].DUEDATE);
+						newvPtw += max((DisType)0, avp - input.datas[v].DUEDATE);
 
 						DisType av = avp > input.datas[v].DUEDATE ? input.datas[v].DUEDATE :
 							max(avp, input.datas[v].READYTIME);
 
 						DisType awjp = av + input.datas[v].SERVICETIME + input.disOf[reCusNo(v)][reCusNo(wj)];
-						newvPtw += max(0, awjp - customers[wj].zv);
+						newvPtw += max((DisType)0, awjp - customers[wj].zv);
 						newvPtw += customers[wj].TWX_;
 
 						newwPtw = newvPtw;
@@ -3049,7 +3049,7 @@ namespace vrptwNew {
 
 						DisType abkp = customers[fpre].av + input.datas[fpre].SERVICETIME + input.disOf[reCusNo(fpre)][reCusNo(back)];
 
-						newvPtw += max(0, abkp - input.datas[back].DUEDATE);
+						newvPtw += max((DisType)0, abkp - input.datas[back].DUEDATE);
 						newvPtw += customers[fpre].TW_X;
 
 						DisType abk = abkp > input.datas[back].DUEDATE ? input.datas[back].DUEDATE :
@@ -3067,7 +3067,7 @@ namespace vrptwNew {
 							}
 
 							DisType avp = lastav + input.datas[lastv].SERVICETIME + input.disOf[reCusNo(lastv)][reCusNo(pt)];
-							newvPtw += max(0, avp - input.datas[pt].DUEDATE);
+							newvPtw += max((DisType)0, avp - input.datas[pt].DUEDATE);
 
 							DisType av = avp > input.datas[pt].DUEDATE ? input.datas[pt].DUEDATE :
 								max(avp, input.datas[pt].READYTIME);
@@ -3079,7 +3079,7 @@ namespace vrptwNew {
 
 
 						DisType afrvp = lastav + input.datas[lastv].SERVICETIME + input.disOf[reCusNo(lastv)][reCusNo(front)];
-						newvPtw += max(0, afrvp - input.datas[front].DUEDATE);
+						newvPtw += max((DisType)0, afrvp - input.datas[front].DUEDATE);
 
 						DisType afrv = afrvp > input.datas[front].DUEDATE ? input.datas[front].DUEDATE :
 							max(afrvp, input.datas[front].READYTIME);
@@ -3087,7 +3087,7 @@ namespace vrptwNew {
 						int bkn = customers[back].next;
 
 						DisType abknp = afrv + input.datas[front].SERVICETIME + input.disOf[reCusNo(front)][reCusNo(bkn)];
-						newvPtw += max(0, abknp - customers[bkn].zv);
+						newvPtw += max((DisType)0, abknp - customers[bkn].zv);
 						newvPtw += customers[bkn].TWX_;
 
 						newwPtw = newvPtw;
@@ -3110,10 +3110,10 @@ namespace vrptwNew {
 					DisType zvp = customers[wj].zv - input.datas[v].SERVICETIME - input.disOf[reCusNo(wj)][reCusNo(v)];
 
 					newvPtw +=
-						max(0, max(awp, input.datas[w].READYTIME) - min(input.datas[w].DUEDATE, zwp));
+						max((DisType)0, max(awp, input.datas[w].READYTIME) - min(input.datas[w].DUEDATE, zwp));
 
 					newwPtw +=
-						max(0, max(avp, input.datas[v].READYTIME) - min(input.datas[v].DUEDATE, zvp));
+						max((DisType)0, max(avp, input.datas[v].READYTIME) - min(input.datas[v].DUEDATE, zvp));
 					bestM.PtwOnly = newwPtw + newvPtw - rv.rPtw - rw.rPtw;
 					bestM.deltPtw = newwPtw * rw.rWeight + newvPtw * rv.rWeight - vPtw - wPtw;
 					bestM.deltPtw *= alpha;
@@ -3134,8 +3134,8 @@ namespace vrptwNew {
 				}
 				else {
 
-					bestM.deltPc = max(0, wQ - input.datas[w].DEMAND + input.datas[v].DEMAND - input.Q)
-						+ max(0, vQ - input.datas[v].DEMAND + input.datas[w].DEMAND - input.Q)
+					bestM.deltPc = max((DisType)0, wQ - input.datas[w].DEMAND + input.datas[v].DEMAND - input.Q)
+						+ max((DisType)0, vQ - input.datas[v].DEMAND + input.datas[w].DEMAND - input.Q)
 						- vPc - wPc;
 					bestM.PcOnly = bestM.deltPc;
 					bestM.deltPc *= beta;
@@ -3351,7 +3351,7 @@ namespace vrptwNew {
 					DisType awp = customers[v_].av + input.datas[v_].SERVICETIME + input.disOf[reCusNo(v_)][reCusNo(w)];
 					DisType zwp = customers[vjj].zv - input.datas[w].SERVICETIME - input.disOf[reCusNo(w)][reCusNo(vjj)];
 					newvPtw +=
-						max(0, max(awp, input.datas[w].READYTIME) - min(input.datas[w].DUEDATE, zwp));
+						max((DisType)0, max(awp, input.datas[w].READYTIME) - min(input.datas[w].DUEDATE, zwp));
 
 					// (w-) -> (v) -> (v+) -> (wj)
 					newwPtw += customers[w_].TW_X;
@@ -3359,7 +3359,7 @@ namespace vrptwNew {
 
 					DisType avp = customers[w_].av + input.datas[w_].SERVICETIME + input.disOf[reCusNo(w_)][reCusNo(v)];
 
-					newwPtw += max(0, avp - input.datas[v].DUEDATE);
+					newwPtw += max((DisType)0, avp - input.datas[v].DUEDATE);
 					DisType av =
 						avp > input.datas[v].DUEDATE ? input.datas[v].DUEDATE : max(avp, input.datas[v].READYTIME);
 
@@ -3367,7 +3367,7 @@ namespace vrptwNew {
 					DisType zvjp = customers[wj].zv - input.datas[vj].SERVICETIME - input.disOf[reCusNo(wj)][reCusNo(vj)];
 
 					newwPtw +=
-						max(0, max(avjp, input.datas[vj].READYTIME) - min(input.datas[vj].DUEDATE, zvjp));
+						max((DisType)0, max(avjp, input.datas[vj].READYTIME) - min(input.datas[vj].DUEDATE, zvjp));
 					bestM.PtwOnly = newwPtw + newvPtw - rv.rPtw - rw.rPtw;
 					bestM.deltPtw = newwPtw * rw.rWeight + newvPtw * rv.rWeight - vPtw - wPtw;
 					bestM.deltPtw *= alpha;
@@ -3390,8 +3390,8 @@ namespace vrptwNew {
 				else {
 
 					bestM.deltPc =
-						max(0, wQ - input.datas[w].DEMAND + input.datas[v].DEMAND + input.datas[vj].DEMAND - input.Q)
-						+ max(0, vQ - input.datas[v].DEMAND - input.datas[vj].DEMAND + input.datas[w].DEMAND - input.Q)
+						max((DisType)0, wQ - input.datas[w].DEMAND + input.datas[v].DEMAND + input.datas[vj].DEMAND - input.Q)
+						+ max((DisType)0, vQ - input.datas[v].DEMAND - input.datas[vj].DEMAND + input.datas[w].DEMAND - input.Q)
 						- vPc - wPc;
 					bestM.PcOnly = bestM.deltPc;
 					bestM.deltPc *= beta;
@@ -3629,7 +3629,7 @@ namespace vrptwNew {
 					DisType awp = customers[v_].av + input.datas[v_].SERVICETIME + input.disOf[reCusNo(v_)][reCusNo(w)];
 
 					// (v-)->(w)->(w+)->(v3j)
-					newvPtw += max(0, awp - input.datas[w].DUEDATE);
+					newvPtw += max((DisType)0, awp - input.datas[w].DUEDATE);
 
 					DisType aw =
 						awp > input.datas[w].DUEDATE ? input.datas[w].DUEDATE : max(input.datas[w].READYTIME, awp);
@@ -3638,7 +3638,7 @@ namespace vrptwNew {
 					DisType zwjp = customers[v3j].zv - input.datas[wj].SERVICETIME - input.disOf[reCusNo(wj)][reCusNo(v3j)];
 
 					newvPtw +=
-						max(0, max(awjp, input.datas[wj].READYTIME) - min(input.datas[wj].DUEDATE, zwjp));
+						max((DisType)0, max(awjp, input.datas[wj].READYTIME) - min(input.datas[wj].DUEDATE, zwjp));
 
 					// (w-) -> (v) -> (vj) -> (vjj)-> (wjj)
 					newwPtw += customers[w_].TW_X;
@@ -3646,7 +3646,7 @@ namespace vrptwNew {
 
 					DisType avp = customers[w_].av + input.datas[w_].SERVICETIME + input.disOf[reCusNo(w_)][reCusNo(v)];
 
-					newwPtw += max(0, avp - input.datas[v].DUEDATE);
+					newwPtw += max((DisType)0, avp - input.datas[v].DUEDATE);
 					DisType av =
 						avp > input.datas[v].DUEDATE ? input.datas[v].DUEDATE : max(avp, input.datas[v].READYTIME);
 
@@ -3655,13 +3655,13 @@ namespace vrptwNew {
 					// (w-) -> (v) -> (vj) -> (vjj)-> (wjj)
 					DisType zvjjp = customers[wjj].zv - input.datas[vjj].SERVICETIME - input.disOf[reCusNo(wjj)][vjj];
 
-					newwPtw += max(0, input.datas[vjj].READYTIME - zvjjp);
+					newwPtw += max((DisType)0, input.datas[vjj].READYTIME - zvjjp);
 
 					DisType zvjj = zvjjp < input.datas[vjj].READYTIME ? input.datas[vjj].READYTIME : min(input.datas[vjj].DUEDATE, zvjjp);
 					DisType zvjp = zvjj - input.disOf[reCusNo(vjj)][reCusNo(vj)] - input.datas[vj].SERVICETIME;
 
 					newwPtw +=
-						max(0, max(avjp, input.datas[vj].READYTIME) - min(input.datas[vj].DUEDATE, zvjp));
+						max((DisType)0, max(avjp, input.datas[vj].READYTIME) - min(input.datas[vj].DUEDATE, zvjp));
 					
 					bestM.PtwOnly = newwPtw + newvPtw - rv.rPtw - rw.rPtw;
 					bestM.deltPtw = newwPtw * rw.rWeight + newvPtw * rv.rWeight - vPtw - wPtw;
@@ -3684,8 +3684,8 @@ namespace vrptwNew {
 				}
 				else {
 					bestM.deltPc =
-						max(0, wQ - input.datas[w].DEMAND - input.datas[wj].DEMAND + input.datas[v].DEMAND + input.datas[vj].DEMAND + input.datas[vjj].DEMAND - input.Q)
-						+ max(0, vQ - input.datas[v].DEMAND - input.datas[vj].DEMAND - input.datas[vjj].DEMAND + input.datas[w].DEMAND + input.datas[wj].DEMAND - input.Q)
+						max((DisType)0, wQ - input.datas[w].DEMAND - input.datas[wj].DEMAND + input.datas[v].DEMAND + input.datas[vj].DEMAND + input.datas[vjj].DEMAND - input.Q)
+						+ max((DisType)0, vQ - input.datas[v].DEMAND - input.datas[vj].DEMAND - input.datas[vjj].DEMAND + input.datas[w].DEMAND + input.datas[wj].DEMAND - input.Q)
 						- vPc - wPc;
 					bestM.PcOnly = bestM.deltPc;
 					bestM.deltPc *= beta;
@@ -3887,7 +3887,7 @@ namespace vrptwNew {
 					DisType zwp = customers[v3j].zv - input.datas[w].SERVICETIME - input.disOf[reCusNo(w)][reCusNo(v3j)];
 
 					newvPtw +=
-						max(0, max(awp, input.datas[w].READYTIME) - min(input.datas[w].DUEDATE, zwp));
+						max((DisType)0, max(awp, input.datas[w].READYTIME) - min(input.datas[w].DUEDATE, zwp));
 
 					// (w-) -> (v) -> (vj) -> (vjj)-> (wj)
 					newwPtw += customers[w_].TW_X;
@@ -3895,7 +3895,7 @@ namespace vrptwNew {
 
 					DisType avp = customers[w_].av + input.datas[w_].SERVICETIME + input.disOf[reCusNo(w_)][reCusNo(v)];
 
-					newwPtw += max(0, avp - input.datas[v].DUEDATE);
+					newwPtw += max((DisType)0, avp - input.datas[v].DUEDATE);
 					DisType av =
 						avp > input.datas[v].DUEDATE ? input.datas[v].DUEDATE : max(avp, input.datas[v].READYTIME);
 
@@ -3904,13 +3904,13 @@ namespace vrptwNew {
 					// (w-) -> (v) -> (vj) -> (vjj)-> (wj)
 					DisType zvjjp = customers[wj].zv - input.datas[vjj].SERVICETIME - input.disOf[reCusNo(wj)][(vjj)];
 
-					newwPtw += max(0, input.datas[vjj].READYTIME - zvjjp);
+					newwPtw += max((DisType)0, input.datas[vjj].READYTIME - zvjjp);
 
 					DisType zvjj = zvjjp < input.datas[vjj].READYTIME ? input.datas[vjj].READYTIME : min(input.datas[vjj].DUEDATE, zvjjp);
 					DisType zvjp = zvjj - input.disOf[reCusNo(vjj)][reCusNo(vj)] - input.datas[vj].SERVICETIME;
 
 					newwPtw +=
-						max(0, max(avjp, input.datas[vj].READYTIME) - min(input.datas[vj].DUEDATE, zvjp));
+						max((DisType)0, max(avjp, input.datas[vj].READYTIME) - min(input.datas[vj].DUEDATE, zvjp));
 					bestM.PtwOnly = newwPtw + newvPtw - rv.rPtw - rw.rPtw;
 					bestM.deltPtw = newwPtw * rw.rWeight + newvPtw * rv.rWeight - vPtw - wPtw;
 					bestM.deltPtw *= alpha;
@@ -3935,8 +3935,8 @@ namespace vrptwNew {
 				else {
 
 					bestM.deltPc =
-						max(0, wQ - input.datas[w].DEMAND + input.datas[v].DEMAND + input.datas[vj].DEMAND + input.datas[vjj].DEMAND - input.Q)
-						+ max(0, vQ - input.datas[v].DEMAND - input.datas[vj].DEMAND - input.datas[vjj].DEMAND + input.datas[w].DEMAND - input.Q)
+						max((DisType)0, wQ - input.datas[w].DEMAND + input.datas[v].DEMAND + input.datas[vj].DEMAND + input.datas[vjj].DEMAND - input.Q)
+						+ max((DisType)0, vQ - input.datas[v].DEMAND - input.datas[vj].DEMAND - input.datas[vjj].DEMAND + input.datas[w].DEMAND - input.Q)
 						- vPc - wPc;
 					bestM.PcOnly = bestM.deltPc;
 					bestM.deltPc *= beta;
@@ -4075,7 +4075,7 @@ namespace vrptwNew {
 
 					newwPtw += customers[w].TW_X;
 					DisType avp = customers[w].av + input.datas[w].SERVICETIME + input.disOf[reCusNo(w)][reCusNo(v)];
-					newwPtw += max(0, avp - input.datas[v].DUEDATE);
+					newwPtw += max((DisType)0, avp - input.datas[v].DUEDATE);
 
 					DisType av =
 						avp > input.datas[v].DUEDATE ? input.datas[v].DUEDATE : max(input.datas[v].READYTIME, avp);
@@ -4087,13 +4087,13 @@ namespace vrptwNew {
 					//}
 
 					newwPtw +=
-						max(0, max(avjp, input.datas[vj].READYTIME) - min(input.datas[vj].DUEDATE, zvjp));
+						max((DisType)0, max(avjp, input.datas[vj].READYTIME) - min(input.datas[vj].DUEDATE, zvjp));
 
 					// link v- and vjj
 					newvPtw += customers[v_].TW_X;
 					newvPtw += customers[vjj].TWX_;
 					DisType avjjp = customers[v_].av + input.datas[v_].SERVICETIME + input.disOf[reCusNo(v_)][reCusNo(vjj)];
-					newvPtw += max(0, avjjp - customers[vjj].zv);
+					newvPtw += max((DisType)0, avjjp - customers[vjj].zv);
 
 					bestM.PtwOnly = newwPtw + newvPtw - rv.rPtw - rw.rPtw;
 					bestM.deltPtw = newwPtw * rw.rWeight + newvPtw * rv.rWeight - vPtw - wPtw;
@@ -4118,8 +4118,8 @@ namespace vrptwNew {
 				else {
 
 					bestM.deltPc =
-						max(0, wQ + input.datas[v].DEMAND + input.datas[vj].DEMAND - input.Q)
-						+ max(0, vQ - input.datas[v].DEMAND - input.datas[vj].DEMAND - input.Q)
+						max((DisType)0, wQ + input.datas[v].DEMAND + input.datas[vj].DEMAND - input.Q)
+						+ max((DisType)0, vQ - input.datas[v].DEMAND - input.datas[vj].DEMAND - input.Q)
 						- vPc - wPc;
 					bestM.PcOnly = bestM.deltPc;
 					bestM.deltPc *= beta;
@@ -4249,7 +4249,7 @@ namespace vrptwNew {
 				lastv = back;
 				DisType lastavp = customers[f_].av + input.datas[f_].SERVICETIME + input.disOf[reCusNo(f_)][reCusNo(back)];
 				newPtw += customers[f_].TW_X;
-				newPtw += max(0, lastavp - input.datas[lastv].DUEDATE);
+				newPtw += max((DisType)0, lastavp - input.datas[lastv].DUEDATE);
 				lastav = lastavp > input.datas[lastv].DUEDATE ? input.datas[lastv].DUEDATE :
 					max(lastavp, input.datas[lastv].READYTIME);
 
@@ -4257,7 +4257,7 @@ namespace vrptwNew {
 				while (pt != -1) {
 
 					DisType aptp = lastav + input.datas[lastv].SERVICETIME + input.disOf[reCusNo(lastv)][reCusNo(pt)];
-					newPtw += max(0, aptp - input.datas[pt].DUEDATE);
+					newPtw += max((DisType)0, aptp - input.datas[pt].DUEDATE);
 
 					DisType apt = aptp > input.datas[pt].DUEDATE ? input.datas[pt].DUEDATE :
 						max(aptp, input.datas[pt].READYTIME);
@@ -4272,7 +4272,7 @@ namespace vrptwNew {
 				}
 
 				DisType abjp = lastav + input.datas[lastv].SERVICETIME + input.disOf[reCusNo(lastv)][reCusNo(bj)];
-				newPtw += max(0, abjp - customers[bj].zv);
+				newPtw += max((DisType)0, abjp - customers[bj].zv);
 				newPtw += customers[bj].TWX_;
 
 				bestM.PtwOnly = newPtw - r.rPtw;
@@ -4332,7 +4332,7 @@ namespace vrptwNew {
 				newwvPtw += max(awp - (wt > 0 ? customers[wt].zv : input.datas[0].DUEDATE), 0);
 				newPtwNoWei += newwvPtw;
 
-				newPc += max(0,
+				newPc += max((DisType)0,
 					(vt > 0 ? customers[vt].Q_X : 0) + (wt > 0 ? customers[wt].QX_ : 0) - input.Q);
 				return newwvPtw;
 			};
@@ -6845,7 +6845,7 @@ namespace vrptwNew {
 
 		bool doEject() {
 
-			vector<eOneRNode> XSet = ejeNodesAfterSqueeze;
+			vector<eOneRNode>& XSet = ejeNodesAfterSqueeze;
 
 #if CHECKING
 
@@ -6953,12 +6953,6 @@ namespace vrptwNew {
 
 			}
 #endif // CHECKING
-
-			for (eOneRNode& en : XSet) {
-				for (int c : en.ejeVe) {
-					P[c] += cfg.Pwei1;
-				}
-			}
 
 			return true;
 		}
@@ -7170,7 +7164,9 @@ namespace vrptwNew {
 				EPremoveByVal(top);
 
 				P[top] += cfg.Pwei0;
-				//P[top] += 5;
+				// 
+				//debug(max(log(P[top]), cfg.Pwei0))
+				//P[top] += max(log(P[top]), cfg.Pwei0);
 
 				maxPVal = max(maxPVal, P[top]);
 				//EPYearTable[top] = EPIter + cfg.EPTabuStep + myRand.pick(cfg.EPTabuRand);
@@ -7214,6 +7210,19 @@ namespace vrptwNew {
 					else {
 
 						doEject();
+
+						auto& XSet = ejeNodesAfterSqueeze;
+						for (eOneRNode& en : XSet) {
+							for (int c : en.ejeVe) {
+								
+								P[c] += cfg.Pwei1;
+
+								//P[c] += max(log(P[c]), cfg.Pwei1);
+								//debug(max(log(P[c]), cfg.Pwei1))
+							}
+						}
+						
+
 						patternAdjustment();
 						//end our method 2
 
@@ -7770,7 +7779,26 @@ namespace vrptwNew {
 				}
 #endif // CHECKING
 
-				ret.push_back(en);
+				auto grenode = ejectOneRouteMinPsumGreedy(r);
+				//deOut(en.Psum)debug(grenode.Psum)
+				if (en.Psum > grenode.Psum) {
+					/*deOut(en.Psum)debug(grenode.Psum)
+					deOut(en.Psum)debug(grenode.Psum)
+					
+					for (auto i : en.ejeVe) {
+						deOut(i)debug(P[i])
+					}
+					debug("------")
+					for (auto i : grenode.ejeVe) {
+						deOut(i)debug(P[i])
+					}
+					debug("++++++")*/
+					ret.push_back(grenode);
+				}
+				else {
+					ret.push_back(en);
+				}
+				//ret.push_back(en);
 			}
 
 			return ret;
@@ -7824,7 +7852,7 @@ namespace vrptwNew {
 					customers[n].avp = customers[pre].av + input.datas[pre].SERVICETIME + input.disOf[reCusNo(pre)][reCusNo(n)];
 					customers[n].av = customers[n].avp > input.datas[n].DUEDATE ? input.datas[n].DUEDATE
 						: max(customers[n].avp, input.datas[n].READYTIME);
-					customers[n].TW_X = max(0, customers[n].avp - input.datas[n].DUEDATE);
+					customers[n].TW_X = max((DisType)0, customers[n].avp - input.datas[n].DUEDATE);
 					customers[n].TW_X += customers[pre].TW_X;
 					pre = n;
 					n = customers[n].next;
@@ -7846,7 +7874,7 @@ namespace vrptwNew {
 			auto getPtwUseEq2 = [&](int v) {
 
 				DisType avp = getAvpOf(v);
-				DisType ptw = max(0, avp - customers[v].zv) + customers[v].TWX_;
+				DisType ptw = max((DisType)0, avp - customers[v].zv) + customers[v].TWX_;
 				int pre = customers[v].pre;
 				ptw += customers[pre].TW_X;
 				return ptw;
@@ -7882,7 +7910,7 @@ namespace vrptwNew {
 
 					//debug(pt)
 					DisType avnp = customers[pre].av + input.datas[pre].SERVICETIME + input.disOf[reCusNo(pre)][reCusNo(next)];
-					ptw = max(0, avnp - customers[next].zv) + customers[next].TWX_ + customers[pre].TW_X;
+					ptw = max((DisType)0, avnp - customers[next].zv) + customers[next].TWX_ + customers[pre].TW_X;
 
 					if (customers[pre].TW_X > 0) { // 剪枝 删除ik之后 前面的时间窗没有消除
 						return etemp;
@@ -8103,6 +8131,93 @@ namespace vrptwNew {
 			return noTabuN;
 		}
 
+		eOneRNode ejectOneRouteMinPsumGreedy(Route& r) {
+
+			eOneRNode noTabuN(r.routeID);
+			noTabuN.Psum = 0;
+			vector<int> R = rPutCusInve(r);
+
+			auto cmp = [&](const int& a,const int& b) {
+
+				if (P[a] == P[b]) {
+					return input.datas[a].DUEDATE - input.datas[a].READYTIME >
+						input.datas[b].DUEDATE - input.datas[b].READYTIME;
+				}
+				else {
+					return P[a] > P[b];
+				}
+				return false;
+			};
+
+			priority_queue<int, Vec<int>, decltype(cmp)> qu(cmp);
+
+			for (const int& c : R) {
+				qu.push(c);
+			}
+
+			DisType curPtw = r.rPtw;
+			
+			Vec<int> noGoodToPtw;
+			noGoodToPtw.reserve(R.size());
+
+			while (curPtw > 0) {
+				
+				int ctop = qu.top();
+				qu.pop();
+
+				int pre = customers[ctop].pre;
+				int next = customers[ctop].next;
+				DisType avnp = customers[pre].av + input.datas[pre].SERVICETIME + input.disOf[reCusNo(pre)][reCusNo(next)];
+				DisType ptw = max((DisType)0, avnp - customers[next].zv) + customers[next].TWX_ + customers[pre].TW_X;
+
+				if (ptw < curPtw) {
+
+					rRemoveAtPos(r,ctop);
+					rUpdateAvfrom(r, pre);
+					rUpdateZvfrom(r, next);
+					curPtw = ptw;
+					noTabuN.ejeVe.push_back(ctop);
+					noTabuN.Psum += P[ctop];
+
+					for (auto c : noGoodToPtw) {
+						qu.push(c);
+					}
+					noGoodToPtw.clear();
+				}
+				else {
+					noGoodToPtw.push_back(ctop);
+				}
+				
+			}
+
+			//debug(curPtw)
+			if (r.rPc > 0) {
+				vector<int> pos = rPutCusInve(r);
+				ShuffleCards sc;
+				sc.makeItDisorder(pos);
+				for (int v : pos) {
+					rRemoveAtPos(r, v);
+					noTabuN.ejeVe.push_back(v);
+					noTabuN.Psum += P[v];
+					if (r.rPc == 0) {
+						break;
+					}
+				}
+			}
+
+			//debug(r.rCustCnt)
+			rRemoveAllCusInR(r);
+			//debug(r.rCustCnt)
+
+			for (int v : R) {
+				rInsAtPosPre(r, r.tail, v);
+			}
+			rUpdateAvQfrom(r, r.head);
+			rUpdateZvQfrom(r, r.tail);
+
+			return noTabuN;
+		}
+		
 		eOneRNode ejectOneRouteMinNodes(Route& r) {
 
 			eOneRNode noTabuN(r.routeID);
@@ -8122,7 +8237,7 @@ namespace vrptwNew {
 				ptw += customers[pre].TW_X;
 				ptw += customers[next].TWX_;
 				anp = customers[pre].av + input.datas[pre].SERVICETIME + input.disOf[reCusNo(pre)][reCusNo(next)];
-				ptw += max(0, anp - customers[next].zv);
+				ptw += max((DisType)0, anp - customers[next].zv);
 
 				if (ptw >= curPtw) {
 					pt = customers[pt].next;
@@ -8198,6 +8313,7 @@ namespace vrptwNew {
 			while (!lyhTimer.isTimeOut()) {
 
 				removeOneRouteRandomly();
+				fill(P.begin(),P.end(),1);
 				bool isDelete = ejectLocalSearch();
 				Log(Log::Level::Warning) << "rts.size(): " << rts.size() << endl;
 				if (rts.size() <= ourTarget) {
@@ -8886,42 +9002,26 @@ namespace vrptwNew {
 
 		bool testRoute() {
 
-/*
-			"squeeze penalty update error!": squeeze penalty update error!
-bestM.v: 431
-bestM.w: 211
-bestM.kind: 1
-rv.routeID == rw.routeID: 0
-iderror: 0
-penaltyWeiError: 0
-penaltyError: 0
-RoutesCostError: 1
-oldRcost: 5459193620
-bestM.deltPen.deltCost: -3050905
-RoutesCost: 5459193620
-RoutesCost-oldRcost: 0
-oldPtw: 7447251
-bestM.deltPen.deltPtw: -1994393
-Ptw: 5452858
-Ptw - oldPtw: -1994393
-oldPtwNoWei: 7447251
-bestM.deltPen.PtwOnly: -1994393
-PtwNoWei: 5452858
-oldPc: 0
-bestM.deltPen.deltPc: 0
-bestM.deltPen.PcOnly: 0
-Pc: 0
-oldrv: 119 ,431 ,203 ,522 ,480 ,273 ,283 ,507 ,549 ,11 ,
-oldrw: 405 ,211 ,183 ,550 ,377 ,271 ,195 ,422 ,
-nextdisp: 655 ,119 ,431 ,211 ,183 ,550 ,377 ,271 ,195 ,422 ,690 ,
-nextdisp: 689 ,405 ,203 ,522 ,480 ,273 ,283 ,507 ,549 ,11 ,656 ,
-squIter: 21
-DEFabs(oldpenalty + bestM.deltPen.deltPc + bestM.deltPen.deltPtw, penalty): 0
-"false false": false false
+			/*initDiffSituation();
+			vector<int>arrrv = rPutCusInve(rts[0]);
+			vector<int>arrrw = rPutCusInve(rts[1]);
+			rRemoveAllCusInR(rts[1]);
+			for (int i = 0; i < 3; ++i) {
+				rInsAtPosPre(rts[0], rts[0].tail, arrrw[i]);
+			}
+			rUpdateAvfrom(rts[0], rts[0].head);
+			rUpdateZvfrom(rts[0], rts[0].tail);
+			auto node = ejectOneRouteMinPsumGreedy(rts[0]);
+			debug(rts[0].rCustCnt)
+			debug(node.ejeVe.size())
+			outVe(node.ejeVe)
+			debug(node.Psum)
+				
+			return true;*/
 
-			*/
-			vector<int>oldrv = { 119 ,431 ,203 ,522 ,480 ,273 ,283 ,507 ,549 ,11  };
-			vector<int>oldrw = { 405 ,211 ,183 ,550 ,377 ,271 ,195 ,422 };
+			vector<int>oldrv = { 118,109 };
+			vector<int>oldrw = { 120,121 };
+			//vector<int>oldrw = { 118,109 };
 
 			Route rvv = rCreateRoute(0);
 			rts.push_back(rvv);
@@ -8938,8 +9038,31 @@ DEFabs(oldpenalty + bestM.deltPen.deltPc + bestM.deltPen.deltPtw, penalty): 0
 				rInsAtPosPre(rw, rw.tail, c);
 			}
 
-			DeltPen d = _2optOpenvvj(431, 211);
+			rNextDisp(rv);
+			rNextDisp(rw);
+
+			auto v1 = rPutCusInve(rv);
+			auto v2 = rPutCusInve(rw);
+
+			debug(v1.size())
+			debug(v2.size())
+
+			rUpdateAvfrom(rv,rv.head);
+			rUpdateZvfrom(rv,rv.tail);
 			
+			rUpdateAvfrom(rw,rw.head);
+			rUpdateZvfrom(rw,rw.tail);
+
+			debug(rv.rPtw)
+			debug(rw.rPtw)
+
+			auto node1 = ejectOneRouteMinPsumGreedy(rv);
+			debug(node1.ejeVe.size())
+			debug(node1.Psum)
+
+			debug(1)
+
+			/*DeltPen d = _2optOpenvvj(431, 211);
 			DisType old = updateRtsCost();
 			TwoNodeMove m(431,211,1,d);
 
@@ -8957,7 +9080,7 @@ DEFabs(oldpenalty + bestM.deltPen.deltPc + bestM.deltPen.deltPtw, penalty): 0
 			rNextDisp(rv);
 
 			rNextDisp(rv);
-			rNextDisp(rv);
+			rNextDisp(rv);*/
 
 			return true;
 		}
