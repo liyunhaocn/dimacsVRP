@@ -557,28 +557,25 @@ bool solveCommandLine(int argc, char* argv[], Configuration& cfg,Environment& en
 	MyString ms;
 	if (argc >= 2) {
 		cfg.breakRecord = ms.str_LL(argv[1]);
+		debug(cfg.breakRecord)
 	}
 
 	if (argc >= 3) {
 		string example = argv[2];
 		env.setExample(example);
+		debug(env.example)
 	}
 
 	if (argc >= 4) {
 		cfg.runTimer = ms.str_LL(argv[3]);
+		debug(cfg.runTimer)
 	}
 
 	if (argc >= 5) {
 		env.seed = ms.str_LL(argv[4]);
+		debug(env.seed)
 	}
-	else {
-		env.seed = std::time(nullptr) + std::clock();
-	}
-		
-	debug(cfg.breakRecord)
-	debug(env.example)
-	debug(env.seed)
-	debug(cfg.runTimer)
+
 	debug(cfg.Pwei0);
 	debug(cfg.Pwei1);
 	debug(cfg.minKmax);

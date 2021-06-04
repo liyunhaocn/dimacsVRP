@@ -7209,19 +7209,21 @@ namespace vrptwNew {
 					}
 					else {
 
-						doEject();
-
 						auto& XSet = ejeNodesAfterSqueeze;
 						for (eOneRNode& en : XSet) {
 							for (int c : en.ejeVe) {
-								
+								/*int cpre = customers[c].pre > input.custCnt ? 0 : customers[c].pre;
+								int cnext = customers[c].next > input.custCnt?0: customers[c].next;
+								yearTable[cpre][c] = squIter + cfg.yearTabuLen + myRand.pick(cfg.yearTabuRand);
+								yearTable[c][cnext] = squIter + cfg.yearTabuLen + myRand.pick(cfg.yearTabuRand);*/
 								P[c] += cfg.Pwei1;
 
 								//P[c] += max(log(P[c]), cfg.Pwei1);
 								//debug(max(log(P[c]), cfg.Pwei1))
 							}
 						}
-						
+
+						doEject();
 
 						patternAdjustment();
 						//end our method 2
@@ -7751,69 +7753,150 @@ namespace vrptwNew {
 
 				Route& r = rts.getRouteByRid(id);
 				//eOneRNode en = ejectOneRoute222Test(r, -1);
-				eOneRNode en;
-
 				/*int tKmax = cfg.minKmax;
 				while (en.ejeVe.size() == 0 && tKmax <= cfg.maxKmax) {
-
 					en = ejectOneRouteOnlyP(r, 1, tKmax);
 					++tKmax;
 				}*/
-
+				
+				eOneRNode retNode;
 				int tKmax = cfg.minKmax;
-				while (en.ejeVe.size() == 0 && tKmax <= cfg.maxKmax) {
-
-					en = ejectOneRouteOnlyP(r, 2, tKmax);
+				int mCnt = 1;
+				while (retNode.ejeVe.size() == 0 && tKmax <= cfg.maxKmax) {
+					auto en = ejectOneRouteOnlyP(r, 2, tKmax);
+					if (en.Psum < retNode.Psum) {
+						mCnt = 1;
+						retNode = en;
+					}else if (en.Psum == retNode.Psum) {
+						++mCnt;
+						if (myRand.pick(mCnt)) {
+							retNode = en;
+						}
+					}
 					++tKmax;
 				}
+				
+				
+				if (retNode.ejeVe.size() == 0) {
+					mCnt = 1;
+					retNode = ejectOneRouteMinPsumGreedy(r, retNode);
+				}
+				else {
 
-				if (en.ejeVe.size() == 0) {
-					en = ejectOneRouteMinNodes(r);
-					debug(1)
+					auto en = ejectOneRouteMinPsumGreedy(r, retNode);
+					if (r.rPtw >0 && en.ejeVe.size() == retNode.ejeVe.size() && en.Psum < retNode.Psum) {
+						
+						debug(r.rPtw)
+						debug(r.rPc)
+						deOut(en.ejeVe.size())debug(en.Psum)
+							deOut(retNode.ejeVe.size())debug(retNode.Psum)
+						
+					}
+				}
+				/*else if (en.ejeVe.size() == retNode.ejeVe.size() && en.Psum < retNode.Psum ) {
+					
+					if (r.rPc == 0) {
+						debug(r.rPtw)
+							debug(r.rPc)
+						rNextDisp(r);
+						outVe(P);
+						debug(tKmax)
+						system("pause");
+					}
+					deOut(en.ejeVe.size())debug(en.Psum)
+					deOut(retNode.ejeVe.size())debug(retNode.Psum)
+
+					mCnt = 1;
+					retNode = en;
+				}
+				else if (en.ejeVe.size() == retNode.ejeVe.size() && en.Psum == retNode.Psum) {
+					++mCnt;
+					if (myRand.pick(mCnt)) {
+						retNode = en;
+					}
+				}*/
+
+				if (retNode.ejeVe.size() == 0) {
+					debug(r.rPtw)
+					debug(r.rPc)
+					rNextDisp(r);
+					outVe(P)
+					system("pause");
 				}
 
 #if CHECKING
-				if (en.ejeVe.size() == 0) {
+
+				if (retNode.ejeVe.size() == 0) {
 					rNextDisp(r);
-					debug("no this case")
-						debug("no this case")
+					debug("retNode.ejeVe.size() == 0")
+						debug("retNode.ejeVe.size() == 0")
 				}
 #endif // CHECKING
 
-				auto grenode = ejectOneRouteMinPsumGreedy(r);
-				
-				if (grenode.ejeVe.size() == en.ejeVe.size() && en.Psum > grenode.Psum) {
-					rNextDisp(r);
-					outVe(P)
-					rNextDisp(r);
-				}
-
-				if (en.Psum > grenode.Psum) {
-					/*deOut(en.Psum)debug(grenode.Psum)
-					deOut(en.Psum)debug(grenode.Psum)
-					
-					for (auto i : en.ejeVe) {
-						deOut(i)debug(P[i])
-					}
-					debug("------")
-					for (auto i : grenode.ejeVe) {
-						deOut(i)debug(P[i])
-					}
-					debug("++++++")*/
-					ret.push_back(grenode);
-				}
-				else {
-					ret.push_back(en);
-				}
+				ret.push_back(retNode);
 				//ret.push_back(en);
 			}
 
 			return ret;
 		}
 
+		eOneRNode ejectOneRouteOnlyHasPcMinP(Route& r,int Kmax) {
+
+			eOneRNode noTabuN(r.routeID);
+			noTabuN.Psum = 0;
+
+			vector<int> R = rPutCusInve(r);
+
+			auto cmpPMin = [&](const int& a, const int& b) {
+				//return input.datas[a].DEMAND > input.datas[b].DEMAND;
+				return P[a] > P[b];
+			};
+			auto cmpDMin = [&](const int& a, const int& b) {
+				//return P[a] > P[b];
+				return input.datas[a].DEMAND > input.datas[b].DEMAND;
+			};
+			//debug("ejectOneRouteOnlyHasPcMinP call")
+			priority_queue<int, Vec<int>, decltype(cmpPMin)> quPMin(cmpPMin);
+			priority_queue<int, Vec<int>, decltype(cmpDMin)> quDMin(cmpDMin);
+
+			for (const int& c : R) {
+				quPMin.push(c);
+			}
+
+			//debug("-----")
+			while (r.rPc > 0) {
+
+				while (quDMin.size() < 1 && !quPMin.empty()) 	{
+					quDMin.push(quPMin.top());
+					quPMin.pop();
+				}
+
+				int ctop = quDMin.top();
+				//debug(P[ctop])
+				quDMin.pop();
+				rRemoveAtPos(r, ctop);
+				noTabuN.ejeVe.push_back(ctop);
+				noTabuN.Psum += P[ctop];
+			}
+
+			//debug(r.rCustCnt)
+			rRemoveAllCusInR(r);
+			//debug(r.rCustCnt)
+
+			for (int v : R) {
+				rInsAtPosPre(r, r.tail, v);
+			}
+			rUpdateAvQfrom(r, r.head);
+			rUpdateZvQfrom(r, r.tail);
+
+			//debug(noTabuN.ejeVe.size())
+			return noTabuN;
+		}
+
 		eOneRNode ejectOneRouteOnlyP(Route& r, int kind, int Kmax) {
 
 			eOneRNode noTabuN(r.routeID);
+			
 			int sameCnt = 1;
 			eOneRNode etemp(r.routeID);
 			etemp.Psum = 0;
@@ -7913,7 +7996,7 @@ namespace vrptwNew {
 
 				DisType ptw = 0;
 
-				while (next <= input.custCnt) {
+				while (next != -1) {
 
 					//debug(pt)
 					DisType avnp = customers[pre].av + input.datas[pre].SERVICETIME + input.disOf[reCusNo(pre)][reCusNo(next)];
@@ -7959,9 +8042,6 @@ namespace vrptwNew {
 			};
 
 			vector<int> R = rPutCusInve(r);
-			R.pop_back();
-
-			//R.erase(R.begin());
 
 			vector<int> ptwArr;
 
@@ -7987,8 +8067,10 @@ namespace vrptwNew {
 
 			}
 			else if (r.rPc > 0) {
+
 				ptwArr = R;
 				Kmax = min(Kmax, ptwArr.size() - 1);
+				return ejectOneRouteOnlyHasPcMinP(r,Kmax);
 			}
 			else {
 				return {};
@@ -8083,6 +8165,8 @@ namespace vrptwNew {
 
 			} while (!(k == 1 && ve[k] == N));
 
+			
+
 #if CHECKING
 
 			if (
@@ -8143,10 +8227,10 @@ namespace vrptwNew {
 			return noTabuN;
 		}
 
-		eOneRNode ejectOneRouteMinPsumGreedy(Route& r) {
+		eOneRNode ejectOneRouteMinPsumGreedy(Route& r, eOneRNode cutBranchNode = eOneRNode()) {
 
-			eOneRNode noTabuN(r.routeID);
-			noTabuN.Psum = 0;
+			eOneRNode ret(r.routeID);
+			ret.Psum = 0;
 			vector<int> R = rPutCusInve(r);
 
 			auto cmp = [&](const int& a,const int& b) {
@@ -8154,6 +8238,7 @@ namespace vrptwNew {
 				if (P[a] == P[b]) {
 					return input.datas[a].DUEDATE - input.datas[a].READYTIME <
 						input.datas[b].DUEDATE - input.datas[b].READYTIME;
+						//return input.datas[a].DEMAND > input.datas[b].DEMAND;
 				}
 				else {
 					return P[a] > P[b];
@@ -8177,6 +8262,13 @@ namespace vrptwNew {
 				int ctop = qu.top();
 				qu.pop();
 
+				if (cutBranchNode.ejeVe.size() != 0 ) {
+					if (ret.ejeVe.size() >= cutBranchNode.ejeVe.size()
+						|| ret.Psum >= cutBranchNode.Psum) {
+						return eOneRNode();
+					}
+				}
+
 				int pre = customers[ctop].pre;
 				int next = customers[ctop].next;
 				DisType avnp = customers[pre].av + input.datas[pre].SERVICETIME + input.disOf[reCusNo(pre)][reCusNo(next)];
@@ -8188,8 +8280,8 @@ namespace vrptwNew {
 					rUpdateAvfrom(r, pre);
 					rUpdateZvfrom(r, next);
 					curPtw = ptw;
-					noTabuN.ejeVe.push_back(ctop);
-					noTabuN.Psum += P[ctop];
+					ret.ejeVe.push_back(ctop);
+					ret.Psum += P[ctop];
 
 					for (auto c : noGoodToPtw) {
 						qu.push(c);
@@ -8199,22 +8291,33 @@ namespace vrptwNew {
 				else {
 					noGoodToPtw.push_back(ctop);
 				}
-				
 			}
 
-			//debug(curPtw)
-			if (r.rPc > 0) {
-				vector<int> pos = rPutCusInve(r);
-				ShuffleCards sc;
-				sc.makeItDisorder(pos);
-				for (int v : pos) {
-					rRemoveAtPos(r, v);
-					noTabuN.ejeVe.push_back(v);
-					noTabuN.Psum += P[v];
-					if (r.rPc == 0) {
-						break;
+			/*Vec<int> arr;
+			arr.reserve(qu.size());
+			while (!qu.empty()) {
+				arr.push_back(qu.top());
+				qu.pop();
+			}
+			auto cmpQ = [&](const int a, const int b) {
+				return input.datas[a].DEMAND > input.datas[b].DEMAND;
+			};
+			sort(arr.begin(),arr.end(),cmpQ);*/
+
+			while (r.rPc > 0) {
+				//debug(r.rPc)
+				if (cutBranchNode.ejeVe.size() != 0) {
+					if (ret.ejeVe.size() >= cutBranchNode.ejeVe.size()
+						|| ret.Psum >= cutBranchNode.Psum) {
+						return eOneRNode();
 					}
 				}
+
+				int ctop = qu.top();
+				qu.pop();
+				rRemoveAtPos(r, ctop);
+				ret.ejeVe.push_back(ctop);
+				ret.Psum += P[ctop];
 			}
 
 			//debug(r.rCustCnt)
@@ -8227,94 +8330,9 @@ namespace vrptwNew {
 			rUpdateAvQfrom(r, r.head);
 			rUpdateZvQfrom(r, r.tail);
 
-			return noTabuN;
+			return ret;
 		}
 		
-		eOneRNode ejectOneRouteMinNodes(Route& r) {
-
-			eOneRNode noTabuN(r.routeID);
-			noTabuN.Psum = 0;
-			vector<int> R = rPutCusInve(r);
-
-			int pt = customers[r.head].next;
-
-			DisType curPtw = r.rPtw;
-			//debug(curPtw)
-			while (pt <= input.custCnt) {
-
-				int pre = customers[pt].pre;
-				int next = customers[pt].next;
-				DisType ptw = 0;
-				DisType anp = 0;
-				ptw += customers[pre].TW_X;
-				ptw += customers[next].TWX_;
-				anp = customers[pre].av + input.datas[pre].SERVICETIME + input.disOf[reCusNo(pre)][reCusNo(next)];
-				ptw += max((DisType)0, anp - customers[next].zv);
-
-				if (ptw >= curPtw) {
-					pt = customers[pt].next;
-				}
-				else {
-
-					rRemoveAtPos(r, pt);
-					rUpdateAvfrom(r, next);
-					rUpdateZvfrom(r, pre);
-					noTabuN.ejeVe.push_back(pt);
-					noTabuN.Psum += P[pt];
-
-					pt = next;
-					curPtw = r.rPtw;
-				}
-				if (curPtw == 0) {
-					break;
-				}
-			}
-
-			if (r.rPc > 0) {
-				vector<int> pos = rPutCusInve(r);
-				ShuffleCards sc;
-				sc.makeItDisorder(pos);
-				for (int v : pos) {
-					rRemoveAtPos(r, v);
-					noTabuN.ejeVe.push_back(v);
-					noTabuN.Psum += P[v];
-					if (r.rPc == 0) {
-						break;
-					}
-				}
-			}
-
-#if CHECKING
-			if (curPtw > 0 || r.rPc > 0) {
-
-				debug(r.rPc)
-					debug(r.rPtw)
-					debug(rUpdateAvfrom(r, r.head));
-
-				debug("curPtw > 0")
-					for (int v : R) {
-						cout << v << ", ";
-					}
-				cout << endl;
-
-				for (int e : noTabuN.ejeVe) {
-					debug(e)
-				}
-			}
-
-#endif // CHECKING
-
-			rRemoveAllCusInR(r);
-			for (int v : R) {
-				rInsAtPosPre(r, r.tail, v);
-			}
-
-			rUpdateAvQfrom(r, r.head);
-			rUpdateZvQfrom(r, r.tail);
-
-			return noTabuN;
-		}
-
 		bool minimizeRN() {
 
 			gamma = 0;
@@ -9014,28 +9032,18 @@ namespace vrptwNew {
 
 		bool testRoute() {
 
-			/*initDiffSituation();
-			vector<int>arrrv = rPutCusInve(rts[0]);
-			vector<int>arrrw = rPutCusInve(rts[1]);
-			rRemoveAllCusInR(rts[1]);
-			for (int i = 0; i < 3; ++i) {
-				rInsAtPosPre(rts[0], rts[0].tail, arrrw[i]);
-			}
-			rUpdateAvfrom(rts[0], rts[0].head);
-			rUpdateZvfrom(rts[0], rts[0].tail);
-			auto node = ejectOneRouteMinPsumGreedy(rts[0]);
-			debug(rts[0].rCustCnt)
-			debug(node.ejeVe.size())
-			outVe(node.ejeVe)
-			debug(node.Psum)
-				
-			return true;*/
-
-			vector<int>oldrv = { 233 ,276 ,143 ,559 ,429 ,301 ,245 ,466 ,126 ,102 ,186 };
+			/*
+			* 
+			* 
+nextdisp: 697 ,13 ,10 ,166 ,202 ,189 ,181 ,340 ,251 ,345 ,472 ,698 ,
+P: 1, 7, 7, 4, 1, 4, 5, 13, 1, 7, 7, 1, 4, 10, 4, 10, 7, 4, 7, 10, 10, 7, 2, 4, 1, 1, 1, 1, 7, 7, 4, 10, 1, 10, 7, 1, 10, 1, 7, 1, 1, 1, 10, 1, 10, 1, 1, 4, 1, 1, 7, 7, 13, 7, 1, 10, 1, 7, 4, 4, 7, 10, 4, 10, 1, 4, 1, 7, 4, 7, 1, 7, 7, 1, 1, 7, 7, 7, 1, 4, 1, 1, 1, 1, 10, 1, 10, 7, 1, 4, 9, 1, 1, 1, 2, 1, 7, 4, 10, 4, 1, 7, 1, 4, 7, 1, 1, 10, 1, 7, 4, 10, 4, 1, 1, 4, 10, 7, 1, 16, 4, 1, 4, 4, 1, 1, 1, 7, 7, 1, 7, 7, 1, 4, 1, 4, 1, 4, 1, 10, 4, 1, 4, 10, 1, 1, 4, 7, 10, 7, 7, 4, 10, 1, 7, 7, 1, 7, 7, 1, 4, 1, 1, 4, 1, 1, 7, 7, 1, 1, 4, 1, 4, 10, 4, 7, 4, 1, 4, 1, 1, 10, 4, 7, 7, 1, 1, 4, 4, 7, 7, 10, 7, 7, 1, 4, 4, 4, 1, 4, 1, 7, 7, 7, 4, 10, 10, 4, 4, 4, 10, 13, 4, 7, 1, 1, 1, 7, 1, 4, 1, 4, 1, 4, 7, 1, 4, 1, 4, 1, 7, 1, 7, 13, 2, 1, 1, 7, 4, 7, 1, 7, 2, 4, 7, 1, 4, 4, 7, 4, 4, 4, 4, 7, 4, 1, 7, 4, 7, 13, 4, 13, 7, 1, 4, 1, 4, 10, 4, 1, 1, 4, 1, 1, 1, 4, 16, 1, 7, 1, 1, 1, 7, 4, 1, 1, 1, 4, 4, 1, 4, 10, 4, 1, 1, 1, 1, 16, 4, 1, 4, 7, 1, 7, 1, 1, 10, 1, 10, 4, 7, 1, 4, 4, 1, 10, 1, 1, 1, 1, 4, 7, 10, 3, 4, 1, 1, 4, 4, 4, 4, 4, 1, 1, 4, 1, 9, 4, 7, 4, 4, 1, 1, 4, 10, 4, 1, 7, 7, 4, 4, 1, 7, 4, 10, 10, 4, 10, 4, 1, 13, 4, 7, 10, 4, 1, 1, 7, 1, 1, 10, 7, 1, 1, 10, 4, 10, 4, 4, 10, 10, 10, 4, 10, 13, 5, 5, 1, 1, 4, 1, 7, 4, 7, 1, 1, 1, 1, 2, 7, 1, 1, 1, 1, 1, 16, 4, 1, 10, 1, 1, 1, 10, 4, 10, 1, 10, 7, 7, 1, 7, 10, 1, 1, 1, 4, 4, 4, 1, 10, 1, 10, 1, 1, 4, 1, 1, 4, 1, 1, 13, 4, 7, 1, 4, 4, 4, 1, 1, 1, 1, 4, 4, 4, 1, 1, 10, 4, 10, 10, 4, 1, 1, 9, 7, 11, 1, 1, 7, 7, 1, 7, 1, 1, 7, 7, 1, 4, 4, 10, 7, 4, 4, 1, 1, 1, 1, 10, 1, 7, 10, 4, 10, 4, 7, 1, 1, 9, 1, 4, 13, 4, 1, 1, 1, 4, 4, 1, 4, 7, 7, 1, 4, 1, 1, 4, 4, 4, 13, 4, 1, 4, 7, 7, 7, 1, 4, 4, 1, 4, 4, 13, 7, 10, 4, 4, 4, 7, 10, 4, 7, 1, 10, 1, 1, 7, 10, 10, 1, 1, 4, 10, 4, 1, 10, 1, 7, 7, 1, 10, 10, 1, 4, 4, 10, 4, 4, 2, 7, 4, 1, 4, 13, 4, 1, 7, 4, 7, 1, 7, 1, 1, 4, 1, 1, 1, 10, 10, 4, 4, 4, 4, 12, 7, 13, 10, 10, 4, 4, 1, 4,
+nextdisp: 697 ,13 ,10 ,166 ,202 ,189 ,181 ,340 ,251 ,345 ,472 ,698 ,
+			*/
+			
+			vector<int>oldrv = { 13, 76, 308, 338, 393, 55, 38, 34, 56, 289 };
 			//vector<int>oldrw = { 120,121 };
 			//vector<int>oldrw = { 118,109 };
-			P = { 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 4, 1, 1, 1, 1, 1, 4, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 4, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 2, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 4, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 4, 1, 1, 1, 1, 1, 4, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 4, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 4, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 4, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 3, 1, 1, 1, 1, 1, 1, 1, 4, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 2, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 2, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 2, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 4, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 2, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 2, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 2, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 4, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 4, 1, 1, 1, 1, 1, 4, 1, 1, 1, 1, 1, 1, 2, 1, 1, 1, 1, 1, 1, 1, 1, 1, 4, 1, 1, 1, 1, 2, 1, 1, 1, };
-			Route rvv = rCreateRoute(0);
+			P = { 1, 127, 58, 133, 31, 103, 136, 145, 7, 136, 115, 11, 67, 116, 40, 37, 136, 67, 58, 124, 127, 133, 70, 77, 10, 19, 46, 25, 124, 142, 103, 121, 10, 64, 40, 58, 91, 28, 82, 52, 23, 19, 142, 13, 142, 112, 7, 97, 52, 61, 136, 142, 133, 91, 13, 67, 19, 142, 103, 43, 148, 109, 16, 109, 10, 106, 13, 28, 100, 145, 10, 91, 61, 55, 37, 133, 134, 28, 16, 43, 7, 10, 40, 13, 94, 10, 124, 55, 100, 64, 124, 52, 40, 22, 58, 61, 70, 28, 118, 139, 13, 70, 10, 124, 115, 13, 61, 118, 7, 121, 16, 145, 46, 11, 10, 43, 124, 100, 16, 136, 73, 10, 46, 4, 13, 34, 22, 94, 94, 13, 73, 85, 16, 31, 7, 40, 91, 73, 46, 106, 139, 13, 124, 82, 70, 4, 19, 139, 124, 97, 145, 40, 130, 10, 139, 109, 13, 136, 139, 10, 64, 4, 49, 19, 67, 52, 112, 115, 10, 64, 106, 7, 112, 130, 133, 97, 85, 16, 46, 7, 10, 100, 7, 109, 136, 49, 13, 10, 19, 136, 100, 133, 103, 127, 7, 25, 121, 37, 10, 52, 4, 43, 109, 109, 136, 142, 127, 37, 55, 55, 130, 94, 112, 100, 55, 10, 7, 91, 16, 127, 43, 61, 58, 13, 136, 7, 103, 55, 82, 13, 130, 10, 121, 133, 13, 16, 49, 97, 25, 85, 10, 82, 13, 130, 82, 52, 121, 97, 91, 19, 142, 16, 22, 106, 136, 19, 136, 85, 139, 109, 49, 103, 121, 70, 121, 10, 10, 124, 139, 7, 16, 19, 40, 55, 13, 49, 130, 4, 133, 10, 4, 7, 135, 49, 13, 100, 61, 115, 106, 16, 73, 130, 136, 40, 19, 7, 7, 247, 43, 46, 103, 67, 25, 136, 10, 19, 136, 19, 110, 115, 136, 10, 46, 13, 10, 132, 16, 13, 10, 19, 88, 106, 124, 10, 112, 7, 16, 121, 28, 19, 91, 85, 67, 49, 16, 4, 124, 70, 113, 7, 46, 43, 43, 67, 142, 16, 97, 97, 91, 133, 97, 79, 139, 139, 83, 127, 10, 136, 139, 40, 124, 139, 73, 115, 22, 13, 16, 145, 7, 1, 103, 139, 13, 46, 109, 22, 118, 25, 79, 127, 133, 103, 19, 97, 127, 70, 70, 7, 46, 16, 22, 127, 91, 88, 28, 40, 10, 7, 10, 136, 79, 4, 127, 4, 10, 118, 52, 7, 118, 10, 7, 16, 97, 97, 133, 37, 94, 97, 67, 13, 145, 100, 10, 10, 10, 88, 130, 133, 16, 82, 7, 118, 10, 4, 139, 25, 10, 25, 67, 52, 142, 82, 97, 10, 139, 22, 91, 10, 85, 70, 13, 10, 40, 58, 46, 4, 121, 118, 127, 133, 22, 136, 58, 109, 40, 148, 31, 4, 82, 145, 103, 43, 7, 22, 91, 136, 10, 67, 46, 142, 94, 46, 139, 43, 16, 46, 7, 133, 10, 106, 106, 10, 124, 127, 43, 34, 7, 130, 13, 13, 121, 124, 10, 10, 13, 25, 31, 28, 91, 118, 139, 13, 112, 73, 13, 7, 22, 77, 118, 112, 10, 100, 91, 133, 121, 11, 139, 94, 10, 22, 22, 145, 142, 109, 82, 34, 139, 103, 124, 58, 130, 67, 130, 22, 10, 133, 133, 100, 10, 13, 52, 127, 10, 7, 136, 22, 46, 70, 16, 88, 124, 13, 79, 49, 115, 136, 76, 13, 91, 139, 13, 97, 130, 136, 55, 124, 25, 142, 4, 94, 103, 13, 91, 13, 7, 10, 121, 133, 130, 136, 100, 58, 124, 109, 130, 121, 124, 34, 139, 40, 142, }; Route rvv = rCreateRoute(0);
 			rts.push_back(rvv);
 			Route rww = rCreateRoute(1);
 			rts.push_back(rww);
@@ -9069,7 +9077,7 @@ namespace vrptwNew {
 			debug(rw.rPtw)
 
 			auto node1 = ejectOneRouteMinPsumGreedy(rv);
-			auto node2 = ejectOneRouteOnlyP(rv,2,5);
+			auto node2 = ejectOneRouteOnlyP(rv,2,2);
 			debug(node1.ejeVe.size())
 			outVe(node1.ejeVe)
 			debug(node1.Psum)

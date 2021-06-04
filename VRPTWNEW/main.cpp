@@ -26,8 +26,14 @@ bool run(int argc, char* argv[]) {
 	vrpSln::Environment env("C1_6_6");
 	vrpSln::Configuration cfg;
 	//cfg.breakRecord = 1;
-	cfg.runTimer = 900;
+	cfg.runTimer = 600;
+	//env.seed = 1622779129;
 	solveCommandLine(argc, argv, cfg, env);
+
+	if (env.seed == -1) {
+		env.seed = std::time(nullptr) + std::clock();
+		debug(env.seed)
+	}
 
 	vrpSln::DateTime d(time(0));
 	cout << d << endl;
@@ -57,6 +63,7 @@ bool run(int argc, char* argv[]) {
 	//solver.testRoute();
 
 	solver.minimizeRN();
+
 	auto& P = solver.P;
 	string path = env.outputPath;
 	path += "PVal.";
@@ -96,6 +103,10 @@ bool solverByEAX(int argc, char* argv[]) {
 	debug(argc)
 
 	solveCommandLine(argc, argv, cfg, env);
+
+	if (env.seed == -1) {
+		env.seed = std::time(nullptr) + std::clock();
+	}
 
 	//env.seed = 1611589828;
 	//cfg.breakRecord = 1;
@@ -494,7 +505,7 @@ int main(int argc, char* argv[])
 
 	//solverByEAX(argc, argv);
 	//makeCases(argc, argv);
-	//for(;;)
+	for(;;)
 	run(argc, argv);
 	
 	return 0;
