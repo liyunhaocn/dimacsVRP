@@ -7138,6 +7138,7 @@ namespace vrptwNew {
 			int maxPVal = -1;
 			squIter += cfg.yearTabuLen + cfg.yearTabuRand;
 
+			// lianxu
 			int contiNoReduce = 0;
 
 			while (!lyhTimer.isTimeOut()) {
