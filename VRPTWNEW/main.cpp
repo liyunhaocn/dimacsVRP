@@ -494,7 +494,7 @@ int main(int argc, char* argv[])
 
 	//solverByEAX(argc, argv);
 	//makeCases(argc, argv);
-	for(;;)
+	//for(;;)
 	run(argc, argv);
 	
 	return 0;

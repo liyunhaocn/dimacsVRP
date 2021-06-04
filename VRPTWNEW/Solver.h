@@ -7753,14 +7753,14 @@ namespace vrptwNew {
 				//eOneRNode en = ejectOneRoute222Test(r, -1);
 				eOneRNode en;
 
-				int tKmax = cfg.minKmax;
+				/*int tKmax = cfg.minKmax;
 				while (en.ejeVe.size() == 0 && tKmax <= cfg.maxKmax) {
 
-					en = ejectOneRouteOnlyP(r, -1, tKmax);
+					en = ejectOneRouteOnlyP(r, 1, tKmax);
 					++tKmax;
-				}
+				}*/
 
-				tKmax = cfg.minKmax;
+				int tKmax = cfg.minKmax;
 				while (en.ejeVe.size() == 0 && tKmax <= cfg.maxKmax) {
 
 					en = ejectOneRouteOnlyP(r, 2, tKmax);
@@ -7769,6 +7769,7 @@ namespace vrptwNew {
 
 				if (en.ejeVe.size() == 0) {
 					en = ejectOneRouteMinNodes(r);
+					debug(1)
 				}
 
 #if CHECKING
@@ -7780,7 +7781,13 @@ namespace vrptwNew {
 #endif // CHECKING
 
 				auto grenode = ejectOneRouteMinPsumGreedy(r);
-				//deOut(en.Psum)debug(grenode.Psum)
+				
+				if (grenode.ejeVe.size() == en.ejeVe.size() && en.Psum > grenode.Psum) {
+					rNextDisp(r);
+					outVe(P)
+					rNextDisp(r);
+				}
+
 				if (en.Psum > grenode.Psum) {
 					/*deOut(en.Psum)debug(grenode.Psum)
 					deOut(en.Psum)debug(grenode.Psum)
@@ -7822,7 +7829,7 @@ namespace vrptwNew {
 			DisType rQ = r.rQ;
 
 			auto updateEje = [&]() {
-
+				//outVe(etemp.ejeVe)
 				if (etemp.Psum < noTabuN.Psum) {
 					sameCnt = 1;
 					noTabuN = etemp;
@@ -7952,6 +7959,9 @@ namespace vrptwNew {
 			};
 
 			vector<int> R = rPutCusInve(r);
+			R.pop_back();
+
+			//R.erase(R.begin());
 
 			vector<int> ptwArr;
 
@@ -7991,9 +8001,12 @@ namespace vrptwNew {
 			/*etemp = getPtwIfRemoveOneNode(r.head);
 			updateEje();*/
 
+			//debug(ptwArr.size())
+
 			do {
 
 				if (k < Kmax && ve[k] < N) { // k increase
+
 					++k;
 					ve[k] = ve[k - 1] + 1;
 
@@ -8013,7 +8026,6 @@ namespace vrptwNew {
 					if (ptw == 0 && rQ - input.Q <= 0) {
 						updateEje();
 					}
-
 
 					if (ve[k] == N) {
 						restoreOneNodePreOrder(delv);
@@ -9019,10 +9031,10 @@ namespace vrptwNew {
 				
 			return true;*/
 
-			vector<int>oldrv = { 118,109 };
-			vector<int>oldrw = { 120,121 };
+			vector<int>oldrv = { 233 ,276 ,143 ,559 ,429 ,301 ,245 ,466 ,126 ,102 ,186 };
+			//vector<int>oldrw = { 120,121 };
 			//vector<int>oldrw = { 118,109 };
-
+			P = { 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 4, 1, 1, 1, 1, 1, 4, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 4, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 2, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 4, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 4, 1, 1, 1, 1, 1, 4, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 4, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 4, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 4, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 3, 1, 1, 1, 1, 1, 1, 1, 4, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 2, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 2, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 2, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 4, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 2, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 2, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 2, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 4, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 4, 1, 1, 1, 1, 1, 4, 1, 1, 1, 1, 1, 1, 2, 1, 1, 1, 1, 1, 1, 1, 1, 1, 4, 1, 1, 1, 1, 2, 1, 1, 1, };
 			Route rvv = rCreateRoute(0);
 			rts.push_back(rvv);
 			Route rww = rCreateRoute(1);
@@ -9034,9 +9046,9 @@ namespace vrptwNew {
 			for (auto c : oldrv) {
 				rInsAtPosPre(rv, rv.tail, c);
 			}
-			for (auto c : oldrw) {
+			/*for (auto c : oldrw) {
 				rInsAtPosPre(rw, rw.tail, c);
-			}
+			}*/
 
 			rNextDisp(rv);
 			rNextDisp(rw);
@@ -9057,8 +9069,14 @@ namespace vrptwNew {
 			debug(rw.rPtw)
 
 			auto node1 = ejectOneRouteMinPsumGreedy(rv);
+			auto node2 = ejectOneRouteOnlyP(rv,2,5);
 			debug(node1.ejeVe.size())
+			outVe(node1.ejeVe)
 			debug(node1.Psum)
+
+			debug(node2.ejeVe.size())
+				outVe(node2.ejeVe)
+			debug(node2.Psum)
 
 			debug(1)
 
