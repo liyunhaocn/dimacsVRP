@@ -7761,24 +7761,12 @@ namespace vrptwNew {
 				
 				eOneRNode retNode;
 				int tKmax = cfg.minKmax;
-				int mCnt = 1;
 				while (retNode.ejeVe.size() == 0 && tKmax <= cfg.maxKmax) {
-					auto en = ejectOneRouteOnlyP(r, 2, tKmax);
-					if (en.Psum < retNode.Psum) {
-						mCnt = 1;
-						retNode = en;
-					}else if (en.Psum == retNode.Psum) {
-						++mCnt;
-						if (myRand.pick(mCnt)) {
-							retNode = en;
-						}
-					}
+					retNode = ejectOneRouteOnlyP(r, 2, tKmax);
 					++tKmax;
 				}
 				
-				
 				if (retNode.ejeVe.size() == 0) {
-					mCnt = 1;
 					retNode = ejectOneRouteMinPsumGreedy(r, retNode);
 				}
 				else {
@@ -7847,33 +7835,32 @@ namespace vrptwNew {
 
 			vector<int> R = rPutCusInve(r);
 
-			auto cmpPMin = [&](const int& a, const int& b) {
+			auto cmpPMulDMin = [&](const int& a, const int& b) {
 				//return input.datas[a].DEMAND > input.datas[b].DEMAND;
-				return P[a] > P[b];
+				return P[a]* input.datas[a].DEMAND 
+					> P[b]* input.datas[b].DEMAND;
 			};
-			auto cmpDMin = [&](const int& a, const int& b) {
-				//return P[a] > P[b];
-				return input.datas[a].DEMAND > input.datas[b].DEMAND;
-			};
-			//debug("ejectOneRouteOnlyHasPcMinP call")
-			priority_queue<int, Vec<int>, decltype(cmpPMin)> quPMin(cmpPMin);
-			priority_queue<int, Vec<int>, decltype(cmpDMin)> quDMin(cmpDMin);
 
+			priority_queue<int, Vec<int>, decltype(cmpPMulDMin)> 
+				quPmDMin(cmpPMulDMin);
+			
 			for (const int& c : R) {
-				quPMin.push(c);
+				quPmDMin.push(c);
 			}
 
+			/*auto qcop = quPmDMin;
+			debug("------")
+			while (!qcop.empty()) {
+				int t = qcop.top();
+				deOut(P[t])debug(input.datas[t].DEMAND)
+					qcop.pop();
+			}*/
 			//debug("-----")
 			while (r.rPc > 0) {
 
-				while (quDMin.size() < 1 && !quPMin.empty()) 	{
-					quDMin.push(quPMin.top());
-					quPMin.pop();
-				}
-
-				int ctop = quDMin.top();
+				int ctop = quPmDMin.top();
 				//debug(P[ctop])
-				quDMin.pop();
+				quPmDMin.pop();
 				rRemoveAtPos(r, ctop);
 				noTabuN.ejeVe.push_back(ctop);
 				noTabuN.Psum += P[ctop];
@@ -7891,6 +7878,53 @@ namespace vrptwNew {
 
 			//debug(noTabuN.ejeVe.size())
 			return noTabuN;
+
+			//eOneRNode noTabuN(r.routeID);
+			//noTabuN.Psum = 0;
+			//vector<int> R = rPutCusInve(r);
+			//auto cmpPMin = [&](const int& a, const int& b) {
+			//	//return input.datas[a].DEMAND > input.datas[b].DEMAND;
+			//	return P[a] > P[b];
+			//};
+			//auto cmpDMin = [&](const int& a, const int& b) {
+			//	//return P[a] > P[b];
+			//	return input.datas[a].DEMAND > input.datas[b].DEMAND;
+			//};
+			////debug("ejectOneRouteOnlyHasPcMinP call")
+			//priority_queue<int, Vec<int>, decltype(cmpPMin)> quPMin(cmpPMin);
+			//priority_queue<int, Vec<int>, decltype(cmpDMin)> quDMin(cmpDMin);
+
+			//for (const int& c : R) {
+			//	quPMin.push(c);
+			//}
+
+			////debug("-----")
+			//while (r.rPc > 0) {
+			//	while (quDMin.size() < 1 && !quPMin.empty()) 	{
+			//		quDMin.push(quPMin.top());
+			//		quPMin.pop();
+			//	}
+
+			//	int ctop = quDMin.top();
+			//	//debug(P[ctop])
+			//	quDMin.pop();
+			//	rRemoveAtPos(r, ctop);
+			//	noTabuN.ejeVe.push_back(ctop);
+			//	noTabuN.Psum += P[ctop];
+			//}
+
+			////debug(r.rCustCnt)
+			//rRemoveAllCusInR(r);
+			////debug(r.rCustCnt)
+
+			//for (int v : R) {
+			//	rInsAtPosPre(r, r.tail, v);
+			//}
+			//rUpdateAvQfrom(r, r.head);
+			//rUpdateZvQfrom(r, r.tail);
+
+			////debug(noTabuN.ejeVe.size())
+			//return noTabuN;
 		}
 
 		eOneRNode ejectOneRouteOnlyP(Route& r, int kind, int Kmax) {
@@ -8227,7 +8261,8 @@ namespace vrptwNew {
 			return noTabuN;
 		}
 
-		eOneRNode ejectOneRouteMinPsumGreedy(Route& r, eOneRNode cutBranchNode = eOneRNode()) {
+		eOneRNode ejectOneRouteMinPsumGreedy
+		(Route& r, eOneRNode cutBranchNode = eOneRNode()) {
 
 			eOneRNode ret(r.routeID);
 			ret.Psum = 0;
