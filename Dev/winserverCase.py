@@ -45,6 +45,35 @@ EP012Cases = [
 "C1_4_6",
 "C1_8_7"]
 
+EP012CasesNoR = [
+# "RC2_2_1",
+# "RC2_4_1",
+# "RC2_8_2",
+# "RC2_10_1",
+# "R1_2_1",
+# "R1_4_1",
+# "R1_6_1",
+# "R1_8_1",
+# "R1_10_1",
+"C2_8_7",
+"C1_2_8",
+"C1_4_7",
+"C2_10_9",
+
+# "RC2_2_2",
+# "RC2_6_2",
+"C2_4_2",
+"C1_2_7",
+"C1_4_8",
+"C1_10_7",
+"C2_6_7",
+"C2_8_10",
+"C2_10_5",
+"C2_10_2",
+"C1_2_6",
+"C1_4_6",
+"C1_8_7"]
+
 EP0Cases = [
 "RC2_2_1",
 "RC2_4_1",
@@ -77,17 +106,20 @@ EP12Cases = [
 "C1_8_7",
 
 ]
-cases = EP012Cases
 
+
+cases = EP012CasesNoR
+
+print(len(cases))
 # strBase = "start cmd /k \"dimacsVRP.exe 1 C2_10_2 36000\""
-path = "./breakEP012_24h.bat"
+path = "./breakEP012NOR_10h.bat"
 
 print(str(sys.argv))
 print(len(sys.argv))
 
-part = 8
-# runTime = "36000"
-runTime = "86400"
+part = 15
+runTime = "36000"
+# runTime = "86400"
 isBreak = "1"
 
 if len(sys.argv) > 1:
