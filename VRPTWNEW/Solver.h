@@ -7837,9 +7837,14 @@ namespace vrptwNew {
 			vector<int> R = rPutCusInve(r);
 
 			auto cmpPMulDMin = [&](const int& a, const int& b) {
-				//return input.datas[a].DEMAND > input.datas[b].DEMAND;
-				return P[a]* input.datas[a].DEMAND 
-					> P[b]* input.datas[b].DEMAND;
+				//
+				if (P[a] == P[b]) {
+					return input.datas[a].DEMAND > input.datas[b].DEMAND;
+				}
+				else {
+					return P[a]>P[b];
+				}
+				return false;
 			};
 
 			priority_queue<int, Vec<int>, decltype(cmpPMulDMin)> 
@@ -7849,14 +7854,6 @@ namespace vrptwNew {
 				quPmDMin.push(c);
 			}
 
-			/*auto qcop = quPmDMin;
-			debug("------")
-			while (!qcop.empty()) {
-				int t = qcop.top();
-				deOut(P[t])debug(input.datas[t].DEMAND)
-					qcop.pop();
-			}*/
-			//debug("-----")
 			while (r.rPc > 0) {
 
 				int ctop = quPmDMin.top();
