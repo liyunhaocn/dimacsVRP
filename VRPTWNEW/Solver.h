@@ -7655,10 +7655,7 @@ namespace vrptwNew {
 			bestSol sClone(customers, rts, EPr, Pc, Ptw, PtwNoWei, penalty);
 			bestPool.push_back(sClone);
 			
-			while (!lyhTimer.isTimeOut()) {
-
-				++EPIter;
-				EPNodesCanEasilyPut();
+			auto updateSolPool = [&]() {
 
 				auto& curBestSol = bestPool.back();
 
@@ -7666,39 +7663,50 @@ namespace vrptwNew {
 					++contiNoReduce;
 				}
 				else if (EPr.rCustCnt == curBestSol.EPr.rCustCnt) {
-
 					bestSol sCur(customers, rts, EPr, Pc, Ptw, PtwNoWei, penalty);
+
 					if (bestPool.size() >= poolSize) {
-						int index = myRand.pick(bestPool.size());
-						bestPool[index] = sCur;
+						bestPool.erase(bestPool.begin());
+						bestPool.push_back(sCur);
 					}
 					else {
 						bestPool.push_back(sCur);
 					}
-					
+
 					contiNoReduce = 1;
 				}
 				else {
 					bestPool.clear();
 					bestSol sCur(customers, rts, EPr, Pc, Ptw, PtwNoWei, penalty);
-					if (bestPool.size() >= poolSize) {
-						bestPool.erase(bestPool.begin());
-					}
 					bestPool.push_back(sCur);
 					contiNoReduce = 1;
 				}
+			};
+
+			while (!lyhTimer.isTimeOut()) {
+
+				++EPIter;
+				EPNodesCanEasilyPut();
 
 				minEPcus = min(minEPcus, EPr.rCustCnt);
+				if (EPsize() == 0 && penalty == 0) {
+					return true;
+				}
 
+				updateSolPool();
+				
 				if (contiNoReduce % 128 == 0) {
-					/*for (int i = 0; i < poolSize; ++i) {
+					for (int i = 0; i < bestPool.size(); ++i) {
 						cout << bestPool[i].EPr.rCustCnt << " ";
 					}
-					cout << endl;*/
+					cout << endl;
+					//outVe(P)
 					//int index = getMinPsumSolIndex();
 					//debug(bestPool.size())
 					//auto& sfront = bestPool.front();
+
 					int index = myRand.pick(bestPool.size());
+
 					auto& sfront = bestPool[index];
 					customers = sfront.customers;
 					rts = sfront.rts;
@@ -7708,14 +7716,13 @@ namespace vrptwNew {
 					penalty = sfront.penalty;
 					EPr = sfront.EPr;
 
-					//deOut(minEPcus)deOut(contiNoReduce)debug(contiNoReduce % 128 == 0)
-					patternAdjustment(-1,1000);
-				}
+					bestPool.erase(bestPool.begin()+index);
 
-				
-
-				if (EPsize() == 0 && penalty == 0) {
-					return true;
+					deOut(minEPcus)debug(contiNoReduce)
+						
+					patternAdjustment(-1,200);
+					//minimizeRL();
+					continue;
 				}
 
 				vector<int> EPrVe = rPutCusInve(EPr);
@@ -8835,49 +8842,12 @@ namespace vrptwNew {
 			
 			while (!lyhTimer.isTimeOut()) {
 
-				if (RoutesCost < bestS.RoutesCost) {
-					bestS = bestSol(customers, rts,
-						EPr, Pc, Ptw, PtwNoWei, penalty, RoutesCost);
-					contiNotDe = 0;
-					debug(RoutesCost)
-				}
-				else {
-					++contiNotDe;
-				}
-
-				if (contiNotDe > 30) {
-
-					customers = bestS.customers;
-					rts = bestS.rts;
-					PtwNoWei = bestS.PtwNoWei;
-					Ptw = bestS.Ptw;
-					Pc = bestS.Pc;
-					penalty = bestS.penalty;
-					RoutesCost = bestS.RoutesCost;
-					contiNotDe = 0;
-					patternAdjustment(-1, 50);
-					updateRtsCost();
-					continue;
-					//break;
-				}
-
 				TwoNodeMove bestM = getMRLPartMoves();
 				if (bestM.deltPen.PtwOnly > 0
 					|| bestM.deltPen.PcOnly > 0
 					|| bestM.deltPen.deltCost > 0) {
 
-					contiNotDe = 31;
-					continue;
-
-					bestM = getMRLAllMoves();
-				}
-
-				if (bestM.deltPen.PtwOnly > 0
-					|| bestM.deltPen.PcOnly > 0
-					|| bestM.deltPen.deltCost > 0) {
-					contiNotDe = 31;
-					continue;
-					//break;
+					break;
 				}
 
 #if CHECKING
@@ -8916,7 +8886,6 @@ namespace vrptwNew {
 
 				updatePen();
 				updateRtsCost();
-				//deOut(bestM.deltPen.deltCost) updateRtsCost();
 
 #if CHECKING
 
@@ -9025,6 +8994,9 @@ namespace vrptwNew {
 #endif // CHECKING
 
 			}
+
+			debug(RoutesCost)
+
 			return true;
 		}
 
@@ -9033,6 +9005,9 @@ namespace vrptwNew {
 			gamma = 1;
 
 			mRLLocalSearch();
+
+			gamma = 0;
+
 			return true;
 		}
 
