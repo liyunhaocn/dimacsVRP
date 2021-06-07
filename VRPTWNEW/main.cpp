@@ -24,9 +24,10 @@ using namespace std;
 bool run(int argc, char* argv[]) {
 
 	vrpSln::Environment env("C1_6_6");
+
 	vrpSln::Configuration cfg;
 	//cfg.breakRecord = 1;
-	cfg.runTimer = 600;
+	//cfg.runTimer = 3600;
 	//env.seed = 1622779129;
 	solveCommandLine(argc, argv, cfg, env);
 
@@ -40,7 +41,6 @@ bool run(int argc, char* argv[]) {
 	deOut("compile tag:")debug("0602-1")
 	debug(argc)
 
-	
 	//env.seed = 1610679669;
 	//env.seed = 1610863258;
 	
@@ -502,6 +502,11 @@ bool makeCases(int argc, char* argv[]) {
 
 int main(int argc, char* argv[])
 {
+
+	//std::thread t2(run,argc, argv); // pass by value
+	//std::thread t4(run, argc, argv); // t4 is now running f2(). t3 is no longer a thread
+	//t2.join();
+	//t4.join();
 
 	//solverByEAX(argc, argv);
 	//makeCases(argc, argv);
