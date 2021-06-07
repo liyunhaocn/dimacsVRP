@@ -7663,46 +7663,34 @@ namespace vrptwNew {
 			return true;
 		}
 
-		bool ejectLocalSearch(Vec<bestSol>& bestPool,LL contiNoReduce= LLInf) {
+		bool ejectLocalSearch(LL maxContiNode= LLInf) {
 
 			minEPcus = IntInf;
-			int maxPVal = -1;
 			squIter += cfg.yearTabuLen + cfg.yearTabuRand;
 
-			int poolSize = 30;
-			bestPool.reserve(poolSize);
-			bestSol globalBest(customers, rts, EPr, Pc, Ptw, PtwNoWei, penalty);
-			bestPool.push_back(globalBest);
+			bestSol solClone(customers, rts, EPr, Pc, Ptw, PtwNoWei, penalty);
+			bestSol gBestSol(customers, rts, EPr, Pc, Ptw, PtwNoWei, penalty);
+			
+			LL contiNoReduce = 1;
+			int minRPSolCnt = 1;
 
-			auto updateSolPool = [&]() {
+			auto updateGBestSolPool = [&]() {
 
-				auto& curBestSol = bestPool.back();
+				auto& curBestSol = gBestSol;
 
-				if (EPr.rCustCnt > curBestSol.EPr.rCustCnt) {
-					++contiNoReduce;
-					return false;
-				}
-				else if (EPr.rCustCnt == curBestSol.EPr.rCustCnt) {
-					bestSol sCur(customers, rts, EPr, Pc, Ptw, PtwNoWei, penalty);
-					++contiNoReduce;
-					if (bestPool.size() >= poolSize) {
-						//bestPool.erase(bestPool.begin());
-						bestPool.pop_back();
-						bestPool.push_back(sCur);
-					}
-					else {
-						bestPool.push_back(sCur);
-					}
-					//contiNoReduce = 1;
-					return false;
-				}
-				else {
-					bestPool.clear();
-					bestSol sCur(customers, rts, EPr, Pc, Ptw, PtwNoWei, penalty);
-					bestPool.push_back(sCur);
-					//contiNoReduce = 1;
+				if (EPr.rCustCnt < curBestSol.EPr.rCustCnt) {
+					minRPSolCnt = 1;
+					gBestSol = bestSol(customers, rts, EPr, Pc, Ptw, PtwNoWei, penalty);
 					return true;
 				}
+				else if (EPr.rCustCnt == curBestSol.EPr.rCustCnt) {
+					++minRPSolCnt;
+					if (myRand.pick(minRPSolCnt) == 0) {
+						gBestSol = bestSol(customers, rts, EPr, Pc, Ptw, PtwNoWei, penalty);
+					}
+					return false;
+				}
+				return false;
 			};
 
 			int curUse = 0;// 0 global 1 pool
@@ -7712,67 +7700,48 @@ namespace vrptwNew {
 				++EPIter;
 				EPNodesCanEasilyPut();
 
-				if (EPr.rCustCnt < minEPcus) {
-					deOut(minEPcus)deOut(EPr.rCustCnt)debug(contiNoReduce)
-				}
+				//if (EPr.rCustCnt < minEPcus) {
+					//deOut(minEPcus)deOut(EPr.rCustCnt)debug(contiNoReduce)
+				//}
 
 				minEPcus = min(minEPcus, EPr.rCustCnt);
 				if (EPsize() == 0 && penalty == 0) {
 					return true;
 				}
 
-				auto isUp = updateSolPool();
-				
-				if (contiNoReduce > contiNoReduce) {
+				auto isUp = updateGBestSolPool();
 
-					return false;
-					//deOut(minEPcus)
-					//debug(contiNoReduce)
-						contiNoReduce = 1;
+				if (isUp) {
+					contiNoReduce = 1;
+				}
+				else {
+					++contiNoReduce;
+				}
+				//debug(minRPSolCnt)
+
+				if (contiNoReduce % maxContiNode == 0) {
+
+					/*deOut(minEPcus)
+					debug(contiNoReduce)*/
+					//debug(minRPSolCnt)
+
 					if (curUse == 0) {
-						globalBest = bestSol(customers, rts, EPr, Pc, Ptw, PtwNoWei, penalty);
+						solClone = bestSol(customers, rts, EPr, Pc, Ptw, PtwNoWei, penalty);
 					}
-
+					
 					if (myRand.pick(2) == 0) {
 
-						/*for (int i = 0; i < bestPool.size(); ++i) {
-							cout << bestPool[i].EPr.rCustCnt << " ";
-						}
-						cout << endl;*/
-
-						int index = myRand.pick(bestPool.size());
-						//int index = 0;
-						auto& sfront = bestPool[index];
-						customers = sfront.customers;
-						rts = sfront.rts;
-						PtwNoWei = sfront.PtwNoWei;
-						Ptw = sfront.Ptw;
-						Pc = sfront.Pc;
-						penalty = sfront.penalty;
-						EPr = sfront.EPr;
-						resetConfRts();
-
+						setCurSolBy(gBestSol);
 						patternAdjustment(-1, 500);
 						squIter += cfg.yearTabuLen + cfg.yearTabuRand;
-						if (bestPool.size() > 1) {
-							bestPool.erase(bestPool.begin() + index);
-						}
-						//debug("Pool: ")
-							curUse = 1;
+						//debug("sclo")
+						curUse = 1;
 					}
 					else {
 						
-						customers = globalBest.customers;
-						rts = globalBest.rts;
-						PtwNoWei = globalBest.PtwNoWei;
-						Ptw = globalBest.Ptw;
-						Pc = globalBest.Pc;
-						penalty = globalBest.penalty;
-						EPr = globalBest.EPr;
-						resetConfRts();
-
-						//debug("glob: ")
-							curUse = 0;
+						setCurSolBy(solClone);
+						//debug("glob")
+						curUse = 0;
 					}
 
 					continue;
@@ -7786,13 +7755,11 @@ namespace vrptwNew {
 				EPremoveByVal(top);
 
 				P[top] += cfg.Pwei0;
-				// 
-				//debug(max(log(P[top]), cfg.Pwei0))
-				//P[top] += max(log(P[top]), cfg.Pwei0);
 
-				maxPVal = max(maxPVal, P[top]);
-				//EPYearTable[top] = EPIter + cfg.EPTabuStep + myRand.pick(cfg.EPTabuRand);
+				#if CHECKING
 				DisType oldpenalty = PtwNoWei + Pc;
+				#endif
+
 				rInsAtPos(r, bestP.pos, top);
 				rUpdateAvQfrom(r, top);
 				rUpdateZvQfrom(r, top);
@@ -7845,7 +7812,6 @@ namespace vrptwNew {
 						}
 
 						doEject();
-
 						patternAdjustment();
 						//end our method 2
 
@@ -7853,6 +7819,7 @@ namespace vrptwNew {
 				}
 
 			}
+			
 			return false;
 		}
 
@@ -8431,7 +8398,7 @@ namespace vrptwNew {
 			return true;
 		}
 
-		bool minRNTestDelOneRt() {
+		bool minimizeRN() {
 
 			gamma = 0;
 			initDiffSituation();
@@ -8440,17 +8407,11 @@ namespace vrptwNew {
 
 			while (!lyhTimer.isTimeOut()) {
 
-				/*Vec<bestSol> delDiffRoutePool;
-				delDiffRoutePool.reserve(rts.size());
-				removeEveryRoute(delDiffRoutePool);*/
-
 				removeOneRouteRandomly();
-				/*int index = myRand.pick(rts.size());
-				setCurSolBy(delDiffRoutePool[index]);*/
 
 				fill(P.begin(), P.end(), 1);
 				Vec<bestSol> arr;
-				bool isDelete = ejectLocalSearch(arr,LLInf);
+				bool isDelete = ejectLocalSearch(1024);
 				Log(Log::Level::Warning) << "rts.size(): " << rts.size() << endl;
 				if (rts.size() <= ourTarget) {
 					if ((EPsize() == 0 && penalty == 0)) {
@@ -8459,60 +8420,6 @@ namespace vrptwNew {
 					break;
 				}
 			}
-
-			return true;
-		}
-
-		bool minRNTestDelEveryRt() {
-
-			gamma = 0;
-			initDiffSituation();
-			bool isSucceed = false;
-			lyhTimer.reStart();
-
-			Vec<bestSol> bestPool;
-			int curSolIndex = 0;
-
-			while (!lyhTimer.isTimeOut()) {
-
-				Vec<bestSol> delDiffRoutePool;
-				delDiffRoutePool.reserve(rts.size());
-				removeEveryRoute(delDiffRoutePool);
-
-				setCurSolBy(delDiffRoutePool[curSolIndex]);
-				fill(P.begin(), P.end(), 1);
-
-				while (!lyhTimer.isTimeOut()) 	{
-					bool isDelete = ejectLocalSearch(bestPool, 128);
-					if (isDelete) {
-						bestPool.clear(); 
-						break;
-					}
-					else {
-						++curSolIndex;
-						debug(curSolIndex)
-						curSolIndex %= delDiffRoutePool.size();
-						setCurSolBy(delDiffRoutePool[curSolIndex]);
-					}
-				}
-				
-				Log(Log::Level::Warning) << "rts.size(): " << rts.size() << endl;
-				if (rts.size() <= ourTarget) {
-					if ((EPsize() == 0 && penalty == 0)) {
-						isSucceed = true;
-					}
-					break;
-				}
-			}
-
-			return true;
-		}
-
-		bool minimizeRN() {
-
-			
-			//minRNTestDelOneRt();
-			minRNTestDelEveryRt();
 
 			DisType state = verify();
 
