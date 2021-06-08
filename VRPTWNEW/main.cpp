@@ -23,7 +23,7 @@ using namespace std;
 
 bool run(int argc, char* argv[]) {
 
-	vrpSln::Environment env("C1_8_2");
+	vrpSln::Environment env("C1_6_6");
 
 	vrpSln::Configuration cfg;
 	//cfg.breakRecord = 1;

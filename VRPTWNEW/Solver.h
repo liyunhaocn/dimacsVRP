@@ -525,7 +525,7 @@ namespace vrptwNew {
 
 		ConfSet PtwConfRts, PcConfRts;
 
-		vector<int> P;
+		vector<LL> P;
 
 		LL EPIter = 1;
 		int minEPcus = IntInf;
@@ -748,41 +748,12 @@ namespace vrptwNew {
 			return true;
 		}
 
-		bool reSetSol() {
-
-			for (int& p : P) {
-				p = 1;
-			}
-			//P = vector<int>(input.custCnt + 1, 1);
-			customers = vector<Customer>(input.custCnt + 403);
-			yearTable = vector<vector<LL>>(input.custCnt + 1, vector<LL>(input.custCnt + 1, 0));
-			
-			for (int i = 0; i < yearTable.size(); ++i) {
-				for (int j = 0; j < yearTable[i].size(); ++j) {
-					yearTable[i][j] = 0;
-				}
-			}
-			//EPYearTable = vector<int> (input.custCnt + 1,  1);
-			alpha = 1;
-			beta = 1;
-			gamma = 1;
-			squIter = 0;
-			penalty = 0;
-			Ptw = 0;
-			PtwNoWei = 0;
-			Pc = 0;
-			RoutesCost = 0;
-			initEPr();
-			rts.reSet();
-			return true;
-		}
-
 		Solver(Input& input, Configuration& cfg, Environment& env) :
 			input(input), env(env), cfg(cfg),
 			lyhTimer(cfg.runTimer), myRand(env.seed), myRandX(env.seed)
 		{
 
-			P = vector<int>(input.custCnt + 1, 1);
+			P = vector<LL>(input.custCnt + 1, 1);
 			customers = vector<Customer>(input.custCnt + 1);
 			yearTable = vector<vector<LL>>(input.custCnt + 1, vector<LL>(input.custCnt + 1, 0));
 			//EPYearTable = vector<int> (input.custCnt + 1,  1);
@@ -5828,6 +5799,36 @@ namespace vrptwNew {
 			updatePen();
 			return true;
 		}
+		
+		bool ejectPatternAdjustment() {
+
+			Vec<eOneRNode> ens;
+
+			for (int i = 0; i < rts.cnt; ++i) {
+				Route& r = rts[i];
+				auto cmp = [&](const int a, const int b) {
+					return P[a] < P[b];
+				};
+
+				eOneRNode en(r.routeID);
+				priority_queue<int,Vec<int>,decltype(cmp)> qu(cmp);
+				auto ve = rPutCusInve(r);
+				for (int c : ve) {
+					qu.push(c);
+				}
+
+				while (qu.size() > max(1,r.rCustCnt/2)){
+					en.ejeVe.push_back(qu.top());
+					qu.pop();
+					break;
+				}
+				ens.push_back(en);
+			}
+			doEject(ens);
+			patternAdjustment(-1,200);
+
+			return true;
+		}
 
 		vector<int> getPtwNodes(Route& r, int ptwKind = 0) {
 
@@ -5937,7 +5938,7 @@ namespace vrptwNew {
 					v = customers[v].next;
 				}
 
-				/*if (v != endNode) {
+				if (v != endNode) {
 					v = customers[r.head].next;
 					while (v <= input.custCnt) {
 						ptwNodes.push_back(v);
@@ -5946,7 +5947,11 @@ namespace vrptwNew {
 						}
 						v = customers[v].next;
 					}
-				}*/
+				}
+
+				if (v != endNode) {
+					debug(v != endNode)
+				}
 			};
 
 			auto getPtwNodesByLastPtw = [&]() {
@@ -5955,25 +5960,26 @@ namespace vrptwNew {
 				int endNode = customers[r.head].next;
 
 				int pt = customers[r.head].next;
-				while (pt <= input.custCnt) {
+				while (pt !=-1) {
 					if (customers[pt].avp > input.datas[pt].DUEDATE) {
 						endNode = pt;
 					}
 					pt = customers[pt].next;
 				}
-				if (endNode > input.custCnt || customers[endNode].TW_X < r.rPtw) {
+				if (endNode > input.custCnt) {
 					endNode = customers[r.tail].pre;
 				}
 
 				pt = customers[r.tail].pre;
-				while (pt <= input.custCnt) {
+				while (pt != -1) {
 					if (customers[pt].zvp < input.datas[pt].READYTIME) {
 						startNode = pt;
 					}
 					pt = customers[pt].pre;
 				}
 
-				if (startNode > input.custCnt || customers[startNode].TWX_ < r.rPtw) {
+				if (startNode > input.custCnt ) {
+					
 					startNode = customers[r.head].next;
 				}
 
@@ -5985,7 +5991,6 @@ namespace vrptwNew {
 					}
 					v = customers[v].next;
 				}
-
 			};
 
 			auto findRangeCanDePtw1 = [&]() {
@@ -6045,7 +6050,7 @@ namespace vrptwNew {
 			if (ptwKind == -1) {
 				findRangeCanDePtw1();
 			}
-			if (ptwKind == 0) {
+			else if (ptwKind == 0) {
 				getPtwNodesByFirstPtw();
 			}
 			else if (ptwKind == 1) {
@@ -6851,9 +6856,7 @@ namespace vrptwNew {
 			return true;
 		}
 
-		bool doEject() {
-
-			vector<eOneRNode>& XSet = ejeNodesAfterSqueeze;
+		bool doEject(vector<eOneRNode>& XSet) {
 
 #if CHECKING
 
@@ -7116,7 +7119,7 @@ namespace vrptwNew {
 
 		DisType verify() {
 
-			vector<int> visitCnt(input.custCnt + 401, 0);
+			vector<int> visitCnt(input.custCnt + 1, 0);
 
 			int cusCnt = 0;
 			DisType routesCost = 0;
@@ -7663,14 +7666,17 @@ namespace vrptwNew {
 			return true;
 		}
 
-		bool ejectLocalSearch(LL maxContiNode= LLInf) {
+		bool ejectLocalSearch() {
 
 			minEPcus = IntInf;
 			squIter += cfg.yearTabuLen + cfg.yearTabuRand;
+			LL maxOfPval = -1;
 
+			#ifdef SAVE_LOCAL_BEST_SOL
 			bestSol solClone(customers, rts, EPr, Pc, Ptw, PtwNoWei, penalty);
 			bestSol gBestSol(customers, rts, EPr, Pc, Ptw, PtwNoWei, penalty);
-			
+			auto cloneP = P;
+
 			LL contiNoReduce = 1;
 			int minRPSolCnt = 1;
 
@@ -7695,22 +7701,25 @@ namespace vrptwNew {
 
 			int curUse = 0;// 0 global 1 pool
 
+			#endif // SAVE_LOCAL_BEST_SOL
+
 			while (!lyhTimer.isTimeOut()) {
 
 				++EPIter;
 				EPNodesCanEasilyPut();
 
-				//if (EPr.rCustCnt < minEPcus) {
-					//deOut(minEPcus)deOut(EPr.rCustCnt)debug(contiNoReduce)
-				//}
+				/*if (EPr.rCustCnt < minEPcus) {
+					deOut(minEPcus)deOut(EPr.rCustCnt)debug(contiNoReduce)
+				}*/
 
 				minEPcus = min(minEPcus, EPr.rCustCnt);
 				if (EPsize() == 0 && penalty == 0) {
 					return true;
 				}
 
-				auto isUp = updateGBestSolPool();
+				#ifdef SAVE_LOCAL_BEST_SOL
 
+				auto isUp = updateGBestSolPool();
 				if (isUp) {
 					contiNoReduce = 1;
 				}
@@ -7724,30 +7733,41 @@ namespace vrptwNew {
 					/*deOut(minEPcus)
 					debug(contiNoReduce)*/
 					//debug(minRPSolCnt)
+					minRPSolCnt = 1;
 
 					if (curUse == 0) {
 						solClone = bestSol(customers, rts, EPr, Pc, Ptw, PtwNoWei, penalty);
 					}
 					
-					if (myRand.pick(2) == 0) {
-
-						setCurSolBy(gBestSol);
-						patternAdjustment(-1, 500);
-						squIter += cfg.yearTabuLen + cfg.yearTabuRand;
-						//debug("sclo")
-						curUse = 1;
+					if (myRand.pick(5) < 4) {
+						if (curUse == 1) {
+							P = cloneP;
+							setCurSolBy(solClone);
+							//debug("sclo")
+							curUse = 0;
+						}
 					}
 					else {
-						
-						setCurSolBy(solClone);
-						//debug("glob")
-						curUse = 0;
+						if (curUse == 0) {
+							cloneP = P;
+							setCurSolBy(gBestSol);
+
+							//ejectPatternAdjustment();
+							
+							//debug("glob")
+							patternAdjustment(-1, 2*input.custCnt);
+							//debug(EPsize())
+							curUse = 1;
+						}
 					}
+
+					patternAdjustment(-1, 200);
+					squIter += cfg.yearTabuLen + cfg.yearTabuRand;
 
 					continue;
 				}
+				#endif // SAVE_LOCAL_BEST_SOL
 
-				
 				vector<int> EPrVe = rPutCusInve(EPr);
 				int top = EPrVe[myRand.pick(EPrVe.size())];
 				Position bestP = findBestPosInSol(top);
@@ -7755,6 +7775,15 @@ namespace vrptwNew {
 				EPremoveByVal(top);
 
 				P[top] += cfg.Pwei0;
+				maxOfPval = max(P[top], maxOfPval);
+
+				if (maxOfPval >= 10000) {
+					for (auto& i : P) {
+						i = i / 2 + 1;
+					}
+					maxOfPval = -1;
+					debug("pinghua")
+				}
 
 				#if CHECKING
 				DisType oldpenalty = PtwNoWei + Pc;
@@ -7806,15 +7835,15 @@ namespace vrptwNew {
 								yearTable[cpre][c] = squIter + cfg.yearTabuLen + myRand.pick(cfg.yearTabuRand);
 								yearTable[c][cnext] = squIter + cfg.yearTabuLen + myRand.pick(cfg.yearTabuRand);*/
 								P[c] += cfg.Pwei1;
+								maxOfPval = max(P[c], maxOfPval);
 								//P[c] += max(log(P[c]), cfg.Pwei1);
 								//debug(max(log(P[c]), cfg.Pwei1))
 							}
 						}
 
-						doEject();
+						doEject(XSet);
 						patternAdjustment();
 						//end our method 2
-
 					}
 				}
 
@@ -7842,8 +7871,8 @@ namespace vrptwNew {
 				Route& r = rts.getRouteByRid(id);
 
 				eOneRNode retNode;
-				//int tKmax = cfg.minKmax;
-				int tKmax = 1;
+				int tKmax = cfg.minKmax;
+				//int tKmax = 1;
 
 				while (tKmax <= cfg.maxKmax) {
 					auto en = ejectOneRouteOnlyP(r, 2, tKmax);
@@ -7857,11 +7886,12 @@ namespace vrptwNew {
 							//bool satisfy1 = en.getMaxEle() < retNode.getMaxEle();
 							//bool satisfy1 = false;
 							//bool satisfy1 = en.Psum * retNode.ejeVe.size() < retNode.Psum * en.ejeVe.size();
-							bool satisfy2 = en.ejeVe.size() * en.Psum < retNode.Psum* retNode.ejeVe.size();
-							if (satisfy2) {
+							//bool satisfy2 = en.ejeVe.size() * en.Psum < retNode.Psum* retNode.ejeVe.size();
+							bool satisfy1 = en.Psum * 1.2 < retNode.Psum;
+							if (satisfy1) {
 								/*deOut(en.Psum)debug(en.ejeVe.size())
-								deOut(retNode.Psum)debug(retNode.ejeVe.size())
-								debug(satisfy2)*/
+								deOut(retNode.Psum)debug(retNode.ejeVe.size())*/
+								debug(satisfy1)
 								retNode = en;
 							}
 						}
@@ -7878,13 +7908,15 @@ namespace vrptwNew {
 				else {
 
 					if (en.Psum < retNode.Psum) {
-						//bool satisfy1 = en.getMaxEle() < retNode.getMaxEle();
-						//bool satisfy1 = false;
-						bool satisfy2 = en.ejeVe.size() * en.Psum < retNode.Psum* retNode.ejeVe.size();
+
+						//bool satisfy2 = en.ejeVe.size() * en.Psum < retNode.Psum* retNode.ejeVe.size()*1.5;
+						bool satisfy2 = en.ejeVe.size() > cfg.maxKmax;
 						if (satisfy2) {
-							/*debug(1111111111)
-								debug(satisfy2)*/
-								retNode = en;
+
+							/*deOut(en.Psum)debug(en.ejeVe.size())
+							deOut(retNode.Psum)debug(retNode.ejeVe.size())*/
+							debug(satisfy2)
+							retNode = en;
 						}
 					}
 
@@ -8134,7 +8166,7 @@ namespace vrptwNew {
 			}
 			else if (r.rPc > 0) {
 
-				return ejectOneRouteOnlyHasPcMinP(r, Kmax);
+				//return ejectOneRouteOnlyHasPcMinP(r, Kmax);
 				ptwArr = R;
 				Kmax = min(Kmax, ptwArr.size() - 1);
 				
@@ -8397,7 +8429,7 @@ namespace vrptwNew {
 			resetConfRts();
 			return true;
 		}
-
+		
 		bool minimizeRN() {
 
 			gamma = 0;
@@ -8410,8 +8442,7 @@ namespace vrptwNew {
 				removeOneRouteRandomly();
 
 				fill(P.begin(), P.end(), 1);
-				Vec<bestSol> arr;
-				bool isDelete = ejectLocalSearch(1024);
+				bool isDelete = ejectLocalSearch();
 				Log(Log::Level::Warning) << "rts.size(): " << rts.size() << endl;
 				if (rts.size() <= ourTarget) {
 					if ((EPsize() == 0 && penalty == 0)) {
