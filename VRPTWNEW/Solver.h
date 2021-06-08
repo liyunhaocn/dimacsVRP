@@ -7871,8 +7871,8 @@ namespace vrptwNew {
 				Route& r = rts.getRouteByRid(id);
 
 				eOneRNode retNode;
-				int tKmax = cfg.minKmax;
-				//int tKmax = 1;
+				//int tKmax = cfg.minKmax;
+				int tKmax = 1;
 
 				while (tKmax <= cfg.maxKmax) {
 					auto en = ejectOneRouteOnlyP(r, 2, tKmax);
@@ -7883,15 +7883,15 @@ namespace vrptwNew {
 					else {
 						//double rateMoreEj = ((double)en.ejeVe.size() / retNode.ejeVe.size());
 						if (en.Psum < retNode.Psum) {
-							//bool satisfy1 = en.getMaxEle() < retNode.getMaxEle();
-							//bool satisfy1 = false;
+							bool satisfy1 = en.getMaxEle() < retNode.getMaxEle();
+							//bool satisfy1 = true;
 							//bool satisfy1 = en.Psum * retNode.ejeVe.size() < retNode.Psum * en.ejeVe.size();
-							//bool satisfy2 = en.ejeVe.size() * en.Psum < retNode.Psum* retNode.ejeVe.size();
-							bool satisfy1 = en.Psum * 1.2 < retNode.Psum;
-							if (satisfy1) {
+							bool satisfy2 = en.ejeVe.size() * en.Psum < retNode.Psum* retNode.ejeVe.size();
+							//bool satisfy1 = en.Psum * 1.5 < retNode.Psum;
+							if (satisfy1 || satisfy2) {
 								/*deOut(en.Psum)debug(en.ejeVe.size())
 								deOut(retNode.Psum)debug(retNode.ejeVe.size())*/
-								debug(satisfy1)
+								//debug("satisfy12")
 								retNode = en;
 							}
 						}
@@ -7909,12 +7909,12 @@ namespace vrptwNew {
 
 					if (en.Psum < retNode.Psum) {
 
-						//bool satisfy2 = en.ejeVe.size() * en.Psum < retNode.Psum* retNode.ejeVe.size()*1.5;
-						bool satisfy2 = en.ejeVe.size() > cfg.maxKmax;
+						bool satisfy2 = en.ejeVe.size() * en.Psum < retNode.Psum* retNode.ejeVe.size();
+						//satisfy2 = satisfy2 && en.ejeVe.size() > cfg.maxKmax;
 						if (satisfy2) {
 
-							/*deOut(en.Psum)debug(en.ejeVe.size())
-							deOut(retNode.Psum)debug(retNode.ejeVe.size())*/
+							deOut(en.Psum)debug(en.ejeVe.size())
+							deOut(retNode.Psum)debug(retNode.ejeVe.size())
 							debug(satisfy2)
 							retNode = en;
 						}
@@ -7923,15 +7923,17 @@ namespace vrptwNew {
 				}
 
 
-				if (retNode.ejeVe.size() == 0) {
-					debug(r.rPtw)
-					debug(r.rPc)
-					rNextDisp(r);
-					outVe(P)
-					system("pause");
-				}
+				
 
 #if CHECKING
+
+				if (retNode.ejeVe.size() == 0) {
+					debug(r.rPtw)
+						debug(r.rPc)
+						rNextDisp(r);
+					outVe(P)
+						system("pause");
+				}
 
 				if (retNode.ejeVe.size() == 0) {
 					rNextDisp(r);
@@ -7982,27 +7984,20 @@ namespace vrptwNew {
 				qu.push(c);
 			}
 
-			while (r.rPc > 0) {
+			DisType rPc = r.rPc;
+			DisType rQ = r.rQ;
+
+			while (rPc > 0) {
 
 				int ctop = qu.top();
 				//debug(P[ctop])
 				qu.pop();
-				rRemoveAtPos(r, ctop);
+				rQ -= input.datas[ctop].DEMAND;
+				rPc = max(0, rQ - input.Q);
 				noTabuN.ejeVe.push_back(ctop);
 				noTabuN.Psum += P[ctop];
 			}
 
-			//debug(r.rCustCnt)
-			rRemoveAllCusInR(r);
-			//debug(r.rCustCnt)
-
-			for (int v : R) {
-				rInsAtPosPre(r, r.tail, v);
-			}
-			rUpdateAvQfrom(r, r.head);
-			rUpdateZvQfrom(r, r.tail);
-
-			//debug(noTabuN.ejeVe.size())
 			return noTabuN;
 
 		}
