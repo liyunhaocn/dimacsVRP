@@ -4191,7 +4191,7 @@ namespace vrptwNew {
 			}
 
 
-
+			#if CHECKING
 			if (back == -1) {
 				debug(r.head)
 				debug(r.tail)
@@ -4202,7 +4202,7 @@ namespace vrptwNew {
 				rNextDisp(r);
 
 			}
-
+			#endif // CHECKING
 
 			int f_ = customers[front].pre;
 			int bj = customers[back].next;
@@ -4245,7 +4245,6 @@ namespace vrptwNew {
 					if (pt == front) {
 						break;
 					}
-
 
 					pt = customers[pt].pre;
 				}
@@ -5803,30 +5802,35 @@ namespace vrptwNew {
 		bool ejectPatternAdjustment() {
 
 			Vec<eOneRNode> ens;
-
-			for (int i = 0; i < rts.cnt; ++i) {
-				Route& r = rts[i];
-				auto cmp = [&](const int a, const int b) {
-					return P[a] < P[b];
-				};
-
-				eOneRNode en(r.routeID);
-				priority_queue<int,Vec<int>,decltype(cmp)> qu(cmp);
-				auto ve = rPutCusInve(r);
-				for (int c : ve) {
-					qu.push(c);
+			Vec<int> cus = rPutCusInve(EPr);
+			auto cmp = [&](const int& a,const int& b) {
+				return P[a] > P[b];
+			};
+			sort(cus.begin(), cus.end(), cmp);
+			
+			int v = cus[0];
+			map<int, Vec<int>>mp;
+			for (int wpos = 0;wpos <= 10;++ wpos) {
+				//int wpos = myRand.pick(10);
+				int w = input.allCloseOf[v][wpos];
+				if (customers[w].routeID != -1 && P[w] >= P[v]) {
+					mp[customers[w].routeID].push_back(w);
+					/*debug(wpos)
+					debug(w)
+					debug(v)*/
+					//break;
 				}
-
-				while (qu.size() > max(1,r.rCustCnt/2)){
-					en.ejeVe.push_back(qu.top());
-					qu.pop();
-					break;
+			}
+			for (auto it: mp) {
+				eOneRNode en(it.first);
+				for (int c : it.second) {
+					en.ejeVe.push_back(c);
 				}
 				ens.push_back(en);
 			}
 			doEject(ens);
-			patternAdjustment(-1,200);
-
+			patternAdjustment(-1,input.custCnt*2);
+			
 			return true;
 		}
 
@@ -6672,7 +6676,7 @@ namespace vrptwNew {
 			if (r.rPtw > 0) {
 
 				vector<int> ptwNodes = getPtwNodes(r);
-
+				
 				int v = ptwNodes[0];
 				int w = v;
 				for (int i = 0; i < 5; ++i) {
@@ -6691,6 +6695,7 @@ namespace vrptwNew {
 						updateBestM(m15, bestM);
 					}
 				}
+
 				for (int v : ptwNodes) {
 
 					_2optEffectively(v);
@@ -6701,7 +6706,13 @@ namespace vrptwNew {
 					//_3optEffectively(v);
 
 					int w = v;
-					int maxL = max(3, r.rCustCnt / 5);
+					//int maxL = max(3, r.rCustCnt / 5);
+					int maxL = 5;
+					//debug(r.rCustCnt)
+
+					if (myRand.pick(3) < 2 ) {
+						continue;
+					}
 
 					for (int i = 1; i <= maxL; ++i) {
 						w = customers[w].next;
@@ -6713,7 +6724,7 @@ namespace vrptwNew {
 						updateBestM(m8, bestM);
 
 						if (i >= 2) {
-							TwoNodeMove m3(v, w, 3, outrelocatevTowwj(v, w, 0));
+							TwoNodeMove m3(v, w, 3, outrelocatevTowwj(v, w, 1));
 							updateBestM(m3, bestM);
 						}
 
@@ -7672,10 +7683,12 @@ namespace vrptwNew {
 			squIter += cfg.yearTabuLen + cfg.yearTabuRand;
 			LL maxOfPval = -1;
 
-			#ifdef SAVE_LOCAL_BEST_SOL
+			//#ifdef SAVE_LOCAL_BEST_SOL
 			bestSol solClone(customers, rts, EPr, Pc, Ptw, PtwNoWei, penalty);
 			bestSol gBestSol(customers, rts, EPr, Pc, Ptw, PtwNoWei, penalty);
 			auto cloneP = P;
+
+			LL maxContiNode = 1024;
 
 			LL contiNoReduce = 1;
 			int minRPSolCnt = 1;
@@ -7701,7 +7714,7 @@ namespace vrptwNew {
 
 			int curUse = 0;// 0 global 1 pool
 
-			#endif // SAVE_LOCAL_BEST_SOL
+			//#endif // SAVE_LOCAL_BEST_SOL
 
 			while (!lyhTimer.isTimeOut()) {
 
@@ -7717,7 +7730,7 @@ namespace vrptwNew {
 					return true;
 				}
 
-				#ifdef SAVE_LOCAL_BEST_SOL
+				//#ifdef SAVE_LOCAL_BEST_SOL
 
 				auto isUp = updateGBestSolPool();
 				if (isUp) {
@@ -7739,7 +7752,7 @@ namespace vrptwNew {
 						solClone = bestSol(customers, rts, EPr, Pc, Ptw, PtwNoWei, penalty);
 					}
 					
-					if (myRand.pick(5) < 4) {
+					if (myRand.pick(3) < 2 ) {
 						if (curUse == 1) {
 							P = cloneP;
 							setCurSolBy(solClone);
@@ -7752,21 +7765,22 @@ namespace vrptwNew {
 							cloneP = P;
 							setCurSolBy(gBestSol);
 
-							//ejectPatternAdjustment();
+							ejectPatternAdjustment();
 							
-							//debug("glob")
-							patternAdjustment(-1, 2*input.custCnt);
+							debug("glob")
+							//ejectPatternAdjustment();
+							//patternAdjustment(-1, 2*input.custCnt);
 							//debug(EPsize())
 							curUse = 1;
 						}
 					}
 
-					patternAdjustment(-1, 200);
+					patternAdjustment(-1, input.custCnt*2);
 					squIter += cfg.yearTabuLen + cfg.yearTabuRand;
 
 					continue;
 				}
-				#endif // SAVE_LOCAL_BEST_SOL
+				//#endif // SAVE_LOCAL_BEST_SOL
 
 				vector<int> EPrVe = rPutCusInve(EPr);
 				int top = EPrVe[myRand.pick(EPrVe.size())];
@@ -7871,10 +7885,10 @@ namespace vrptwNew {
 				Route& r = rts.getRouteByRid(id);
 
 				eOneRNode retNode;
-				//int tKmax = cfg.minKmax;
-				int tKmax = 1;
+				int tKmax = cfg.minKmax;
+				//int tKmax = 2;
 
-				while (tKmax <= cfg.maxKmax) {
+				while (retNode.ejeVe.size()==0 && tKmax <= cfg.maxKmax) {
 					auto en = ejectOneRouteOnlyP(r, 2, tKmax);
 
 					if (retNode.ejeVe.size() == 0) {
@@ -7882,19 +7896,19 @@ namespace vrptwNew {
 					}
 					else {
 						//double rateMoreEj = ((double)en.ejeVe.size() / retNode.ejeVe.size());
-						if (en.Psum < retNode.Psum) {
-							bool satisfy1 = en.getMaxEle() < retNode.getMaxEle();
-							//bool satisfy1 = true;
-							//bool satisfy1 = en.Psum * retNode.ejeVe.size() < retNode.Psum * en.ejeVe.size();
-							bool satisfy2 = en.ejeVe.size() * en.Psum < retNode.Psum* retNode.ejeVe.size();
-							//bool satisfy1 = en.Psum * 1.5 < retNode.Psum;
-							if (satisfy1 || satisfy2) {
-								/*deOut(en.Psum)debug(en.ejeVe.size())
-								deOut(retNode.Psum)debug(retNode.ejeVe.size())*/
-								//debug("satisfy12")
-								retNode = en;
-							}
-						}
+						//if (en.Psum < retNode.Psum) {
+						//	//bool satisfy1 = en.getMaxEle() < retNode.getMaxEle();
+						//	bool satisfy1 = false;
+						//	//bool satisfy1 = en.Psum * retNode.ejeVe.size() < retNode.Psum * en.ejeVe.size();
+						//	bool satisfy2 = en.ejeVe.size() * en.Psum < retNode.Psum* retNode.ejeVe.size();
+						//	//bool satisfy1 = en.Psum * 1.5 < retNode.Psum;
+						//	if (satisfy1 || satisfy2) {
+						//		/*deOut(en.Psum)debug(en.ejeVe.size())
+						//		deOut(retNode.Psum)debug(retNode.ejeVe.size())*/
+						//		//debug("satisfy12")
+						//		retNode = en;
+						//	}
+						//}
 					}
 					++tKmax;
 				}
@@ -7913,9 +7927,9 @@ namespace vrptwNew {
 						//satisfy2 = satisfy2 && en.ejeVe.size() > cfg.maxKmax;
 						if (satisfy2) {
 
-							deOut(en.Psum)debug(en.ejeVe.size())
+							/*deOut(en.Psum)debug(en.ejeVe.size())
 							deOut(retNode.Psum)debug(retNode.ejeVe.size())
-							debug(satisfy2)
+							debug(satisfy2)*/
 							retNode = en;
 						}
 					}
