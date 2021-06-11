@@ -5472,368 +5472,7 @@ namespace vrptwNew {
 			return true;
 		}
 
-		bool patternAdjustment(int node = -1, int Irand = -1) {
-
-			int I1000 = myRand.pick(cfg.Irand);
-			if (Irand > 0) {
-				I1000 = Irand;
-			}
-
-			LL iter = 0;
-
-			Timer t1(1);
-
-			vector<int> kindSet = { 0,1,6,7,/*8,9,10,2,3,4,5*/ };
-			int N = 60;
-			int m = 10;
-
-			auto getDelt0MoveRandomly = [&]() {
-
-				TwoNodeMove ret;
-
-				while (!t1.isTimeOut()) {
-
-					int v = myRand.pick(input.custCnt) + 1;
-
-					if (customers[v].routeID == -1) {
-						continue;
-					}
-
-					m = max(1, m);
-					myRandX.getMN(N, m);
-					vector<int>& ve = myRandX.mpLLArr[N];
-					for (int i = 0; i < m; ++i) {
-						int wpos = ve[i];
-
-						int w = input.allCloseOf[v][wpos];
-						if (customers[w].routeID == -1
-							//|| customers[w].routeID == customers[v].routeID
-							) {
-							continue;
-						}
-
-
-						for (int kind : kindSet) {
-
-							DeltPen d;
-							if (kind == 6 || kind == 7) {
-								d = estimatevw(kind, v, w, 1);
-							}
-							else {
-								d = estimatevw(kind, v, w);
-							}
-#if CHECKING
-							if (d.deltPc + d.deltPtw < 0) {
-								debug(v)
-									debug(w)
-									debug(kind)
-									debug(penalty)
-									debug(Ptw)
-									debug(PtwNoWei)
-									debug(Pc)
-									debug(d.deltPc + d.deltPtw)
-									debug(d.deltPc + d.deltPtw)
-							}
-#endif // CHECKING
-
-#ifdef ATTRIBUTETABU
-
-							if (d.deltPc + d.deltPtw == 0) {
-								TwoNodeMove m(v, w, kind, d);
-								ret = m;
-								if (squIter > getYearOfMove(m)) {
-									return m;
-								}
-							}
-#else
-
-#endif // ATTRBUTETABU
-
-						}
-					}
-				}
-				//debug(11111)
-				return ret;
-			};
-
-			auto getMovesFromEjeRoute = [&]() {
-
-				TwoNodeMove ret;
-
-				if (ejeNodesAfterSqueeze.size() > 1) {
-					for (int i = ejeNodesAfterSqueeze.size() - 1; i > 1; i--) {
-						int index = myRand.pick(i);
-						swap(ejeNodesAfterSqueeze[i], ejeNodesAfterSqueeze[index]);
-					}
-				}
-
-				for (eOneRNode& e : ejeNodesAfterSqueeze) {
-					Route& r = rts.getRouteByRid(e.rId);
-					vector<int> cus = rPutCusInve(r);
-					ShuffleCards sc;
-					sc.makeItDisorder(cus);
-
-					for (int v : cus) {
-
-						if (customers[v].routeID == -1) {
-							continue;
-						}
-
-						m = max(1, m);
-						myRandX.getMN(N, m);
-						vector<int>& ve = myRandX.mpLLArr[N];
-						for (int i = 0; i < m; ++i) {
-							int wpos = ve[i];
-
-							int w = input.allCloseOf[v][wpos];
-							if (customers[w].routeID == -1
-								//|| customers[w].routeID == customers[v].routeID
-								) {
-								continue;
-							}
-
-							for (int kind : kindSet) {
-
-								DeltPen d = estimatevw(kind, v, w);
-								if (kind == 6 || kind == 7) {
-									d = estimatevw(kind, v, w, 1);
-								}
-								else {
-									d = estimatevw(kind, v, w);
-								}
-
-#if CHECKING
-								if (d.deltPc + d.deltPtw < 0) {
-									debug(v)
-										debug(w)
-										debug(d.deltPc + d.deltPtw)
-								}
-#endif // CHECKING
-
-								if (d.deltPc + d.deltPtw == 0) {
-									TwoNodeMove m(v, w, kind, d);
-									return m;
-								}
-							}
-						}
-					}
-				}
-				return TwoNodeMove(0, 0, 0, DeltPen());
-			};
-
-			auto makeBigBiger = [&]() {
-
-				vector<int> relRts;
-				vector<int> notRelRts;
-
-				for (int i = 0; i < 10; ++i) {
-					int v = input.allCloseOf[node][i];
-					if (customers[v].routeID >= 0) {
-
-						int cnt = count(relRts.begin(), relRts.end(), customers[v].routeID);
-						if (cnt == 0) {
-							relRts.push_back(customers[v].routeID);
-						}
-					}
-				}
-
-				for (int i = 0; i < rts.cnt; ++i) {
-					if (count(relRts.begin(), relRts.end(), rts[i].routeID) == 0) {
-						notRelRts.push_back(rts[i].routeID);
-					}
-				}
-
-				/*debug(relRts.size())
-				debug(notRelRts.size())
-				debug(relRts.size() + notRelRts.size() == rts.cnt)*/
-
-				vector<int> kindSet = { 0,1,2,3 };
-				ShuffleCards sc;
-
-				sc.makeItDisorder(relRts);
-				for (int id : relRts) {
-
-					Route& r = rts.getRouteByRid(id);
-					vector<int> rve = rPutCusInve(r);
-
-					sc.makeItDisorder(rve);
-
-					for (int v = rve[myRand.pick(rve.size())]; v != -1; v = customers[v].next) {
-
-						m = max(1, m);
-						myRandX.getMN(N, m);
-						vector<int>& ve = myRandX.mpLLArr[N];
-						for (int i = 0; i < m; ++i) {
-							int wpos = ve[i];
-
-							int w = input.allCloseOf[v][wpos];
-
-							if (customers[w].routeID == -1
-								|| count(relRts.begin(), relRts.end(), customers[w].routeID) > 0
-								) {
-								continue;
-							}
-
-							for (int kind : kindSet) {
-
-								DeltPen d = estimatevw(kind, v, w);
-
-								if (d.deltPc + d.deltPtw == 0) {
-									TwoNodeMove m(v, w, kind, d);
-									return m;
-								}
-							}
-						}
-
-					}
-				}
-				return TwoNodeMove(0, 0, 0, DeltPen());
-			};
-
-			ShuffleCards sc;
-
-			++squIter;
-
-			do {
-
-				TwoNodeMove bestM;
-				//if (myRand.pick(3) != 0) {
-				if (node == -1) {
-					bestM = getDelt0MoveRandomly();
-				}
-				else {
-					bestM = makeBigBiger();
-				}
-
-				while (bestM.deltPen.deltPc + bestM.deltPen.deltPtw > 0) {
-					bestM = getDelt0MoveRandomly();
-				}
-
-#if CHECKING
-
-				Route& rv = rts.getRouteByRid(customers[bestM.v].routeID);
-				Route& rw = rts.getRouteByRid(customers[bestM.w].routeID);
-				if (customers[bestM.v].routeID == -1 || customers[bestM.w].routeID == -1) {
-
-					debug(bestM.v)
-						debug(bestM.w)
-						debug("error")
-				}
-
-				vector<int> oldrv;
-				vector<int> oldrw;
-				int pt = rv.head;
-
-				while (pt != -1) {
-					oldrv.push_back(pt);
-					pt = customers[pt].next;
-				}
-
-				pt = rw.head;
-				while (pt != -1) {
-					oldrw.push_back(pt);
-					pt = customers[pt].next;
-				}
-				DisType oldpenalty = penalty;
-				DisType oldPtw = Ptw;
-				DisType oldPc = Pc;
-
-#endif // CHECKING
-
-				updateYearTable(bestM);
-				doMoves(bestM);
-				++squIter;
-
-#if CHECKING
-
-				if (oldpenalty != penalty) {
-
-					debug(PtwConfRts.cnt)
-						debug(PcConfRts.cnt)
-						debug("patternAdjustment penalty update error!")
-						debug((rv.routeID == rw.routeID))
-
-						debug(oldPtw)
-						debug(bestM.deltPen.deltPtw)
-						debug(Ptw)
-
-						debug(oldPc)
-						debug(bestM.deltPen.deltPc)
-						debug(Pc)
-
-						debug(bestM.v)
-						debug(bestM.w)
-						debug(bestM.kind)
-						for (auto i : oldrv) {
-							cout << i << " ";
-						}
-					cout << endl;
-					for (auto i : oldrw) {
-						cout << i << " ";
-					}
-					cout << endl;
-					rNextDisp(rv);
-					rNextDisp(rw);
-					debug(iter)
-						debug("oldpenalty != penalty")
-						debug("error oldpenalty != penalty")
-				}
-
-				if (rw.rCustCnt == 0 || rv.rCustCnt == 0) {
-
-					debug("one route empty!")
-						debug(bestM.v)
-						debug(bestM.w)
-						debug(bestM.kind)
-						debug(oldpenalty)
-						//debug(bestM.deltPen)
-						rNextDisp(rv);
-					rNextDisp(rw);
-				}
-
-#endif // CHECKING
-
-			} while (++iter < I1000 && !t1.isTimeOut());
-			//debug(iter)
-			updatePen();
-			return true;
-		}
 		
-		bool ejectPatternAdjustment() {
-
-			Vec<eOneRNode> ens;
-			Vec<int> cus = rPutCusInve(EPr);
-			auto cmp = [&](const int& a,const int& b) {
-				return P[a] > P[b];
-			};
-			sort(cus.begin(), cus.end(), cmp);
-			
-			int v = cus[0];
-			map<int, Vec<int>>mp;
-			for (int wpos = 0;wpos <= 10;++ wpos) {
-				//int wpos = myRand.pick(10);
-				int w = input.allCloseOf[v][wpos];
-				if (customers[w].routeID != -1 && P[w] >= P[v]) {
-					mp[customers[w].routeID].push_back(w);
-					/*debug(wpos)
-					debug(w)
-					debug(v)*/
-					//break;
-				}
-			}
-			for (auto it: mp) {
-				eOneRNode en(it.first);
-				for (int c : it.second) {
-					en.ejeVe.push_back(c);
-				}
-				ens.push_back(en);
-			}
-			doEject(ens);
-			patternAdjustment(-1,input.custCnt*2);
-			
-			return true;
-		}
-
 		vector<int> getPtwNodes(Route& r, int ptwKind = 0) {
 
 			vector<int> ptwNodes;
@@ -7866,6 +7505,372 @@ namespace vrptwNew {
 			return false;
 		}
 
+		bool patternAdjustment(int node = -1, int Irand = -1) {
+
+			int I1000 = myRand.pick(cfg.Irand);
+			if (Irand > 0) {
+				I1000 = Irand;
+			}
+
+			LL iter = 0;
+
+			Timer t1(1);
+
+			vector<int> kindSet = { 0,1,6,7,/*8,9,10,2,3,4,5*/ };
+			int N = 60;
+			int m = 10;
+
+			auto getDelt0MoveRandomly = [&]() {
+
+				TwoNodeMove ret;
+
+				while (!t1.isTimeOut()) {
+
+					int v = myRand.pick(input.custCnt) + 1;
+
+					if (customers[v].routeID == -1) {
+						continue;
+					}
+
+					m = max(1, m);
+					myRandX.getMN(N, m);
+					vector<int>& ve = myRandX.mpLLArr[N];
+					for (int i = 0; i < m; ++i) {
+						int wpos = ve[i];
+
+						int w = input.allCloseOf[v][wpos];
+						if (customers[w].routeID == -1
+							//|| customers[w].routeID == customers[v].routeID
+							) {
+							continue;
+						}
+
+
+						for (int kind : kindSet) {
+
+							DeltPen d;
+							if (kind == 6 || kind == 7) {
+								d = estimatevw(kind, v, w, 1);
+							}
+							else {
+								d = estimatevw(kind, v, w);
+							}
+							#if CHECKING
+							if (d.deltPc + d.deltPtw < 0) {
+								debug(v)
+									debug(w)
+									debug(kind)
+									debug(penalty)
+									debug(Ptw)
+									debug(PtwNoWei)
+									debug(Pc)
+									debug(d.deltPc + d.deltPtw)
+									debug(d.deltPc + d.deltPtw)
+							}
+							#endif // CHECKING
+
+							#ifdef ATTRIBUTETABU
+
+							if (d.deltPc + d.deltPtw == 0) {
+								TwoNodeMove m(v, w, kind, d);
+								ret = m;
+								if (squIter > getYearOfMove(m)) {
+									return m;
+								}
+							}
+							#else
+
+							#endif // ATTRBUTETABU
+
+						}
+					}
+				}
+				//debug(11111)
+				return ret;
+			};
+
+			auto getMovesFromEjeRoute = [&]() {
+
+				TwoNodeMove ret;
+
+				if (ejeNodesAfterSqueeze.size() > 1) {
+					for (int i = ejeNodesAfterSqueeze.size() - 1; i > 1; i--) {
+						int index = myRand.pick(i);
+						swap(ejeNodesAfterSqueeze[i], ejeNodesAfterSqueeze[index]);
+					}
+				}
+
+				for (eOneRNode& e : ejeNodesAfterSqueeze) {
+					Route& r = rts.getRouteByRid(e.rId);
+					vector<int> cus = rPutCusInve(r);
+					ShuffleCards sc;
+					sc.makeItDisorder(cus);
+
+					for (int v : cus) {
+
+						if (customers[v].routeID == -1) {
+							continue;
+						}
+
+						m = max(1, m);
+						myRandX.getMN(N, m);
+						vector<int>& ve = myRandX.mpLLArr[N];
+						for (int i = 0; i < m; ++i) {
+							int wpos = ve[i];
+
+							int w = input.allCloseOf[v][wpos];
+							if (customers[w].routeID == -1
+								//|| customers[w].routeID == customers[v].routeID
+								) {
+								continue;
+							}
+
+							for (int kind : kindSet) {
+
+								DeltPen d = estimatevw(kind, v, w);
+								if (kind == 6 || kind == 7) {
+									d = estimatevw(kind, v, w, 1);
+								}
+								else {
+									d = estimatevw(kind, v, w);
+								}
+
+								#if CHECKING
+								if (d.deltPc + d.deltPtw < 0) {
+									debug(v)
+										debug(w)
+										debug(d.deltPc + d.deltPtw)
+								}
+								#endif // CHECKING
+
+								if (d.deltPc + d.deltPtw == 0) {
+									TwoNodeMove m(v, w, kind, d);
+									return m;
+								}
+							}
+						}
+					}
+				}
+				return TwoNodeMove(0, 0, 0, DeltPen());
+			};
+
+			auto makeBigBiger = [&]() {
+
+				vector<int> relRts;
+				vector<int> notRelRts;
+
+				for (int i = 0; i < 10; ++i) {
+					int v = input.allCloseOf[node][i];
+					if (customers[v].routeID >= 0) {
+
+						int cnt = count(relRts.begin(), relRts.end(), customers[v].routeID);
+						if (cnt == 0) {
+							relRts.push_back(customers[v].routeID);
+						}
+					}
+				}
+
+				for (int i = 0; i < rts.cnt; ++i) {
+					if (count(relRts.begin(), relRts.end(), rts[i].routeID) == 0) {
+						notRelRts.push_back(rts[i].routeID);
+					}
+				}
+
+				/*debug(relRts.size())
+				debug(notRelRts.size())
+				debug(relRts.size() + notRelRts.size() == rts.cnt)*/
+
+				vector<int> kindSet = { 0,1,2,3 };
+				ShuffleCards sc;
+
+				sc.makeItDisorder(relRts);
+				for (int id : relRts) {
+
+					Route& r = rts.getRouteByRid(id);
+					vector<int> rve = rPutCusInve(r);
+
+					sc.makeItDisorder(rve);
+
+					for (int v = rve[myRand.pick(rve.size())]; v != -1; v = customers[v].next) {
+
+						m = max(1, m);
+						myRandX.getMN(N, m);
+						vector<int>& ve = myRandX.mpLLArr[N];
+						for (int i = 0; i < m; ++i) {
+							int wpos = ve[i];
+
+							int w = input.allCloseOf[v][wpos];
+
+							if (customers[w].routeID == -1
+								|| count(relRts.begin(), relRts.end(), customers[w].routeID) > 0
+								) {
+								continue;
+							}
+
+							for (int kind : kindSet) {
+
+								DeltPen d = estimatevw(kind, v, w);
+
+								if (d.deltPc + d.deltPtw == 0) {
+									TwoNodeMove m(v, w, kind, d);
+									return m;
+								}
+							}
+						}
+
+					}
+				}
+				return TwoNodeMove(0, 0, 0, DeltPen());
+			};
+
+			ShuffleCards sc;
+
+			++squIter;
+
+			do {
+
+				TwoNodeMove bestM;
+				//if (myRand.pick(3) != 0) {
+				if (node == -1) {
+					bestM = getDelt0MoveRandomly();
+				}
+				else {
+					bestM = makeBigBiger();
+				}
+
+				while (bestM.deltPen.deltPc + bestM.deltPen.deltPtw > 0) {
+					bestM = getDelt0MoveRandomly();
+				}
+
+				#if CHECKING
+
+				Route& rv = rts.getRouteByRid(customers[bestM.v].routeID);
+				Route& rw = rts.getRouteByRid(customers[bestM.w].routeID);
+				if (customers[bestM.v].routeID == -1 || customers[bestM.w].routeID == -1) {
+
+					debug(bestM.v)
+						debug(bestM.w)
+						debug("error")
+				}
+
+				vector<int> oldrv;
+				vector<int> oldrw;
+				int pt = rv.head;
+
+				while (pt != -1) {
+					oldrv.push_back(pt);
+					pt = customers[pt].next;
+				}
+
+				pt = rw.head;
+				while (pt != -1) {
+					oldrw.push_back(pt);
+					pt = customers[pt].next;
+				}
+				DisType oldpenalty = penalty;
+				DisType oldPtw = Ptw;
+				DisType oldPc = Pc;
+
+				#endif // CHECKING
+
+				updateYearTable(bestM);
+				doMoves(bestM);
+				++squIter;
+
+				#if CHECKING
+
+				if (oldpenalty != penalty) {
+
+					debug(PtwConfRts.cnt)
+						debug(PcConfRts.cnt)
+						debug("patternAdjustment penalty update error!")
+						debug((rv.routeID == rw.routeID))
+
+						debug(oldPtw)
+						debug(bestM.deltPen.deltPtw)
+						debug(Ptw)
+
+						debug(oldPc)
+						debug(bestM.deltPen.deltPc)
+						debug(Pc)
+
+						debug(bestM.v)
+						debug(bestM.w)
+						debug(bestM.kind)
+						for (auto i : oldrv) {
+							cout << i << " ";
+						}
+					cout << endl;
+					for (auto i : oldrw) {
+						cout << i << " ";
+					}
+					cout << endl;
+					rNextDisp(rv);
+					rNextDisp(rw);
+					debug(iter)
+						debug("oldpenalty != penalty")
+						debug("error oldpenalty != penalty")
+					}
+
+				if (rw.rCustCnt == 0 || rv.rCustCnt == 0) {
+
+					debug("one route empty!")
+						debug(bestM.v)
+						debug(bestM.w)
+						debug(bestM.kind)
+						debug(oldpenalty)
+						//debug(bestM.deltPen)
+						rNextDisp(rv);
+					rNextDisp(rw);
+				}
+
+				#endif // CHECKING
+
+				} while (++iter < I1000 && !t1.isTimeOut());
+				//debug(iter)
+				updatePen();
+				return true;
+				}
+
+		bool ejectPatternAdjustment() {
+
+			Vec<eOneRNode> ens;
+			Vec<int> cus = rPutCusInve(EPr);
+			auto cmp = [&](const int& a, const int& b) {
+				return P[a] > P[b];
+			};
+			sort(cus.begin(), cus.end(), cmp);
+
+			int v = cus[0];
+			map<int, Vec<int>>mp;
+			for (int wpos = 0; wpos <= 10; ++wpos) {
+				//int wpos = myRand.pick(10);
+				int w = input.allCloseOf[v][wpos];
+				if (customers[w].routeID != -1 && P[w] >= P[v]) {
+					mp[customers[w].routeID].push_back(w);
+					/*debug(wpos)
+					debug(w)
+					debug(v)*/
+					//break;
+				}
+			}
+			for (auto it : mp) {
+				eOneRNode en(it.first);
+				Route& r = rts.getRouteByRid(it.first);
+
+				for (int c : it.second) {
+					if (en.ejeVe.size() + 1 < r.rCustCnt) {
+						en.ejeVe.push_back(c);
+					}
+				}
+				ens.push_back(en);
+			}
+			doEject(ens);
+			patternAdjustment(-1, input.custCnt * 2);
+
+			return true;
+		}
+
 		vector<eOneRNode> ejectFromPatialSol() {
 
 			vector<eOneRNode>ret;
@@ -7888,7 +7893,7 @@ namespace vrptwNew {
 				int tKmax = cfg.minKmax;
 				//int tKmax = 2;
 
-				while (retNode.ejeVe.size()==0 && tKmax <= cfg.maxKmax) {
+				while (tKmax <= cfg.maxKmax) {
 					auto en = ejectOneRouteOnlyP(r, 2, tKmax);
 
 					if (retNode.ejeVe.size() == 0) {
@@ -7896,19 +7901,19 @@ namespace vrptwNew {
 					}
 					else {
 						//double rateMoreEj = ((double)en.ejeVe.size() / retNode.ejeVe.size());
-						//if (en.Psum < retNode.Psum) {
-						//	//bool satisfy1 = en.getMaxEle() < retNode.getMaxEle();
-						//	bool satisfy1 = false;
-						//	//bool satisfy1 = en.Psum * retNode.ejeVe.size() < retNode.Psum * en.ejeVe.size();
-						//	bool satisfy2 = en.ejeVe.size() * en.Psum < retNode.Psum* retNode.ejeVe.size();
-						//	//bool satisfy1 = en.Psum * 1.5 < retNode.Psum;
-						//	if (satisfy1 || satisfy2) {
-						//		/*deOut(en.Psum)debug(en.ejeVe.size())
-						//		deOut(retNode.Psum)debug(retNode.ejeVe.size())*/
-						//		//debug("satisfy12")
-						//		retNode = en;
-						//	}
-						//}
+						if (en.Psum < retNode.Psum) {
+							//bool satisfy1 = en.getMaxEle() < retNode.getMaxEle();
+							//bool satisfy1 = false;
+							//bool satisfy1 = en.Psum * retNode.ejeVe.size() < retNode.Psum * en.ejeVe.size();
+							bool satisfy1 = en.ejeVe.size() * en.Psum < retNode.Psum* retNode.ejeVe.size();
+							//bool satisfy1 = en.Psum * 1.5 < retNode.Psum;
+							if (satisfy1) {
+								/*deOut(en.Psum)debug(en.ejeVe.size())
+								deOut(retNode.Psum)debug(retNode.ejeVe.size())*/
+								//debug("satisfy12")
+								retNode = en;
+							}
+						}
 					}
 					++tKmax;
 				}
@@ -7927,9 +7932,9 @@ namespace vrptwNew {
 						//satisfy2 = satisfy2 && en.ejeVe.size() > cfg.maxKmax;
 						if (satisfy2) {
 
-							/*deOut(en.Psum)debug(en.ejeVe.size())
+							deOut(en.Psum)debug(en.ejeVe.size())
 							deOut(retNode.Psum)debug(retNode.ejeVe.size())
-							debug(satisfy2)*/
+							debug(satisfy2)
 							retNode = en;
 						}
 					}

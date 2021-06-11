@@ -507,10 +507,10 @@ int main(int argc, char* argv[])
 	//std::thread t4(run, argc, argv); // t4 is now running f2(). t3 is no longer a thread
 	//t2.join();
 	//t4.join();
-
 	//solverByEAX(argc, argv);
 	//makeCases(argc, argv);
-	for(;;)
+
+	//for(;;)
 	run(argc, argv);
 	
 	return 0;
