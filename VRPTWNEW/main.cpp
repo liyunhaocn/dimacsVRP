@@ -20,7 +20,69 @@ namespace vrpSln = vrptwNew;
 //namespace vrpSln = lyh;
 using namespace std;
 
+#include<cstdlib>
+#include<cstring>
+#include<cmath>
+#include<iostream>
+#include<algorithm>
+#include<queue>
+#include<vector>
+#include<map>
 
+#define For(i, a, b) for(int i = (a); i <= (int)(b); i++)
+
+struct GetBound {
+
+	int INF = 0x3f3f3f3f;
+	vector<vector<bool>> G;
+	int n, S;
+	vector<vector<int>> all, some, none;
+	GetBound() {
+
+		G = vector<vector<bool>>(1001,vector<bool>(1001));
+		all = vector<vector<int>>(1001,vector<int>(1001));
+		some = vector<vector<int>>(1001,vector<int>(1001));
+		none = vector<vector<int>>(1001,vector<int>(1001));
+	}
+
+	void dfs(int d, int an, int sn, int nn) {
+		if (!sn && !nn) S++;
+		//if (S > 1000) return;
+
+		int u = some[d][1];
+		For(i, 1, sn) {
+			int v = some[d][i];
+			if (G[u][v]) continue;
+			int tsn = 0, tnn = 0;
+
+			For(j, 1, an) all[d + 1][j] = all[d][j];
+			all[d + 1][an + 1] = v;
+
+			For(j, 1, sn)
+				if (G[v][some[d][j]]) some[d + 1][++tsn] = some[d][j];
+			For(j, 1, nn)
+				if (G[v][none[d][j]]) none[d + 1][++tnn] = none[d][j];
+
+			dfs(d + 1, an + 1, tsn, tnn);
+
+			some[d][i] = 0; none[d][++nn] = v;
+		}
+	}
+
+	int getMinRouteNum() {
+		//for()
+		For(i, 1, n) some[0][i] = i;
+
+		S = 0;
+		dfs(0, 0, n, 0);
+
+		if (S <= 1000) printf("%d\n", S);
+		else printf("Too many maximal sets of friends.\n");
+
+		return S;
+	}
+
+};
 bool run(int argc, char* argv[]) {
 
 	vrpSln::Environment env("C1_6_6");
@@ -90,6 +152,7 @@ bool run(int argc, char* argv[]) {
 	
 	return true;
 }
+
 
 bool solverByEAX(int argc, char* argv[]) {
 
@@ -500,6 +563,48 @@ bool makeCases(int argc, char* argv[]) {
 
 #endif // MAKECASE
 
+bool testGetbound(int argc, char* argv[]) {
+
+	vrpSln::Environment env("C1_6_6");
+
+	vrpSln::Configuration cfg;
+
+	vrpSln::Input input(env, cfg);
+	vrpSln::Solver solver(input, cfg, env);
+
+	int n = input.custCnt;
+
+	GetBound g;
+	g.n = n;
+
+	auto& G = g.G;
+
+	for (int i = 1; i < G.size(); ++i) {
+		for (int j = 1; j < G[i].size(); ++j) {
+			G[i][j] = 0;
+		}
+	}
+
+	vrpSln::Route r = solver.rCreateRoute(0);
+
+	for (int i = 1; i <= n; ++i) {
+		for (int j = i + 1; j <= n; ++j) {
+			
+			solver.rInsAtPosPre(r,r.tail,i);
+			solver.rInsAtPosPre(r,r.tail,j);
+			solver.rUpdateAvQfrom(r,r.head);
+			if (r.rPtw == 0) {
+				g.G[i][j] = g.G[j][i] = true;
+			}
+			solver.rRemoveAllCusInR(r);
+		}
+	}
+
+	debug(g.getMinRouteNum())
+
+	return true;
+}
+
 int main(int argc, char* argv[])
 {
 
@@ -509,14 +614,12 @@ int main(int argc, char* argv[])
 	//t4.join();
 	//solverByEAX(argc, argv);
 	//makeCases(argc, argv);
-
+	testGetbound(argc, argv);
+	return 0;
 	//for(;;)
-	run(argc, argv);
+	//run(argc, argv);
 	
 	return 0;
 }
-/*
 
-1, 22, 25, 16, 7888, 16, 16, 13, 16, 13, 28, 16, 16, 7882, 16, 13, 16, 16, 19, 16, 16, 13, 16, 16, 7885, 16, 25, 19, 16, 16, 16, 7876, 16, 16, 22, 16, 16, 22, 7888, 25, 16, 16, 16, 16, 16, 37, 13, 16, 16, 16, 16, 13, 16, 19, 16, 16, 16, 28, 16, 46, 43, 16, 16, 16, 16, 13, 16, 19, 16, 16, 13, 7894, 16, 31, 16, 28, 16, 19, 19, 16, 13, 16, 16, 16, 16, 16, 7855, 16, 16, 16, 16, 16, 19, 13, 16, 16, 16, 16, 16, 31, 19, 5464, 16, 16, 7891, 16, 16, 13, 16, 19, 16, 13, 16, 16, 16, 16, 13, 16, 31, 16, 7879, 16, 16, 16, 16, 16, 16, 31, 7882, 16, 16, 13, 25, 16, 16, 16, 19, 13, 16, 22, 16, 16, 16, 16, 19, 61, 19, 13, 19, 16, 7891, 25, 37, 16, 16, 13, 16, 17, 13, 22, 16, 16, 7888, 16, 16, 19, 16, 7879, 16, 13, 31, 16, 16, 16, 16, 17, 7885, 34, 16, 16, 16, 16, 16, 16, 7876, 16, 16, 16, 13, 58, 16, 16, 22, 16, 16, 40, 46, 16, 16, 16, 16, 25, 16, 16, 16, 37, 16, 7891, 16, 16, 28, 16, 22, 16, 16, 13, 16, 55, 16, 16, 13, 16, 16, 16, 16, 16, 7843, 16, 19, 28, 28, 16, 16, 7885, 35, 13, 16, 19, 16, 7885, 16, 13, 16, 16, 16, 34, 16, 16, 16, 28, 16, 16, 19, 16, 16, 16, 7891, 16, 16, 13, 22, 7883, 13, 5233, 7885, 16, 7885, 19, 16, 16, 13, 16, 19, 19, 16, 16, 16, 13, 22, 19, 16, 16, 7879, 16, 19, 19, 16, 22, 16, 22, 16, 16, 13, 14, 16, 16, 16, 19, 31, 16, 16, 25, 7891, 22, 16, 16, 16, 16, 16, 16, 16, 16, 19, 13, 16, 7885, 16, 16, 22, 16, 19, 16, 7879, 16, 16, 46, 22, 16, 16, 7888, 16, 16, 16, 19, 16, 13, 7888, 16, 7870, 16, 19, 16, 16, 16, 16, 16, 16, 28, 16, 16, 19, 16, 16, 16, 7888, 16, 7870, 16, 19, 13, 16, 19, 19, 16, 16, 16, 16, 7870, 16, 17, 16, 16, 16, 16, 16, 16, 19, 7867, 22, 16, 16, 16, 19, 16, 31, 16, 25, 16, 16, 16, 13, 16, 22, 7897, 16, 7882, 16, 16, 7888, 19, 16, 16, 13, 16, 14, 16, 16, 16, 16, 16, 37, 7849, 16, 7891, 22, 16, 22, 19, 28, 25, 16, 56, 16, 7888, 34, 16, 16, 16, 16, 37, 16, 16, 19, 16, 16, 16, 16, 16, 16, 61, 16, 19, 16, 22, 16, 31, 16, 16, 16, 22, 16, 7888, 16, 13, 19, 7882, 16, 7879, 16, 16, 16, 16, 16, 16, 19, 16, 16, 16, 16, 19, 16, 16, 19, 16, 16, 16, 16, 37, 16, 16, 7858, 7888, 13, 16, 16, 16, 16, 16, 16, 16, 16, 16, 19, 13, 16, 16, 16, 16, 19, 16, 16, 16, 7885, 16, 7888, 16, 16, 16, 7888, 22, 16, 16, 16, 16, 7885, 37, 19, 16, 16, 16, 16, 16, 16, 13, 16, 16, 22, 16, 22, 40, 16, 16, 16, 19, 28, 34, 16, 40, 16, 49, 25, 16, 19, 16, 13, 16, 28, 16, 16, 16, 7882, 40, 16, 13, 16, 19, 7888, 16, 34, 16, 16, 16, 16, 7852, 23, 19, 16, 16, 16, 19, 7879, 16, 16, 16, 7855, 16, 16, 19, 16, 7876, 16, 7893, 19, 16, 7870, 16, 22, 16, 43, 46, 16, 16, 16, 16, 16, 31, 19, 16, 7885, 16, 16,
 
-*/
