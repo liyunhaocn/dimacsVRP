@@ -44,5 +44,8 @@
     <ClInclude Include="..\VRPTWNEW\EAX.h">
       <Filter>VRPTWNEW</Filter>
     </ClInclude>
+    <ClInclude Include="..\VRPTWNEW\MakeCase.h">
+      <Filter>VRPTWNEW</Filter>
+    </ClInclude>
   </ItemGroup>
 </Project>

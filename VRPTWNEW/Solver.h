@@ -1356,12 +1356,12 @@ namespace vrptwNew {
 
 			auto updatePool = [&](Position& pos) {
 				
-				if (qu.size() < 32) {
+				if (pos.pen <= qu.top().pen) {
 					qu.push(pos);
-				}
-				else {
-					if (pos.pen <= qu.top().pen) {
-						qu.push(pos);
+					if (qu.size() < 128) {
+						;
+					}
+					else {
 						qu.pop();
 					}
 				}
@@ -1374,29 +1374,30 @@ namespace vrptwNew {
 				int v = rt.head;
 				int vj = customers[v].next;
 
+				DisType oldrPc = rts[i].rPc;
+				DisType rPc = max((DisType)0, rt.rQ + input.datas[w].DEMAND - input.Q);
+				rPc = rPc - oldrPc;
+
 				while (v != -1 && vj != -1) {
 
-					DisType oldPtw = rts[i].rPtw;
-					DisType oldPc = rts[i].rPc;
-
-					DisType Ptw = customers[v].TW_X;
-					Ptw += customers[vj].TWX_;
+					DisType oldrPtw = rts[i].rPtw;
+					
+					DisType rPtw = customers[v].TW_X;
+					rPtw += customers[vj].TWX_;
 
 					DisType awp = customers[v].av + input.datas[v].SERVICETIME + input.disOf[reCusNo(v)][reCusNo(w)];
-					Ptw += max((DisType)0, awp - input.datas[w].DUEDATE);
+					rPtw += max((DisType)0, awp - input.datas[w].DUEDATE);
 					DisType aw =
 						awp <= input.datas[w].DUEDATE ? max(input.datas[w].READYTIME, awp) : input.datas[w].DUEDATE;
 
 					DisType avjp = aw + input.datas[w].SERVICETIME + input.disOf[reCusNo(w)][reCusNo(vj)];
-					Ptw += max((DisType)0, avjp - input.datas[vj].DUEDATE);
+					rPtw += max((DisType)0, avjp - input.datas[vj].DUEDATE);
 					DisType avj =
 						avjp <= input.datas[vj].DUEDATE ? max(input.datas[vj].READYTIME, avjp) : input.datas[vj].DUEDATE;
-					Ptw += max((DisType)0, avj - customers[vj].zv);
+					rPtw += max((DisType)0, avj - customers[vj].zv);
 
-					DisType Pc = max((DisType)0, rt.rQ + input.datas[w].DEMAND - input.Q);
-					Ptw = Ptw - oldPtw;
-					Pc = Pc - oldPc;
-
+					rPtw = rPtw - oldrPtw;
+					
 					DisType cost = input.disOf[reCusNo(w)][reCusNo(v)] + input.disOf[reCusNo(w)][reCusNo(vj)];
 					
 					int vre = v > input.custCnt ? 0 : v;
@@ -1404,7 +1405,7 @@ namespace vrptwNew {
 
 					LL year = yearTable[vre][w] + yearTable[w][vjre];
 					
-					Position pos(i,v, Ptw + Pc, cost,year);
+					Position pos(i,v, rPtw + rPc, cost,year);
 					updatePool(pos);
 
 					v = vj;
@@ -1416,6 +1417,14 @@ namespace vrptwNew {
 			int p1cnt = 1;
 			int p2cnt = 1;
 			int p3cnt = 1;
+			auto q = qu;
+
+			/*while (!q.empty()) {
+				Position pos = q.top();
+				q.pop();
+				deOut(pos.pen)
+			}
+			cout << endl;*/
 
 			while (!qu.empty()){
 
@@ -5472,7 +5481,6 @@ namespace vrptwNew {
 			return true;
 		}
 
-		
 		vector<int> getPtwNodes(Route& r, int ptwKind = 0) {
 
 			vector<int> ptwNodes;
@@ -6345,33 +6353,32 @@ namespace vrptwNew {
 					//_3optEffectively(v);
 
 					int w = v;
-					//int maxL = max(3, r.rCustCnt / 5);
-					int maxL = 5;
+					int maxL = max(5, r.rCustCnt / 5);
+					//int maxL = 5;
 					//debug(r.rCustCnt)
 
-					if (myRand.pick(3) < 2 ) {
-						continue;
-					}
+					if (myRand.pick(3) == 0 ) {
+						for (int i = 1; i <= maxL; ++i) {
+							w = customers[w].next;
+							if (w > input.custCnt) {
+								break;
+							}
 
-					for (int i = 1; i <= maxL; ++i) {
-						w = customers[w].next;
-						if (w > input.custCnt) {
-							break;
-						}
+							TwoNodeMove m8(v, w, 8, exchangevw(v, w, 1));
+							updateBestM(m8, bestM);
 
-						TwoNodeMove m8(v, w, 8, exchangevw(v, w, 1));
-						updateBestM(m8, bestM);
+							if (i >= 2) {
+								TwoNodeMove m3(v, w, 3, outrelocatevTowwj(v, w, 1));
+								updateBestM(m3, bestM);
+							}
 
-						if (i >= 2) {
-							TwoNodeMove m3(v, w, 3, outrelocatevTowwj(v, w, 1));
-							updateBestM(m3, bestM);
-						}
-
-						if (i >= 3) {
-							TwoNodeMove m15(v, w, 15, reversevw(v, w));
-							updateBestM(m15, bestM);
+							if (i >= 3) {
+								TwoNodeMove m15(v, w, 15, reversevw(v, w));
+								updateBestM(m15, bestM);
+							}
 						}
 					}
+
 				}
 			}
 			else {
@@ -7322,7 +7329,7 @@ namespace vrptwNew {
 			squIter += cfg.yearTabuLen + cfg.yearTabuRand;
 			LL maxOfPval = -1;
 
-			//#ifdef SAVE_LOCAL_BEST_SOL
+			#ifdef SAVE_LOCAL_BEST_SOL
 			bestSol solClone(customers, rts, EPr, Pc, Ptw, PtwNoWei, penalty);
 			bestSol gBestSol(customers, rts, EPr, Pc, Ptw, PtwNoWei, penalty);
 			auto cloneP = P;
@@ -7353,7 +7360,7 @@ namespace vrptwNew {
 
 			int curUse = 0;// 0 global 1 pool
 
-			//#endif // SAVE_LOCAL_BEST_SOL
+			#endif // SAVE_LOCAL_BEST_SOL
 
 			while (!lyhTimer.isTimeOut()) {
 
@@ -7369,7 +7376,7 @@ namespace vrptwNew {
 					return true;
 				}
 
-				//#ifdef SAVE_LOCAL_BEST_SOL
+				#ifdef SAVE_LOCAL_BEST_SOL
 
 				auto isUp = updateGBestSolPool();
 				if (isUp) {
@@ -7391,7 +7398,7 @@ namespace vrptwNew {
 						solClone = bestSol(customers, rts, EPr, Pc, Ptw, PtwNoWei, penalty);
 					}
 					
-					if (myRand.pick(3) < 2 ) {
+					if (myRand.pick(5) < 4 ) {
 						if (curUse == 1) {
 							P = cloneP;
 							setCurSolBy(solClone);
@@ -7402,14 +7409,16 @@ namespace vrptwNew {
 					else {
 						if (curUse == 0) {
 							cloneP = P;
-							setCurSolBy(gBestSol);
 
+							debug("glob")
+							debug(EPsize())
+
+							setCurSolBy(gBestSol);
 							ejectPatternAdjustment();
-							
-							//debug("glob")
+							debug(EPsize())
 							//ejectPatternAdjustment();
 							//patternAdjustment(-1, 2*input.custCnt);
-							//debug(EPsize())
+							
 							curUse = 1;
 						}
 					}
@@ -7419,7 +7428,7 @@ namespace vrptwNew {
 
 					continue;
 				}
-				//#endif // SAVE_LOCAL_BEST_SOL
+				#endif // SAVE_LOCAL_BEST_SOL
 
 				vector<int> EPrVe = rPutCusInve(EPr);
 				int top = EPrVe[myRand.pick(EPrVe.size())];
@@ -7841,19 +7850,33 @@ namespace vrptwNew {
 			};
 			sort(cus.begin(), cus.end(), cmp);
 
-			int v = cus[0];
+			
 			map<int, Vec<int>>mp;
-			for (int wpos = 0; wpos <= 10; ++wpos) {
-				//int wpos = myRand.pick(10);
-				int w = input.allCloseOf[v][wpos];
-				if (customers[w].routeID != -1 && P[w] >= P[v]) {
-					mp[customers[w].routeID].push_back(w);
-					/*debug(wpos)
-					debug(w)
-					debug(v)*/
-					//break;
+
+			unordered_set<int> set1;
+			for (int v : cus) {
+
+				for (int wpos = 0; wpos <= 10; ++wpos) {
+					//int wpos = myRand.pick(10);
+					int w = input.allCloseOf[v][wpos];
+					if (customers[w].routeID != -1 && P[w] >= P[v]) {
+
+						if (set1.count(w) == 0) {
+							mp[customers[w].routeID].push_back(w);
+							set1.insert(w);
+						}
+						else {
+							debug("a")
+						}
+
+						/*debug(wpos)
+						debug(w)
+						debug(v)*/
+						//break;
+					}
 				}
 			}
+
 			for (auto it : mp) {
 				eOneRNode en(it.first);
 				Route& r = rts.getRouteByRid(it.first);
@@ -7866,7 +7889,7 @@ namespace vrptwNew {
 				ens.push_back(en);
 			}
 			doEject(ens);
-			patternAdjustment(-1, input.custCnt * 2);
+			patternAdjustment();
 
 			return true;
 		}
@@ -7891,7 +7914,8 @@ namespace vrptwNew {
 
 				eOneRNode retNode;
 				int tKmax = cfg.minKmax;
-				//int tKmax = 2;
+				tKmax = cfg.maxKmax;
+				//tKmax = 1;
 
 				while (tKmax <= cfg.maxKmax) {
 					auto en = ejectOneRouteOnlyP(r, 2, tKmax);
@@ -7905,11 +7929,11 @@ namespace vrptwNew {
 							//bool satisfy1 = en.getMaxEle() < retNode.getMaxEle();
 							//bool satisfy1 = false;
 							//bool satisfy1 = en.Psum * retNode.ejeVe.size() < retNode.Psum * en.ejeVe.size();
-							bool satisfy1 = en.ejeVe.size() * en.Psum < retNode.Psum* retNode.ejeVe.size();
+							bool satisfy1 = en.ejeVe.size() * en.Psum < retNode.Psum* retNode.ejeVe.size()*1.5;
 							//bool satisfy1 = en.Psum * 1.5 < retNode.Psum;
 							if (satisfy1) {
-								/*deOut(en.Psum)debug(en.ejeVe.size())
-								deOut(retNode.Psum)debug(retNode.ejeVe.size())*/
+								deOut(en.Psum)debug(en.ejeVe.size())
+								deOut(retNode.Psum)debug(retNode.ejeVe.size())
 								//debug("satisfy12")
 								retNode = en;
 							}
@@ -7927,9 +7951,8 @@ namespace vrptwNew {
 				else {
 
 					if (en.Psum < retNode.Psum) {
-
 						bool satisfy2 = en.ejeVe.size() * en.Psum < retNode.Psum* retNode.ejeVe.size();
-						//satisfy2 = satisfy2 && en.ejeVe.size() > cfg.maxKmax;
+						//bool satisfy2 = en.ejeVe.size() > cfg.maxKmax;
 						if (satisfy2) {
 
 							deOut(en.Psum)debug(en.ejeVe.size())
@@ -8040,7 +8063,6 @@ namespace vrptwNew {
 			DisType rQ = r.rQ;
 
 			auto updateEje = [&]() {
-				//outVe(etemp.ejeVe)
 				if (etemp.Psum < noTabuN.Psum) {
 					sameCnt = 1;
 					noTabuN = etemp;

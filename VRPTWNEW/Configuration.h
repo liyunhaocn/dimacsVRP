@@ -43,7 +43,7 @@ struct Configuration {
 	int Pwei1 = 2;
 
 	int minKmax = 2;
-	int maxKmax = 5;
+	int maxKmax = 2;
 
 	int Kmax = 5;
 
