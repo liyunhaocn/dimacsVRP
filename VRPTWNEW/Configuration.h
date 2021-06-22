@@ -43,7 +43,7 @@ struct Configuration {
 	int Pwei1 = 2;
 
 	int minKmax = 2;
-	int maxKmax = 2;
+	int maxKmax = 5;
 
 	int Kmax = 5;
 
@@ -51,8 +51,6 @@ struct Configuration {
 
 	LL yearTabuLen = 5;
 	LL yearTabuRand = 5;
-
-	int maxRouteSetNum = 50000;
 
 };
 

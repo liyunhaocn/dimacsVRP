@@ -34,6 +34,47 @@ namespace vrptwNew {
 
 #define reCusNo(x) (((x)<=(input.custCnt+1))?(x):(input.custCnt+1))
 
+	struct CircleSector
+	{
+		int start;
+		int end;
+
+		// Positive modulo 65536
+		static int positive_mod(int i) {
+			// 1) Using the formula positive_mod(n,x) = (n % x + x) % x
+			// 2) Moreover, remark that "n % 65536" should be automatically compiled in an optimized form as "n & 0xffff" for faster calculations
+			return (i % 65536 + 65536) % 65536;
+		}
+
+		// Initialize a circle sector from a single point
+		void initialize(int point) {
+			start = point;
+			end = point;
+		}
+
+		// Tests if a point is enclosed in the circle sector
+		bool isEnclosed(int point) {
+			return (positive_mod(point - start) <= positive_mod(end - start));
+		}
+
+		// Tests overlap of two circle sectors
+		static bool overlap(const CircleSector& sector1, const CircleSector& sector2) {
+			return ((positive_mod(sector2.start - sector1.start) <= positive_mod(sector1.end - sector1.start))
+				|| (positive_mod(sector1.start - sector2.start) <= positive_mod(sector2.end - sector2.start)));
+		}
+
+		// Extends the circle sector to include an additional point 
+		// Done in a "greedy" way, such that the resulting circle sector is the smallest
+		void extend(int point) {
+			if (!isEnclosed(point)) {
+				if (positive_mod(point - end) <= positive_mod(start - point))
+					end = point;
+				else
+					start = point;
+			}
+		}
+	};
+
 	struct Route {
 
 	public:
@@ -531,7 +572,6 @@ namespace vrptwNew {
 		int minEPcus = IntInf;
 
 		Route EPr;
-
 
 		struct DeltPen {
 
@@ -1358,7 +1398,7 @@ namespace vrptwNew {
 				
 				if (pos.pen <= qu.top().pen) {
 					qu.push(pos);
-					if (qu.size() < 128) {
+					if (qu.size() < 64) {
 						;
 					}
 					else {
@@ -6916,7 +6956,11 @@ namespace vrptwNew {
 					int sum = 0;
 					for (eOneRNode& en : ret) {
 						sum += en.Psum;
+						/*for (int c : en.ejeVe) {
+							sum = max(sum,P[c]);
+						}*/
 					}
+
 					if (sum < min1) {
 						bestCnt = 1;
 						min1 = sum;
@@ -7284,6 +7328,7 @@ namespace vrptwNew {
 
 				bestPool.push_back(sClone);
 				int index = getMinPsumSolIndex();
+				//debug(index)
 				customers = bestPool[index].customers;
 				rts = bestPool[index].rts;
 				PtwNoWei = bestPool[index].PtwNoWei;
@@ -7490,6 +7535,7 @@ namespace vrptwNew {
 					else {
 
 						auto& XSet = ejeNodesAfterSqueeze;
+
 						for (eOneRNode& en : XSet) {
 							for (int c : en.ejeVe) {
 								/*int cpre = customers[c].pre > input.custCnt ? 0 : customers[c].pre;
@@ -7498,6 +7544,7 @@ namespace vrptwNew {
 								yearTable[c][cnext] = squIter + cfg.yearTabuLen + myRand.pick(cfg.yearTabuRand);*/
 								P[c] += cfg.Pwei1;
 								maxOfPval = max(P[c], maxOfPval);
+								
 								//P[c] += max(log(P[c]), cfg.Pwei1);
 								//debug(max(log(P[c]), cfg.Pwei1))
 							}
@@ -7915,7 +7962,6 @@ namespace vrptwNew {
 				eOneRNode retNode;
 				int tKmax = cfg.minKmax;
 				tKmax = cfg.maxKmax;
-				//tKmax = 1;
 
 				while (tKmax <= cfg.maxKmax) {
 					auto en = ejectOneRouteOnlyP(r, 2, tKmax);
@@ -7929,7 +7975,7 @@ namespace vrptwNew {
 							//bool satisfy1 = en.getMaxEle() < retNode.getMaxEle();
 							//bool satisfy1 = false;
 							//bool satisfy1 = en.Psum * retNode.ejeVe.size() < retNode.Psum * en.ejeVe.size();
-							bool satisfy1 = en.ejeVe.size() * en.Psum < retNode.Psum* retNode.ejeVe.size()*1.5;
+							bool satisfy1 = en.ejeVe.size() * en.Psum < retNode.Psum* retNode.ejeVe.size();
 							//bool satisfy1 = en.Psum * 1.5 < retNode.Psum;
 							if (satisfy1) {
 								deOut(en.Psum)debug(en.ejeVe.size())
@@ -7941,7 +7987,8 @@ namespace vrptwNew {
 					}
 					++tKmax;
 				}
-				
+
+				//debug(retNode.ejeVe.size())
 				//eOneRNode retNode = ejectOneRouteOnlyP(r, 2, cfg.maxKmax);
 				auto en = ejectOneRouteMinPsumGreedy(r);
 
@@ -7951,8 +7998,9 @@ namespace vrptwNew {
 				else {
 
 					if (en.Psum < retNode.Psum) {
-						bool satisfy2 = en.ejeVe.size() * en.Psum < retNode.Psum* retNode.ejeVe.size();
-						//bool satisfy2 = en.ejeVe.size() > cfg.maxKmax;
+						//bool satisfy2 = en.ejeVe.size() * en.Psum < retNode.Psum* retNode.ejeVe.size();
+						bool satisfy2 = en.ejeVe.size() > cfg.maxKmax;
+						//bool satisfy2 = true;
 						if (satisfy2) {
 
 							deOut(en.Psum)debug(en.ejeVe.size())
@@ -7963,9 +8011,6 @@ namespace vrptwNew {
 					}
 
 				}
-
-
-				
 
 #if CHECKING
 
@@ -7985,7 +8030,6 @@ namespace vrptwNew {
 #endif // CHECKING
 
 				ret.push_back(retNode);
-				//ret.push_back(en);
 			}
 
 			return ret;
@@ -8063,16 +8107,28 @@ namespace vrptwNew {
 			DisType rQ = r.rQ;
 
 			auto updateEje = [&]() {
-				if (etemp.Psum < noTabuN.Psum) {
-					sameCnt = 1;
+				if (noTabuN.ejeVe.size() == 0) {
 					noTabuN = etemp;
 				}
-				else if (etemp.Psum == noTabuN.Psum) {
-					++sameCnt;
-					if (myRand.pick(sameCnt) == 0) {
-						noTabuN = etemp;
+				else {
+					if (etemp.Psum < noTabuN.Psum) {
+						if (etemp.ejeVe.size() * etemp.Psum < noTabuN.Psum * noTabuN.ejeVe.size()*1.4) {
+						//if (etemp.ejeVe.size() < noTabuN.ejeVe.size()) {
+							noTabuN = etemp;
+						}
 					}
 				}
+				
+				//else if (etemp.Psum == noTabuN.Psum) {
+				//	++sameCnt;
+				//	if (etemp.ejeVe.size() < noTabuN.ejeVe.size()) {
+				//		noTabuN = etemp;
+				//		debug(11)
+				//	}
+				//	/*if (myRand.pick(sameCnt) == 0) {
+				//		
+				//	}*/
+				//}
 			};
 
 			auto getAvpOf = [&](int v) {
@@ -8301,7 +8357,6 @@ namespace vrptwNew {
 			} while (!(k == 1 && ve[k] == N));
 
 			
-
 #if CHECKING
 
 			if (

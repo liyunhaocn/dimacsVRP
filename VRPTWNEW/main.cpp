@@ -115,8 +115,11 @@ bool run(int argc, char* argv[]) {
 	for (string a : e1) {
 	for (string b : e2) {
 	for (string c : e3) {
-	allCase.push_back(a + b + c);*/
-	//cfg.breakRecord = 1;
+		allCase.push_back(a + b + c);
+		cfg.breakRecord = 1;
+	}
+	}
+	}*/
 
 	vrpSln::Input input(env, cfg);
 	vrpSln::Solver solver(input, cfg, env);
@@ -147,10 +150,7 @@ bool run(int argc, char* argv[]) {
 	
 
 	vrpSln::saveSln(input, solver.output, cfg, env);
-	/*}
-	}
-	}*/
-	
+
 	return true;
 }
 
@@ -332,7 +332,7 @@ int main(int argc, char* argv[])
 	//makeCases(argc, argv);
 	/*testGetbound(argc, argv);
 	return 0;*/
-	for(;;)
+	//for(;;)
 	run(argc, argv);
 	
 	return 0;
