@@ -29,64 +29,10 @@ using namespace std;
 #include<vector>
 #include<map>
 
-#define For(i, a, b) for(int i = (a); i <= (int)(b); i++)
 
-struct GetBound {
+bool run(int argc, char* argv[],string ex="C1_6_6") {
 
-	int INF = 0x3f3f3f3f;
-	vector<vector<bool>> G;
-	int n, S;
-	vector<vector<int>> all, some, none;
-	GetBound() {
-
-		G = vector<vector<bool>>(1001,vector<bool>(1001));
-		all = vector<vector<int>>(1001,vector<int>(1001));
-		some = vector<vector<int>>(1001,vector<int>(1001));
-		none = vector<vector<int>>(1001,vector<int>(1001));
-	}
-
-	void dfs(int d, int an, int sn, int nn) {
-		if (!sn && !nn) S++;
-		//if (S > 1000) return;
-
-		int u = some[d][1];
-		For(i, 1, sn) {
-			int v = some[d][i];
-			if (G[u][v]) continue;
-			int tsn = 0, tnn = 0;
-
-			For(j, 1, an) all[d + 1][j] = all[d][j];
-			all[d + 1][an + 1] = v;
-
-			For(j, 1, sn)
-				if (G[v][some[d][j]]) some[d + 1][++tsn] = some[d][j];
-			For(j, 1, nn)
-				if (G[v][none[d][j]]) none[d + 1][++tnn] = none[d][j];
-
-			dfs(d + 1, an + 1, tsn, tnn);
-
-			some[d][i] = 0; none[d][++nn] = v;
-		}
-	}
-
-	int getMinRouteNum() {
-		//for()
-		For(i, 1, n) some[0][i] = i;
-
-		S = 0;
-		dfs(0, 0, n, 0);
-
-		if (S <= 1000) printf("%d\n", S);
-		else printf("Too many maximal sets of friends.\n");
-
-		return S;
-	}
-
-};
-
-bool run(int argc, char* argv[]) {
-
-	vrpSln::Environment env("C1_6_6");
+	vrpSln::Environment env(ex);
 
 	vrpSln::Configuration cfg;
 	//cfg.breakRecord = 1;
@@ -121,14 +67,14 @@ bool run(int argc, char* argv[]) {
 	}
 	}*/
 
+	//cfg.runTimer = 30;
+	cfg.breakRecord = 0;
 	vrpSln::Input input(env, cfg);
 	vrpSln::Solver solver(input, cfg, env);
 	
-	//solver.gamma = 0;
-
-	//solver.testRoute();
-
 	solver.minimizeRN();
+
+	system("pause");
 
 	auto& P = solver.P;
 	string path = env.outputPath;
@@ -145,11 +91,8 @@ bool run(int argc, char* argv[]) {
 
 	auto f2 = freopen("CON", "a", stdout);
 
-	//solver.minimizeRL();
-	//solver.testRoute();
-	
-
 	vrpSln::saveSln(input, solver.output, cfg, env);
+	solver.saveOutAsSintefFile();
 
 	return true;
 }
@@ -212,7 +155,7 @@ bool solverByEAX(int argc, char* argv[]) {
 
 		while (!eaSucceed) {
 			debug(eaSucceed)
-			pb.patternAdjustment(-1, 100);
+			pb.patternAdjustment(100);
 			pb.minimizeRL();
 			pc = pa;
 			vrpSln::EAX eax(input.custCnt, pa.rts.cnt, env.seed);
@@ -224,7 +167,7 @@ bool solverByEAX(int argc, char* argv[]) {
 		while(!reSucceed) {
 
 			debug(reSucceed)
-			pb.patternAdjustment(-1, 500);
+			pb.patternAdjustment(500);
 			pb.minimizeRL();
 			pc = pa;
 			vrpSln::EAX eax(input.custCnt, pa.rts.cnt, env.seed);
@@ -256,7 +199,7 @@ bool solverByEAX(int argc, char* argv[]) {
 
 		if (contiNoDown > 5) {
 			pa = pBest;
-			pb.patternAdjustment(-1, 5000);
+			pb.patternAdjustment(5000);
 			pb.minimizeRL();
 			
 			contiNoDown = 0;
@@ -264,59 +207,6 @@ bool solverByEAX(int argc, char* argv[]) {
 	}
 	
 	vrpSln::saveSln(input, pa.output, cfg, env);
-
-	return true;
-}
-
-
-bool testGetbound(int argc, char* argv[]) {
-
-	vrpSln::Environment env("C1_2_6");
-
-	vrpSln::Configuration cfg;
-
-	vrpSln::Input input(env, cfg);
-	vrpSln::Solver solver(input, cfg, env);
-
-	int n = input.custCnt;
-
-	GetBound g;
-	//g.n = n;
-	g.n = 100;
-
-	auto& G = g.G;
-
-	for (int i = 1; i < G.size(); ++i) {
-		for (int j = 1; j < G[i].size(); ++j) {
-			G[i][j] = 0;
-		}
-	}
-
-	vrpSln::Route r = solver.rCreateRoute(0);
-
-	for (int i = 1; i <= n; ++i) {
-		for (int j = i + 1; j <= n; ++j) {
-			
-			solver.rInsAtPosPre(r,r.tail,i);
-			solver.rInsAtPosPre(r,r.tail,j);
-			solver.rUpdateAvQfrom(r,r.head);
-			bool s1 = (r.rPtw == 0);
-			solver.rRemoveAllCusInR(r);
-
-			solver.rInsAtPosPre(r,r.tail,j);
-			solver.rInsAtPosPre(r,r.tail,i);
-			solver.rUpdateAvQfrom(r,r.head);
-			bool s2 = (r.rPtw == 0);
-			solver.rRemoveAllCusInR(r);
-
-			if (s1 || s2) {
-				g.G[i][j] = g.G[j][i] = true;
-			}
-			
-		}
-	}
-
-	debug(g.getMinRouteNum())
 
 	return true;
 }
@@ -330,11 +220,26 @@ int main(int argc, char* argv[])
 	//t4.join();
 	//solverByEAX(argc, argv);
 	//makeCases(argc, argv);
-	/*testGetbound(argc, argv);
-	return 0;*/
+	//testGetbound(argc, argv);
+	//return 0;
 	//for(;;)
+	vector<string> all63 = { "C1_10_1", "C1_10_5", "C1_10_6", "C1_10_7", "C1_10_8", "C1_8_1", "C1_8_5", "C1_8_6", "C1_8_7",
+								"C1_8_8", "C1_6_1", "C1_6_5", "C1_6_6", "C1_6_7", "C1_4_1", "C1_4_5", "C1_4_6", "C1_4_7",
+								"C1_4_8", "C1_2_1", "C1_2_5", "C1_2_6", "C1_2_7", "C1_2_8",
+
+								"C2_10_1", "C2_10_2", "C2_10_5", "C2_10_6", "C2_10_7", "C2_10_9", "C2_8_1", "C2_8_2", "C2_8_3",
+								"C2_8_5", "C2_8_6", "C2_8_7", "C2_8_8", "C2_8_9", "C2_8_10", "C2_6_1", "C2_6_5", "C2_6_6",
+								"C2_6_7", "C2_4_1", "C2_4_2", "C2_4_5", "C2_4_6", "C2_4_7", "C2_4_9",
+
+										// "R1_10_1", "R1_8_1", "R1_6_1", "R1_4_1", "R1_2_1",
+
+										//"RC2_10_1", "RC2_8_1", "RC2_8_2", "RC2_6_1", "RC2_6_2", "RC2_4_1", "RC2_4_2", "RC2_2_1", "RC2_2_2" 
+	};
+
+	/*for (auto ex : all63) {
+		run(argc, argv,ex);
+	}*/
 	run(argc, argv);
-	
 	return 0;
 }
 

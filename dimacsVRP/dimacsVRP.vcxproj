@@ -34,6 +34,7 @@
     <ClInclude Include="..\VRPTWNEW\EAX.h" />
     <ClInclude Include="..\VRPTWNEW\Environment.h" />
     <ClInclude Include="..\VRPTWNEW\Flag.h" />
+    <ClInclude Include="..\VRPTWNEW\getBound.h" />
     <ClInclude Include="..\VRPTWNEW\MakeCase.h" />
     <ClInclude Include="..\VRPTWNEW\Problem.h" />
     <ClInclude Include="..\VRPTWNEW\Solver.h" />

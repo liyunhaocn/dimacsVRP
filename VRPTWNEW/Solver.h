@@ -24,6 +24,7 @@
 #include <future>
 #include <iomanip>
 #include <bitset>
+#include <numeric>
 
 #include "./Environment.h"
 #include "./Utility.h"
@@ -7551,7 +7552,13 @@ namespace vrptwNew {
 						}
 
 						doEject(XSet);
-						patternAdjustment();
+						//patternAdjustment();
+						//system("pause");
+						//saveOutAsSintefFile();
+						patternMakeBigBigger();
+						//system("pause");
+						//saveOutAsSintefFile();
+
 						//end our method 2
 					}
 				}
@@ -7561,7 +7568,184 @@ namespace vrptwNew {
 			return false;
 		}
 
-		bool patternAdjustment(int node = -1, int Irand = -1) {
+		bool patternMakeBigBigger() {
+
+			int I1000 = myRand.pick(cfg.Irand);
+			int Irand = I1000;
+
+			LL iter = 0;
+
+			vector<int> arr;
+			arr.reserve(rts.cnt);
+			// iota(arr.begin(),arr.end(),0);
+
+			int maxRId = 0;
+			for (int i = 0; i < rts.size(); ++i) {
+				maxRId = max(maxRId,rts[i].routeID);
+				arr.push_back(rts[i].routeID);
+			}
+
+			sort(arr.begin(), arr.end(), [&](int a,int b) {
+				return rts.getRouteByRid(a).rCustCnt < rts.getRouteByRid(b).rCustCnt;
+			});
+
+			ConfSet bigRts(maxRId+1);
+			ConfSet litRts(maxRId+1);
+
+			for (int i = 0; i < arr.size(); ++i) {
+				if (i < arr.size() / 2) {
+					bigRts.ins(arr[i]);
+				}
+				else {
+					litRts.ins(arr[i]);
+				}
+			}
+
+			Timer t1(1);
+
+			vector<int> kindSet = { /*0,1,6,7,*/ 2,3,8 };
+			int N = 60;
+			int m = 10;
+
+
+			auto makeBigBiger = [&]() {
+
+				while (!t1.isTimeOut()) {
+
+					int bId = myRand.pick(bigRts.cnt);
+					bId = bigRts.ve[bId];
+
+					int litId = myRand.pick(litRts.cnt);
+					litId = litRts.ve[litId];
+
+					auto bigR = rPutCusInve(rts.getRouteByRid(bId));
+					auto litR = rPutCusInve(rts.getRouteByRid(litId));
+
+					for (int v : bigR) {
+						for (int w: litR) {
+							for (int kind : kindSet) {
+								DeltPen d = estimatevw(kind, v, w);
+								if (d.deltPc + d.deltPtw == 0) {
+									TwoNodeMove m(v, w, kind, d);
+									return m;
+								}
+							}
+						}
+					}
+				}
+				return TwoNodeMove(0, 0, 0, DeltPen());
+			};
+
+
+			ShuffleCards sc;
+
+			++squIter;
+
+			do {
+
+				TwoNodeMove bestM = makeBigBiger();
+				//if (myRand.pick(3) != 0) {
+				/*while (bestM.deltPen.deltPc + bestM.deltPen.deltPtw > 0 && !t1.isTimeOut()) {
+					bestM = makeBigBiger();
+				}*/
+
+				if (bestM.deltPen.deltPc + bestM.deltPen.deltPtw > 0) {
+					break;
+				}
+
+				#if CHECKING
+
+				Route& rv = rts.getRouteByRid(customers[bestM.v].routeID);
+				Route& rw = rts.getRouteByRid(customers[bestM.w].routeID);
+				if (customers[bestM.v].routeID == -1 || customers[bestM.w].routeID == -1) {
+
+					debug(bestM.v)
+						debug(bestM.w)
+						debug("error")
+				}
+
+				vector<int> oldrv;
+				vector<int> oldrw;
+				int pt = rv.head;
+
+				while (pt != -1) {
+					oldrv.push_back(pt);
+					pt = customers[pt].next;
+				}
+
+				pt = rw.head;
+				while (pt != -1) {
+					oldrw.push_back(pt);
+					pt = customers[pt].next;
+				}
+				DisType oldpenalty = penalty;
+				DisType oldPtw = Ptw;
+				DisType oldPc = Pc;
+
+				#endif // CHECKING
+
+				updateYearTable(bestM);
+				doMoves(bestM);
+				++squIter;
+
+				#if CHECKING
+
+				if (oldpenalty != penalty) {
+
+					debug(PtwConfRts.cnt)
+						debug(PcConfRts.cnt)
+						debug("patternAdjustment penalty update error!")
+						debug((rv.routeID == rw.routeID))
+
+						debug(oldPtw)
+						debug(bestM.deltPen.deltPtw)
+						debug(Ptw)
+
+						debug(oldPc)
+						debug(bestM.deltPen.deltPc)
+						debug(Pc)
+
+						debug(bestM.v)
+						debug(bestM.w)
+						debug(bestM.kind)
+						for (auto i : oldrv) {
+							cout << i << " ";
+						}
+					cout << endl;
+					for (auto i : oldrw) {
+						cout << i << " ";
+					}
+					cout << endl;
+					rNextDisp(rv);
+					rNextDisp(rw);
+					debug(iter)
+						debug("oldpenalty != penalty")
+						debug("error oldpenalty != penalty")
+				}
+
+				if (rw.rCustCnt == 0 || rv.rCustCnt == 0) {
+
+					debug("one route empty!")
+						debug(bestM.v)
+						debug(bestM.w)
+						debug(bestM.kind)
+						debug(oldpenalty)
+						//debug(bestM.deltPen)
+						rNextDisp(rv);
+					rNextDisp(rw);
+				}
+
+				#endif // CHECKING
+
+			} while (++iter < I1000 && !t1.isTimeOut());
+			//debug(iter)
+
+			updatePen();
+
+			return true;
+		}
+
+		bool patternAdjustment(int Irand = -1) {
 
 			int I1000 = myRand.pick(cfg.Irand);
 			if (Irand > 0) {
@@ -7645,157 +7829,21 @@ namespace vrptwNew {
 				return ret;
 			};
 
-			auto getMovesFromEjeRoute = [&]() {
-
-				TwoNodeMove ret;
-
-				if (ejeNodesAfterSqueeze.size() > 1) {
-					for (int i = ejeNodesAfterSqueeze.size() - 1; i > 1; i--) {
-						int index = myRand.pick(i);
-						swap(ejeNodesAfterSqueeze[i], ejeNodesAfterSqueeze[index]);
-					}
-				}
-
-				for (eOneRNode& e : ejeNodesAfterSqueeze) {
-					Route& r = rts.getRouteByRid(e.rId);
-					vector<int> cus = rPutCusInve(r);
-					ShuffleCards sc;
-					sc.makeItDisorder(cus);
-
-					for (int v : cus) {
-
-						if (customers[v].routeID == -1) {
-							continue;
-						}
-
-						m = max(1, m);
-						myRandX.getMN(N, m);
-						vector<int>& ve = myRandX.mpLLArr[N];
-						for (int i = 0; i < m; ++i) {
-							int wpos = ve[i];
-
-							int w = input.allCloseOf[v][wpos];
-							if (customers[w].routeID == -1
-								//|| customers[w].routeID == customers[v].routeID
-								) {
-								continue;
-							}
-
-							for (int kind : kindSet) {
-
-								DeltPen d = estimatevw(kind, v, w);
-								if (kind == 6 || kind == 7) {
-									d = estimatevw(kind, v, w, 1);
-								}
-								else {
-									d = estimatevw(kind, v, w);
-								}
-
-								#if CHECKING
-								if (d.deltPc + d.deltPtw < 0) {
-									debug(v)
-										debug(w)
-										debug(d.deltPc + d.deltPtw)
-								}
-								#endif // CHECKING
-
-								if (d.deltPc + d.deltPtw == 0) {
-									TwoNodeMove m(v, w, kind, d);
-									return m;
-								}
-							}
-						}
-					}
-				}
-				return TwoNodeMove(0, 0, 0, DeltPen());
-			};
-
-			auto makeBigBiger = [&]() {
-
-				vector<int> relRts;
-				vector<int> notRelRts;
-
-				for (int i = 0; i < 10; ++i) {
-					int v = input.allCloseOf[node][i];
-					if (customers[v].routeID >= 0) {
-
-						int cnt = count(relRts.begin(), relRts.end(), customers[v].routeID);
-						if (cnt == 0) {
-							relRts.push_back(customers[v].routeID);
-						}
-					}
-				}
-
-				for (int i = 0; i < rts.cnt; ++i) {
-					if (count(relRts.begin(), relRts.end(), rts[i].routeID) == 0) {
-						notRelRts.push_back(rts[i].routeID);
-					}
-				}
-
-				/*debug(relRts.size())
-				debug(notRelRts.size())
-				debug(relRts.size() + notRelRts.size() == rts.cnt)*/
-
-				vector<int> kindSet = { 0,1,2,3 };
-				ShuffleCards sc;
-
-				sc.makeItDisorder(relRts);
-				for (int id : relRts) {
-
-					Route& r = rts.getRouteByRid(id);
-					vector<int> rve = rPutCusInve(r);
-
-					sc.makeItDisorder(rve);
-
-					for (int v = rve[myRand.pick(rve.size())]; v != -1; v = customers[v].next) {
-
-						m = max(1, m);
-						myRandX.getMN(N, m);
-						vector<int>& ve = myRandX.mpLLArr[N];
-						for (int i = 0; i < m; ++i) {
-							int wpos = ve[i];
-
-							int w = input.allCloseOf[v][wpos];
-
-							if (customers[w].routeID == -1
-								|| count(relRts.begin(), relRts.end(), customers[w].routeID) > 0
-								) {
-								continue;
-							}
-
-							for (int kind : kindSet) {
-
-								DeltPen d = estimatevw(kind, v, w);
-
-								if (d.deltPc + d.deltPtw == 0) {
-									TwoNodeMove m(v, w, kind, d);
-									return m;
-								}
-							}
-						}
-
-					}
-				}
-				return TwoNodeMove(0, 0, 0, DeltPen());
-			};
-
 			ShuffleCards sc;
 
 			++squIter;
 
 			do {
 
-				TwoNodeMove bestM;
+				TwoNodeMove bestM = getDelt0MoveRandomly();;
 				//if (myRand.pick(3) != 0) {
-				if (node == -1) {
-					bestM = getDelt0MoveRandomly();
-				}
-				else {
-					bestM = makeBigBiger();
-				}
 
-				while (bestM.deltPen.deltPc + bestM.deltPen.deltPtw > 0) {
+				/*while (bestM.deltPen.deltPc + bestM.deltPen.deltPtw > 0 && !t1.isTimeOut()) {
 					bestM = getDelt0MoveRandomly();
+				}*/
+				
+				if (bestM.deltPen.deltPc + bestM.deltPen.deltPtw > 0) {
+					break;
 				}
 
 				#if CHECKING
@@ -7866,7 +7914,7 @@ namespace vrptwNew {
 					debug(iter)
 						debug("oldpenalty != penalty")
 						debug("error oldpenalty != penalty")
-					}
+				}
 
 				if (rw.rCustCnt == 0 || rv.rCustCnt == 0) {
 
@@ -7882,11 +7930,11 @@ namespace vrptwNew {
 
 				#endif // CHECKING
 
-				} while (++iter < I1000 && !t1.isTimeOut());
-				//debug(iter)
-				updatePen();
-				return true;
-				}
+			} while (++iter < I1000 && !t1.isTimeOut());
+			//debug(iter)
+			updatePen();
+			return true;
+		}
 
 		bool ejectPatternAdjustment() {
 
@@ -9187,6 +9235,54 @@ namespace vrptwNew {
 			return true;
 		}
 
+		bool saveOutAsSintefFile() {
+			
+			DateTime d(time(0));
+			d.year;
+			d.month;
+			d.day;
+			
+			string s = "";
+			
+			MyString ms;
+
+			s += "Instance name : " + input.example + "\n";
+			s += "Authors : <the name of the authors>\n";
+			s += "Date : <dd - mm - yy>\n";
+			s += "Reference : <reference to publication of method>\n";
+			s += "Solution\n";
+			for (int i = 0; i < rts.cnt; i++) {
+				auto cus = rPutCusInve(rts[i]);
+				string r = "Route " + ms.LL_str(i+1) +" :";
+
+				for (auto c : cus) {
+					r += " " + ms.LL_str(c);
+				}
+				r += "\n";
+				s += r;
+			}
+
+			updateRtsCost();
+
+			std::ofstream rgbData;
+			string wrPath = env.outputPath
+				+ "sinType" + input.example + "L" + ms.LL_str(RoutesCost) + ".txt";
+
+			rgbData.open(wrPath, std::ios::app | std::ios::out);
+
+			if (!rgbData) {
+				Log(Log::Level::Warning) << "output file open errno" << endl;
+				return false;
+			}
+
+			rgbData << s;
+
+			debug(s);
+			rgbData.close();
+
+			return true;
+		}
+		
 		bool testRoute() {
 
 			/*
@@ -9266,6 +9362,108 @@ nextdisp: 697 ,13 ,10 ,166 ,202 ,189 ,181 ,340 ,251 ,345 ,472 ,698 ,
 			rNextDisp(rv);*/
 
 			return true;
+		}
+
+		class pos {
+		public:
+			int id = 0;
+			unordered_set<int> s;
+			//operator =
+		};
+
+		int getBoundByIncompatible() {
+
+			int n = input.custCnt;
+			vector<pos> arr(n);
+			
+			for (int i = 0; i < n; ++i) {
+				arr[i].id = i+1;
+			}
+
+			for (int i = 1; i <= n; ++i) {
+				for (int j = i + 1; j <= n; ++j) {
+
+					auto getptw = [&] (int v,int w){
+						DisType av = input.datas[0].READYTIME;
+						av += input.disOf[0][v];
+						DisType aw = av + input.datas[v].SERVICETIME + input.disOf[v][w];
+						DisType an = aw + input.datas[w].SERVICETIME + input.disOf[0][w];
+						DisType rPtw = max(0,aw-input.datas[w].DUEDATE);
+						rPtw += max(0,an-input.datas[0].DUEDATE);
+						return rPtw;
+					};
+					
+					bool s1 = (getptw(i,j) == 0);
+					bool s2 = (getptw(j,i) == 0);
+
+					if (s1 || s2) {
+						arr[i-1].s.insert(j);
+						arr[j-1].s.insert(i);
+					}
+				}
+			}
+
+			int rid = 0;
+
+			for (int i = 0; i < customers.size(); ++i) {
+				customers[i].id = i;
+			}
+
+			auto cmp = [&](const pos& a, const pos& b) {
+				return P[a.id] > P[b.id];
+				return input.datas[a.id].DUEDATE < input.datas[b.id].DUEDATE;
+				return a.id<b.id;
+				return a.s.size() < b.s.size();
+			};
+
+			while (true){
+
+				sort(arr.begin(), arr.end(), cmp);
+
+				bool isSucceed = true;
+				int cus = -1;
+
+				for (auto it=arr.begin(); it!= arr.end();) {
+					cus = it->id;
+					Position tPos = findBestPosInSolForInit(cus);
+					//debug(tPos.pen)
+					if (tPos.pen > 0 ) {
+						isSucceed = false;
+						it = arr.erase(it);
+						break;
+					}
+					else {
+						++it;
+					}
+				}
+
+				if (isSucceed) {
+					debug(arr.size())
+					break;
+				}
+
+				Route r1 = rCreateRoute(rid++);
+				rInsAtPosPre(r1, r1.tail, cus);
+				rUpdateAvfrom(r1, r1.head);
+				rUpdateZvfrom(r1, r1.tail);
+				for (auto& node : arr) {
+					auto it = node.s.find(cus);
+					if ( it!= node.s.end()) {
+						node.s.erase(it);
+					}
+				}
+				rts.push_back(r1);
+			} 
+
+			for (int i = 0; i < rts.size(); ++i) {
+				Route& r = rts[i];
+				rUpdateZvQfrom(r, r.tail);
+				rUpdateAQfrom(r, r.head);
+				rUpdateRCost(r);
+			}
+			updatePen();
+
+			return rts.size();
 		}
 
 		~Solver() {};
