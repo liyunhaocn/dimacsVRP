@@ -35,6 +35,7 @@ namespace vrptwNew {
 
 #define reCusNo(x) (((x)<=(input.custCnt+1))?(x):(input.custCnt+1))
 
+	//cli[i].polarAngle = CircleSector::positive_mod(32768. * atan2(cli[i].coordY - cli[0].coordY, cli[i].coordX - cli[0].coordX) / PI);
 	struct CircleSector
 	{
 		int start;
@@ -7610,22 +7611,27 @@ namespace vrptwNew {
 
 			auto makeBigBiger = [&]() {
 
-				while (!t1.isTimeOut()) {
+				while (!t1.isTimeOut() && bigRts.cnt>0 && litRts.cnt>0) {
 
 					int bId = myRand.pick(bigRts.cnt);
 					bId = bigRts.ve[bId];
-
+					
 					int litId = myRand.pick(litRts.cnt);
 					litId = litRts.ve[litId];
 
 					auto bigR = rPutCusInve(rts.getRouteByRid(bId));
 					auto litR = rPutCusInve(rts.getRouteByRid(litId));
 
+					ShuffleCards sc;
+					sc.makeItDisorder(bigR);
+					sc.makeItDisorder(litR);
+
 					for (int v : bigR) {
 						for (int w: litR) {
 							for (int kind : kindSet) {
 								DeltPen d = estimatevw(kind, v, w);
 								if (d.deltPc + d.deltPtw == 0) {
+
 									TwoNodeMove m(v, w, kind, d);
 									return m;
 								}
@@ -7635,9 +7641,6 @@ namespace vrptwNew {
 				}
 				return TwoNodeMove(0, 0, 0, DeltPen());
 			};
-
-
-			ShuffleCards sc;
 
 			++squIter;
 
