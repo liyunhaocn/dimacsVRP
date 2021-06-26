@@ -32,6 +32,10 @@ using namespace std;
 #include<map>
 
 
+#include "../MCP/CliqueSolver.h"
+
+namespace tsm = szx::tsm;
+
 struct GetBound1 {
 
 	vector< vector<int> >G;//ͼ
@@ -284,7 +288,7 @@ private:
 };
 
 
-bool testGetbound1(int argc, char* argv[]) {
+bool testGetbound1() {
 
 	vrpSln::Environment env("R1_2_6");
 
@@ -336,7 +340,7 @@ bool testGetbound1(int argc, char* argv[]) {
 }
 
 
-bool testGetbound(int n,vector<vector<int>>g) {
+bool testGetbound(int n,vector<vector<int>>gr) {
 
 	vrpSln::Environment env("R1_2_6");
 
@@ -344,8 +348,6 @@ bool testGetbound(int n,vector<vector<int>>g) {
 
 	vrpSln::Input input(env, cfg);
 	vrpSln::Solver solver(input, cfg, env);
-
-	int n = input.custCnt / 2;
 
 	GetBound g = GetBound();
 
@@ -386,6 +388,108 @@ bool testGetbound(int n,vector<vector<int>>g) {
 	}
 
 	return true;
+}
+
+
+vector<int> testBoundJiangHua(int n, vector<vector<int>>& g) {
+
+	tsm::AdjMat mt(n,n);
+	for (int i = 0; i < n; ++i) {
+		for (int j = 0; j < n; ++j) {
+			mt.at(i, j) = g[i][j];
+		}
+	}
+
+	szx::Arr<tsm::Weight> weights(n, 1);
+	tsm::Clique sln;
+
+	auto printSln = [](const tsm::Clique& sln) {
+		cout << "weight=" << sln.weight << endl;
+		cout << "clique=";
+		for (auto n = sln.nodes.begin(); n != sln.nodes.end(); ++n) {
+			cout << *n << " ";
+		}
+		cout << endl;
+	};
+	bool isFind = tsm::solveWeightedMaxClique(sln, mt, weights);
+	/*if (isFind) {
+		printSln(sln);
+	}*/
+	return sln.nodes;
+}
+
+
+int getBound(string ex ="R1_2_6") {
+
+	vrpSln::Environment env(ex);
+
+	vrpSln::Configuration cfg;
+
+	vrpSln::Input input(env, cfg);
+	vrpSln::Solver solver(input, cfg, env);
+
+	int n = input.custCnt;
+
+	vector<vector<int>> G(n,vector<int>(n,0));
+
+	vrpSln::Route r = solver.rCreateRoute(1);
+
+	for (int i = 1; i <= n; ++i) {
+		for (int j = i + 1; j <= n; ++j) {
+
+			solver.rInsAtPosPre(r, r.tail, i);
+			solver.rInsAtPosPre(r, r.tail, j);
+			solver.rUpdateAvQfrom(r, r.head);
+			bool s1 = (r.rPtw == 0 && r.rPc==0);
+			solver.rRemoveAllCusInR(r);
+
+			solver.rInsAtPosPre(r, r.tail, j);
+			solver.rInsAtPosPre(r, r.tail, i);
+			solver.rUpdateAvQfrom(r, r.head);
+			bool s2 = (r.rPtw == 0 && r.rPc == 0);
+			solver.rRemoveAllCusInR(r);
+
+			if (s1 || s2) {
+				G[i-1][j-1] = G[j-1][i-1] = 1;
+			}
+		}
+	}
+
+	//auto maxq = testBoundJiangHua(n, G);
+	int delCnt = 0;
+
+	while (n > 0) {
+
+		auto maxq = testBoundJiangHua(n, G);
+		vector<int> mp(n,-1);
+		vector<bool> isdel(n,0);
+		for (int i = 0; i < maxq.size(); ++i) {
+			isdel[maxq[i]] = 1;
+		}
+
+		int id = 0;
+		for (int i = 0; i < n; ++i) {
+			if (isdel[i] == 0) {
+				mp[id] = i;
+				++id;
+			}
+		}
+
+		vector<vector<int>> gclone(id,vector<int>(id,0));
+		for (int i = 0; i < id; ++i) {
+			for (int j = 0; j < id; ++j) {
+				gclone[i][j] = G[ mp[i] ][ mp[j] ] ;
+			}
+		}
+
+		n = id;
+		G = gclone;
+		++delCnt;
+	}
+	
+	debug(input.sintefRecRN)
+	debug(delCnt)
+	return delCnt;
 }
 
 #endif // vrptwNew_GETBOUND_H

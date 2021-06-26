@@ -10,6 +10,47 @@ using namespace std;
 
 namespace vrptwNew {
 
+struct CircleSector
+{
+	int start;
+	int end;
+
+	// Positive modulo 65536
+	static int positive_mod(int i) {
+		// 1) Using the formula positive_mod(n,x) = (n % x + x) % x
+		// 2) Moreover, remark that "n % 65536" should be automatically compiled in an optimized form as "n & 0xffff" for faster calculations
+		return (i % 65536 + 65536) % 65536;
+	}
+
+	// Initialize a circle sector from a single point
+	void initialize(int point) {
+		start = point;
+		end = point;
+	}
+
+	// Tests if a point is enclosed in the circle sector
+	bool isEnclosed(int point) {
+		return (positive_mod(point - start) <= positive_mod(end - start));
+	}
+
+	// Tests overlap of two circle sectors
+	static bool overlap(const CircleSector& sector1, const CircleSector& sector2) {
+		return ((positive_mod(sector2.start - sector1.start) <= positive_mod(sector1.end - sector1.start))
+			|| (positive_mod(sector1.start - sector2.start) <= positive_mod(sector2.end - sector2.start)));
+	}
+
+	// Extends the circle sector to include an additional point 
+	// Done in a "greedy" way, such that the resulting circle sector is the smallest
+	void extend(int point) {
+		if (!isEnclosed(point)) {
+			if (positive_mod(point - end) <= positive_mod(start - point))
+				end = point;
+			else
+				start = point;
+		}
+	}
+};
+
 struct Data {
 
 	LL CUSTNO;
@@ -19,7 +60,7 @@ struct Data {
 	LL READYTIME;
 	LL DUEDATE;
 	LL SERVICETIME;
-
+	LL polarAngle;
 };
 
 struct Customer {
@@ -259,6 +300,9 @@ struct Input {
 			}
 			else {
 				datas[line - 10] = data0;
+				auto& dt = datas[line - 10];
+				datas[line - 10].polarAngle = CircleSector::positive_mod
+				(32768. * atan2(dt.YCOORD - datas[0].YCOORD, dt.XCOORD - datas[0].XCOORD) / PI);
 			}
 		}
 
@@ -294,11 +338,19 @@ struct Input {
 
 		allCloseOf = vector< vector<int>>(custCnt + 1, vector<int>(0));
 
+		auto canlinkDir = [&](int v, int w) {
 
-		auto canLinkNode = [&](int a, int b) {
-			DisType abp = datas[a].READYTIME + datas[a].SERVICETIME + disOf[a][b];
-			DisType aap = datas[b].READYTIME + datas[b].SERVICETIME + disOf[a][b];
-			if (aap > datas[a].DUEDATE && abp > datas[b].DUEDATE) {
+			DisType av = disOf[0][v];
+			DisType aw = av + datas[v].SERVICETIME + disOf[v][w];
+			DisType ptw = max(0, aw - datas[w].DUEDATE);
+			DisType an = aw + datas[w].SERVICETIME + disOf[w][0];
+			ptw += max(0, an - datas[0].DUEDATE);
+			return ptw == 0;
+		};
+
+		auto canLinkNode = [&](int v, int w) {
+			
+			if (!canlinkDir(v,w) && !canlinkDir(w,v)) {
 				return false;
 			}
 			return true;
@@ -315,7 +367,7 @@ struct Input {
 				}
 			}
 
-			auto cmp = [=](const LL a, const LL b) {
+			auto cmp = [&](const LL a, const LL b) {
 				int aLinkv = canLinkNode(a, v);
 				int bLinkv = canLinkNode(b, v);
 				if ( (aLinkv && bLinkv) || (!aLinkv && !bLinkv)) {
@@ -326,8 +378,27 @@ struct Input {
 				}
 				return false;
 			};
+			
+			auto cmp1 = [&](const LL a, const LL b) {
+				return disOf[a][v] < disOf[b][v];
+			};
+
+			/*sort(nums.begin(), nums.end(), cmp1);
+			auto cnums = nums;*/
 
 			sort(nums.begin(), nums.end(), cmp);
+
+			/*vector<int> arr;
+			for (int i = 0; i < cfg.outNeiSize[0]; ++i) {
+				if (!canLinkNode(v, cnums[i])) {
+					arr.push_back(i);
+				}
+			}
+			cout<<v<<"£º " << arr.size() << ": ";
+			for (auto i : arr) {
+				cout << i << " ";
+			}
+			cout << endl;*/
 
 			allCloseOf[v] = nums;
 		}

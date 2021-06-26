@@ -46,12 +46,12 @@ namespace vrptwNew {
 	double LFInf = DBL_MAX;
 
 	double LFINF = 1.79769e+308;
-	double PI = 3.1415926;
-	double PI_2 = 3.1415926 / 2;
-	double PI_4 = 3.1415926 / 4;
-	double PI_8 = 3.1415926 / 8;
-	double PI_16 = 3.1415926 / 16;
-	double PI_32 = 3.1415926 / 32;
+	double PI = 3.14159265359;
+	double PI_2 = PI / 2;
+	double PI_4 = PI / 4;
+	double PI_8 = PI / 8;
+	double PI_16 = PI / 16;
+	double PI_32 = PI / 32;
 
 	using LL = long long int;
 

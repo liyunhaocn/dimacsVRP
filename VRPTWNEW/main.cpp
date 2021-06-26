@@ -16,6 +16,8 @@
 #include "./Flag.h"
 #include "./EAX.h"
 
+//#include "./getBound.h"
+
 namespace vrpSln = vrptwNew;
 //namespace vrpSln = lyh;
 using namespace std;
@@ -67,14 +69,10 @@ bool run(int argc, char* argv[],string ex="C1_6_6") {
 	}
 	}*/
 
-	//cfg.runTimer = 30;
-	cfg.breakRecord = 0;
 	vrpSln::Input input(env, cfg);
 	vrpSln::Solver solver(input, cfg, env);
 	
 	solver.minimizeRN();
-
-	system("pause");
 
 	auto& P = solver.P;
 	string path = env.outputPath;
@@ -92,7 +90,7 @@ bool run(int argc, char* argv[],string ex="C1_6_6") {
 	auto f2 = freopen("CON", "a", stdout);
 
 	vrpSln::saveSln(input, solver.output, cfg, env);
-	solver.saveOutAsSintefFile();
+	//solver.saveOutAsSintefFile();
 
 	return true;
 }
@@ -240,6 +238,12 @@ int main(int argc, char* argv[])
 		run(argc, argv,ex);
 	}*/
 	run(argc, argv);
+	/*for (auto ex : all63) {
+		debug(ex)
+		getBound(ex);
+	}*/
+	
+
 	return 0;
 }
 

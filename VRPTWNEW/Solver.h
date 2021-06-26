@@ -35,47 +35,6 @@ namespace vrptwNew {
 
 #define reCusNo(x) (((x)<=(input.custCnt+1))?(x):(input.custCnt+1))
 
-	struct CircleSector
-	{
-		int start;
-		int end;
-
-		// Positive modulo 65536
-		static int positive_mod(int i) {
-			// 1) Using the formula positive_mod(n,x) = (n % x + x) % x
-			// 2) Moreover, remark that "n % 65536" should be automatically compiled in an optimized form as "n & 0xffff" for faster calculations
-			return (i % 65536 + 65536) % 65536;
-		}
-
-		// Initialize a circle sector from a single point
-		void initialize(int point) {
-			start = point;
-			end = point;
-		}
-
-		// Tests if a point is enclosed in the circle sector
-		bool isEnclosed(int point) {
-			return (positive_mod(point - start) <= positive_mod(end - start));
-		}
-
-		// Tests overlap of two circle sectors
-		static bool overlap(const CircleSector& sector1, const CircleSector& sector2) {
-			return ((positive_mod(sector2.start - sector1.start) <= positive_mod(sector1.end - sector1.start))
-				|| (positive_mod(sector1.start - sector2.start) <= positive_mod(sector2.end - sector2.start)));
-		}
-
-		// Extends the circle sector to include an additional point 
-		// Done in a "greedy" way, such that the resulting circle sector is the smallest
-		void extend(int point) {
-			if (!isEnclosed(point)) {
-				if (positive_mod(point - end) <= positive_mod(start - point))
-					end = point;
-				else
-					start = point;
-			}
-		}
-	};
-
 	struct Route {
 
 	public:
@@ -6764,10 +6723,27 @@ namespace vrptwNew {
 
 			//disUsangeOfHashArr();
 			// delete one route randomly
-
 			/*for (int i = 0; i <= input.custCnt; ++i) {
 				P[i] = 1;
 			}*/
+
+			vector<CircleSector> angs(rts.cnt);
+			vector<int> range(rts.cnt);
+			for (int i = 0; i < rts.cnt; ++i) {
+				auto ve = rPutCusInve(rts[i]);
+				angs[i].initialize(input.datas[ve[0]].polarAngle);
+				for (int j = 1; j < ve.size(); ++j) {
+					angs[i].extend(input.datas[ve[j]].polarAngle);
+				}
+				range[i] = CircleSector::positive_mod(angs[i].end - angs[i].start);
+			}
+
+			index = 0;
+			for (int i = 1; i < rts.cnt; ++i) {
+				if (range[i] > range[index]) {
+					index = i;
+				}
+			}
 
 			if (index == -1) {
 				index = myRand.pick(rts.size());
@@ -7552,10 +7528,12 @@ namespace vrptwNew {
 						}
 
 						doEject(XSet);
-						//patternAdjustment();
+						int Irand = input.custCnt / EPr.rCustCnt/6;
+						Irand = max(Irand,10);
+						patternAdjustment(Irand);
 						//system("pause");
 						//saveOutAsSintefFile();
-						patternMakeBigBigger();
+						//patternMakeBigBigger();
 						//system("pause");
 						//saveOutAsSintefFile();
 
