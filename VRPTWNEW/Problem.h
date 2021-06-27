@@ -330,7 +330,8 @@ struct Input {
 #if DISDOUBLE
 				disOf[j][i] = disOf[i][j] = dis;
 #else
-				disOf[j][i] = disOf[i][j] = ceil(dis);
+				//disOf[j][i] = disOf[i][j] = ceil(dis);
+				disOf[j][i] = disOf[i][j] = dis;
 #endif // DISDOUBLE
 
 			}

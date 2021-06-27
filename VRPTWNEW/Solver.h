@@ -6793,6 +6793,17 @@ namespace vrptwNew {
 
 		DisType verify() {
 
+			for (int i = 0; i <= input.custCnt + 1; i++) {
+				for (int j = i + 1; j <= input.custCnt + 1; j++) {
+					Data& d1 = input.datas[i];
+					Data& d2 = input.datas[j];
+					double dis = sqrtl((d1.XCOORD - d2.XCOORD) * (d1.XCOORD - d2.XCOORD)
+						+ (d1.YCOORD - d2.YCOORD) * (d1.YCOORD - d2.YCOORD));
+
+					input.disOf[j][i] = input.disOf[i][j] = ceil(dis);
+				}
+			}
+
 			vector<int> visitCnt(input.custCnt + 1, 0);
 
 			int cusCnt = 0;

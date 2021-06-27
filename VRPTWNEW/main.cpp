@@ -16,7 +16,7 @@
 #include "./Flag.h"
 #include "./EAX.h"
 
-//#include "./getBound.h"
+#include "./getBound.h"
 
 namespace vrpSln = vrptwNew;
 //namespace vrpSln = lyh;
@@ -229,20 +229,44 @@ int main(int argc, char* argv[])
 								"C2_8_5", "C2_8_6", "C2_8_7", "C2_8_8", "C2_8_9", "C2_8_10", "C2_6_1", "C2_6_5", "C2_6_6",
 								"C2_6_7", "C2_4_1", "C2_4_2", "C2_4_5", "C2_4_6", "C2_4_7", "C2_4_9",
 
-										// "R1_10_1", "R1_8_1", "R1_6_1", "R1_4_1", "R1_2_1",
+										"R1_10_1", "R1_8_1", "R1_6_1", "R1_4_1", "R1_2_1",
 
-										//"RC2_10_1", "RC2_8_1", "RC2_8_2", "RC2_6_1", "RC2_6_2", "RC2_4_1", "RC2_4_2", "RC2_2_1", "RC2_2_2" 
+										"RC2_10_1", "RC2_8_1", "RC2_8_2", "RC2_6_1", "RC2_6_2", "RC2_4_1", "RC2_4_2", "RC2_2_1", "RC2_2_2" 
 	};
 
 	/*for (auto ex : all63) {
 		run(argc, argv,ex);
 	}*/
 	run(argc, argv);
-	/*for (auto ex : all63) {
+
+	/*vector<string> boundCase;
+	map<string,int> boundofex;
+	map<string,int> sinofex;
+	for (auto ex : all63) {
 		debug(ex)
-		getBound(ex);
-	}*/
-	
+		int bound = getBound(ex);
+		boundofex[ex] = bound;
+		
+		vrpSln::Environment env(ex);
+		vrpSln::Configuration cfg;
+
+		vrpSln::Input in(env,cfg);
+		sinofex[ex] = in.sintefRecRN;
+		if (bound == in.sintefRecRN) {
+			boundCase.push_back(ex);
+		}
+		
+	}
+
+	for (auto i : all63) {
+		cout << i << " " << sinofex[i] << " " << boundofex[i] << endl;;
+	}
+	cout << endl;
+
+	for (string i : boundCase) {
+		cout << i << ",";
+	}
+	cout << endl;*/
 
 	return 0;
 }
