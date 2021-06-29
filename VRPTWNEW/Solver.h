@@ -7472,12 +7472,13 @@ namespace vrptwNew {
 				P[top] += cfg.Pwei0;
 				maxOfPval = max(P[top], maxOfPval);
 
-				if (maxOfPval >= 10000) {
-					for (auto& i : P) {
-						i = i / 2 + 1;
-					}
+				if (maxOfPval >= 1000) {
 					maxOfPval = -1;
-					debug("pinghua")
+					for (auto& i : P) {
+						i = i * 0.3 + 1;
+						maxOfPval = max(maxOfPval,i);
+					}
+					deOut("p")
 				}
 
 				#if CHECKING
