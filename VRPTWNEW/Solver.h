@@ -7472,10 +7472,10 @@ namespace vrptwNew {
 				P[top] += cfg.Pwei0;
 				maxOfPval = max(P[top], maxOfPval);
 
-				if (maxOfPval >= 1000) {
+				if (maxOfPval >= 10000) {
 					maxOfPval = -1;
 					for (auto& i : P) {
-						i = i * 0.3 + 1;
+						i = i * 0.7 + 1;
 						maxOfPval = max(maxOfPval,i);
 					}
 					deOut("p")
