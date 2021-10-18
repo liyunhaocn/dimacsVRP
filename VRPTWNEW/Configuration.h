@@ -43,15 +43,21 @@ struct Configuration {
 	int Pwei1 = 2;
 
 	int minKmax = 2;
-	int maxKmax = 5;
-
-	int Kmax = 5;
+	int maxKmax = 4;
 
 	bool breakRecord = 0;
 
 	LL yearTabuLen = 5;
 	LL yearTabuRand = 5;
 
+	void show() {
+
+		debug(breakRecord)
+		debug(Pwei0);
+		debug(Pwei1);
+		debug(minKmax);
+		debug(maxKmax);
+	}
 };
 
 }

@@ -59,6 +59,10 @@ public:
 		return true;
 	}
 
+	void show() {
+		debug(example)
+		debug(seed)
+	}
 	~Environment() {};
 
 private:

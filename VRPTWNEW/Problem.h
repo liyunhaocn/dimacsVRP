@@ -330,8 +330,8 @@ struct Input {
 #if DISDOUBLE
 				disOf[j][i] = disOf[i][j] = dis;
 #else
-				//disOf[j][i] = disOf[i][j] = ceil(dis);
-				disOf[j][i] = disOf[i][j] = dis;
+				disOf[j][i] = disOf[i][j] = ceil(dis);
+				//disOf[j][i] = disOf[i][j] = dis;
 #endif // DISDOUBLE
 
 			}
@@ -629,29 +629,23 @@ bool solveCommandLine(int argc, char* argv[], Configuration& cfg,Environment& en
 	MyString ms;
 	if (argc >= 2) {
 		cfg.breakRecord = ms.str_LL(argv[1]);
-		debug(cfg.breakRecord)
 	}
 
 	if (argc >= 3) {
 		string example = argv[2];
 		env.setExample(example);
-		debug(env.example)
 	}
 
 	if (argc >= 4) {
 		cfg.runTimer = ms.str_LL(argv[3]);
-		debug(cfg.runTimer)
 	}
 
 	if (argc >= 5) {
 		env.seed = ms.str_LL(argv[4]);
-		debug(env.seed)
 	}
-
-	debug(cfg.Pwei0);
-	debug(cfg.Pwei1);
-	debug(cfg.minKmax);
-	debug(cfg.maxKmax);
+	else {
+		env.seed = std::time(nullptr) + std::clock();
+	}
 
 	return true;
 }
@@ -661,7 +655,13 @@ bool saveSln(Input& input, Output& output,Configuration& cfg,Environment& env) {
 	DateTime d(time(0));
 	MyString ms;
 	// 输出 tm 结构的各个组成部分
-	string day = /*ms.LL_str(d.year) + */ms.LL_str(d.month) + ms.LL_str(d.day);
+	//string day = /*ms.LL_str(d.year) + */ms.LL_str(d.month) + ms.LL_str(d.day);
+	string day = __DATE__;
+	for (auto& c : day) {
+		if (c == ' ') {
+			c = '_';
+		}
+	}
 	string pwe0 = ms.LL_str(cfg.Pwei0);
 	string pwe1 = ms.LL_str(cfg.Pwei1);
 	string minKmax = ms.LL_str(cfg.minKmax);
@@ -671,7 +671,7 @@ bool saveSln(Input& input, Output& output,Configuration& cfg,Environment& env) {
 
 	std::ofstream rgbData;
 	string wrPath = env.outputPath 
-		+ type + day
+		+ type + "_" + day
 		/*+ "PW" + pwe0 + pwe1
 		+ "KM" + minKmax + maxKmax
 		+ "SW" + EPPerturbStep*/
@@ -684,26 +684,22 @@ bool saveSln(Input& input, Output& output,Configuration& cfg,Environment& env) {
 		Log(Log::Level::Warning) << "output file open errno" << endl;
 		return false;
 	}
+	
+	// example,rnqbound,sinrn,lyhrn,sinrl,lyhrl,time,epsize,minep,ptw,pc,rts,seeds
 
 	rgbData << input.example << ",";
-	rgbData << "b" << input.sumQToQ << ",";
-	rgbData << "sinRN " << input.sintefRecRN << ",";
+	rgbData << input.sumQToQ << ",";
+	rgbData << input.sintefRecRN << ",";
 	rgbData << output.rts.size() << ",";
-	rgbData << "sinRL " << input.sintefRecRL << ",";
+	rgbData << input.sintefRecRL << ",";
 	rgbData << output.state << ",";
 
-	rgbData << output.runTime << "s ,";
-	rgbData << "EPs " << output.EP.size() << ": ";
+	rgbData << output.runTime << ",";
+	rgbData << output.EP.size() << ",";
 
-	for (int i = 0; i < output.EP.size(); i++) {
-		rgbData << output.EP[i]<< "|";
-		
-	}
-	rgbData << ",";
-
-	rgbData << "minEP " << output.minEP << ",";
-	rgbData << "Ptw " << output.PtwNoWei << ",";
-	rgbData << "Pc " << output.Pc << ",";
+	rgbData << output.minEP << ",";
+	rgbData << output.PtwNoWei << ",";
+	rgbData << output.Pc << ",";
 	for (int i = 0; i < output.rts.size(); i++) {
 		rgbData << "Route  " << i + 1 << " : ";
 		for (int j = 0; j < output.rts[i].size(); j++) {

@@ -6793,17 +6793,6 @@ namespace vrptwNew {
 
 		DisType verify() {
 
-			for (int i = 0; i <= input.custCnt + 1; i++) {
-				for (int j = i + 1; j <= input.custCnt + 1; j++) {
-					Data& d1 = input.datas[i];
-					Data& d2 = input.datas[j];
-					double dis = sqrtl((d1.XCOORD - d2.XCOORD) * (d1.XCOORD - d2.XCOORD)
-						+ (d1.YCOORD - d2.YCOORD) * (d1.YCOORD - d2.YCOORD));
-
-					input.disOf[j][i] = input.disOf[i][j] = ceil(dis);
-				}
-			}
-
 			vector<int> visitCnt(input.custCnt + 1, 0);
 
 			int cusCnt = 0;
@@ -6853,17 +6842,49 @@ namespace vrptwNew {
 			return routesCost;
 		}
 
+		DeltPen getDeltIfRemoveOneNode(Route&r,int pt) {
+
+			int pre = customers[pt].pre;
+			int next = customers[pt].next;
+
+			DeltPen d;
+
+			DisType avnp = customers[pre].av + input.datas[pre].SERVICETIME + input.disOf[reCusNo(pre)][reCusNo(next)];
+			d.PtwOnly = max((DisType)0, avnp - customers[next].zv) + customers[next].TWX_ + customers[pre].TW_X;
+			d.PtwOnly = d.PtwOnly - r.rPtw;
+			d.PcOnly = max(0,r.rQ - input.datas[pt].DEMAND - input.Q);
+			d.PcOnly = d.PcOnly - r.rPc;
+			return d;
+
+		};
+
 		bool addWeightToRoute(TwoNodeMove& bestM) {
 
 			if (bestM.deltPen.PcOnly + bestM.deltPen.PtwOnly >= 0) {
 
 				for (int i = 0; i < PtwConfRts.cnt; ++i) {
 					Route& r = rts.getRouteByRid(PtwConfRts.ve[i]);
+
+					//auto cus = rPutCusInve(r);
+					//for (int c: cus) {
+					//	auto d = getDeltIfRemoveOneNode(r, c);
+					//	if (d.PtwOnly < 0) {
+					//		int cpre = customers[c].pre > input.custCnt ? 0 : customers[c].pre;
+					//		int cnext = customers[c].next > input.custCnt ? 0 : customers[c].next;
+					//		/*debug(c)
+					//		debug(d.PtwOnly)
+					//		debug(d.PcOnly)*/
+					//		yearTable[c][cnext] = squIter + cfg.yearTabuLen;
+					//		yearTable[cpre][c] = squIter + cfg.yearTabuLen;
+					//	}
+					//}
+
 					r.rWeight += cfg.weightUpStep;
 					Ptw += r.rPtw;
 				}
 				penalty = alpha * Ptw + beta * Pc;
 
+				
 			}
 			return true;
 		};
@@ -6942,12 +6963,17 @@ namespace vrptwNew {
 
 					int bestCnt = 1;
 					int sum = 0;
+					//int ejeNum = 0;
+
 					for (eOneRNode& en : ret) {
 						sum += en.Psum;
+						//ejeNum += en.ejeVe.size();
 						/*for (int c : en.ejeVe) {
 							sum = max(sum,P[c]);
 						}*/
 					}
+
+					//sum *= ejeNum;
 
 					if (sum < min1) {
 						bestCnt = 1;
@@ -7395,20 +7421,36 @@ namespace vrptwNew {
 
 			#endif // SAVE_LOCAL_BEST_SOL
 
+			LL EpCusNoDown = 1;
+
 			while (!lyhTimer.isTimeOut()) {
 
 				++EPIter;
+
 				EPNodesCanEasilyPut();
 
-				/*if (EPr.rCustCnt < minEPcus) {
-					deOut(minEPcus)deOut(EPr.rCustCnt)debug(contiNoReduce)
-				}*/
+				if (EPr.rCustCnt < minEPcus) {
+					minEPcus = EPr.rCustCnt;
+					EpCusNoDown = 1;
+				}else{
+
+					++EpCusNoDown;
+					if (EpCusNoDown % 10000 == 0) {
+
+						//cfg.minKmax = 1;
+						// 调整 minKmax 在1 2 之间切换
+						cfg.minKmax = 3 - cfg.minKmax;
+						debug(cfg.minKmax)
+					}
+				}
+				
 
 				minEPcus = min(minEPcus, EPr.rCustCnt);
 				if (EPsize() == 0 && penalty == 0) {
 					return true;
 				}
 
+				
 				#ifdef SAVE_LOCAL_BEST_SOL
 
 				auto isUp = updateGBestSolPool();
@@ -7472,13 +7514,13 @@ namespace vrptwNew {
 				P[top] += cfg.Pwei0;
 				maxOfPval = max(P[top], maxOfPval);
 
-				if (maxOfPval >= 10000) {
-					maxOfPval = -1;
+				if (maxOfPval >= 1000) {
+					maxOfPval = 0;
 					for (auto& i : P) {
 						i = i * 0.7 + 1;
 						maxOfPval = max(maxOfPval,i);
 					}
-					deOut("p")
+					cout << "p";
 				}
 
 				#if CHECKING
@@ -7804,7 +7846,7 @@ namespace vrptwNew {
 							if (d.deltPc + d.deltPtw == 0) {
 								TwoNodeMove m(v, w, kind, d);
 								ret = m;
-								if (squIter > getYearOfMove(m)) {
+								if (squIter >= getYearOfMove(m)) {
 									return m;
 								}
 							}
@@ -7935,7 +7977,6 @@ namespace vrptwNew {
 			};
 			sort(cus.begin(), cus.end(), cmp);
 
-			
 			map<int, Vec<int>>mp;
 
 			unordered_set<int> set1;
@@ -7999,56 +8040,60 @@ namespace vrptwNew {
 
 				eOneRNode retNode;
 				int tKmax = cfg.minKmax;
-				tKmax = cfg.maxKmax;
+				//tKmax = cfg.maxKmax;
 
 				while (tKmax <= cfg.maxKmax) {
+
 					auto en = ejectOneRouteOnlyP(r, 2, tKmax);
 
 					if (retNode.ejeVe.size() == 0) {
 						retNode = en;
 					}
 					else {
-						//double rateMoreEj = ((double)en.ejeVe.size() / retNode.ejeVe.size());
-						if (en.Psum < retNode.Psum) {
-							//bool satisfy1 = en.getMaxEle() < retNode.getMaxEle();
-							//bool satisfy1 = false;
-							//bool satisfy1 = en.Psum * retNode.ejeVe.size() < retNode.Psum * en.ejeVe.size();
-							bool satisfy1 = en.ejeVe.size() * en.Psum < retNode.Psum* retNode.ejeVe.size();
-							//bool satisfy1 = en.Psum * 1.5 < retNode.Psum;
-							if (satisfy1) {
-								deOut(en.Psum)debug(en.ejeVe.size())
-								deOut(retNode.Psum)debug(retNode.ejeVe.size())
+
+						//if (retNode.ejeVe.size() > 1) {
+						//if (en.ejeVe.size()<=3) {
+
+							//bool s1 = en.getMaxEle() < retNode.getMaxEle();
+							// 
+							bool s3 = en.Psum * retNode.ejeVe.size() < retNode.Psum * en.ejeVe.size();
+							bool s1 = en.Psum < retNode.Psum;
+							bool s2 = en.ejeVe.size() * en.Psum < retNode.Psum * retNode.ejeVe.size();
+							
+							if (s1 && s2 && s3) {
+							//if (satisfy1) {
+								/*deOut(en.Psum)debug(en.ejeVe.size())
+								deOut(retNode.Psum)debug(retNode.ejeVe.size())*/
 								//debug("satisfy12")
 								retNode = en;
 							}
-						}
+						//}
 					}
 					++tKmax;
 				}
 
 				//debug(retNode.ejeVe.size())
 				//eOneRNode retNode = ejectOneRouteOnlyP(r, 2, cfg.maxKmax);
-				auto en = ejectOneRouteMinPsumGreedy(r);
+				//auto en = ejectOneRouteMinPsumGreedy(r);
 
 				if (retNode.ejeVe.size() == 0) {
-					retNode = en;
+					// cout << "kmax fail ";
+					retNode = ejectOneRouteMinPsumGreedy(r);
 				}
-				else {
+				//else {
 
-					if (en.Psum < retNode.Psum) {
-						//bool satisfy2 = en.ejeVe.size() * en.Psum < retNode.Psum* retNode.ejeVe.size();
-						bool satisfy2 = en.ejeVe.size() > cfg.maxKmax;
-						//bool satisfy2 = true;
-						if (satisfy2) {
-
-							deOut(en.Psum)debug(en.ejeVe.size())
-							deOut(retNode.Psum)debug(retNode.ejeVe.size())
-							debug(satisfy2)
-							retNode = en;
-						}
-					}
-
-				}
+				//	if (en.Psum < retNode.Psum) {
+				//		//bool satisfy2 = en.ejeVe.size() * en.Psum < retNode.Psum* retNode.ejeVe.size();
+				//		bool satisfy2 = en.ejeVe.size() > cfg.maxKmax;
+				//		//bool satisfy2 = true;
+				//		if (satisfy2) {
+				//			deOut(en.Psum)debug(en.ejeVe.size())
+				//			deOut(retNode.Psum)debug(retNode.ejeVe.size())
+				//			debug(satisfy2)
+				//			retNode = en;
+				//		}
+				//	}
+				//}
 
 #if CHECKING
 
@@ -8102,7 +8147,7 @@ namespace vrptwNew {
 				return false;
 			};
 
-			priority_queue<int, Vec<int>, decltype(cmpMinP)> qu(cmpMinP);
+			priority_queue<int, Vec<int>, decltype(cmpMinD)> qu(cmpMinD);
 			
 			for (const int& c : R) {
 				qu.push(c);
@@ -8150,8 +8195,8 @@ namespace vrptwNew {
 				}
 				else {
 					if (etemp.Psum < noTabuN.Psum) {
-						if (etemp.ejeVe.size() * etemp.Psum < noTabuN.Psum * noTabuN.ejeVe.size()*1.4) {
-						//if (etemp.ejeVe.size() < noTabuN.ejeVe.size()) {
+						if (etemp.ejeVe.size() * etemp.Psum < noTabuN.Psum * noTabuN.ejeVe.size()) {
+						//if (etemp.ejeVe.size() <= noTabuN.ejeVe.size()) {
 							noTabuN = etemp;
 						}
 					}
@@ -8296,7 +8341,7 @@ namespace vrptwNew {
 			}
 			else if (r.rPc > 0) {
 
-				//return ejectOneRouteOnlyHasPcMinP(r, Kmax);
+				return ejectOneRouteOnlyHasPcMinP(r, Kmax);
 				ptwArr = R;
 				Kmax = min(Kmax, ptwArr.size() - 1);
 				
@@ -8566,7 +8611,7 @@ namespace vrptwNew {
 			bool isSucceed = false;
 			lyhTimer.reStart();
 
-			while (!lyhTimer.isTimeOut()) {
+			while (!lyhTimer.isTimeOut()&& rts.cnt > ourTarget) {
 
 				removeOneRouteRandomly();
 
@@ -8579,7 +8624,7 @@ namespace vrptwNew {
 					}
 					break;
 				}
-			}
+			} 
 
 			DisType state = verify();
 
@@ -9465,4 +9510,5 @@ nextdisp: 697 ,13 ,10 ,166 ,202 ,189 ,181 ,340 ,251 ,345 ,472 ,698 ,
 	};
 
 };
+
 #endif // !vrptwNew_SOLVER_H

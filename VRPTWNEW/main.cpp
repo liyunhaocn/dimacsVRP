@@ -32,26 +32,28 @@ using namespace std;
 #include<map>
 
 
-bool run(int argc, char* argv[],string ex="C1_6_6") {
+bool run(int argc, char* argv[],string ex="C2_10_9") {
 
 	vrpSln::Environment env(ex);
 
 	vrpSln::Configuration cfg;
-	//cfg.breakRecord = 1;
-	//cfg.runTimer = 3600;
-	//env.seed = 1622779129;
 	solveCommandLine(argc, argv, cfg, env);
 
-	if (env.seed == -1) {
-		env.seed = std::time(nullptr) + std::clock();
-		debug(env.seed)
-	}
+	/*cfg.breakRecord = 0;
+	env.seed = 1634129452;*/
+
+	debug(argc)
+	env.show();
+	cfg.show();
+	
+	//cfg.runTimer = 3600;
 
 	vrpSln::DateTime d(time(0));
 	cout << d << endl;
-	deOut("compile tag:")debug("0602-1")
-	debug(argc)
-
+	debug("compile tag:")
+	debug(__DATE__)
+	debug(__TIME__)
+	
 	//env.seed = 1610679669;
 	//env.seed = 1610863258;
 	

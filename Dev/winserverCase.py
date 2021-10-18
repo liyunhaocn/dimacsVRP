@@ -49,23 +49,27 @@ EP0Cases = [
 "C2_10_9",
 ]
 
-print(len(all53Cases))
-print(all53Cases)
+arr_types = ["C1_","C2_","R1_","R2_","RC1_","RC2_",]
+arr_cuscnt = ["2_","4_","6_","8_","10_"]
 
-cases = EP0Cases
+all300Cases = []
 
+for t in arr_types:
+	for cuscnt in arr_cuscnt:
+		for i in range(1,11):
+			all300Cases.append(t + cuscnt + str(i) )
+
+
+cases = all300Cases
 print(len(cases))
 # strBase = "start cmd /k \"dimacsVRP.exe 1 C2_10_2 36000\""
-path = "./ep0_2h.bat"
+path = "./all300_2h.bat"
 
-print(str(sys.argv))
-print(len(sys.argv))
-
-part = 11
+part = 10
 part = min(part,len(cases))
 runTime = "7200"
 # runTime = "86400"
-isBreak = "1"
+isBreak = "0"
 
 if len(sys.argv) > 1:
 	isBreak = sys.argv[1]
@@ -92,8 +96,6 @@ for i in range(0,len(cases),part):
 
 
 file_write_obj = open(path, 'w')
-
-    
 
 for i in range(len(ret)):
 
