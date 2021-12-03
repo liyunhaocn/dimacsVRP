@@ -21,8 +21,8 @@
 #define max(a,b)  (((a) > (b)) ? (a) : (b))
 #define min(a,b)  (((a) < (b)) ? (a) : (b))
 
-#define debug(x) cout<<#x<<": "<<(x)<<endl;
-#define deOut(x) cout<<#x<<": "<<(x)<<" ";
+#define debug(x) cout<<#x<<": "<<(x)<<endl
+#define deOut(x) cout<<#x<<": "<<(x)<<" "
 #define de15lf(x) {cout<<#x<<": "; printf("%.15lf\n",x);}
 #define outVe(arr) {cout<<#arr<<": ";for(auto i:arr){cout<<i<<", ";}cout<<endl;}
 #define DEFabs(a,b) ((a)>=(b))?((a)-(b)):((b)-(a))

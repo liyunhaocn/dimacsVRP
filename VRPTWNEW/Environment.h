@@ -60,8 +60,8 @@ public:
 	}
 
 	void show() {
-		debug(example)
-		debug(seed)
+		debug(example);
+		debug(seed);
 	}
 	~Environment() {};
 

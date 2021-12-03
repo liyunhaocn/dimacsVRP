@@ -211,11 +211,13 @@ public:
 				Route& r = ps.rts[i];
 				int a = 0;
 				int b = ps.customers[r.head].next;
-				deOut(a)debug(b)
+				deOut(a);
+				debug(b);
 
 				a = ps.customers[r.tail].pre;
 				b = 0;
-				deOut(a)debug(b)
+				deOut(a);
+				debug(b);
 			}
 		};
 			
@@ -280,8 +282,8 @@ public:
 
 #if CHECKING
 			if (curCus == -1) {
-				debug(curCus == -1)
-					debug(curCus == -1)
+				debug(curCus == -1);
+				debug(curCus == -1);
 			}
 #endif // CHECKING
 
@@ -321,8 +323,8 @@ public:
 
 #if CHECKING
 			if (reIndex == -1) {
-				debug(reIndex == -1)
-					debug(reIndex == -1)
+				debug(reIndex == -1);
+				debug(reIndex == -1);
 			}
 #endif // CHECKING
 
@@ -523,19 +525,19 @@ public:
 #if CHECKING
 
 		if (GabEsize == 0) {
-			debug(pa.updateRtsCost())
-				debug(pb.updateRtsCost())
-				debug(GabEsize)
-				debug(GabEsize)
-				return false;
+			debug(pa.updateRtsCost());
+			debug(pb.updateRtsCost());
+			debug(GabEsize);
+			debug(GabEsize);
+			return false;
 		}
 
 		if (GabEsize == 0) {
-			debug(pa.updateRtsCost())
-				debug(pb.updateRtsCost())
-				debug(GabEsize)
-				debug(GabEsize)
-				return false;
+			debug(pa.updateRtsCost());
+			debug(pb.updateRtsCost());
+			debug(GabEsize);
+			debug(GabEsize);
+			return false;
 		}
 #endif // CHECKING
 
@@ -543,10 +545,10 @@ public:
 		
 #if CHECKING
 		if (abCycleSet.size() == 0 && GabEsize > 0) {
-			debug(richEdges.size())
-				debug(GabEsize)
-				debug(GabEsize)
-				return false;
+			debug(richEdges.size());
+			debug(GabEsize);
+			debug(GabEsize);
+			return false;
 		}
 #endif // CHECKING
 
@@ -558,6 +560,9 @@ public:
 		Solver sbest(pc);
 
 		bool isSucceed = false;
+		if (abCycleSet.size() == 0) {
+			return false;
+		}
 
 		for (int children = 0; children < 10; ++children) {
 
@@ -597,7 +602,7 @@ public:
 			int maxCycleCnt = mr.pick(Alleset.size()) + 1;
 			//maxCycleCnt = min(Alleset.size() / 2+1, maxCycleCnt);
 			
-			maxCycleCnt = (children&1)==0? 1: Alleset.size()/2;
+			maxCycleCnt = (children&1)==0? 1: pc.myRand.pick(Alleset.size())+1;
 			//maxCycleCnt = 2;
 			maxCycleCnt = min(Alleset.size(), maxCycleCnt);
 			for (int i = 0; i < maxCycleCnt; ++i) {
@@ -627,7 +632,6 @@ public:
 						sbest = pc;
 					}
 				}
-				
 			}
 			
 		}
@@ -635,7 +639,7 @@ public:
 			pc = sbest;
 		}
 		
-		println("abCycleSet.size():", abCycleSet.size());
+		//println("abCycleSet.size():", abCycleSet.size());
 		int ecnt = 0;
 		for (Vec<int> c : abCycleSet) {
 			ecnt += c.size();

@@ -148,7 +148,7 @@ namespace vrptwNew {
 			if (index >= ve.size() || index < 0) {
 				vector<Customer> cus;
 
-				debug("Route & operator [] error!")
+				debug("Route & operator [] error!");
 					Route r1;
 				return r1;
 			}
@@ -209,8 +209,10 @@ namespace vrptwNew {
 			if (index < 0 || index >= cnt) {
 				vector<Customer>cus;
 				Route r1;
-				deOut(rid)deOut(index)debug(" rts array out of bound!")
-					return r1;
+				deOut(rid);
+				deOut(index);
+				debug(" rts array out of bound!");
+				return r1;
 			}
 #endif // CHECKING
 
@@ -264,8 +266,6 @@ namespace vrptwNew {
 		bool ins(int val) {
 
 			if (pos[val] >= 0) {
-				/*debug(" conf already in")
-				debug(" conf already in")*/
 				return false;
 			}
 
@@ -900,9 +900,9 @@ namespace vrptwNew {
 			r.rWeight = 1;
 
 			int pt = r.head;
-			//debug(pt)
+
 			while (pt != -1) {
-				//debug(pt)
+
 				int ptnext = customers[pt].next;
 				customers[pt].reSet();
 				pt = ptnext;
@@ -1248,20 +1248,20 @@ namespace vrptwNew {
 				}
 
 				if (cus1.size() != cus2.size()) {
-					debug(cus1.size() != cus2.size())
+					debug(cus1.size() != cus2.size());
 				}
 
 				for (int i = 0; i < cus1.size(); ++i) {
 
 					if (cus1[i] != cus2[cus1.size() - 1 - i]) {
-						debug(cus1[i] != cus2[cus1.size() - 1 - i])
+						debug(cus1[i] != cus2[cus1.size() - 1 - i]);
 					}
 				}
 
 				if (r.rCustCnt != cus1.size() - 2) {
-					debug(r.rCustCnt)
-						debug(cus1.size())
-						rNextDisp(r);
+					debug(r.rCustCnt);
+					debug(cus1.size());
+					rNextDisp(r);
 					rNextDisp(r);
 				}
 
@@ -1350,12 +1350,6 @@ namespace vrptwNew {
 			return RoutesCost;
 		}
 		
-		DisType updateRtsCost(DeltPen delt) {
-
-			RoutesCost += delt.deltCost;
-			return RoutesCost;
-		}
-
 		Position findBestPosInSol(int w) {
 
 			Vec<Position> posPool = { Position(),Position(),Position(),Position(), };
@@ -2044,7 +2038,7 @@ namespace vrptwNew {
 				return reversevw(v, w);
 			}
 			else {
-				debug("estimate no this kind move")
+				debug("estimate no this kind move");
 			}
 
 			return bestM;
@@ -2394,9 +2388,9 @@ namespace vrptwNew {
 					else {
 
 						rNextDisp(rv);
-						debug(front)
-							debug(v)
-							debug("error 333")
+						debug(front);
+						debug(v);
+						debug("error 333");
 					}
 
 					newv_vjPtw = newvwPtw;
@@ -4221,10 +4215,10 @@ namespace vrptwNew {
 
 			#if CHECKING
 			if (back == -1) {
-				debug(r.head)
-				debug(r.tail)
-				debug(v)
-				debug(w)
+				debug(r.head);
+				debug(r.tail);
+				debug(v);
+				debug(w);
 				rNextDisp(r);
 				rPreDisp(r);
 				rNextDisp(r);
@@ -4389,8 +4383,8 @@ namespace vrptwNew {
 				Log(Log::Level::Error) << "doNopt(M) error" << endl;
 			}
 			else {
-				debug("no this kind of move!")
-					return false;
+				debug("no this kind of move!");
+				return false;
 			}
 			return true;
 		}
@@ -4489,8 +4483,8 @@ namespace vrptwNew {
 
 			}
 			else {
-				debug("no this two opt * move!")
-					return false;
+				debug("no this two opt * move!");
+				return false;
 			}
 			return false;
 		}
@@ -4618,8 +4612,8 @@ namespace vrptwNew {
 				}
 			}
 			else {
-				debug("no this inrelocate move")
-					return false;
+			debug("no this inrelocate move");
+			return false;
 			}
 			return true;
 
@@ -5101,8 +5095,8 @@ namespace vrptwNew {
 				}
 			}
 			else {
-				debug("no this inrelocate move")
-					return false;
+				debug("no this inrelocate move");
+				return false;
 			}
 			return true;
 		}
@@ -5493,7 +5487,7 @@ namespace vrptwNew {
 
 			}*/
 			else {
-				debug("sol tabu dont include this move")
+				debug("sol tabu dont include this move");
 			}
 
 
@@ -5510,9 +5504,9 @@ namespace vrptwNew {
 
 #if CHECKING
 			if (r.rPtw == 0) {
-				debug("no Ptw in this route")
-					debug("no Ptw in this route")
-					return ptwNodes;
+				debug("no Ptw in this route");
+				debug("no Ptw in this route");
+				return ptwNodes;
 			}
 #endif // CHECKING
 
@@ -5620,7 +5614,7 @@ namespace vrptwNew {
 				}
 
 				if (v != endNode) {
-					debug(v != endNode)
+					debug(v != endNode);
 				}
 			};
 
@@ -5730,7 +5724,7 @@ namespace vrptwNew {
 #if CHECKING
 
 			if (ptwNodes.size() == 0) {
-				debug("-----------ptwNodes empty-------------")
+				debug("-----------ptwNodes empty-------------");
 			}
 
 #endif // CHECKING
@@ -5989,7 +5983,7 @@ namespace vrptwNew {
 
 			}
 			else {
-				debug("get year of none")
+				debug("get year of none");
 			}
 			return sumYear;
 		}
@@ -6307,7 +6301,7 @@ namespace vrptwNew {
 				rId = PcConfRts.ve[index];
 			}
 			else {
-				debug("error on conf route")
+				debug("error on conf route");
 			}
 
 			/*int confRCnt = PtwConfRts.cnt + PcConfRts.cnt;
@@ -6334,7 +6328,7 @@ namespace vrptwNew {
 #if CHECKING
 			if (r.rPc == 0 && r.rPtw == 0) {
 				cout << "confrts error" << endl;
-				debug(r.routeID)
+				debug(r.routeID);
 					//debug(r.penalty)
 			}
 #endif // CHECKING
@@ -6518,14 +6512,14 @@ namespace vrptwNew {
 			}
 
 			if (next.size() != pre.size()) {
-				debug(next.size() != pre.size())
-					return false;
+				debug(next.size() != pre.size());
+				return false;
 			}
 
 			for (int i = 0; i < next.size(); ++i) {
 				if (next[i] != pre[next.size() - 1 - i]) {
-					debug("not same ele in two arr")
-						return false;
+					debug("not same ele in two arr");
+					return false;
 				}
 			}
 
@@ -6543,17 +6537,17 @@ namespace vrptwNew {
 				}
 			}
 			if (cnt != PtwConfRts.cnt) {
-				debug(cnt != PtwConfRts.cnt)
-					debug(cnt != PtwConfRts.cnt)
+				debug(cnt != PtwConfRts.cnt);
+				debug(cnt != PtwConfRts.cnt);
 			}
 
 			for (int i = 0; i < PtwConfRts.cnt; ++i) {
 				Route& r = rts.getRouteByRid(PtwConfRts.ve[i]);
 
 				if (r.rPtw == 0) {
-					debug(r.routeID)
-						debug(r.rPtw)
-						debug(r.rPc)
+					debug(r.routeID);
+					debug(r.rPtw);
+					debug(r.rPc);
 
 				}
 			}
@@ -6562,10 +6556,10 @@ namespace vrptwNew {
 				Route& r = rts.getRouteByRid(PcConfRts.ve[i]);
 
 				if (r.rPc == 0) {
-					debug(r.routeID)
-						debug(r.rPtw)
-						debug(r.rPc)
-						debug(222)
+					debug(r.routeID);
+					debug(r.rPtw);
+					debug(r.rPc);
+					debug(222);
 				}
 
 			}
@@ -6573,27 +6567,27 @@ namespace vrptwNew {
 			for (eOneRNode& en : XSet) {
 
 				if (en.ejeVe.size() == 0) {
-					debug("en.ejeVe.size() == 0")
-						debug(en.rId)
-						Route& r = rts.getRouteByRid(en.rId);
+					debug("en.ejeVe.size() == 0");
+					debug(en.rId);
+					Route& r = rts.getRouteByRid(en.rId);
 					rNextDisp(r);
-					debug("en.ejeVe.size() == 0")
-						continue;
+					debug("en.ejeVe.size() == 0");
+					continue;
 				}
 			}
 
 			for (int i = 0; i < rts.cnt; ++i) {
 				if (rts[i].rPtw > 0) {
 					if (PtwConfRts.pos[rts[i].routeID] < 0) {
-						debug(PtwConfRts.pos[rts[i].routeID])
-							debug(444)
-							debug(444)
+						debug(PtwConfRts.pos[rts[i].routeID]);
+						debug(444);
+						debug(444);
 					}
 				}
 				if (rts[i].rPc > 0 && rts[i].rPtw == 0) {
 					if (PcConfRts.pos[rts[i].routeID] < 0) {
-						debug(PcConfRts.pos[rts[i].routeID])
-							debug(PcConfRts.pos[rts[i].routeID])
+						debug(PcConfRts.pos[rts[i].routeID]);
+						debug(PcConfRts.pos[rts[i].routeID]);
 					}
 				}
 			}
@@ -6615,12 +6609,12 @@ namespace vrptwNew {
 
 					for (auto n : ejeNodesAfterSqueeze) {
 						for (int c : n.ejeVe) {
-							debug(c)
+							debug(c);
 						}
 					}
-					debug("111error after eject")
-						debug("111error after eject penalty exist")
-						debug("222error after eject")
+					debug("111error after eject");
+					debug("111error after eject penalty exist");
+					debug("222error after eject");
 				}
 
 #endif // CHECKING
@@ -6632,11 +6626,11 @@ namespace vrptwNew {
 #if CHECKING
 			if (penalty > 0 || PtwConfRts.cnt > 0 || PcConfRts.cnt > 0) {
 
-				debug(penalty)
-					debug(PtwConfRts.cnt)
-					debug(PcConfRts.cnt)
+				debug(penalty);
+				debug(PtwConfRts.cnt);
+				debug(PcConfRts.cnt);
 
-					debug("error after eject penalty exist")
+				debug("error after eject penalty exist");
 
 			}
 #endif // CHECKING
@@ -6673,14 +6667,14 @@ namespace vrptwNew {
 #if CHECKING
 
 					if (oldpenalty + bestP.pen != PtwNoWei + Pc) {
-						debug("EPNodesCanEasilyPut findBestPosInSol pen update error ")
-							debug(bestP.rIndex)
-							debug(bestP.pos)
-							debug(top)
-							debug(oldpenalty)
-							debug(bestP.pen)
-							debug(PtwNoWei + Pc)
-							rNextDisp(rts[bestP.rIndex]);
+						debug("EPNodesCanEasilyPut findBestPosInSol pen update error ");
+						debug(bestP.rIndex);
+						debug(bestP.pos);
+						debug(top);
+						debug(oldpenalty);
+						debug(bestP.pen);
+						debug(PtwNoWei + Pc);
+						rNextDisp(rts[bestP.rIndex]);
 					}
 
 #endif // CHECKING
@@ -7107,10 +7101,10 @@ namespace vrptwNew {
 				TwoNodeMove bestM = getMovesRandomly(updateBestM);
 
 				if (bestM.deltPen.PcOnly == DisInf || bestM.deltPen.PtwOnly == DisInf) {
-					debug("squeeze fail find move")
-						debug(squIter)
-						++contiNotDe;
-						continue;
+					debug("squeeze fail find move");
+					debug(squIter);
+					++contiNotDe;
+					continue;
 				}
 				/*else if (bestM.deltPen.PcOnly + bestM.deltPen.PtwOnly <= 0) {
 					;
@@ -7141,22 +7135,22 @@ namespace vrptwNew {
 				for (int i = 0; i < rts.cnt; ++i) {
 					Route& r = rts[i];
 					if (rPutCusInve(r).size() != r.rCustCnt) {
-						debug(rPutCusInve(r).size() != r.rCustCnt)
-							debug(rPutCusInve(r).size() != r.rCustCnt)
-							debug(r.routeID)
-							debug(r.rCustCnt)
-							debug(rPutCusInve(r).size())
-							rNextDisp(r);
-							rNextDisp(r);
+						debug(rPutCusInve(r).size() != r.rCustCnt);
+						debug(rPutCusInve(r).size() != r.rCustCnt);
+						debug(r.routeID);
+						debug(r.rCustCnt);
+						debug(rPutCusInve(r).size());
+						rNextDisp(r);
+						rNextDisp(r);
 
 					}
 
 					int pt = r.head;
 					while (pt != -1) {
 						if (pt >= customers.size()) {
-							debug(pt)
-								debug(customers.size())
-								debug(customers.size())
+							debug(pt);
+							debug(customers.size());
+							debug(customers.size());
 						}
 						pt = customers[pt].next;
 					}
@@ -7191,12 +7185,12 @@ namespace vrptwNew {
 				for (int i = 0; i < rts.cnt; ++i) {
 					Route& r = rts[i];
 					if (rPutCusInve(r).size() != r.rCustCnt) {
-						debug(rPutCusInve(r).size() != r.rCustCnt)
-							debug(rPutCusInve(r).size() != r.rCustCnt)
-							debug(r.routeID)
-							debug(r.rCustCnt)
-							debug(rPutCusInve(r).size())
-							rNextDisp(r);
+						debug(rPutCusInve(r).size() != r.rCustCnt);
+						debug(rPutCusInve(r).size() != r.rCustCnt);
+						debug(r.routeID);
+						debug(r.rCustCnt);
+						debug(rPutCusInve(r).size());
+						rNextDisp(r);
 						rNextDisp(r);
 
 					}
@@ -7204,9 +7198,9 @@ namespace vrptwNew {
 					int pt = r.head;
 					while (pt != -1) {
 						if (pt >= customers.size()) {
-							debug(pt)
-								debug(customers.size())
-								debug(customers.size())
+							debug(pt);
+							debug(customers.size());
+							debug(customers.size());
 						}
 						pt = customers[pt].next;
 					}
@@ -7214,49 +7208,49 @@ namespace vrptwNew {
 
 				if (iderror || penaltyWeiError|| penaltyError|| RoutesCostError){
 
-					debug("squeeze penalty update error!")
+					debug("squeeze penalty update error!");
 
-					debug(bestM.v)
-					debug(bestM.w)
-					debug(bestM.kind)
+					debug(bestM.v);
+					debug(bestM.w);
+					debug(bestM.kind);
 
-					debug(rv.routeID == rw.routeID)
+					debug(rv.routeID == rw.routeID);
 
-					debug(iderror)
-					debug(penaltyWeiError)
-					debug(penaltyError)
-					debug(RoutesCostError)
+					debug(iderror);
+					debug(penaltyWeiError);
+					debug(penaltyError);
+					debug(RoutesCostError);
 
 
-					debug(oldpenalty)
+					debug(oldpenalty);
 
-					debug(bestM.deltPen.deltPc)
-					debug(bestM.deltPen.deltPtw)
-					debug(bestM.deltPen.deltCost)
-					debug(oldpenalty + bestM.deltPen.deltPc+ bestM.deltPen.deltPtw)
-					debug(penalty)
-					debug(bestM.deltPen.deltPc + bestM.deltPen.deltPtw)
-					debug(penalty - oldpenalty)
+					debug(bestM.deltPen.deltPc);
+					debug(bestM.deltPen.deltPtw);
+					debug(bestM.deltPen.deltCost);
+					debug(oldpenalty + bestM.deltPen.deltPc + bestM.deltPen.deltPtw);
+					debug(penalty);
+					debug(bestM.deltPen.deltPc + bestM.deltPen.deltPtw);
+					debug(penalty - oldpenalty);
 
-					debug(oldRcost)
-					debug(bestM.deltPen.deltCost)
-					debug(RoutesCost)
-					debug(RoutesCost-oldRcost)
+					debug(oldRcost);
+					debug(bestM.deltPen.deltCost);
+					debug(RoutesCost);
+					debug(RoutesCost - oldRcost);
 
-					debug(oldPtw)
-					debug(bestM.deltPen.deltPtw)
-					debug(Ptw)
-					debug(Ptw - oldPtw)
+					debug(oldPtw);
+					debug(bestM.deltPen.deltPtw);
+					debug(Ptw);
+					debug(Ptw - oldPtw);
 					
 					
-					debug(oldPtwNoWei)
-					debug(bestM.deltPen.PtwOnly)
-					debug(PtwNoWei)
-
-					debug(oldPc)
-					debug(bestM.deltPen.deltPc)
-					debug(bestM.deltPen.PcOnly)
-					debug(Pc)
+					debug(oldPtwNoWei);
+					debug(bestM.deltPen.PtwOnly);
+					debug(PtwNoWei);
+					
+					debug(oldPc);
+					debug(bestM.deltPen.deltPc);
+					debug(bestM.deltPen.PcOnly);
+					debug(Pc);
 
 					cout << "oldrv: ";
 
@@ -7273,11 +7267,11 @@ namespace vrptwNew {
 					rNextDisp(rv);
 					rNextDisp(rw);
 
-					debug(squIter)
+					debug(squIter);
 
-					debug(DEFabs(oldpenalty + bestM.deltPen.deltPc + bestM.deltPen.deltPtw, penalty))
-					debug("false false")
-					debug("false false")
+					debug(DEFabs(oldpenalty + bestM.deltPen.deltPc + bestM.deltPen.deltPtw, penalty));
+					debug("false false");
+					debug("false false");
 
 				}
 #endif // CHECKING
@@ -7383,9 +7377,9 @@ namespace vrptwNew {
 
 				updatePen();
 				if (oldp != penalty) {
-					debug(oldp)
-					debug(penalty)
-					debug(penalty)
+					debug(oldp);
+					debug(penalty);
+					debug(penalty);
 				}
 #endif // CHECKING		
 				/*debug(PtwNoWei)
@@ -7459,7 +7453,7 @@ namespace vrptwNew {
 						//cfg.minKmax = 1;
 						// 调整 minKmax 在1 2 之间切换
 						cfg.minKmax = 3 - cfg.minKmax;
-						debug(cfg.minKmax)
+						debug(cfg.minKmax);
 					}
 				}
 				
@@ -7554,14 +7548,14 @@ namespace vrptwNew {
 
 				#if CHECKING
 				if (!DISlfeq(oldpenalty + bestP.pen, PtwNoWei + Pc)) {
-					debug("deleteRoute findBestPosInSol pen update error ")
-						debug(bestP.rIndex)
-						debug(bestP.pos)
-						debug(top)
-						debug(oldpenalty)
-						debug(bestP.pen)
-						debug(PtwNoWei + Pc)
-						rNextDisp(rts[bestP.rIndex]);
+					debug("deleteRoute findBestPosInSol pen update error ");
+					debug(bestP.rIndex);
+					debug(bestP.pos);
+					debug(top);
+					debug(oldpenalty);
+					debug(bestP.pen);
+					debug(PtwNoWei + Pc);
+					rNextDisp(rts[bestP.rIndex]);
 				}
 				#endif // CHECKING
 
@@ -7710,9 +7704,9 @@ namespace vrptwNew {
 				Route& rw = rts.getRouteByRid(customers[bestM.w].routeID);
 				if (customers[bestM.v].routeID == -1 || customers[bestM.w].routeID == -1) {
 
-					debug(bestM.v)
-						debug(bestM.w)
-						debug("error")
+					debug(bestM.v);
+					debug(bestM.w);
+					debug("error");
 				}
 
 				vector<int> oldrv;
@@ -7743,25 +7737,25 @@ namespace vrptwNew {
 
 				if (oldpenalty != penalty) {
 
-					debug(PtwConfRts.cnt)
-						debug(PcConfRts.cnt)
-						debug("patternAdjustment penalty update error!")
-						debug((rv.routeID == rw.routeID))
+					debug(PtwConfRts.cnt);
+					debug(PcConfRts.cnt);
+					debug("patternAdjustment penalty update error!");
+					debug((rv.routeID == rw.routeID));
 
-						debug(oldPtw)
-						debug(bestM.deltPen.deltPtw)
-						debug(Ptw)
+					debug(oldPtw);
+					debug(bestM.deltPen.deltPtw);
+					debug(Ptw);
 
-						debug(oldPc)
-						debug(bestM.deltPen.deltPc)
-						debug(Pc)
+					debug(oldPc);
+					debug(bestM.deltPen.deltPc);
+					debug(Pc);
 
-						debug(bestM.v)
-						debug(bestM.w)
-						debug(bestM.kind)
-						for (auto i : oldrv) {
-							cout << i << " ";
-						}
+					debug(bestM.v);
+					debug(bestM.w);
+					debug(bestM.kind);
+					for (auto i : oldrv) {
+						cout << i << " ";
+					}
 					cout << endl;
 					for (auto i : oldrw) {
 						cout << i << " ";
@@ -7769,20 +7763,20 @@ namespace vrptwNew {
 					cout << endl;
 					rNextDisp(rv);
 					rNextDisp(rw);
-					debug(iter)
-						debug("oldpenalty != penalty")
-						debug("error oldpenalty != penalty")
+					debug(iter);
+					debug("oldpenalty != penalty");
+					debug("error oldpenalty != penalty");
 				}
 
 				if (rw.rCustCnt == 0 || rv.rCustCnt == 0) {
 
-					debug("one route empty!")
-						debug(bestM.v)
-						debug(bestM.w)
-						debug(bestM.kind)
-						debug(oldpenalty)
-						//debug(bestM.deltPen)
-						rNextDisp(rv);
+					debug("one route empty!");
+					debug(bestM.v);
+					debug(bestM.w);
+					debug(bestM.kind);
+					debug(oldpenalty);
+
+					rNextDisp(rv);
 					rNextDisp(rw);
 				}
 
@@ -7848,15 +7842,15 @@ namespace vrptwNew {
 							}
 							#if CHECKING
 							if (d.deltPc + d.deltPtw < 0) {
-								debug(v)
-									debug(w)
-									debug(kind)
-									debug(penalty)
-									debug(Ptw)
-									debug(PtwNoWei)
-									debug(Pc)
-									debug(d.deltPc + d.deltPtw)
-									debug(d.deltPc + d.deltPtw)
+								debug(v);
+								debug(w);
+								debug(kind);
+								debug(penalty);
+								debug(Ptw);
+								debug(PtwNoWei);
+								debug(Pc);
+								debug(d.deltPc + d.deltPtw);
+								debug(d.deltPc + d.deltPtw);
 							}
 							#endif // CHECKING
 
@@ -7876,7 +7870,7 @@ namespace vrptwNew {
 						}
 					}
 				}
-				//debug(11111)
+
 				return ret;
 			};
 
@@ -7903,9 +7897,9 @@ namespace vrptwNew {
 				Route& rw = rts.getRouteByRid(customers[bestM.w].routeID);
 				if (customers[bestM.v].routeID == -1 || customers[bestM.w].routeID == -1) {
 
-					debug(bestM.v)
-						debug(bestM.w)
-						debug("error")
+					debug(bestM.v);
+					debug(bestM.w);
+					debug("error");
 				}
 
 				vector<int> oldrv;
@@ -7936,25 +7930,25 @@ namespace vrptwNew {
 
 				if (oldpenalty != penalty) {
 
-					debug(PtwConfRts.cnt)
-						debug(PcConfRts.cnt)
-						debug("patternAdjustment penalty update error!")
-						debug((rv.routeID == rw.routeID))
+					debug(PtwConfRts.cnt);
+					debug(PcConfRts.cnt);
+					debug("patternAdjustment penalty update error!");
+					debug((rv.routeID == rw.routeID));
 
-						debug(oldPtw)
-						debug(bestM.deltPen.deltPtw)
-						debug(Ptw)
+					debug(oldPtw);
+					debug(bestM.deltPen.deltPtw);
+					debug(Ptw);
 
-						debug(oldPc)
-						debug(bestM.deltPen.deltPc)
-						debug(Pc)
+					debug(oldPc);
+					debug(bestM.deltPen.deltPc);
+					debug(Pc);
 
-						debug(bestM.v)
-						debug(bestM.w)
-						debug(bestM.kind)
-						for (auto i : oldrv) {
-							cout << i << " ";
-						}
+					debug(bestM.v);
+					debug(bestM.w);
+					debug(bestM.kind);
+					for (auto i : oldrv) {
+						cout << i << " ";
+					}
 					cout << endl;
 					for (auto i : oldrw) {
 						cout << i << " ";
@@ -7962,20 +7956,20 @@ namespace vrptwNew {
 					cout << endl;
 					rNextDisp(rv);
 					rNextDisp(rw);
-					debug(iter)
-						debug("oldpenalty != penalty")
-						debug("error oldpenalty != penalty")
+					debug(iter);
+					debug("oldpenalty != penalty");
+					debug("error oldpenalty != penalty");
 				}
 
 				if (rw.rCustCnt == 0 || rv.rCustCnt == 0) {
 
-					debug("one route empty!")
-						debug(bestM.v)
-						debug(bestM.w)
-						debug(bestM.kind)
-						debug(oldpenalty)
-						//debug(bestM.deltPen)
-						rNextDisp(rv);
+					debug("one route empty!");
+					debug(bestM.v);
+					debug(bestM.w);
+					debug(bestM.kind);
+					debug(oldpenalty);
+					//debug(bestM.deltPen);
+					rNextDisp(rv);
 					rNextDisp(rw);
 				}
 
@@ -8011,7 +8005,7 @@ namespace vrptwNew {
 							set1.insert(w);
 						}
 						else {
-							debug("a")
+							debug("a");
 						}
 
 						/*debug(wpos)
@@ -8117,17 +8111,17 @@ namespace vrptwNew {
 #if CHECKING
 
 				if (retNode.ejeVe.size() == 0) {
-					debug(r.rPtw)
-						debug(r.rPc)
-						rNextDisp(r);
-					outVe(P)
-						system("pause");
+					debug(r.rPtw);
+					debug(r.rPc);
+					rNextDisp(r);
+					outVe(P);
+					system("pause");
 				}
 
 				if (retNode.ejeVe.size() == 0) {
 					rNextDisp(r);
-					debug("retNode.ejeVe.size() == 0")
-						debug("retNode.ejeVe.size() == 0")
+					debug("retNode.ejeVe.size() == 0");
+					debug("retNode.ejeVe.size() == 0");
 				}
 #endif // CHECKING
 
@@ -8178,7 +8172,7 @@ namespace vrptwNew {
 			while (rPc > 0) {
 
 				int ctop = qu.top();
-				//debug(P[ctop])
+
 				qu.pop();
 				rQ -= input.datas[ctop].DEMAND;
 				rPc = max(0, rQ - input.Q);
@@ -8297,8 +8291,8 @@ namespace vrptwNew {
 
 #if CHECKING
 				if (pre > input.custCnt&& next > input.custCnt) {
-					debug("no this sit")
-						debug("no this sit")
+					debug("no this sit");
+					debug("no this sit");
 				}
 #endif // CHECKING
 
@@ -8471,36 +8465,36 @@ namespace vrptwNew {
 				|| !DISlfeq(customers[r.tail].Q_X, rQStart)
 				) {
 
-				debug(!DISlfeq(r.rQ, rQStart))
-					debug(!DISlfeq(PcStart, r.rPc))
-					debug(!DISlfeq(PtwStart, r.rPtw))
-					debug(!DISlfeq(PtwStart, customers[r.head].TWX_))
-					debug(!DISlfeq(PtwStart, customers[r.tail].TW_X))
-					debug(!DISlfeq(customers[r.head].QX_, rQStart))
-					debug(!DISlfeq(customers[r.tail].Q_X, rQStart))
+				debug(!DISlfeq(r.rQ, rQStart));
+				debug(!DISlfeq(PcStart, r.rPc));
+				debug(!DISlfeq(PtwStart, r.rPtw));
+				debug(!DISlfeq(PtwStart, customers[r.head].TWX_));
+				debug(!DISlfeq(PtwStart, customers[r.tail].TW_X));
+				debug(!DISlfeq(customers[r.head].QX_, rQStart));
+				debug(!DISlfeq(customers[r.tail].Q_X, rQStart));
 
-					de15lf(r.rQ)
-					de15lf(rQStart)
-					de15lf(PcStart)
-					de15lf(r.rPc)
-					de15lf(PtwStart)
-					de15lf(r.rPtw)
-					de15lf(customers[r.head].TWX_)
+				de15lf(r.rQ);
+				de15lf(rQStart);
+				de15lf(PcStart);
+				de15lf(r.rPc);
+				de15lf(PtwStart);
+				de15lf(r.rPtw);
+				de15lf(customers[r.head].TWX_);
 
-					de15lf(depot0TW_XStart)
-					de15lf(depotN1TW_XStart);
+				de15lf(depot0TW_XStart);
+				de15lf(depotN1TW_XStart);
 
-				de15lf(customers[r.head].QX_)
-					de15lf(customers[r.tail].Q_X)
-					de15lf(customers[r.tail].TW_X)
+				de15lf(customers[r.head].QX_);
+				de15lf(customers[r.tail].Q_X);
+				de15lf(customers[r.tail].TW_X);
 
-					outVe(R)
-					rNextDisp(r);
+				outVe(R);
+				rNextDisp(r);
 				rPreDisp(r);
 
-				debug(rCheckRoutePreNext(r))
-					debug("eject not restore state")
-					debug("eject not restore state")
+				debug(rCheckRoutePreNext(r));
+				debug("eject not restore state");
+				debug("eject not restore state");
 			}
 
 			vector<int> v1 = rPutCusInve(r);
@@ -8511,8 +8505,8 @@ namespace vrptwNew {
 			}
 
 			if (v1.size() != v2.size()) {
-				debug("v1.size() != v2.size()")
-					debug("v1.size() != v2.size()")
+				debug("v1.size() != v2.size()");
+				debug("v1.size() != v2.size()");
 			}
 #endif // CHECKING
 
@@ -8715,7 +8709,6 @@ namespace vrptwNew {
 						}
 					}
 				}
-
 			}
 			
 			return bestM;
@@ -8819,12 +8812,12 @@ namespace vrptwNew {
 				for (int i = 0; i < rts.cnt; ++i) {
 					Route& r = rts[i];
 					if (rPutCusInve(r).size() != r.rCustCnt) {
-						debug(rPutCusInve(r).size() != r.rCustCnt)
-							debug(rPutCusInve(r).size() != r.rCustCnt)
-							debug(r.routeID)
-							debug(r.rCustCnt)
-							debug(rPutCusInve(r).size())
-							rNextDisp(r);
+						debug(rPutCusInve(r).size() != r.rCustCnt);
+						debug(rPutCusInve(r).size() != r.rCustCnt);
+						debug(r.routeID);
+						debug(r.rCustCnt);
+						debug(rPutCusInve(r).size());
+						rNextDisp(r);
 						rNextDisp(r);
 
 					}
@@ -8832,9 +8825,9 @@ namespace vrptwNew {
 					int pt = r.head;
 					while (pt != -1) {
 						if (pt >= customers.size()) {
-							debug(pt)
-								debug(customers.size())
-								debug(customers.size())
+							debug(pt);
+							debug(customers.size());
+							debug(customers.size());
 						}
 						pt = customers[pt].next;
 					}
@@ -8852,6 +8845,8 @@ namespace vrptwNew {
 				/*solTabuTurnSolToBitArr();
 				solTabuUpBySolToBitArr();*/
 				updatePen();
+				//updateRtsCost();
+				RoutesCost += bestM.deltPen.deltCost;
 				//updatePen(bestM.deltPen);
 
 #if CHECKING
@@ -8869,12 +8864,12 @@ namespace vrptwNew {
 				for (int i = 0; i < rts.cnt; ++i) {
 					Route& r = rts[i];
 					if (rPutCusInve(r).size() != r.rCustCnt) {
-						debug(rPutCusInve(r).size() != r.rCustCnt)
-							debug(rPutCusInve(r).size() != r.rCustCnt)
-							debug(r.routeID)
-							debug(r.rCustCnt)
-							debug(rPutCusInve(r).size())
-							rNextDisp(r);
+						debug(rPutCusInve(r).size() != r.rCustCnt);
+						debug(rPutCusInve(r).size() != r.rCustCnt);
+						debug(r.routeID);
+						debug(r.rCustCnt);
+						debug(rPutCusInve(r).size());
+						rNextDisp(r);
 						rNextDisp(r);
 
 					}
@@ -8882,9 +8877,9 @@ namespace vrptwNew {
 					int pt = r.head;
 					while (pt != -1) {
 						if (pt >= customers.size()) {
-							debug(pt)
-								debug(customers.size())
-								debug(customers.size())
+							debug(pt);
+							debug(customers.size());
+							debug(customers.size());
 						}
 						pt = customers[pt].next;
 					}
@@ -8892,51 +8887,51 @@ namespace vrptwNew {
 
 				if (iderror || penaltyWeiError || penaltyError || RoutesCostError) {
 
-					debug("naRepair penalty update error!")
+					debug("naRepair penalty update error!");
 
-						debug(bestM.v)
-						debug(bestM.w)
-						debug(bestM.kind)
+					debug(bestM.v);
+					debug(bestM.w);
+					debug(bestM.kind);
 
-						debug(rv.routeID == rw.routeID)
+					debug(rv.routeID == rw.routeID);
 
-						debug(iderror)
-						debug(penaltyWeiError)
-						debug(penaltyError)
-						debug(RoutesCostError)
-
-
-						debug(oldpenalty)
-
-						debug(bestM.deltPen.deltPc)
-						debug(bestM.deltPen.deltPtw)
-						debug(bestM.deltPen.deltCost)
-						debug(oldpenalty + bestM.deltPen.deltPc + bestM.deltPen.deltPtw)
-						debug(penalty)
-						debug(bestM.deltPen.deltPc + bestM.deltPen.deltPtw)
-						debug(penalty - oldpenalty)
-
-						debug(oldRcost)
-						debug(bestM.deltPen.deltCost)
-						debug(RoutesCost)
-						debug(RoutesCost - oldRcost)
-
-						debug(oldPtw)
-						debug(bestM.deltPen.deltPtw)
-						debug(Ptw)
-						debug(Ptw - oldPtw)
+					debug(iderror);
+					debug(penaltyWeiError);
+					debug(penaltyError);
+					debug(RoutesCostError);
 
 
-						debug(oldPtwNoWei)
-						debug(bestM.deltPen.PtwOnly)
-						debug(PtwNoWei)
+					debug(oldpenalty);
 
-						debug(oldPc)
-						debug(bestM.deltPen.deltPc)
-						debug(bestM.deltPen.PcOnly)
-						debug(Pc)
+					debug(bestM.deltPen.deltPc);
+					debug(bestM.deltPen.deltPtw);
+					debug(bestM.deltPen.deltCost);
+					debug(oldpenalty + bestM.deltPen.deltPc + bestM.deltPen.deltPtw);
+					debug(penalty);
+					debug(bestM.deltPen.deltPc + bestM.deltPen.deltPtw);
+					debug(penalty - oldpenalty);
 
-						cout << "oldrv: ";
+					debug(oldRcost);
+					debug(bestM.deltPen.deltCost);
+					debug(RoutesCost);
+					debug(RoutesCost - oldRcost);
+
+					debug(oldPtw);
+					debug(bestM.deltPen.deltPtw);
+					debug(Ptw);
+					debug(Ptw - oldPtw);
+
+
+					debug(oldPtwNoWei);
+					debug(bestM.deltPen.PtwOnly);
+					debug(PtwNoWei);
+
+					debug(oldPc);
+					debug(bestM.deltPen.deltPc);
+					debug(bestM.deltPen.PcOnly);
+					debug(Pc);
+
+					cout << "oldrv: ";
 
 					for (auto i : oldrv) {
 						cout << i << " ,";
@@ -8951,11 +8946,11 @@ namespace vrptwNew {
 					rNextDisp(rv);
 					rNextDisp(rw);
 
-					debug(squIter)
+					debug(squIter);
 
-						debug(DEFabs(oldpenalty + bestM.deltPen.deltPc + bestM.deltPen.deltPtw, penalty))
-						debug("false false")
-						debug("false false")
+					debug(DEFabs(oldpenalty + bestM.deltPen.deltPc + bestM.deltPen.deltPtw, penalty));
+					debug("false false");
+					debug("false false");
 
 				}
 #endif // CHECKING
@@ -8986,12 +8981,13 @@ namespace vrptwNew {
 			else {
 				return false;
 			}
-			return true;
+			return false;
 		}
 
 		bool repair() {
 
 			gamma = 1;
+
 			return naRepair();
 		}
 
@@ -9140,7 +9136,8 @@ namespace vrptwNew {
 				solTabuUpBySolToBitArr();*/
 
 				updatePen();
-				updateRtsCost();
+				//updateRtsCost();
+				RoutesCost += bestM.deltPen.deltCost;
 
 				//debug(RoutesCost)
 #if CHECKING
@@ -9159,73 +9156,77 @@ namespace vrptwNew {
 				for (int i = 0; i < rts.cnt; ++i) {
 					Route& r = rts[i];
 					if (rPutCusInve(r).size() != r.rCustCnt) {
-						debug(rPutCusInve(r).size() != r.rCustCnt)
-							debug(rPutCusInve(r).size() != r.rCustCnt)
+						debug(rPutCusInve(r).size() != r.rCustCnt);
+						debug(rPutCusInve(r).size() != r.rCustCnt);
 					}
 					if (customers[r.head].QX_ != customers[r.tail].Q_X) {
-						debug(customers[r.head].QX_ != customers[r.tail].Q_X)
-							debug(customers[r.head].QX_ != customers[r.tail].Q_X)
+						debug(customers[r.head].QX_ != customers[r.tail].Q_X);
+						debug(customers[r.head].QX_ != customers[r.tail].Q_X);
 					}
 
 					vector<int> ve = rPutCusInve(r);
 					for (int node : ve) {
 						if (customers[node].routeID != r.routeID) {
-							deOut(node)deOut(r.routeID)debug("rid error")
-								deOut(node)deOut(r.routeID)debug("rid error")
-								iderror = true;
+							deOut(node); 
+							deOut(r.routeID);
+							debug("rid error");
+							deOut(node); 
+							deOut(r.routeID);
+							debug("rid error");
+							iderror = true;
 						}
 					}
 				}
 
 				if (penAb0 || iderror || penaltyWeiError || penaltyError || RoutesCostError) {
 
-					debug("mRLLocalSearch score update error!")
+					debug("mRLLocalSearch score update error!");
 						
-						debug(bestM.v)
-						debug(bestM.w)
-						debug(bestM.kind)
+					debug(bestM.v);
+					debug(bestM.w);
+					debug(bestM.kind);
 
-						debug(rv.routeID == rw.routeID)
+					debug(rv.routeID == rw.routeID);
 
-						debug(penAb0)
-						debug(verify())
-						debug(iderror)
-						debug(penaltyWeiError)
-						debug(penaltyError)
-						debug(RoutesCostError)
-
-
-						debug(oldpenalty)
-
-						debug(bestM.deltPen.deltPc)
-						debug(bestM.deltPen.deltPtw)
-						debug(bestM.deltPen.deltCost)
-						debug(oldpenalty + bestM.deltPen.deltPc + bestM.deltPen.deltPtw)
-						debug(penalty)
-						debug(bestM.deltPen.deltPc + bestM.deltPen.deltPtw)
-						debug(penalty - oldpenalty)
-
-						debug(oldRcost)
-						debug(bestM.deltPen.deltCost)
-						debug(RoutesCost)
-						debug(RoutesCost - oldRcost)
-
-						debug(oldPtw)
-						debug(bestM.deltPen.deltPtw)
-						debug(Ptw)
-						debug(Ptw - oldPtw)
+					debug(penAb0);
+					debug(verify());
+					debug(iderror);
+					debug(penaltyWeiError);
+					debug(penaltyError);
+					debug(RoutesCostError);
 
 
-						debug(oldPtwNoWei)
-						debug(bestM.deltPen.PtwOnly)
-						debug(PtwNoWei)
+					debug(oldpenalty);
 
-						debug(oldPc)
-						debug(bestM.deltPen.deltPc)
-						debug(bestM.deltPen.PcOnly)
-						debug(Pc)
+					debug(bestM.deltPen.deltPc);
+					debug(bestM.deltPen.deltPtw);
+					debug(bestM.deltPen.deltCost);
+					debug(oldpenalty + bestM.deltPen.deltPc + bestM.deltPen.deltPtw);
+					debug(penalty);
+					debug(bestM.deltPen.deltPc + bestM.deltPen.deltPtw);
+					debug(penalty - oldpenalty);
 
-						cout << "oldrv: ";
+					debug(oldRcost);
+					debug(bestM.deltPen.deltCost);
+					debug(RoutesCost);
+					debug(RoutesCost - oldRcost);
+
+					debug(oldPtw);
+					debug(bestM.deltPen.deltPtw);
+					debug(Ptw);
+					debug(Ptw - oldPtw);
+
+
+					debug(oldPtwNoWei);
+					debug(bestM.deltPen.PtwOnly);
+					debug(PtwNoWei);
+
+					debug(oldPc);
+					debug(bestM.deltPen.deltPc);
+					debug(bestM.deltPen.PcOnly);
+					debug(Pc);
+
+					cout << "oldrv: ";
 
 					for (auto i : oldrv) {
 						cout << i << " ,";
@@ -9240,18 +9241,16 @@ namespace vrptwNew {
 					rNextDisp(rv);
 					rNextDisp(rw);
 
-					debug(squIter)
+					debug(squIter);
 
-						debug(DEFabs(oldpenalty + bestM.deltPen.deltPc + bestM.deltPen.deltPtw, penalty))
-						debug("false false")
-						debug("false false")
+					debug(DEFabs(oldpenalty + bestM.deltPen.deltPc + bestM.deltPen.deltPtw, penalty));
+					debug("false false");
+					debug("false false");
 
 				}
 #endif // CHECKING
 
 			}
-
-			//debug(RoutesCost)
 
 			return true;
 		}
@@ -9261,7 +9260,10 @@ namespace vrptwNew {
 			gamma = 1;
 
 			mRLLocalSearch();
-
+			LL rc = verify();
+			if (RoutesCost != rc) {
+				println("RoutesCost != verify()");
+			}
 			return true;
 		}
 
@@ -9278,7 +9280,6 @@ namespace vrptwNew {
 			for (int i = 0; i < rts.size(); ++i) {
 				output.rts.push_back(rPutCusInve(rts[i]));
 			}
-			lyhTimer.disp();
 			output.state = state;
 
 			return true;
@@ -9366,8 +9367,8 @@ nextdisp: 697 ,13 ,10 ,166 ,202 ,189 ,181 ,340 ,251 ,345 ,472 ,698 ,
 			auto v1 = rPutCusInve(rv);
 			auto v2 = rPutCusInve(rw);
 
-			debug(v1.size())
-			debug(v2.size())
+			debug(v1.size());
+			debug(v2.size());
 
 			rUpdateAvfrom(rv,rv.head);
 			rUpdateZvfrom(rv,rv.tail);
@@ -9375,20 +9376,19 @@ nextdisp: 697 ,13 ,10 ,166 ,202 ,189 ,181 ,340 ,251 ,345 ,472 ,698 ,
 			rUpdateAvfrom(rw,rw.head);
 			rUpdateZvfrom(rw,rw.tail);
 
-			debug(rv.rPtw)
-			debug(rw.rPtw)
+			debug(rv.rPtw);
+			debug(rw.rPtw);
 
 			auto node1 = ejectOneRouteMinPsumGreedy(rv);
 			auto node2 = ejectOneRouteOnlyP(rv,2,2);
-			debug(node1.ejeVe.size())
-			outVe(node1.ejeVe)
-			debug(node1.Psum)
+			debug(node1.ejeVe.size());
+			outVe(node1.ejeVe);
+			debug(node1.Psum);
 
-			debug(node2.ejeVe.size())
-				outVe(node2.ejeVe)
-			debug(node2.Psum)
+			debug(node2.ejeVe.size());
+			outVe(node2.ejeVe);
+			debug(node2.Psum);
 
-			debug(1)
 
 			/*DeltPen d = _2optOpenvvj(431, 211);
 			DisType old = updateRtsCost();
@@ -9487,7 +9487,7 @@ nextdisp: 697 ,13 ,10 ,166 ,202 ,189 ,181 ,340 ,251 ,345 ,472 ,698 ,
 				}
 
 				if (isSucceed) {
-					debug(arr.size())
+					debug(arr.size());
 					break;
 				}
 

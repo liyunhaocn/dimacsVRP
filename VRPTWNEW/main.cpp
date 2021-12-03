@@ -95,18 +95,12 @@ bool run(int argc, char* argv[],string ex="C1_6_6") {
 
 bool solverByEAX(int argc, char* argv[]) {
 
-	vrpSln::Environment env("C1_2_2");
+	vrpSln::Environment env("C1_2_6");
 	vrpSln::Configuration cfg;
 	//lyh::MyString ms;
 
-	vrpSln::DateTime d(time(0));
-	cout << d << endl;
-	//deOut("compile tag:")debug("0424-2")
-	env.show();
-	cfg.show();
-	debug("compile tag:");
-	debug(__DATE__);
-	debug(__TIME__);
+	vrpSln::println("__DATE__: ",__DATE__);
+	vrpSln::println("__TIME__: ",__TIME__);
 
 	solveCommandLine(argc, argv, cfg, env);
 
@@ -117,7 +111,8 @@ bool solverByEAX(int argc, char* argv[]) {
 	auto env2 = env;
 
 	env2.seed = env.seed + 1611589828;
-
+	env.show();
+	cfg.show();
 	vrpSln::Input input(env, cfg);
 
 	vrpSln::Solver pa(input, cfg, env);
@@ -134,7 +129,7 @@ bool solverByEAX(int argc, char* argv[]) {
 	vrpSln::Solver pc(pa);
 	vrpSln::Solver pBest(pa);
 
-	int contiNoDown = 0;
+	int contiNoDown = 1;
 
 	vrpSln::Timer t1(3600);
 
@@ -165,24 +160,31 @@ bool solverByEAX(int argc, char* argv[]) {
 			pBest = pc;
 			contiNoDown = 0;
 			pBest.saveToOutPut();
-			vrpSln::saveSln(input, pBest.output, cfg, env);
-			debug(pc.RoutesCost)
+			//vrpSln::saveSln(input, pBest.output, cfg, env);
+			vrpSln::println("pc.RoutesCost: ",pc.RoutesCost);
+			vrpSln::println("pBest.RoutesCost: ", pBest.RoutesCost);
+			vrpSln::println("pBest.ver: ", pBest.verify());
+
 		}
 		else {
 			++contiNoDown;
 		}
 
-		if (contiNoDown > 5) {
+		if (contiNoDown % 5 ==0 ) {
 			pa = pBest;
 			pb.patternAdjustment(50);
 			pb.minimizeRL();
-			vrptwNew::println("contiNoDown > 5");
-			contiNoDown = 0;
+		}
+
+		if (contiNoDown % 20 ==0 ) {
+			pa = pBest;
+			pb.patternAdjustment(pc.input.custCnt*0.2);
+			pb.minimizeRL();
 		}
 	}
 	
 	vrpSln::saveSln(input, pBest.output, cfg, env);
-
+	t1.disp();
 	return true;
 }
 

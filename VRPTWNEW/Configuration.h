@@ -35,7 +35,7 @@ struct Configuration {
 	//const LL squRandRange = 2000 ;//随机挑选的概率
 
 	int Irand = 200;
-	int runTimer = 600; //s
+	int runTimer = 1800; //s
 	int neiMoveKind = 16;
 	int popSize = 10;
 
@@ -55,7 +55,7 @@ struct Configuration {
 
 	void show() {
 
-		debug(breakRecord)
+		debug(breakRecord);
 		debug(Pwei0);
 		debug(Pwei1);
 		debug(minKmax);
