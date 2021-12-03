@@ -416,7 +416,7 @@ struct Input {
 		iInNeicloseOfUnionNeiCloseOfI = vector <vector< vector<int> > >(cfg.outNeiSize.size());
 
 		vector<int> devs = cfg.outNeiSize;
-
+		
 		for (int i = 0; i < devs.size(); i++) {
 
 			LL deNeiSize = devs[i];
@@ -595,20 +595,6 @@ struct Input {
 		return true;
 	}
 
-	~Input() {
-
-		disOf.clear();
-
-		allCloseOf.clear();
-
-		addSTclose.clear();
-
-		addSTJIsxthcloseOf.clear();
-
-		jIsxthcloseOf.clear();
-
-		iInNeicloseOfUnionNeiCloseOfI.clear();
-	}
 };
 
 struct Output

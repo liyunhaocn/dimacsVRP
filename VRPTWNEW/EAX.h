@@ -379,14 +379,6 @@ public:
 			}
 		}
 
-		/*for (Vec<int> arr :abCycleSet) {
-			for (int c : arr) {
-				cout << c << " ";
-			}
-			cout << endl;
-		}
-		debug("11111111")*/
-
 		return true;
 	}
 
@@ -433,16 +425,16 @@ public:
 		};
 
 		for (int i : cycle) {
-			RichEdge& re = richEdges[i];
-			if (re.owner == Owner::Pa) {
-				breakab(re.e.a, re.e.b);
+			RichEdge& riche = richEdges[i];
+			if (riche.owner == Owner::Pa) {
+				breakab(riche.e.a, riche.e.b);
 			}
 		}
 
 		for (int i : cycle) {
-			RichEdge& re = richEdges[i];
-			if (re.owner == Owner::Pb) {
-				linkab(re.e.a, re.e.b);
+			RichEdge& riche = richEdges[i];
+			if (riche.owner == Owner::Pb) {
+				linkab(riche.e.a, riche.e.b);
 			}
 		}
 
@@ -459,50 +451,59 @@ public:
 
 	bool removeSubring(Solver& pc) {
 
+		ConfSet subCyCus(cusCnt+1);
 		ConfSet cusSet(cusCnt+1);
 
 		for (int i = 1; i <= cusCnt; ++i) {
-			cusSet.ins(i);
+			subCyCus.ins(i);
 		}
 
 		for (int i = 0; i < pc.rts.cnt; ++i) {
 			vector<int> arr = pc.rPutCusInve(pc.rts[i]);
 			for (int c : arr) {
-				cusSet.removeVal(c);
+				subCyCus.removeVal(c);
+				cusSet.ins(c);
 			}
 		}
 
-		for (int i = 0; i < cusSet.cnt; ++i) {
-			pc.customers[cusSet.ve[i]].routeID = -1;
+		for (int i = 0; i < subCyCus.cnt; ++i) {
+			pc.customers[subCyCus.ve[i]].routeID = -1;
 		}
 
-		while (cusSet.cnt > 0) {
+		while (subCyCus.cnt > 0) {
 
-			int w = cusSet.ve[0];
+			int w = subCyCus.ve[0];
+			
+
+			auto& close =  pc.input.allCloseOf[w];
+			int v = -1;
+			
+			for (int vpos = 0; vpos < pc.input.custCnt; ++vpos) {
+				v = close[vpos];
+				if (pc.customers[v].routeID != -1) {
+					break;
+				}
+			}
+
+			Route& rv = pc.rts.getRouteByRid(pc.customers[v].routeID);
+
 			int pt = w;
-
-			int v = mr.pick(cusCnt) + 1;
-			while (pc.customers[v].routeID==-1){
-				v = mr.pick(cusCnt) + 1;
-			}
+			vector<int>onesubcyle;
 
 			while (pt != -1) {
-				//debug(pt)
-				pc.customers[pt].routeID = pc.customers[v].routeID;
-				cusSet.removeVal(pt);
+				subCyCus.removeVal(pt);
+				onesubcyle.push_back(pt);
 				pt = pc.customers[pt].next;
 				if (pt == w) {
 					break;
 				}
 			}
 
-			Solver::DeltPen d;
-			Solver::TwoNodeMove m(v,w,0,d);
-			pc.twoOptStar(m);
+			for (auto pt: onesubcyle) {
+				pc.rInsAtPos(rv, v, pt);
+				v = pt;
+			}
 
-			/*debug(cusSet.cnt)
-			debug(pc.getCusCnt())
-			debug(cusSet.cnt)*/
 		}
 		
 		return true;
@@ -518,6 +519,9 @@ public:
 	bool doEAX(Solver& pa, Solver& pb,Solver & pc) {
 			
 		classifyEdges(pa, pb);
+		
+#if CHECKING
+
 		if (GabEsize == 0) {
 			debug(pa.updateRtsCost())
 				debug(pb.updateRtsCost())
@@ -526,8 +530,6 @@ public:
 				return false;
 		}
 
-
-#if CHECKING
 		if (GabEsize == 0) {
 			debug(pa.updateRtsCost())
 				debug(pb.updateRtsCost())
@@ -557,7 +559,7 @@ public:
 
 		bool isSucceed = false;
 
-		for (int i = 0; i < 10; ++i) {
+		for (int children = 0; children < 10; ++children) {
 
 			pc = pa;
 			Vec<int> Alleset;
@@ -590,10 +592,14 @@ public:
 			//sort(Alleset.begin(), Alleset.end(),cmp);
 
 			ShuffleCards sc;
-			sc.makeItDisorder(Alleset);
+			std::random_shuffle(Alleset.begin(),Alleset.end());
 
 			int maxCycleCnt = mr.pick(Alleset.size()) + 1;
-			maxCycleCnt = min(Alleset.size() / 2+1, maxCycleCnt);
+			//maxCycleCnt = min(Alleset.size() / 2+1, maxCycleCnt);
+			
+			maxCycleCnt = (children&1)==0? 1: Alleset.size()/2;
+			//maxCycleCnt = 2;
+			maxCycleCnt = min(Alleset.size(), maxCycleCnt);
 			for (int i = 0; i < maxCycleCnt; ++i) {
 				eset.push_back(Alleset[i]);
 			}
@@ -606,17 +612,14 @@ public:
 
 			pc.updateRtsValsAndPen();
 			pc.rtsCheck();
-
-			for (int i = 0; i < pc.rts.cnt; ++i) {
-				pc.rUpdateAvQfrom(pc.rts[i], pc.rts[i].head);
-				pc.rUpdateZvQfrom(pc.rts[i], pc.rts[i].tail);
-			}
-
-			pc.updatePen();
+			//println("pc.verify(): ",pc.verify());
+			
 			pc.updateRtsCost();
 			if (pc.repair()) {
+
+				isSucceed = true;
 				if (isSucceed == false) {
-					isSucceed = true;
+					
 					sbest = pc;
 				}
 				else {
@@ -632,14 +635,13 @@ public:
 			pc = sbest;
 		}
 		
-		debug(abCycleSet.size())
+		println("abCycleSet.size():", abCycleSet.size());
 		int ecnt = 0;
 		for (Vec<int> c : abCycleSet) {
 			ecnt += c.size();
 		}
-		debug(ecnt)
+		//debug(ecnt)
 		return isSucceed;
-		
 	}
 
 private:

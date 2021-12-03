@@ -16,7 +16,7 @@
 #include "./Flag.h"
 #include "./EAX.h"
 
-#include "./getBound.h"
+//#include "./getBound.h"
 
 namespace vrpSln = vrptwNew;
 //namespace vrpSln = lyh;
@@ -32,7 +32,7 @@ using namespace std;
 #include<map>
 
 
-bool run(int argc, char* argv[],string ex="C2_10_9") {
+bool run(int argc, char* argv[],string ex="C1_6_6") {
 
 	vrpSln::Environment env(ex);
 
@@ -40,22 +40,18 @@ bool run(int argc, char* argv[],string ex="C2_10_9") {
 	solveCommandLine(argc, argv, cfg, env);
 
 	/*cfg.breakRecord = 0;
-	env.seed = 1634129452;*/
+	env.seed = 1634129452;
+	*/
 
-	debug(argc)
+	debug(argc);
 	env.show();
 	cfg.show();
 	
-	//cfg.runTimer = 3600;
-
 	vrpSln::DateTime d(time(0));
 	cout << d << endl;
-	debug("compile tag:")
-	debug(__DATE__)
-	debug(__TIME__)
-	
-	//env.seed = 1610679669;
-	//env.seed = 1610863258;
+	debug("compile tag:");
+	debug(__DATE__);
+	debug(__TIME__);
 	
 	vector<string> e1 = {"C1_", "C2_" ,"R1_","R2_","RC1_","RC2_"};
 	vector<string> e2 = { "2_","4_","6_","8_","10_" };
@@ -99,91 +95,70 @@ bool run(int argc, char* argv[],string ex="C2_10_9") {
 
 bool solverByEAX(int argc, char* argv[]) {
 
-	vrpSln::Environment env;
+	vrpSln::Environment env("C1_2_2");
 	vrpSln::Configuration cfg;
 	//lyh::MyString ms;
 
 	vrpSln::DateTime d(time(0));
 	cout << d << endl;
 	//deOut("compile tag:")debug("0424-2")
-	debug(argc)
+	env.show();
+	cfg.show();
+	debug("compile tag:");
+	debug(__DATE__);
+	debug(__TIME__);
 
 	solveCommandLine(argc, argv, cfg, env);
 
 	if (env.seed == -1) {
 		env.seed = std::time(nullptr) + std::clock();
 	}
+	env.seed = 1611589828;
+	auto env2 = env;
 
-	//env.seed = 1611589828;
-	//cfg.breakRecord = 1;
+	env2.seed = env.seed + 1611589828;
 
 	vrpSln::Input input(env, cfg);
 
 	vrpSln::Solver pa(input, cfg, env);
-	vrpSln::Solver pb(input, cfg, env);
+	vrpSln::Solver pb(input, cfg, env2);
 	
-	/*pa.initBybestSolution();
-	pa.patternAdjustment(-1,1000);
-	pb.initBybestSolution();*/
-	
-	//pa.minimizeRN();
-	//pa.updateRtsCost();
-	////pa.initBybestSolution();
-	//debug(pa.RoutesCost)
-	//pa.patternAdjustment(-1,1000);
-	//pa.minimizeRL();
-	//debug(pa.RoutesCost)
-	//debug(pa.verify())
-	//debug(pa.verify())
+	pa.minimizeRN();
+	//pb.patternAdjustment(-1, 1000);
+	pa.minimizeRL();
 
 	pb.minimizeRN();
 	//pb.patternAdjustment(-1, 1000);
 	pb.minimizeRL();
-	debug(pb.RoutesCost)
-
-	return true;
 
 	vrpSln::Solver pc(pa);
 	vrpSln::Solver pBest(pa);
+
 	int contiNoDown = 0;
 
-	while (pa.RoutesCost > input.sintefRecRL){
+	vrpSln::Timer t1(3600);
+
+	t1.setLenUseSecond(3600);
+	t1.reStart();
+
+	while (pa.RoutesCost > input.sintefRecRL && !t1.isTimeOut()){
 
 		pc = pa;
+		pb.patternAdjustment(10);
+		pb.minimizeRL();
+
 		vrpSln::EAX eax(input.custCnt, pa.rts.cnt, env.seed);
 		bool eaSucceed = eax.doEAX(pa, pb, pc);
 
-		while (!eaSucceed) {
-			debug(eaSucceed)
-			pb.patternAdjustment(100);
+		if (!eaSucceed) {
+			//debug(eaSucceed)
+			pb.patternAdjustment(30);
 			pb.minimizeRL();
-			pc = pa;
-			vrpSln::EAX eax(input.custCnt, pa.rts.cnt, env.seed);
-			eaSucceed = eax.doEAX(pa, pb, pc);
 		}
-
-		bool reSucceed = pc.repair();
-
-		while(!reSucceed) {
-
-			debug(reSucceed)
-			pb.patternAdjustment(500);
-			pb.minimizeRL();
-			pc = pa;
-			vrpSln::EAX eax(input.custCnt, pa.rts.cnt, env.seed);
-			eax.doEAX(pa, pb, pc);
-			reSucceed = pc.repair();
-		}
-
-		pc.minimizeRL();
 
 		if (pc.RoutesCost < pa.RoutesCost) {
 			pa = pc;
 			contiNoDown = 0;
-
-			//pc.saveToOutPut();
-			//vrpSln::saveSln(input, pc.output, cfg, env);
-			//debug(pc.RoutesCost)
 		}
 		
 		if (pc.RoutesCost < pBest.RoutesCost) {
@@ -199,14 +174,14 @@ bool solverByEAX(int argc, char* argv[]) {
 
 		if (contiNoDown > 5) {
 			pa = pBest;
-			pb.patternAdjustment(5000);
+			pb.patternAdjustment(50);
 			pb.minimizeRL();
-			
+			vrptwNew::println("contiNoDown > 5");
 			contiNoDown = 0;
 		}
 	}
 	
-	vrpSln::saveSln(input, pa.output, cfg, env);
+	vrpSln::saveSln(input, pBest.output, cfg, env);
 
 	return true;
 }
@@ -239,7 +214,9 @@ int main(int argc, char* argv[])
 	/*for (auto ex : all63) {
 		run(argc, argv,ex);
 	}*/
-	run(argc, argv);
+
+	solverByEAX(argc, argv);
+	//run(argc, argv);
 
 	/*vector<string> boundCase;
 	map<string,int> boundofex;

@@ -47,8 +47,11 @@ struct Configuration {
 
 	bool breakRecord = 0;
 
-	LL yearTabuLen = 5;
-	LL yearTabuRand = 5;
+	//LL yearTabuLen = 5;
+	//LL yearTabuRand = 5;
+	
+	LL yearTabuLen = 20;
+	LL yearTabuRand = 10;
 
 	void show() {
 

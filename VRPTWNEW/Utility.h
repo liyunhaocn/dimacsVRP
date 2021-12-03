@@ -50,6 +50,15 @@ namespace vrptwNew {
 #define RESOLVED_CONCAT2(a, b, c)  VERBATIM_CONCAT2(a, b, c)
 #define RESOLVED_CONCAT3(a, b, c, d)  VERBATIM_CONCAT3(a, b, c, d)
 
+void println() { cout << endl; }
+template<typename T, typename ... Types>
+void println(const T& firstArg, const Types&... args) {
+
+    //cout << "size of args: " << sizeof...(args) << endl;
+    cout << firstArg << " ";
+    println(args...);
+}
+
 struct MyString {
 public:
     //split 

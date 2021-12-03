@@ -16,19 +16,10 @@
     <Filter Include="VRPTWNEW">
       <UniqueIdentifier>{159d163e-2c81-47de-847c-652800e03c71}</UniqueIdentifier>
     </Filter>
-    <Filter Include="MCP">
-      <UniqueIdentifier>{c667da6c-8779-4bbf-9cb5-f4c4bd8d76f5}</UniqueIdentifier>
-    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\VRPTWNEW\main.cpp">
       <Filter>VRPTWNEW</Filter>
-    </ClCompile>
-    <ClCompile Include="..\MCP\CliqueTsm.cpp">
-      <Filter>MCP</Filter>
-    </ClCompile>
-    <ClCompile Include="..\MCP\CliqueSolver.cpp">
-      <Filter>MCP</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -58,15 +49,6 @@
     </ClInclude>
     <ClInclude Include="..\VRPTWNEW\getBound.h">
       <Filter>VRPTWNEW</Filter>
-    </ClInclude>
-    <ClInclude Include="..\MCP\Graph.h">
-      <Filter>MCP</Filter>
-    </ClInclude>
-    <ClInclude Include="..\MCP\Arr.h">
-      <Filter>MCP</Filter>
-    </ClInclude>
-    <ClInclude Include="..\MCP\CliqueSolver.h">
-      <Filter>MCP</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>

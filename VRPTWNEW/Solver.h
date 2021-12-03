@@ -365,6 +365,13 @@ namespace vrptwNew {
 		RandomX(LL seed) : rgen(seed) { initMpLLArr(); }
 		RandomX() : rgen(generateSeed()) { initMpLLArr(); }
 
+
+		RandomX(const RandomX& rhs) {
+			this->mpLLArr = rhs.mpLLArr;
+			this->maxRange = rhs.maxRange;
+			this->rgen = rhs.rgen;
+		}
+
 		vector< vector<int> > mpLLArr;
 		LL maxRange = 10001;
 
@@ -382,7 +389,6 @@ namespace vrptwNew {
 
 		static LL generateSeed() {
 			unsigned seed = std::chrono::system_clock::now().time_since_epoch().count();
-
 			return static_cast<LL>(seed);
 		}
 
@@ -410,6 +416,20 @@ namespace vrptwNew {
 				swap(ve[i], ve[index]);
 			}
 			return true;
+		}
+		
+		RandomX& operator = (RandomX&& rhs) noexcept {
+			this->mpLLArr = std::move(rhs.mpLLArr);
+			this->maxRange = rhs.maxRange;
+			this->rgen = rhs.rgen;
+			return *this;
+		}
+		
+		RandomX& operator = (const RandomX& rhs) {
+			this->mpLLArr = rhs.mpLLArr;
+			this->maxRange = rhs.maxRange;
+			this->rgen = rhs.rgen;
+			return *this;
 		}
 
 		Generator rgen;
@@ -795,9 +815,7 @@ namespace vrptwNew {
 			this->EPIter = s.EPIter;
 			this->ourTarget = s.ourTarget;
 			this->cfg = s.cfg;
-
 			//this->minEPSize = s.minEPSize;
-
 		}
 
 		void operator = (const Solver& s) {
@@ -821,7 +839,7 @@ namespace vrptwNew {
 			this->EPr = s.EPr;
 			this->EPIter = s.EPIter;
 			this->ourTarget = s.ourTarget;
-			this->myRandX = s.myRandX;
+			//this->myRandX = s.myRandX;
 		}
 
 		// route function
@@ -1205,47 +1223,48 @@ namespace vrptwNew {
 			return ret;
 		}
 
-		bool rCheck(Route& r) {
-
-			vector<int> cus1;
-			vector<int> cus2;
-
-			int pt = r.head;
-			while (pt != -1) {
-				cus1.push_back(pt);
-				pt = customers[pt].next;
-			}
-			
-			pt = r.tail;
-			while (pt != -1) {
-				cus2.push_back(pt);
-				pt = customers[pt].pre;
-			}
-
-			if (cus1.size() != cus2.size()) {
-				debug(cus1.size() != cus2.size())
-			}
-
-			for (int i = 0; i < cus1.size(); ++i) {
-			
-				if (cus1[i] != cus2[cus1.size()-1-i]) {
-					debug(cus1[i] != cus2[cus1.size() - 1 - i])
-				}
-			}
-
-			if (r.rCustCnt != cus1.size()-2) {
-				debug(r.rCustCnt)
-					debug(cus1.size())
-					rNextDisp(r);
-					rNextDisp(r);
-
-			}
-			return true;
-		}
-
 		bool rtsCheck() {
+
 			for (int i = 0; i < rts.cnt; ++i) {
-				rCheck(rts[i]);
+				Route& r = rts[i];
+
+				vector<int> cus1;
+				vector<int> cus2;
+
+				int pt = r.head;
+				while (pt != -1) {
+					
+					if (customers[pt].routeID != r.routeID) {
+						println("customers[pt].routeID != r.routeID", pt, r.routeID);
+					}
+					cus1.push_back(pt);
+					pt = customers[pt].next;
+				}
+
+				pt = r.tail;
+				while (pt != -1) {
+					cus2.push_back(pt);
+					pt = customers[pt].pre;
+				}
+
+				if (cus1.size() != cus2.size()) {
+					debug(cus1.size() != cus2.size())
+				}
+
+				for (int i = 0; i < cus1.size(); ++i) {
+
+					if (cus1[i] != cus2[cus1.size() - 1 - i]) {
+						debug(cus1[i] != cus2[cus1.size() - 1 - i])
+					}
+				}
+
+				if (r.rCustCnt != cus1.size() - 2) {
+					debug(r.rCustCnt)
+						debug(cus1.size())
+						rNextDisp(r);
+					rNextDisp(r);
+				}
+
 			}
 			return true;
 		}
@@ -6707,14 +6726,14 @@ namespace vrptwNew {
 				}
 			}
 			
-			while (customers.back().routeID==-1)
+			/*while (customers.back().routeID==-1)
 			{
 				customers.pop_back();
 			} 
 			while (input.datas.size()> customers.size())
 			{
 				input.datas.pop_back();
-			}
+			}*/
 
 			return true;
 		}
@@ -7582,8 +7601,8 @@ namespace vrptwNew {
 						}
 
 						doEject(XSet);
-						int Irand = input.custCnt / EPr.rCustCnt/6;
-						Irand = max(Irand,10);
+						int Irand = input.custCnt / EPr.rCustCnt/4;
+						Irand = max(Irand,100);
 						patternAdjustment(Irand);
 						//system("pause");
 						//saveOutAsSintefFile();
@@ -8691,7 +8710,7 @@ namespace vrptwNew {
 						for (int i = 0; i < 15; ++i) {
 
 							TwoNodeMove m;
-							m = TwoNodeMove(v, w, i, estimatevw(i, v, w, 0));
+							m = TwoNodeMove(v, w, i, estimatevw(i, v, w, 1));
 							updateBestM(m, bestM);
 						}
 					}
@@ -8757,36 +8776,26 @@ namespace vrptwNew {
 						bestM = t;
 					}
 				}
-				
 				return true;
 			};
 
 #endif // DISDOUBLE
 
-			int iter = 0;
-			
 			while (penalty > 0 && !lyhTimer.isTimeOut()) {
 				
 				TwoNodeMove bestM = getMovesRandomly(updateBestM);
 				if (bestM.deltPen.PcOnly + bestM.deltPen.PtwOnly > 0) {
 					bestM = evalMinRLMovesFromConfRts(updateBestM);
 				}
-				++iter;
-				if (bestM.deltPen.PcOnly + bestM.deltPen.PtwOnly > 0) {
-					/*debug("penaltyAndRLRepair fail find move")
-						debug(++iter)
-						debug(++iter)*/
-						++contiNotDe;
 
-					return false;
-					continue;
+				if (bestM.deltPen.PcOnly + bestM.deltPen.PtwOnly > 0) {
+					/*debug("penaltyAndRLRepair fail find move")*/
+					//++contiNotDe;
+					if (bestM.v == 0 && bestM.w == 0) {
+						return false;
+					}
+					//return false;
 				}
-				/*else if (bestM.deltPen.PcOnly + bestM.deltPen.PtwOnly <= 0) {
-					;
-				}
-				else if (bestM.deltPen.PcOnly + bestM.deltPen.PtwOnly > 0) {
-					;
-				}*/
 
 #if CHECKING
 
@@ -8988,25 +8997,24 @@ namespace vrptwNew {
 
 		bool mRLLocalSearch() {
 
-			TwoNodeMove MRLbestM;
-
 			resetConfRts();
 			updatePen();
 			updateRtsCost();
 
+			TwoNodeMove MRLbestM;
+
 			auto MRLUpdateM = [&](TwoNodeMove& m) {
 
 				if (m.deltPen.deltPc == 0 && m.deltPen.deltPtw == 0) {
-
-					if (m.deltPen.deltCost < 0 && m.deltPen.deltCost < MRLbestM.deltPen.deltCost) {
-						MRLbestM = m;
-					}
-					/*else if(m.deltPen.deltCost == MRLbestM.deltPen.deltCost){
-						if (getYearOfMove(m) < getYearOfMove(MRLbestM)) {
+					if (m.deltPen.deltCost < 0) {
+						if (m.deltPen.deltCost < MRLbestM.deltPen.deltCost) {
 							MRLbestM = m;
 						}
-					}*/
-					
+					}else{
+						if (getYearOfMove(m) < squIter) {
+							MRLbestM = m;
+						}
+					}
 				}
 			};
 
@@ -9019,7 +9027,7 @@ namespace vrptwNew {
 					if (customers[v].routeID == -1) {
 						continue;
 					}
-					for (int wpos = 0; wpos < 100; ++wpos) {
+					for (int wpos = 0; wpos < 50; ++wpos) {
 
 						int w = input.allCloseOf[v][wpos];
 						if (customers[w].routeID == -1) {
@@ -9052,7 +9060,7 @@ namespace vrptwNew {
 
 					Vec<int> reV = input.allCloseOf[v];
 
-					for (int wpos = 0; wpos < 20; ++wpos) {
+					for (int wpos = 0; wpos < 50; ++wpos) {
 						//int w = myRand.pick(input.custCnt) + 1;
 						int w = reV[wpos];
 						if (customers[w].routeID == -1) {
@@ -9079,17 +9087,24 @@ namespace vrptwNew {
 			bestSol bestS(customers, rts, 
 				EPr, Pc, Ptw, PtwNoWei, penalty,RoutesCost);
 			
-			
+			alpha = 1;
+			beta = 1;
+			for (int i = 0; i < rts.cnt; ++i) {
+				rts[i].rWeight = 1;
+			}
+			squIter += cfg.yearTabuLen + cfg.yearTabuRand;
+
 			while (!lyhTimer.isTimeOut()) {
 
-				TwoNodeMove bestM = getMRLPartMoves();
+				TwoNodeMove bestM = getMRLAllMoves();
+				//TwoNodeMove bestM = getMRLPartMoves();
 				if (bestM.deltPen.PtwOnly > 0
 					|| bestM.deltPen.PcOnly > 0
-					|| bestM.deltPen.deltCost > 0) {
-
-					break;
+					|| bestM.deltPen.deltCost > 0
+					) {
+						break;
 				}
-
+				
 #if CHECKING
 
 				vector<vector<int>> oldRoutes;
@@ -9127,6 +9142,7 @@ namespace vrptwNew {
 				updatePen();
 				updateRtsCost();
 
+				//debug(RoutesCost)
 #if CHECKING
 
 				bool iderror = false;
@@ -9235,7 +9251,7 @@ namespace vrptwNew {
 
 			}
 
-			debug(RoutesCost)
+			//debug(RoutesCost)
 
 			return true;
 		}
@@ -9245,8 +9261,6 @@ namespace vrptwNew {
 			gamma = 1;
 
 			mRLLocalSearch();
-
-			gamma = 0;
 
 			return true;
 		}

@@ -35,14 +35,9 @@
     </ProjectConfiguration>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="..\MCP\CliqueSolver.cpp" />
-    <ClCompile Include="..\MCP\CliqueTsm.cpp" />
     <ClCompile Include="..\VRPTWNEW\main.cpp" />
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="..\MCP\Arr.h" />
-    <ClInclude Include="..\MCP\CliqueSolver.h" />
-    <ClInclude Include="..\MCP\Graph.h" />
     <ClInclude Include="..\VRPTWNEW\Configuration.h" />
     <ClInclude Include="..\VRPTWNEW\EAX.h" />
     <ClInclude Include="..\VRPTWNEW\Environment.h" />
