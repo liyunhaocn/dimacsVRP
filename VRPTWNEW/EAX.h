@@ -250,7 +250,6 @@ public:
 	bool generateCycles(int repeatTimes = 5) {
 
 		Vec<Vec<int>> cusVisitTime(cusCnt+1);
-		Vec<int> xthCusVisitTime(cusCnt+1,0);
 
 		//记录一个customer是第几步访问到的
 		//*(cusCnt + rCnt)

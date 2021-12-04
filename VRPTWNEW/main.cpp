@@ -95,7 +95,7 @@ bool run(int argc, char* argv[],string ex="C1_6_6") {
 
 bool solverByEAX(int argc, char* argv[]) {
 
-	vrpSln::Environment env("C1_2_6");
+	vrpSln::Environment env("C1_10_4");
 	vrpSln::Configuration cfg;
 	//lyh::MyString ms;
 
