@@ -1849,6 +1849,26 @@ namespace vrptwNew {
 
 		}
 
+		bool initByArr2(vector < vector<int>> arr2) {
+			
+			int rid = 0;
+			for(auto& arr:arr2){
+
+				Route r = rCreateRoute(rid++);
+
+				for (int cus : arr) {
+					//cout << s << " ";
+					rInsAtPosPre(r, r.tail, (cus));
+				}
+
+				rUpdateAvQfrom(r, r.head);
+				rUpdateZvQfrom(r, r.tail);
+				rts.push_back(r);
+			}
+			updatePen();
+			return true;
+		}
+
 		bool initDiffSituation() {
 
 			if (cfg.breakRecord == 1) {
@@ -2075,14 +2095,14 @@ namespace vrptwNew {
 				newwvPtw += customers[v].TWX_;
 
 				DisType avp = customers[w].av + input.datas[w].SERVICETIME + input.disOf[reCusNo(w)][reCusNo(v)];
-				newwvPtw += max(avp - customers[v].zv, 0);
+				newwvPtw += std::max<DisType>(avp - customers[v].zv, 0);
 
 				// (v-) -> (w+)
 				DisType newv_wjPtw = 0;
 				newv_wjPtw += customers[v_].TW_X;
 				newv_wjPtw += customers[wj].TWX_;
 				DisType awjp = customers[v_].av + input.datas[v_].SERVICETIME + input.disOf[reCusNo(v_)][reCusNo(wj)];
-				newv_wjPtw += max(awjp - customers[wj].zv, 0);
+				newv_wjPtw += std::max<DisType>(awjp - customers[wj].zv, 0);
 
 				bestM.PtwOnly = newwvPtw + newv_wjPtw - rv.rPtw - rw.rPtw;
 				bestM.deltPtw = newwvPtw * rw.rWeight + newv_wjPtw * rv.rWeight - vPtw - wPtw;
@@ -2168,7 +2188,7 @@ namespace vrptwNew {
 					+ input.datas[v].SERVICETIME
 					+ input.disOf[reCusNo(v)][reCusNo(w)];
 
-				newwvPtw += max(awp - customers[w].zv, 0);
+				newwvPtw += std::max<DisType>(awp - customers[w].zv, 0);
 
 				// (w-) -> (v+)
 				DisType neww_vjPtw = 0;
@@ -2178,7 +2198,7 @@ namespace vrptwNew {
 				DisType avjp = customers[w_].av
 					+ input.datas[w_].SERVICETIME
 					+ input.disOf[reCusNo(w_)][reCusNo(vj)];
-				neww_vjPtw += max(avjp - customers[vj].zv, 0);
+				neww_vjPtw += std::max<DisType>(avjp - customers[vj].zv, 0);
 
 				bestM.PtwOnly = newwvPtw + neww_vjPtw - rv.rPtw - rw.rPtw;
 				bestM.deltPtw = newwvPtw * rv.rWeight + neww_vjPtw * rw.rWeight - vPtw - wPtw;
@@ -2197,8 +2217,8 @@ namespace vrptwNew {
 				rw_vjQ += customers[w_].Q_X;
 				rw_vjQ += customers[vj].QX_;
 
-				bestM.deltPc = max((DisType)0, rvwQ - input.Q)
-					+ max((DisType)0, rw_vjQ - input.Q)
+				bestM.deltPc = std::max<DisType>((DisType)0, rvwQ - input.Q)
+					+ std::max<DisType>((DisType)0, rw_vjQ - input.Q)
 					- rv.rPc - rw.rPc;
 				bestM.PcOnly = bestM.deltPc;
 				bestM.deltPc *= beta;
@@ -2294,11 +2314,11 @@ namespace vrptwNew {
 
 						DisType avjp = customers[v_].av + input.datas[v_].SERVICETIME + input.disOf[reCusNo(v_)][reCusNo(vj)];
 
-						newvwPtw += max((DisType)0, avjp - input.datas[vj].DUEDATE);
+						newvwPtw += std::max<DisType>((DisType)0, avjp - input.datas[vj].DUEDATE);
 						newvwPtw += customers[v_].TW_X;
 
 						DisType avj = avjp > input.datas[vj].DUEDATE ? input.datas[vj].DUEDATE :
-							max(avjp, input.datas[vj].READYTIME);
+							std::max<DisType>(avjp, input.datas[vj].READYTIME);
 
 						lastav = avj;
 						lastv = vj;
@@ -2316,10 +2336,10 @@ namespace vrptwNew {
 								}
 
 								DisType aptp = lastav + input.datas[lastv].SERVICETIME + input.disOf[reCusNo(lastv)][reCusNo(pt)];
-								newvwPtw += max((DisType)0, aptp - input.datas[pt].DUEDATE);
+								newvwPtw += std::max<DisType>((DisType)0, aptp - input.datas[pt].DUEDATE);
 
 								DisType apt = aptp > input.datas[pt].DUEDATE ? input.datas[pt].DUEDATE :
-									max(aptp, input.datas[pt].READYTIME);
+									std::max<DisType>(aptp, input.datas[pt].READYTIME);
 
 								lastv = pt;
 								lastav = apt;
@@ -2328,13 +2348,13 @@ namespace vrptwNew {
 						}
 
 						DisType avp = lastav + input.datas[lastv].SERVICETIME + input.disOf[reCusNo(lastv)][reCusNo(v)];
-						newvwPtw += max((DisType)0, avp - input.datas[v].DUEDATE);
+						newvwPtw += std::max<DisType>((DisType)0, avp - input.datas[v].DUEDATE);
 
 						DisType av = avp > input.datas[v].DUEDATE ? input.datas[v].DUEDATE :
-							max(avp, input.datas[v].READYTIME);
+							std::max<DisType>(avp, input.datas[v].READYTIME);
 
 						DisType awp = av + input.datas[v].SERVICETIME + input.disOf[reCusNo(v)][reCusNo(w)];
-						newvwPtw += max((DisType)0, awp - customers[w].zv);
+						newvwPtw += std::max<DisType>((DisType)0, awp - customers[w].zv);
 
 						newvwPtw += customers[w].TWX_;
 
@@ -2344,20 +2364,20 @@ namespace vrptwNew {
 						DisType avp = customers[w_].av + input.datas[w_].SERVICETIME + input.disOf[reCusNo(w_)][reCusNo(v)];
 
 						newvwPtw += customers[w_].TW_X;
-						newvwPtw += max((DisType)0, avp - input.datas[v].DUEDATE);
+						newvwPtw += std::max<DisType>((DisType)0, avp - input.datas[v].DUEDATE);
 
 						DisType av = avp > input.datas[v].DUEDATE ? input.datas[v].DUEDATE :
-							max(avp, input.datas[v].READYTIME);
+							std::max<DisType>(avp, input.datas[v].READYTIME);
 
 						lastav = av;
 						lastv = v;
 
 						DisType awp = lastav + input.datas[v].SERVICETIME + input.disOf[reCusNo(v)][reCusNo(w)];
 
-						newvwPtw += max((DisType)0, awp - input.datas[w].DUEDATE);
+						newvwPtw += std::max<DisType>((DisType)0, awp - input.datas[w].DUEDATE);
 
 						DisType aw = awp > input.datas[w].DUEDATE ? input.datas[w].DUEDATE :
-							max(awp, input.datas[w].READYTIME);
+							std::max<DisType>(awp, input.datas[w].READYTIME);
 
 						lastv = w;
 						lastav = aw;
@@ -2367,10 +2387,10 @@ namespace vrptwNew {
 						while (pt != -1) {
 
 							DisType aptp = lastav + input.datas[lastv].SERVICETIME + input.disOf[reCusNo(lastv)][reCusNo(pt)];
-							newvwPtw += max((DisType)0, aptp - input.datas[pt].DUEDATE);
+							newvwPtw += std::max<DisType>((DisType)0, aptp - input.datas[pt].DUEDATE);
 
 							DisType apt = aptp > input.datas[pt].DUEDATE ? input.datas[pt].DUEDATE :
-								max(aptp, input.datas[pt].READYTIME);
+								std::max<DisType>(aptp, input.datas[pt].READYTIME);
 
 							lastv = pt;
 							lastav = apt;
@@ -2382,7 +2402,7 @@ namespace vrptwNew {
 						}
 
 						DisType avjp = lastav + input.datas[lastv].SERVICETIME + input.disOf[reCusNo(lastv)][reCusNo(vj)];
-						newvwPtw += max((DisType)0, avjp - customers[vj].zv);
+						newvwPtw += std::max<DisType>((DisType)0, avjp - customers[vj].zv);
 						newvwPtw += customers[vj].TWX_;
 					}
 					else {
@@ -2408,13 +2428,13 @@ namespace vrptwNew {
 
 					DisType avp = customers[w_].av + input.datas[w_].SERVICETIME + input.disOf[reCusNo(w_)][reCusNo(v)];
 					DisType zvp = customers[w].zv - input.disOf[reCusNo(w)][reCusNo(v)] - input.datas[v].SERVICETIME;
-					newvwPtw += max((DisType)0, max(avp, input.datas[v].READYTIME) - min(input.datas[v].DUEDATE, zvp));
+					newvwPtw += std::max<DisType>((DisType)0, std::max<DisType>(avp, input.datas[v].READYTIME) - min(input.datas[v].DUEDATE, zvp));
 
 					newv_vjPtw += customers[v_].TW_X;
 					newv_vjPtw += customers[vj].TWX_;
 
 					DisType avjp = customers[v_].av + input.datas[v_].SERVICETIME + input.disOf[reCusNo(v_)][reCusNo(vj)];
-					newv_vjPtw += max((DisType)0, avjp - customers[vj].zv);
+					newv_vjPtw += std::max<DisType>((DisType)0, avjp - customers[vj].zv);
 
 					bestM.PtwOnly = newvwPtw + newv_vjPtw - rv.rPtw - rw.rPtw;
 					bestM.deltPtw = newvwPtw * rw.rWeight + newv_vjPtw * rv.rWeight - vPtw - wPtw;
@@ -2432,8 +2452,8 @@ namespace vrptwNew {
 					bestM.PcOnly = 0;
 				}
 				else {
-					bestM.deltPc = max((DisType)0, rw.rQ + input.datas[v].DEMAND - input.Q)
-						+ max((DisType)0, rv.rQ - input.datas[v].DEMAND - input.Q)
+					bestM.deltPc = std::max<DisType>((DisType)0, rw.rQ + input.datas[v].DEMAND - input.Q)
+						+ std::max<DisType>((DisType)0, rv.rQ - input.datas[v].DEMAND - input.Q)
 						- rv.rPc - rw.rPc;
 					bestM.PcOnly = bestM.deltPc;
 					bestM.deltPc *= beta;
@@ -2535,11 +2555,11 @@ namespace vrptwNew {
 
 						DisType avjp = customers[v_].av + input.datas[v_].SERVICETIME + input.disOf[reCusNo(v_)][reCusNo(vj)];
 
-						newvwPtw += max((DisType)0, avjp - input.datas[vj].DUEDATE);
+						newvwPtw += std::max<DisType>((DisType)0, avjp - input.datas[vj].DUEDATE);
 						newvwPtw += customers[v_].TW_X;
 
 						DisType avj = avjp > input.datas[vj].DUEDATE ? input.datas[vj].DUEDATE :
-							max(avjp, input.datas[vj].READYTIME);
+							std::max<DisType>(avjp, input.datas[vj].READYTIME);
 
 						lastav = avj;
 						lastv = vj;
@@ -2553,10 +2573,10 @@ namespace vrptwNew {
 							while (pt != -1) {
 
 								DisType aptp = lastav + input.datas[lastv].SERVICETIME + input.disOf[reCusNo(lastv)][reCusNo(pt)];
-								newvwPtw += max((DisType)0, aptp - input.datas[pt].DUEDATE);
+								newvwPtw += std::max<DisType>((DisType)0, aptp - input.datas[pt].DUEDATE);
 
 								DisType apt = aptp > input.datas[pt].DUEDATE ? input.datas[pt].DUEDATE :
-									max(aptp, input.datas[pt].READYTIME);
+									std::max<DisType>(aptp, input.datas[pt].READYTIME);
 
 								lastv = pt;
 								lastav = apt;
@@ -2570,13 +2590,13 @@ namespace vrptwNew {
 						}
 
 						DisType avp = lastav + input.datas[lastv].SERVICETIME + input.disOf[reCusNo(lastv)][reCusNo(v)];
-						newvwPtw += max((DisType)0, avp - input.datas[v].DUEDATE);
+						newvwPtw += std::max<DisType>((DisType)0, avp - input.datas[v].DUEDATE);
 
 						DisType av = avp > input.datas[v].DUEDATE ? input.datas[v].DUEDATE :
-							max(avp, input.datas[v].READYTIME);
+							std::max<DisType>(avp, input.datas[v].READYTIME);
 
 						DisType awjp = av + input.datas[v].SERVICETIME + input.disOf[reCusNo(v)][reCusNo(wj)];
-						newvwPtw += max((DisType)0, awjp - customers[wj].zv);
+						newvwPtw += std::max<DisType>((DisType)0, awjp - customers[wj].zv);
 						newvwPtw += customers[wj].TWX_;
 
 					}
@@ -2585,16 +2605,16 @@ namespace vrptwNew {
 						DisType avp = customers[w].av + input.datas[w].SERVICETIME + input.disOf[reCusNo(w)][reCusNo(v)];
 
 						newvwPtw += customers[w].TW_X;
-						newvwPtw += max((DisType)0, avp - input.datas[v].DUEDATE);
+						newvwPtw += std::max<DisType>((DisType)0, avp - input.datas[v].DUEDATE);
 
 						DisType av = avp > input.datas[v].DUEDATE ? input.datas[v].DUEDATE :
-							max(avp, input.datas[v].READYTIME);
+							std::max<DisType>(avp, input.datas[v].READYTIME);
 
 						DisType awjp = av + input.datas[v].SERVICETIME + input.disOf[reCusNo(v)][reCusNo(wj)];
-						newvwPtw += max((DisType)0, awjp - input.datas[wj].DUEDATE);
+						newvwPtw += std::max<DisType>((DisType)0, awjp - input.datas[wj].DUEDATE);
 
 						DisType awj = awjp > input.datas[wj].DUEDATE ? input.datas[wj].DUEDATE :
-							max(awjp, input.datas[wj].READYTIME);
+							std::max<DisType>(awjp, input.datas[wj].READYTIME);
 
 						lastav = awj;
 						lastv = wj;
@@ -2603,10 +2623,10 @@ namespace vrptwNew {
 						while (pt != -1) {
 
 							DisType aptp = lastav + input.datas[lastv].SERVICETIME + input.disOf[reCusNo(lastv)][reCusNo(pt)];
-							newvwPtw += max((DisType)0, aptp - input.datas[pt].DUEDATE);
+							newvwPtw += std::max<DisType>((DisType)0, aptp - input.datas[pt].DUEDATE);
 
 							DisType apt = aptp > input.datas[pt].DUEDATE ? input.datas[pt].DUEDATE :
-								max(aptp, input.datas[pt].READYTIME);
+								std::max<DisType>(aptp, input.datas[pt].READYTIME);
 
 							lastav = apt;
 							lastv = pt;
@@ -2618,7 +2638,7 @@ namespace vrptwNew {
 						}
 
 						DisType avjp = lastav + input.datas[lastv].SERVICETIME + input.disOf[reCusNo(lastv)][reCusNo(vj)];
-						newvwPtw += max((DisType)0, avjp - customers[vj].zv);
+						newvwPtw += std::max<DisType>((DisType)0, avjp - customers[vj].zv);
 						newvwPtw += customers[vj].TWX_;
 
 					}
@@ -2636,14 +2656,14 @@ namespace vrptwNew {
 					newvwPtw += customers[wj].TWX_;
 					DisType avp = customers[w].av + input.datas[w].SERVICETIME + input.disOf[reCusNo(w)][reCusNo(v)];
 					DisType zvp = customers[wj].zv - input.disOf[reCusNo(wj)][reCusNo(v)] - input.datas[v].SERVICETIME;
-					newvwPtw += max((DisType)0, max(avp, input.datas[v].READYTIME) - min(input.datas[v].DUEDATE, zvp));
+					newvwPtw += std::max<DisType>((DisType)0, std::max<DisType>(avp, input.datas[v].READYTIME) - min(input.datas[v].DUEDATE, zvp));
 
 					// insert v to (w,w-)
 					newv_vjPtw += customers[v_].TW_X;
 					newv_vjPtw += customers[vj].TWX_;
 
 					DisType avjp = customers[v_].av + input.datas[v_].SERVICETIME + input.disOf[reCusNo(v_)][reCusNo(vj)];
-					newv_vjPtw += max((DisType)0, avjp - customers[vj].zv);
+					newv_vjPtw += std::max<DisType>((DisType)0, avjp - customers[vj].zv);
 
 					bestM.PtwOnly = newvwPtw + newv_vjPtw - rv.rPtw - rw.rPtw;
 					bestM.deltPtw = newvwPtw * rw.rWeight + newv_vjPtw * rv.rWeight - vPtw - wPtw;
@@ -2662,8 +2682,8 @@ namespace vrptwNew {
 					bestM.PcOnly = 0;
 				}
 				else {
-					bestM.deltPc = max((DisType)0, rw.rQ + input.datas[v].DEMAND - input.Q)
-						+ max((DisType)0, rv.rQ - input.datas[v].DEMAND - input.Q)
+					bestM.deltPc = std::max<DisType>((DisType)0, rw.rQ + input.datas[v].DEMAND - input.Q)
+						+ std::max<DisType>((DisType)0, rv.rQ - input.datas[v].DEMAND - input.Q)
 						- rv.rPc - rw.rPc;
 					bestM.PcOnly = bestM.deltPc;
 					bestM.deltPc *= beta;
@@ -2756,13 +2776,13 @@ namespace vrptwNew {
 					newwvPtw += customers[v].TWX_;
 					DisType awp = customers[v_].av + input.datas[v_].SERVICETIME + input.disOf[reCusNo(v_)][reCusNo(w)];
 					DisType zwp = customers[v].zv - input.disOf[reCusNo(w)][reCusNo(v)] - input.datas[w].SERVICETIME;
-					newwvPtw += max((DisType)0, max(awp, input.datas[w].READYTIME) - min(input.datas[w].DUEDATE, zwp));
+					newwvPtw += std::max<DisType>((DisType)0, std::max<DisType>(awp, input.datas[w].READYTIME) - min(input.datas[w].DUEDATE, zwp));
 
 					// insert w to (v,v-)
 					neww_wjPtw += customers[w_].TW_X;
 					neww_wjPtw += customers[wj].TWX_;
 					DisType awjp = customers[w_].av + input.datas[w_].SERVICETIME + input.disOf[reCusNo(w_)][reCusNo(wj)];
-					neww_wjPtw += max((DisType)0, awjp - customers[wj].zv);
+					neww_wjPtw += std::max<DisType>((DisType)0, awjp - customers[wj].zv);
 
 					bestM.PtwOnly = newwvPtw + neww_wjPtw - rv.rPtw - rw.rPtw;
 					bestM.deltPtw = newwvPtw * rv.rWeight + neww_wjPtw * rw.rWeight - vPtw - wPtw;
@@ -2782,8 +2802,8 @@ namespace vrptwNew {
 					bestM.PcOnly = 0;
 				}
 				else {
-					bestM.deltPc = max((DisType)0, rw.rQ - input.datas[w].DEMAND - input.Q)
-						+ max((DisType)0, rv.rQ + input.datas[w].DEMAND - input.Q)
+					bestM.deltPc = std::max<DisType>((DisType)0, rw.rQ - input.datas[w].DEMAND - input.Q)
+						+ std::max<DisType>((DisType)0, rv.rQ + input.datas[w].DEMAND - input.Q)
 						- rv.rPc - rw.rPc;
 					bestM.PcOnly = bestM.deltPc;
 					bestM.deltPc *= beta;
@@ -2876,12 +2896,12 @@ namespace vrptwNew {
 					newwvPtw += customers[vj].TWX_;
 					DisType awp = customers[v].av + input.datas[v].SERVICETIME + input.disOf[reCusNo(v)][reCusNo(w)];
 					DisType zwp = customers[vj].zv - input.disOf[reCusNo(vj)][reCusNo(w)] - input.datas[w].SERVICETIME;
-					newwvPtw += max((DisType)0, max(awp, input.datas[w].READYTIME) - min(input.datas[w].DUEDATE, zwp));
+					newwvPtw += std::max<DisType>((DisType)0, std::max<DisType>(awp, input.datas[w].READYTIME) - min(input.datas[w].DUEDATE, zwp));
 
 					neww_wjPtw += customers[w_].TW_X;
 					neww_wjPtw += customers[wj].TWX_;
 					DisType awjp = customers[w_].av + input.datas[w_].SERVICETIME + input.disOf[reCusNo(w_)][reCusNo(wj)];
-					neww_wjPtw += max((DisType)0, awjp - customers[wj].zv);
+					neww_wjPtw += std::max<DisType>((DisType)0, awjp - customers[wj].zv);
 
 					bestM.PtwOnly = newwvPtw + neww_wjPtw - rv.rPtw - rw.rPtw;
 					bestM.deltPtw = newwvPtw * rv.rWeight + neww_wjPtw * rw.rWeight - vPtw - wPtw;
@@ -2897,8 +2917,8 @@ namespace vrptwNew {
 				}
 				else {
 					// insert w to (v,v+)
-					bestM.deltPc = max((DisType)0, rw.rQ - input.datas[w].DEMAND - input.Q)
-						+ max((DisType)0, rv.rQ + input.datas[w].DEMAND - input.Q)
+					bestM.deltPc = std::max<DisType>((DisType)0, rw.rQ - input.datas[w].DEMAND - input.Q)
+						+ std::max<DisType>((DisType)0, rv.rQ + input.datas[w].DEMAND - input.Q)
 						- rv.rPc - rw.rPc;
 					bestM.PcOnly = bestM.deltPc;
 					bestM.deltPc *= beta;
@@ -2981,19 +3001,19 @@ namespace vrptwNew {
 						newvPtw = 0;
 
 						DisType avp = customers[v__].av + input.datas[v__].SERVICETIME + input.disOf[reCusNo(v__)][reCusNo(v)];
-						newvPtw += max((DisType)0, avp - input.datas[v].DUEDATE);
+						newvPtw += std::max<DisType>((DisType)0, avp - input.datas[v].DUEDATE);
 						newvPtw += customers[v__].TW_X;
 						av = avp > input.datas[v].DUEDATE ? input.datas[v].DUEDATE :
-							max(avp, input.datas[v].READYTIME);
+							std::max<DisType>(avp, input.datas[v].READYTIME);
 
 						DisType awp = av + input.datas[v].SERVICETIME + input.disOf[reCusNo(v)][reCusNo(w)];
-						newvPtw += max((DisType)0, awp - input.datas[w].DUEDATE);
+						newvPtw += std::max<DisType>((DisType)0, awp - input.datas[w].DUEDATE);
 
 						DisType aw = awp > input.datas[w].DUEDATE ? input.datas[w].DUEDATE :
-							max(awp, input.datas[w].READYTIME);
+							std::max<DisType>(awp, input.datas[w].READYTIME);
 
 						DisType avjp = aw + input.datas[w].SERVICETIME + input.disOf[reCusNo(w)][reCusNo(vj)];
-						newvPtw += max((DisType)0, avjp - customers[vj].zv);
+						newvPtw += std::max<DisType>((DisType)0, avjp - customers[vj].zv);
 						newvPtw += customers[vj].TWX_;
 
 						newwPtw = newvPtw;
@@ -3006,19 +3026,19 @@ namespace vrptwNew {
 						newvPtw = 0;
 
 						DisType awp = customers[w__].av + input.datas[w__].SERVICETIME + input.disOf[reCusNo(w__)][reCusNo(w)];
-						newvPtw += max((DisType)0, awp - input.datas[w].DUEDATE);
+						newvPtw += std::max<DisType>((DisType)0, awp - input.datas[w].DUEDATE);
 						newvPtw += customers[w__].TW_X;
 						aw = awp > input.datas[w].DUEDATE ? input.datas[w].DUEDATE :
-							max(awp, input.datas[w].READYTIME);
+							std::max<DisType>(awp, input.datas[w].READYTIME);
 
 						DisType avp = aw + input.datas[w].SERVICETIME + input.disOf[reCusNo(w)][reCusNo(v)];
-						newvPtw += max((DisType)0, avp - input.datas[v].DUEDATE);
+						newvPtw += std::max<DisType>((DisType)0, avp - input.datas[v].DUEDATE);
 
 						DisType av = avp > input.datas[v].DUEDATE ? input.datas[v].DUEDATE :
-							max(avp, input.datas[v].READYTIME);
+							std::max<DisType>(avp, input.datas[v].READYTIME);
 
 						DisType awjp = av + input.datas[v].SERVICETIME + input.disOf[reCusNo(v)][reCusNo(wj)];
-						newvPtw += max((DisType)0, awjp - customers[wj].zv);
+						newvPtw += std::max<DisType>((DisType)0, awjp - customers[wj].zv);
 						newvPtw += customers[wj].TWX_;
 
 						newwPtw = newvPtw;
@@ -3050,11 +3070,11 @@ namespace vrptwNew {
 
 						DisType abkp = customers[fpre].av + input.datas[fpre].SERVICETIME + input.disOf[reCusNo(fpre)][reCusNo(back)];
 
-						newvPtw += max((DisType)0, abkp - input.datas[back].DUEDATE);
+						newvPtw += std::max<DisType>((DisType)0, abkp - input.datas[back].DUEDATE);
 						newvPtw += customers[fpre].TW_X;
 
 						DisType abk = abkp > input.datas[back].DUEDATE ? input.datas[back].DUEDATE :
-							max(abkp, input.datas[back].READYTIME);
+							std::max<DisType>(abkp, input.datas[back].READYTIME);
 
 						lastav = abk;
 						lastv = back;
@@ -3068,10 +3088,10 @@ namespace vrptwNew {
 							}
 
 							DisType avp = lastav + input.datas[lastv].SERVICETIME + input.disOf[reCusNo(lastv)][reCusNo(pt)];
-							newvPtw += max((DisType)0, avp - input.datas[pt].DUEDATE);
+							newvPtw += std::max<DisType>((DisType)0, avp - input.datas[pt].DUEDATE);
 
 							DisType av = avp > input.datas[pt].DUEDATE ? input.datas[pt].DUEDATE :
-								max(avp, input.datas[pt].READYTIME);
+								std::max<DisType>(avp, input.datas[pt].READYTIME);
 
 							lastv = pt;
 							lastav = av;
@@ -3080,15 +3100,15 @@ namespace vrptwNew {
 
 
 						DisType afrvp = lastav + input.datas[lastv].SERVICETIME + input.disOf[reCusNo(lastv)][reCusNo(front)];
-						newvPtw += max((DisType)0, afrvp - input.datas[front].DUEDATE);
+						newvPtw += std::max<DisType>((DisType)0, afrvp - input.datas[front].DUEDATE);
 
 						DisType afrv = afrvp > input.datas[front].DUEDATE ? input.datas[front].DUEDATE :
-							max(afrvp, input.datas[front].READYTIME);
+							std::max<DisType>(afrvp, input.datas[front].READYTIME);
 
 						int bkn = customers[back].next;
 
 						DisType abknp = afrv + input.datas[front].SERVICETIME + input.disOf[reCusNo(front)][reCusNo(bkn)];
-						newvPtw += max((DisType)0, abknp - customers[bkn].zv);
+						newvPtw += std::max<DisType>((DisType)0, abknp - customers[bkn].zv);
 						newvPtw += customers[bkn].TWX_;
 
 						newwPtw = newvPtw;
@@ -3111,10 +3131,10 @@ namespace vrptwNew {
 					DisType zvp = customers[wj].zv - input.datas[v].SERVICETIME - input.disOf[reCusNo(wj)][reCusNo(v)];
 
 					newvPtw +=
-						max((DisType)0, max(awp, input.datas[w].READYTIME) - min(input.datas[w].DUEDATE, zwp));
+						std::max<DisType>((DisType)0, std::max<DisType>(awp, input.datas[w].READYTIME) - min(input.datas[w].DUEDATE, zwp));
 
 					newwPtw +=
-						max((DisType)0, max(avp, input.datas[v].READYTIME) - min(input.datas[v].DUEDATE, zvp));
+						std::max<DisType>((DisType)0, std::max<DisType>(avp, input.datas[v].READYTIME) - min(input.datas[v].DUEDATE, zvp));
 					bestM.PtwOnly = newwPtw + newvPtw - rv.rPtw - rw.rPtw;
 					bestM.deltPtw = newwPtw * rw.rWeight + newvPtw * rv.rWeight - vPtw - wPtw;
 					bestM.deltPtw *= alpha;
@@ -3135,8 +3155,8 @@ namespace vrptwNew {
 				}
 				else {
 
-					bestM.deltPc = max((DisType)0, wQ - input.datas[w].DEMAND + input.datas[v].DEMAND - input.Q)
-						+ max((DisType)0, vQ - input.datas[v].DEMAND + input.datas[w].DEMAND - input.Q)
+					bestM.deltPc = std::max<DisType>((DisType)0, wQ - input.datas[w].DEMAND + input.datas[v].DEMAND - input.Q)
+						+ std::max<DisType>((DisType)0, vQ - input.datas[v].DEMAND + input.datas[w].DEMAND - input.Q)
 						- vPc - wPc;
 					bestM.PcOnly = bestM.deltPc;
 					bestM.deltPc *= beta;
@@ -3352,7 +3372,7 @@ namespace vrptwNew {
 					DisType awp = customers[v_].av + input.datas[v_].SERVICETIME + input.disOf[reCusNo(v_)][reCusNo(w)];
 					DisType zwp = customers[vjj].zv - input.datas[w].SERVICETIME - input.disOf[reCusNo(w)][reCusNo(vjj)];
 					newvPtw +=
-						max((DisType)0, max(awp, input.datas[w].READYTIME) - min(input.datas[w].DUEDATE, zwp));
+						std::max<DisType>((DisType)0, std::max<DisType>(awp, input.datas[w].READYTIME) - min(input.datas[w].DUEDATE, zwp));
 
 					// (w-) -> (v) -> (v+) -> (wj)
 					newwPtw += customers[w_].TW_X;
@@ -3360,15 +3380,15 @@ namespace vrptwNew {
 
 					DisType avp = customers[w_].av + input.datas[w_].SERVICETIME + input.disOf[reCusNo(w_)][reCusNo(v)];
 
-					newwPtw += max((DisType)0, avp - input.datas[v].DUEDATE);
+					newwPtw += std::max<DisType>((DisType)0, avp - input.datas[v].DUEDATE);
 					DisType av =
-						avp > input.datas[v].DUEDATE ? input.datas[v].DUEDATE : max(avp, input.datas[v].READYTIME);
+						avp > input.datas[v].DUEDATE ? input.datas[v].DUEDATE : std::max<DisType>(avp, input.datas[v].READYTIME);
 
 					DisType avjp = av + input.datas[v].SERVICETIME + input.disOf[reCusNo(v)][reCusNo(vj)];
 					DisType zvjp = customers[wj].zv - input.datas[vj].SERVICETIME - input.disOf[reCusNo(wj)][reCusNo(vj)];
 
 					newwPtw +=
-						max((DisType)0, max(avjp, input.datas[vj].READYTIME) - min(input.datas[vj].DUEDATE, zvjp));
+						std::max<DisType>((DisType)0, std::max<DisType>(avjp, input.datas[vj].READYTIME) - min(input.datas[vj].DUEDATE, zvjp));
 					bestM.PtwOnly = newwPtw + newvPtw - rv.rPtw - rw.rPtw;
 					bestM.deltPtw = newwPtw * rw.rWeight + newvPtw * rv.rWeight - vPtw - wPtw;
 					bestM.deltPtw *= alpha;
@@ -3391,8 +3411,8 @@ namespace vrptwNew {
 				else {
 
 					bestM.deltPc =
-						max((DisType)0, wQ - input.datas[w].DEMAND + input.datas[v].DEMAND + input.datas[vj].DEMAND - input.Q)
-						+ max((DisType)0, vQ - input.datas[v].DEMAND - input.datas[vj].DEMAND + input.datas[w].DEMAND - input.Q)
+						std::max<DisType>((DisType)0, wQ - input.datas[w].DEMAND + input.datas[v].DEMAND + input.datas[vj].DEMAND - input.Q)
+						+ std::max<DisType>((DisType)0, vQ - input.datas[v].DEMAND - input.datas[vj].DEMAND + input.datas[w].DEMAND - input.Q)
 						- vPc - wPc;
 					bestM.PcOnly = bestM.deltPc;
 					bestM.deltPc *= beta;
@@ -3630,16 +3650,16 @@ namespace vrptwNew {
 					DisType awp = customers[v_].av + input.datas[v_].SERVICETIME + input.disOf[reCusNo(v_)][reCusNo(w)];
 
 					// (v-)->(w)->(w+)->(v3j)
-					newvPtw += max((DisType)0, awp - input.datas[w].DUEDATE);
+					newvPtw += std::max<DisType>((DisType)0, awp - input.datas[w].DUEDATE);
 
 					DisType aw =
-						awp > input.datas[w].DUEDATE ? input.datas[w].DUEDATE : max(input.datas[w].READYTIME, awp);
+						awp > input.datas[w].DUEDATE ? input.datas[w].DUEDATE : std::max<DisType>(input.datas[w].READYTIME, awp);
 
 					DisType awjp = aw + input.datas[w].SERVICETIME + input.disOf[reCusNo(w)][reCusNo(wj)];
 					DisType zwjp = customers[v3j].zv - input.datas[wj].SERVICETIME - input.disOf[reCusNo(wj)][reCusNo(v3j)];
 
 					newvPtw +=
-						max((DisType)0, max(awjp, input.datas[wj].READYTIME) - min(input.datas[wj].DUEDATE, zwjp));
+						std::max<DisType>((DisType)0, std::max<DisType>(awjp, input.datas[wj].READYTIME) - min(input.datas[wj].DUEDATE, zwjp));
 
 					// (w-) -> (v) -> (vj) -> (vjj)-> (wjj)
 					newwPtw += customers[w_].TW_X;
@@ -3647,22 +3667,22 @@ namespace vrptwNew {
 
 					DisType avp = customers[w_].av + input.datas[w_].SERVICETIME + input.disOf[reCusNo(w_)][reCusNo(v)];
 
-					newwPtw += max((DisType)0, avp - input.datas[v].DUEDATE);
+					newwPtw += std::max<DisType>((DisType)0, avp - input.datas[v].DUEDATE);
 					DisType av =
-						avp > input.datas[v].DUEDATE ? input.datas[v].DUEDATE : max(avp, input.datas[v].READYTIME);
+						avp > input.datas[v].DUEDATE ? input.datas[v].DUEDATE : std::max<DisType>(avp, input.datas[v].READYTIME);
 
 					DisType avjp = av + input.datas[v].SERVICETIME + input.disOf[reCusNo(v)][reCusNo(vj)];
 
 					// (w-) -> (v) -> (vj) -> (vjj)-> (wjj)
 					DisType zvjjp = customers[wjj].zv - input.datas[vjj].SERVICETIME - input.disOf[reCusNo(wjj)][vjj];
 
-					newwPtw += max((DisType)0, input.datas[vjj].READYTIME - zvjjp);
+					newwPtw += std::max<DisType>((DisType)0, input.datas[vjj].READYTIME - zvjjp);
 
 					DisType zvjj = zvjjp < input.datas[vjj].READYTIME ? input.datas[vjj].READYTIME : min(input.datas[vjj].DUEDATE, zvjjp);
 					DisType zvjp = zvjj - input.disOf[reCusNo(vjj)][reCusNo(vj)] - input.datas[vj].SERVICETIME;
 
 					newwPtw +=
-						max((DisType)0, max(avjp, input.datas[vj].READYTIME) - min(input.datas[vj].DUEDATE, zvjp));
+						std::max<DisType>((DisType)0, std::max<DisType>(avjp, input.datas[vj].READYTIME) - min(input.datas[vj].DUEDATE, zvjp));
 					
 					bestM.PtwOnly = newwPtw + newvPtw - rv.rPtw - rw.rPtw;
 					bestM.deltPtw = newwPtw * rw.rWeight + newvPtw * rv.rWeight - vPtw - wPtw;
@@ -3685,8 +3705,8 @@ namespace vrptwNew {
 				}
 				else {
 					bestM.deltPc =
-						max((DisType)0, wQ - input.datas[w].DEMAND - input.datas[wj].DEMAND + input.datas[v].DEMAND + input.datas[vj].DEMAND + input.datas[vjj].DEMAND - input.Q)
-						+ max((DisType)0, vQ - input.datas[v].DEMAND - input.datas[vj].DEMAND - input.datas[vjj].DEMAND + input.datas[w].DEMAND + input.datas[wj].DEMAND - input.Q)
+						std::max<DisType>((DisType)0, wQ - input.datas[w].DEMAND - input.datas[wj].DEMAND + input.datas[v].DEMAND + input.datas[vj].DEMAND + input.datas[vjj].DEMAND - input.Q)
+						+ std::max<DisType>((DisType)0, vQ - input.datas[v].DEMAND - input.datas[vj].DEMAND - input.datas[vjj].DEMAND + input.datas[w].DEMAND + input.datas[wj].DEMAND - input.Q)
 						- vPc - wPc;
 					bestM.PcOnly = bestM.deltPc;
 					bestM.deltPc *= beta;
@@ -3888,7 +3908,7 @@ namespace vrptwNew {
 					DisType zwp = customers[v3j].zv - input.datas[w].SERVICETIME - input.disOf[reCusNo(w)][reCusNo(v3j)];
 
 					newvPtw +=
-						max((DisType)0, max(awp, input.datas[w].READYTIME) - min(input.datas[w].DUEDATE, zwp));
+						std::max<DisType>((DisType)0, std::max<DisType>(awp, input.datas[w].READYTIME) - min(input.datas[w].DUEDATE, zwp));
 
 					// (w-) -> (v) -> (vj) -> (vjj)-> (wj)
 					newwPtw += customers[w_].TW_X;
@@ -3896,22 +3916,22 @@ namespace vrptwNew {
 
 					DisType avp = customers[w_].av + input.datas[w_].SERVICETIME + input.disOf[reCusNo(w_)][reCusNo(v)];
 
-					newwPtw += max((DisType)0, avp - input.datas[v].DUEDATE);
+					newwPtw += std::max<DisType>((DisType)0, avp - input.datas[v].DUEDATE);
 					DisType av =
-						avp > input.datas[v].DUEDATE ? input.datas[v].DUEDATE : max(avp, input.datas[v].READYTIME);
+						avp > input.datas[v].DUEDATE ? input.datas[v].DUEDATE : std::max<DisType>(avp, input.datas[v].READYTIME);
 
 					DisType avjp = av + input.datas[v].SERVICETIME + input.disOf[reCusNo(v)][reCusNo(vj)];
 
 					// (w-) -> (v) -> (vj) -> (vjj)-> (wj)
 					DisType zvjjp = customers[wj].zv - input.datas[vjj].SERVICETIME - input.disOf[reCusNo(wj)][(vjj)];
 
-					newwPtw += max((DisType)0, input.datas[vjj].READYTIME - zvjjp);
+					newwPtw += std::max<DisType>((DisType)0, input.datas[vjj].READYTIME - zvjjp);
 
 					DisType zvjj = zvjjp < input.datas[vjj].READYTIME ? input.datas[vjj].READYTIME : min(input.datas[vjj].DUEDATE, zvjjp);
 					DisType zvjp = zvjj - input.disOf[reCusNo(vjj)][reCusNo(vj)] - input.datas[vj].SERVICETIME;
 
 					newwPtw +=
-						max((DisType)0, max(avjp, input.datas[vj].READYTIME) - min(input.datas[vj].DUEDATE, zvjp));
+						std::max<DisType>((DisType)0, std::max<DisType>(avjp, input.datas[vj].READYTIME) - min(input.datas[vj].DUEDATE, zvjp));
 					bestM.PtwOnly = newwPtw + newvPtw - rv.rPtw - rw.rPtw;
 					bestM.deltPtw = newwPtw * rw.rWeight + newvPtw * rv.rWeight - vPtw - wPtw;
 					bestM.deltPtw *= alpha;
@@ -3936,8 +3956,8 @@ namespace vrptwNew {
 				else {
 
 					bestM.deltPc =
-						max((DisType)0, wQ - input.datas[w].DEMAND + input.datas[v].DEMAND + input.datas[vj].DEMAND + input.datas[vjj].DEMAND - input.Q)
-						+ max((DisType)0, vQ - input.datas[v].DEMAND - input.datas[vj].DEMAND - input.datas[vjj].DEMAND + input.datas[w].DEMAND - input.Q)
+						std::max<DisType>((DisType)0, wQ - input.datas[w].DEMAND + input.datas[v].DEMAND + input.datas[vj].DEMAND + input.datas[vjj].DEMAND - input.Q)
+						+ std::max<DisType>((DisType)0, vQ - input.datas[v].DEMAND - input.datas[vj].DEMAND - input.datas[vjj].DEMAND + input.datas[w].DEMAND - input.Q)
 						- vPc - wPc;
 					bestM.PcOnly = bestM.deltPc;
 					bestM.deltPc *= beta;
@@ -4076,10 +4096,10 @@ namespace vrptwNew {
 
 					newwPtw += customers[w].TW_X;
 					DisType avp = customers[w].av + input.datas[w].SERVICETIME + input.disOf[reCusNo(w)][reCusNo(v)];
-					newwPtw += max((DisType)0, avp - input.datas[v].DUEDATE);
+					newwPtw += std::max<DisType>((DisType)0, avp - input.datas[v].DUEDATE);
 
 					DisType av =
-						avp > input.datas[v].DUEDATE ? input.datas[v].DUEDATE : max(input.datas[v].READYTIME, avp);
+						avp > input.datas[v].DUEDATE ? input.datas[v].DUEDATE : std::max<DisType>(input.datas[v].READYTIME, avp);
 
 					DisType avjp = av + input.datas[v].SERVICETIME + input.disOf[reCusNo(v)][reCusNo(vj)];
 
@@ -4088,13 +4108,13 @@ namespace vrptwNew {
 					//}
 
 					newwPtw +=
-						max((DisType)0, max(avjp, input.datas[vj].READYTIME) - min(input.datas[vj].DUEDATE, zvjp));
+						std::max<DisType>((DisType)0, std::max<DisType>(avjp, input.datas[vj].READYTIME) - min(input.datas[vj].DUEDATE, zvjp));
 
 					// link v- and vjj
 					newvPtw += customers[v_].TW_X;
 					newvPtw += customers[vjj].TWX_;
 					DisType avjjp = customers[v_].av + input.datas[v_].SERVICETIME + input.disOf[reCusNo(v_)][reCusNo(vjj)];
-					newvPtw += max((DisType)0, avjjp - customers[vjj].zv);
+					newvPtw += std::max<DisType>((DisType)0, avjjp - customers[vjj].zv);
 
 					bestM.PtwOnly = newwPtw + newvPtw - rv.rPtw - rw.rPtw;
 					bestM.deltPtw = newwPtw * rw.rWeight + newvPtw * rv.rWeight - vPtw - wPtw;
@@ -4119,8 +4139,8 @@ namespace vrptwNew {
 				else {
 
 					bestM.deltPc =
-						max((DisType)0, wQ + input.datas[v].DEMAND + input.datas[vj].DEMAND - input.Q)
-						+ max((DisType)0, vQ - input.datas[v].DEMAND - input.datas[vj].DEMAND - input.Q)
+						std::max<DisType>((DisType)0, wQ + input.datas[v].DEMAND + input.datas[vj].DEMAND - input.Q)
+						+ std::max<DisType>((DisType)0, vQ - input.datas[v].DEMAND - input.datas[vj].DEMAND - input.Q)
 						- vPc - wPc;
 					bestM.PcOnly = bestM.deltPc;
 					bestM.deltPc *= beta;
@@ -4250,18 +4270,18 @@ namespace vrptwNew {
 				lastv = back;
 				DisType lastavp = customers[f_].av + input.datas[f_].SERVICETIME + input.disOf[reCusNo(f_)][reCusNo(back)];
 				newPtw += customers[f_].TW_X;
-				newPtw += max((DisType)0, lastavp - input.datas[lastv].DUEDATE);
+				newPtw += std::max<DisType>((DisType)0, lastavp - input.datas[lastv].DUEDATE);
 				lastav = lastavp > input.datas[lastv].DUEDATE ? input.datas[lastv].DUEDATE :
-					max(lastavp, input.datas[lastv].READYTIME);
+					std::max<DisType>(lastavp, input.datas[lastv].READYTIME);
 
 				int pt = customers[lastv].pre;
 				while (pt != -1) {
 
 					DisType aptp = lastav + input.datas[lastv].SERVICETIME + input.disOf[reCusNo(lastv)][reCusNo(pt)];
-					newPtw += max((DisType)0, aptp - input.datas[pt].DUEDATE);
+					newPtw += std::max<DisType>((DisType)0, aptp - input.datas[pt].DUEDATE);
 
 					DisType apt = aptp > input.datas[pt].DUEDATE ? input.datas[pt].DUEDATE :
-						max(aptp, input.datas[pt].READYTIME);
+						std::max<DisType>(aptp, input.datas[pt].READYTIME);
 					lastv = pt;
 					lastav = apt;
 					if (pt == front) {
@@ -4272,7 +4292,7 @@ namespace vrptwNew {
 				}
 
 				DisType abjp = lastav + input.datas[lastv].SERVICETIME + input.disOf[reCusNo(lastv)][reCusNo(bj)];
-				newPtw += max((DisType)0, abjp - customers[bj].zv);
+				newPtw += std::max<DisType>((DisType)0, abjp - customers[bj].zv);
 				newPtw += customers[bj].TWX_;
 
 				bestM.PtwOnly = newPtw - r.rPtw;
@@ -4329,10 +4349,10 @@ namespace vrptwNew {
 				DisType awp = (vt > 0 ? customers[vt].av + input.datas[vt].SERVICETIME : 0)
 					+ input.disOf[reCusNo(vt)][reCusNo(wt)];
 
-				newwvPtw += max(awp - (wt > 0 ? customers[wt].zv : input.datas[0].DUEDATE), 0);
+				newwvPtw += std::max<DisType>(awp - (wt > 0 ? customers[wt].zv : input.datas[0].DUEDATE), 0);
 				newPtwNoWei += newwvPtw;
 
-				newPc += max((DisType)0,
+				newPc += std::max<DisType>((DisType)0,
 					(vt > 0 ? customers[vt].Q_X : 0) + (wt > 0 ? customers[wt].QX_ : 0) - input.Q);
 				return newwvPtw;
 			};
@@ -6089,7 +6109,7 @@ namespace vrptwNew {
 				if (vpos1 > 0) {
 
 					int N = vpos1;
-					int m = max(1, N / devided);
+					int m = std::max<DisType>(1, N / devided);
 					myRandX.getMN(N, m);
 					vector<int>& ve = myRandX.mpLLArr[N];
 					for (int i = 0; i < m; ++i) {
@@ -6136,9 +6156,9 @@ namespace vrptwNew {
 				if (vpos2 > 0) {
 
 					int N = vpos2;
-					int m = max(1, N / devided);
+					int m = std::max<DisType>(1, N / devided);
 
-					m = max(1, m);
+					m = std::max<DisType>(1, m);
 					myRandX.getMN(N, m);
 					vector<int>& ve = myRandX.mpLLArr[N];
 
@@ -6175,7 +6195,7 @@ namespace vrptwNew {
 				vector<int>& relatedToV = input.iInNeicloseOfUnionNeiCloseOfI[cfg.broadIndex][v];
 
 				int N = relatedToV.size();
-				int m = max(1, N / devided);
+				int m = std::max<DisType>(1, N / devided);
 
 				myRandX.getMN(N, m);
 				vector<int>& ve = myRandX.mpLLArr[N];
@@ -6230,7 +6250,7 @@ namespace vrptwNew {
 				int vrId = customers[v].routeID;
 
 				int N = vjpos;
-				int m = max(1, sqrt(N));
+				int m = std::max<DisType>(1, sqrt(N));
 
 				myRandX.getMN(N, m);
 				vector<int>& ve = myRandX.mpLLArr[N];
@@ -6366,7 +6386,7 @@ namespace vrptwNew {
 					//_3optEffectively(v);
 
 					int w = v;
-					int maxL = max(5, r.rCustCnt / 5);
+					int maxL = std::max<int>(5, r.rCustCnt / 5);
 					//int maxL = 5;
 					//debug(r.rCustCnt)
 
@@ -6401,7 +6421,7 @@ namespace vrptwNew {
 					vector<int>& relatedToV = input.iInNeicloseOfUnionNeiCloseOfI[cfg.broadIndex][v];
 					int N = relatedToV.size();
 					int m = N / 7;
-					m = max(1, m);
+					m = std::max<DisType>(1, m);
 
 					myRandX.getMN(N, m);
 					vector<int>& ve = myRandX.mpLLArr[N];
@@ -6863,9 +6883,9 @@ namespace vrptwNew {
 			DeltPen d;
 
 			DisType avnp = customers[pre].av + input.datas[pre].SERVICETIME + input.disOf[reCusNo(pre)][reCusNo(next)];
-			d.PtwOnly = max((DisType)0, avnp - customers[next].zv) + customers[next].TWX_ + customers[pre].TW_X;
+			d.PtwOnly = std::max<DisType>((DisType)0, avnp - customers[next].zv) + customers[next].TWX_ + customers[pre].TW_X;
 			d.PtwOnly = d.PtwOnly - r.rPtw;
-			d.PcOnly = max(0,r.rQ - input.datas[pt].DEMAND - input.Q);
+			d.PcOnly = std::max<DisType>(0,r.rQ - input.datas[pt].DEMAND - input.Q);
 			d.PcOnly = d.PcOnly - r.rPc;
 			return d;
 
@@ -6982,7 +7002,7 @@ namespace vrptwNew {
 						sum += en.Psum;
 						//ejeNum += en.ejeVe.size();
 						/*for (int c : en.ejeVe) {
-							sum = max(sum,P[c]);
+							sum = std::max<DisType>(sum,P[c]);
 						}*/
 					}
 
@@ -7323,9 +7343,9 @@ namespace vrptwNew {
 
 					if (penalty < 1.1 * pBestThisTurn && squCon.squContiIter < squCon.squMaxContiIter) {
 						squCon.squContiIter += squCon.squIterStepUp;
-						squCon.squContiIter = min(squCon.squMaxContiIter, squCon.squContiIter);
+						squCon.squContiIter = std::min<int>(squCon.squMaxContiIter, squCon.squContiIter);
 						cfg.broadIndex += 1;
-						cfg.broadIndex = min(cfg.broadIndex, cfg.broaden.size() - 1);
+						cfg.broadIndex = std::min<int>(cfg.broadIndex, cfg.broaden.size() - 1);
 					}
 					else {
 
@@ -7458,7 +7478,7 @@ namespace vrptwNew {
 				}
 				
 
-				minEPcus = min(minEPcus, EPr.rCustCnt);
+				minEPcus = std::min<int>(minEPcus, EPr.rCustCnt);
 				if (EPsize() == 0 && penalty == 0) {
 					return true;
 				}
@@ -7531,7 +7551,7 @@ namespace vrptwNew {
 					maxOfPval = 0;
 					for (auto& i : P) {
 						i = i * 0.7 + 1;
-						maxOfPval = max(maxOfPval,i);
+						maxOfPval = std::max<DisType>(maxOfPval,i);
 					}
 					cout << "p";
 				}
@@ -7587,16 +7607,16 @@ namespace vrptwNew {
 								yearTable[cpre][c] = squIter + cfg.yearTabuLen + myRand.pick(cfg.yearTabuRand);
 								yearTable[c][cnext] = squIter + cfg.yearTabuLen + myRand.pick(cfg.yearTabuRand);*/
 								P[c] += cfg.Pwei1;
-								maxOfPval = max(P[c], maxOfPval);
+								maxOfPval = std::max<DisType>(P[c], maxOfPval);
 								
-								//P[c] += max(log(P[c]), cfg.Pwei1);
-								//debug(max(log(P[c]), cfg.Pwei1))
+								//P[c] += std::max<DisType>(log(P[c]), cfg.Pwei1);
+								//debug(std::max<DisType>(log(P[c]), cfg.Pwei1))
 							}
 						}
 
 						doEject(XSet);
 						int Irand = input.custCnt / EPr.rCustCnt/4;
-						Irand = max(Irand,100);
+						Irand = std::max<DisType>(Irand,100);
 						patternAdjustment(Irand);
 						//system("pause");
 						//saveOutAsSintefFile();
@@ -7817,7 +7837,7 @@ namespace vrptwNew {
 						continue;
 					}
 
-					m = max(1, m);
+					m = std::max<DisType>(1, m);
 					myRandX.getMN(N, m);
 					vector<int>& ve = myRandX.mpLLArr[N];
 					for (int i = 0; i < m; ++i) {
@@ -8175,7 +8195,7 @@ namespace vrptwNew {
 
 				qu.pop();
 				rQ -= input.datas[ctop].DEMAND;
-				rPc = max(0, rQ - input.Q);
+				rPc = std::max<DisType>(0, rQ - input.Q);
 				noTabuN.ejeVe.push_back(ctop);
 				noTabuN.Psum += P[ctop];
 			}
@@ -8350,13 +8370,13 @@ namespace vrptwNew {
 			if (r.rPtw > 0) {
 
 				ptwArr = R;
-				Kmax = min(Kmax, ptwArr.size() - 1);
+				Kmax = std::min<int>(Kmax, ptwArr.size() - 1);
 			}
 			else if (r.rPc > 0) {
 
 				return ejectOneRouteOnlyHasPcMinP(r, Kmax);
 				ptwArr = R;
-				Kmax = min(Kmax, ptwArr.size() - 1);
+				Kmax = std::min<int>(Kmax, ptwArr.size() - 1);
 				
 			}
 			else {
@@ -9437,8 +9457,8 @@ nextdisp: 697 ,13 ,10 ,166 ,202 ,189 ,181 ,340 ,251 ,345 ,472 ,698 ,
 						av += input.disOf[0][v];
 						DisType aw = av + input.datas[v].SERVICETIME + input.disOf[v][w];
 						DisType an = aw + input.datas[w].SERVICETIME + input.disOf[0][w];
-						DisType rPtw = max(0,aw-input.datas[w].DUEDATE);
-						rPtw += max(0,an-input.datas[0].DUEDATE);
+						DisType rPtw = std::max<DisType>(0,aw-input.datas[w].DUEDATE);
+						rPtw += std::max<DisType>(0,an-input.datas[0].DUEDATE);
 						return rPtw;
 					};
 					

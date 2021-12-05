@@ -5,7 +5,6 @@
 #include"./Flag.h"
 #include "./Solver.h"
 
-
 namespace vrptwNew {
 
 class EAX
@@ -20,7 +19,7 @@ public:
 	int maxNumRichEdges; // 最多所需存储的边数
 	int curSize = 0; // `richEdges` 下一次分配的 ID
 	Vec<RichEdge> richEdges; // 存储双亲所有边信息
-	Vec<Vec<int>> adjNodeTable; // 当前 GAB 中每个节点的邻接节点列表
+	Vec<Vec<int>> adjNodeTable; // 当前 GAB 中每个节点的邻接rich edge列表
 
 	UnorderedMap<int, int>
 		papbEMap, // 所有
@@ -242,7 +241,6 @@ public:
 				adjNodeTable[re.e.b].push_back(re.index);
 			}
 		}
-
 		return true;
 	}
 
@@ -279,13 +277,6 @@ public:
 				}
 			}
 
-#if CHECKING
-			if (curCus == -1) {
-				debug(curCus == -1);
-				debug(curCus == -1);
-			}
-#endif // CHECKING
-
 			int reIndex = -1;
 			if (lastEdge == Owner::Pb) {
 				// pa
@@ -303,7 +294,7 @@ public:
 				}
 				paPriE.removeVal(reIndex);
 			}
-			else {
+			else if (lastEdge == Owner::Pa) {
 
 				int cnt = 0;
 				for (int i : adjNodeTable[curCus]) {
@@ -318,6 +309,9 @@ public:
 					}
 				}
 				pbPriE.removeVal(reIndex);
+			}
+			else {
+				println("lastEdge:", enum_int(lastEdge));
 			}
 
 #if CHECKING
@@ -362,11 +356,11 @@ public:
 
 					for (int i = genSize - 1; i >= abcStart; i--) {
 						int ei = genAbCy[i];
-						int cus = 0;
+						int cus = -1;
 						if (richEdges[ei].owner == Owner::Pa) {
 							cus = richEdges[ei].e.a;
 						}
-						else {
+						else if(richEdges[ei].owner == Owner::Pb){
 							cus = richEdges[ei].e.b;
 						}
 						cusVisitTime[cus].pop_back();
@@ -374,9 +368,7 @@ public:
 
 					genSize = abcStart;
 					abCycleSet.push_back(oneCycle);
-
 				}
-
 			}
 		}
 
@@ -603,7 +595,7 @@ public:
 			
 			maxCycleCnt = (children&1)==0? 1: pc.myRand.pick(Alleset.size())+1;
 			//maxCycleCnt = 2;
-			maxCycleCnt = min(Alleset.size(), maxCycleCnt);
+			maxCycleCnt = std::min<int>(Alleset.size(), maxCycleCnt);
 			for (int i = 0; i < maxCycleCnt; ++i) {
 				eset.push_back(Alleset[i]);
 			}

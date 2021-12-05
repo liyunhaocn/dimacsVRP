@@ -343,9 +343,9 @@ struct Input {
 
 			DisType av = disOf[0][v];
 			DisType aw = av + datas[v].SERVICETIME + disOf[v][w];
-			DisType ptw = max(0, aw - datas[w].DUEDATE);
+			DisType ptw = std::max<DisType>(0, aw - datas[w].DUEDATE);
 			DisType an = aw + datas[w].SERVICETIME + disOf[w][0];
-			ptw += max(0, an - datas[0].DUEDATE);
+			ptw += std::max<DisType>(0, an - datas[0].DUEDATE);
 			return ptw == 0;
 		};
 

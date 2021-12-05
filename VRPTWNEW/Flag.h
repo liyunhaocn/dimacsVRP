@@ -18,8 +18,8 @@
 #define CHECKING 0
 #define DISDOUBLE 0
 
-#define max(a,b)  (((a) > (b)) ? (a) : (b))
-#define min(a,b)  (((a) < (b)) ? (a) : (b))
+//#define max(a,b)  (((a) > (b)) ? (a) : (b))
+//#define min(a,b)  (((a) < (b)) ? (a) : (b))
 
 #define debug(x) cout<<#x<<": "<<(x)<<endl
 #define deOut(x) cout<<#x<<": "<<(x)<<" "
