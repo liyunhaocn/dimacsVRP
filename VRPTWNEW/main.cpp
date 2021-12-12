@@ -2,6 +2,7 @@
 
 #include <iostream>
 #include <functional>
+#include <numeric>
 //#include "./VRPTW/Environment.h"
 //#include "./VRPTW/Utility.h"
 //#include "./VRPTW/Solver.h"
@@ -31,72 +32,9 @@ using namespace std;
 #include<vector>
 #include<map>
 
-
-bool run(int argc, char* argv[],string ex="C1_6_6") {
-
-	vrpSln::Environment env(ex);
-
-	vrpSln::Configuration cfg;
-	solveCommandLine(argc, argv, cfg, env);
-
-	/*cfg.breakRecord = 0;
-	env.seed = 1634129452;
-	*/
-
-	debug(argc);
-	env.show();
-	cfg.show();
-	
-	vrpSln::DateTime d(time(0));
-	cout << d << endl;
-	debug("compile tag:");
-	debug(__DATE__);
-	debug(__TIME__);
-	
-	vector<string> e1 = {"C1_", "C2_" ,"R1_","R2_","RC1_","RC2_"};
-	vector<string> e2 = { "2_","4_","6_","8_","10_" };
-	vector<string> e3 = { "11","12","13","14","15","16","17","18","19","20" };
-
-	/*vector<string> allCase;
-	for (string a : e1) {
-	for (string b : e2) {
-	for (string c : e3) {
-		allCase.push_back(a + b + c);
-		cfg.breakRecord = 1;
-	}
-	}
-	}*/
-
-	vrpSln::Input input(env, cfg);
-	vrpSln::Solver solver(input, cfg, env);
-	
-	solver.minimizeRN();
-
-	auto& P = solver.P;
-	string path = env.outputPath;
-	path += "PVal.";
-	path += input.example;
-	path += ".csv";
-
-	auto f = freopen(path.c_str(), "a", stdout);
-
-	for (int i = 0; i < P.size(); ++i) {
-		cout << P[i] << ", ";
-	}
-	cout << endl;
-
-	auto f2 = freopen("CON", "a", stdout);
-
-	vrpSln::saveSln(input, solver.output, cfg, env);
-	//solver.saveOutAsSintefFile();
-
-	return true;
-}
-
-
 void findbug() {
 
-	vrpSln::Environment env("C1_10_4");
+	vrpSln::Environment env("../Instances/Solomon/C101.txt");
 	vrpSln::Configuration cfg;
 	//lyh::MyString ms;
 
@@ -114,7 +52,7 @@ void findbug() {
 	cfg.show();
 	vrpSln::Input input(env, cfg);
 
-	vector< vector<int> > vpa = {
+	vrpSln::Vec< vrpSln::Vec<int> > vpa = {
 {581,654,125,954,39,782,857,256,404,510},
 {811,153,986,27,189,680,563,411},
 {997,337,947,588,637,515,166,496,751},
@@ -207,7 +145,7 @@ void findbug() {
 {904,971,794,855,13,78,376,893,311,140,22,663,183}
 	};
 
-	vector< vector<int> > vpb = {
+	vrpSln::Vec< vrpSln::Vec<int> > vpb = {
 {781,246,943,850,828,161,71,567,433,999,880,703},
 {355,923,926,888,732,979,898,359,964,988,277,286},
 {997,312,947,588,854,673,166,70,638},
@@ -308,25 +246,86 @@ void findbug() {
 	pb.initByArr2(vpb);
 	//pa.saveOutAsSintefFile();
 	//pb.saveOutAsSintefFile();
-	
-	vrpSln::EAX eax(input.custCnt, pa.rts.cnt, env.seed);
+
+	vrpSln::EAX eax(pa, pb,0);
 
 	vrpSln::Solver pc(pa);
 
 	debug(pa.verify());
 	debug(pb.verify());
-	bool eaSucceed = eax.doEAX(pa, pb, pc);
 
+	pa.printDimacs();
+
+	auto newCus = eax.doNaEAX(pa, pb, pc);
+
+}
+
+bool run(int argc, char* argv[]) {
+
+	vrpSln::Environment env("../Instances/Homberger/C1_8_2.txt");
+
+	vrpSln::Configuration cfg;
+	solveCommandLine(argc, argv, cfg, env);
+
+	//env.seed = 1611589828;
+
+	debug(argc);
+	env.show();
+	cfg.show();
+	
+	vrpSln::DateTime d(time(0));
+	cout << d << endl;
+	debug("compile tag:");
+	debug(__DATE__);
+	debug(__TIME__);
+	
+	vrpSln::Vec<string> e1 = {"C1_", "C2_" ,"R1_","R2_","RC1_","RC2_"};
+	vrpSln::Vec<string> e2 = { "2_","4_","6_","8_","10_" };
+	vrpSln::Vec<string> e3 = { "11","12","13","14","15","16","17","18","19","20" };
+
+	/*Vec<string> allCase;
+	for (string a : e1) {
+	for (string b : e2) {
+	for (string c : e3) {
+		allCase.push_back(a + b + c);
+		cfg.breakRecord = 1;
+	}
+	}
+	}*/
+
+	vrpSln::Input input(env, cfg);
+	vrpSln::Solver solver(input, cfg, env);
+	
+	solver.minimizeRN();
+
+	auto& P = solver.P;
+	string path = env.outputPath;
+	path += "PVal.";
+	path += input.example;
+	path += ".csv";
+
+	auto f = freopen(path.c_str(), "a", stdout);
+
+	for (std::size_t i = 0; i < P.size(); ++i) {
+		cout << P[i] << ", ";
+	}
+	cout << endl;
+
+	auto f2 = freopen("CON", "a", stdout);
+
+	vrpSln::saveSln(input, solver.output, cfg, env);
+	//solver.saveOutAsSintefFile();
+
+	return true;
 }
 
 bool solverByEAX(int argc, char* argv[]) {
 
-	vrpSln::Environment env("C1_10_4");
+	//vrpSln::Environment env("../Instances/Solomon/C101.txt");
+	vrpSln::Environment env("../Instances/Homberger/RC1_8_3.txt");
+
 	vrpSln::Configuration cfg;
 	//lyh::MyString ms;
-
-	vrpSln::println("__DATE__: ",__DATE__);
-	vrpSln::println("__TIME__: ",__TIME__);
 
 	solveCommandLine(argc, argv, cfg, env);
 
@@ -334,84 +333,173 @@ bool solverByEAX(int argc, char* argv[]) {
 		env.seed = std::time(nullptr) + std::clock();
 	}
 	env.seed = 1611589828;
-	auto env2 = env;
-
-	env2.seed = env.seed + 1611589828;
 	env.show();
 	cfg.show();
+
+	vrpSln::myRand = new vrpSln::Random(env.seed);
+	vrpSln::myRandX = new vrpSln::RandomX(env.seed);
+
 	vrpSln::Input input(env, cfg);
-
-	vrpSln::Solver pa(input, cfg, env);
-	vrpSln::Solver pb(input, cfg, env2);
-	
-	pa.minimizeRN();
-	//pb.patternAdjustment(-1, 1000);
-	pa.minimizeRL();
-
-	pb.minimizeRN();
-	//pb.patternAdjustment(-1, 1000);
-	pb.minimizeRL();
-
-	vrpSln::Solver pc(pa);
-	vrpSln::Solver pBest(pa);
+	vrpSln::Solver pBest(input, cfg, env);
+	//TODO[lyh][0]:
+	pBest.RoutesCost = vrpSln::DisInf;
 
 	int contiNoDown = 1;
 
-	vrpSln::Timer t1(3600);
-
-	t1.setLenUseSecond(3600);
+	vrpSln::Timer t1(cfg.runTimer);
+	t1.setLenUseSecond(cfg.runTimer);
 	t1.reStart();
 
-	while (pa.RoutesCost > input.sintefRecRL && !t1.isTimeOut()){
-
-		pc = pa;
-		pb.patternAdjustment(10);
-		pb.minimizeRL();
-
-		vrpSln::EAX eax(input.custCnt, pa.rts.cnt, env.seed);
-
-		bool eaSucceed = eax.doEAX(pa, pb, pc);
-
-		if (!eaSucceed) {
-			//debug(eaSucceed)
-			pb.patternAdjustment(30);
-			pb.minimizeRL();
-		}
-
-		if (pc.RoutesCost < pa.RoutesCost) {
-			pa = pc;
-			contiNoDown = 0;
-		}
-		
-		if (pc.RoutesCost < pBest.RoutesCost) {
-			pBest = pc;
-			contiNoDown = 0;
+	auto updateBestSol = [&](vrpSln::Solver& pTemp) {
+		if (pTemp.RoutesCost < pBest.RoutesCost) {
+			pBest = pTemp;
+			contiNoDown = 1;
 			pBest.saveToOutPut();
-			//vrpSln::saveSln(input, pBest.output, cfg, env);
-			vrpSln::println("pc.RoutesCost: ",pc.RoutesCost);
-			vrpSln::println("pBest.RoutesCost: ", pBest.RoutesCost);
-			vrpSln::println("pBest.ver: ", pBest.verify());
-
+			vrpSln::println("cost:", pBest.RoutesCost);
+			return true;
 		}
 		else {
-			++contiNoDown;
+			return false;
+		}
+		return false;
+	};
+
+	int popSize = 3;
+
+	vrpSln::Vec<vrpSln::Solver> pool;
+	pool.reserve(popSize);
+	for (int i = 0; i < popSize; ++i) {
+		vrpSln::Environment envt = env;
+		envt.seed = env.seed + ( (i+1) * (vrpSln::myRand->pick(10000007))) % vrpSln::Mod;
+		vrpSln::Solver st(input, cfg, envt);
+		st.minimizeRN();
+		st.mRLLocalSearch({});
+		if (st.RoutesCost < pBest.RoutesCost) {
+			pBest = st;
+		}
+		pool.push_back(st);
+	}
+
+	while (pBest.RoutesCost > input.sintefRecRL && !t1.isTimeOut()){
+		
+		int paIndex = vrpSln::myRand->pick( popSize );
+		int pbIndex = (paIndex + vrpSln::myRand->pick(popSize-1) + 1) % popSize;
+		/*debug(paIndex);
+		debug(pbIndex);*/
+		vrpSln::Solver& pa  = pool[paIndex];
+		vrpSln::Solver& pb  = pool[pbIndex];
+		vrpSln::Solver pc = pa;
+		
+		unsigned eaxSeed = env.seed + (vrpSln::myRand->pick(10000007)) % vrpSln::Mod;
+		vrpSln::EAX eax(pa, pb, eaxSeed);
+		auto newCus = eax.doNaEAX(pa, pb, pc);
+
+		if (eax.repairSolNum == 0) {
+
+			// TODO[lyh][0]: 如果是没有ab环 那么就是说这两个解一模一样,把b的函数值升高以跳出局部最优
+			if (eax.abCycleSet.size() == 0) {
+				vrpSln::println("no abcycle");
+				bool isRuin = pb.ruinLocalSearch();
+				if (isRuin) {
+					vrpSln::println("ruin success", "333pb.RoutesCost: ", pb.RoutesCost);
+				}
+				else {
+					vrpSln::println("ruin fail patternAdjustment");
+					pb.patternAdjustment(input.custCnt * 0.1);
+					pb.mRLLocalSearch({});
+				}
+				updateBestSol(pb);
+				continue;
+			}
+			else {
+				// TODO[lyh][1]: 如果是有ab环 重新生成ab环，采用path relinking
+				vrpSln::println("has abcycle repeat gen abcy");
+				
+				int succRepairNum = 0;
+				auto pcColone = pa;
+
+				for (int i = 0; i < 3; ++i) {
+
+					auto newCusTemp = eax.doNaEAX(pa, pb, pcColone);
+					if (eax.repairSolNum > 0) {
+						++succRepairNum;
+						if (succRepairNum == 1) {
+							vrpSln::println("na get first");
+							pc = pcColone;
+							newCus = newCusTemp;
+						}
+						else if (succRepairNum > 1 && pcColone.RoutesCost < pc.RoutesCost) {
+							vrpSln::println("na is better");
+							pc = pcColone;
+							newCus = newCusTemp;
+						}
+					}
+
+					newCusTemp = eax.doPrEAX(pa, pb, pcColone);
+					if (eax.repairSolNum > 0) {
+						++succRepairNum;
+						if (succRepairNum == 1) {
+							vrpSln::println("path get first");
+							pc = pcColone;
+							newCus = newCusTemp;
+						}
+						else if (succRepairNum > 1 && pcColone.RoutesCost < pc.RoutesCost) {
+							vrpSln::println("path is better");
+							pc = pcColone;
+							newCus = newCusTemp;
+						}
+					}
+				}
+
+				if (succRepairNum == 0) {
+					vrpSln::println("repeat fail");
+					continue;
+				}
+				else {
+					vrpSln::println("repeat gen succeess");
+				}
+			}
 		}
 
-		if (contiNoDown % 5 ==0 ) {
-			pa = pBest;
-			pb.patternAdjustment(50);
-			pb.minimizeRL();
+		if (pc.penalty > 0) {
+			vrpSln::println("error pc penalty > 0");
 		}
+		pc.mRLLocalSearch(newCus);
+		//pc.mRLLocalSearch({});
+		updateBestSol(pc);
+		if (pc.RoutesCost < pa.RoutesCost) {
+			pa = pc;
+		}
+		++contiNoDown;
 
-		if (contiNoDown % 20 ==0 ) {
-			pa = pBest;
-			pb.patternAdjustment(pc.input.custCnt*0.2);
-			pb.minimizeRL();
+		if (contiNoDown % popSize == 0) {
+
+
+			//pa = pBest;
+			pa.patternAdjustment(input.custCnt * 0.1);
+			pa.mRLLocalSearch({});
+			updateBestSol(pa);
+
+			pool[0] = pBest;
+			/*bool isRuin = pb.ruinLocalSearch();
+			if (isRuin) {
+				vrpSln::println("333pb.RoutesCost: ", pb.RoutesCost);
+			}*/
+			/*else {
+				pb.patternAdjustment(30);
+				pb.mRLLocalSearch({});
+			}*/
+			updateBestSol(pb);
 		}
 	}
-	
+
+	pBest.output.runTime = t1.getRunTime();
 	vrpSln::saveSln(input, pBest.output, cfg, env);
 	t1.disp();
+
+	delete vrpSln::myRand;
+	delete vrpSln::myRandX;
+
 	return true;
 }
 
@@ -427,7 +515,7 @@ int main(int argc, char* argv[])
 	//testGetbound(argc, argv);
 	//return 0;
 	//for(;;)
-	vector<string> all63 = { "C1_10_1", "C1_10_5", "C1_10_6", "C1_10_7", "C1_10_8", "C1_8_1", "C1_8_5", "C1_8_6", "C1_8_7",
+	vrpSln::Vec<string> all63 = { "C1_10_1", "C1_10_5", "C1_10_6", "C1_10_7", "C1_10_8", "C1_8_1", "C1_8_5", "C1_8_6", "C1_8_7",
 								"C1_8_8", "C1_6_1", "C1_6_5", "C1_6_6", "C1_6_7", "C1_4_1", "C1_4_5", "C1_4_6", "C1_4_7",
 								"C1_4_8", "C1_2_1", "C1_2_5", "C1_2_6", "C1_2_7", "C1_2_8",
 
@@ -440,42 +528,8 @@ int main(int argc, char* argv[])
 										"RC2_10_1", "RC2_8_1", "RC2_8_2", "RC2_6_1", "RC2_6_2", "RC2_4_1", "RC2_4_2", "RC2_2_1", "RC2_2_2" 
 	};
 
-	/*for (auto ex : all63) {
-		run(argc, argv,ex);
-	}*/
-	findbug();
-	return 0;
 	solverByEAX(argc, argv);
 	//run(argc, argv);
-
-	/*vector<string> boundCase;
-	map<string,int> boundofex;
-	map<string,int> sinofex;
-	for (auto ex : all63) {
-		debug(ex)
-		int bound = getBound(ex);
-		boundofex[ex] = bound;
-		
-		vrpSln::Environment env(ex);
-		vrpSln::Configuration cfg;
-
-		vrpSln::Input in(env,cfg);
-		sinofex[ex] = in.sintefRecRN;
-		if (bound == in.sintefRecRN) {
-			boundCase.push_back(ex);
-		}
-		
-	}
-
-	for (auto i : all63) {
-		cout << i << " " << sinofex[i] << " " << boundofex[i] << endl;;
-	}
-	cout << endl;
-
-	for (string i : boundCase) {
-		cout << i << ",";
-	}
-	cout << endl;*/
 
 	return 0;
 }

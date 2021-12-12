@@ -9,6 +9,7 @@
 #include <vector>
 #include <unordered_map>
 #include <unordered_set>
+#include <numeric>
 
 #define LINUX 0
 #define ATTRIBUTETABU 1
@@ -17,9 +18,6 @@
 
 #define CHECKING 0
 #define DISDOUBLE 0
-
-//#define max(a,b)  (((a) > (b)) ? (a) : (b))
-//#define min(a,b)  (((a) < (b)) ? (a) : (b))
 
 #define debug(x) cout<<#x<<": "<<(x)<<endl
 #define deOut(x) cout<<#x<<": "<<(x)<<" "
@@ -38,7 +36,6 @@
 #define lfeq13(a,b)  ((a) > (b) ? ((a)-(b) < 1e-13):((b)-(a) < 1e-13) )
 #define DISlfeq lfeq10
 
-
 namespace vrptwNew {
 
 	int IntInf = 0x3f3f3f3f;
@@ -52,6 +49,13 @@ namespace vrptwNew {
 	double PI_8 = PI / 8;
 	double PI_16 = PI / 16;
 	double PI_32 = PI / 32;
+
+#if DISDOUBLE
+	int mul = 1;
+#else
+	int disMul = 10000;
+	int Mod = 1000000007;
+#endif // DISDOUBLE
 
 	using LL = long long int;
 
@@ -71,7 +75,11 @@ namespace vrptwNew {
 	using DisType = LL;
 	DisType DisInf = LLInf;
 #endif // DISDOUBLE
+	struct Random;
+	struct RandomX;
 
+	Random* myRand;
+	RandomX* myRandX;
 }
 
 #endif // !vrptwNew_FLAG_H

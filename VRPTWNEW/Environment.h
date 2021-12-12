@@ -13,54 +13,21 @@ class Environment
 {
 public:
 
-	LL seed = -1;
-	string inputPath;
-	string sinRecPath = "../Data/bestRec.txt";
-	string basePath = "../Data/homberger_";
+	unsigned seed = 0;
+	string inputPath = "";
 	string outputPath = "../Results/";
-	string sinBKSPath = "../Data/";
-	string linBKSPath = "../Data/";
-	string example;
 
-	Environment(string ex) {
-
-		this->example = ex;
-		
-		MyString ms;
-		vector<string> mssp = ms.split(this->example, "_");
-		string customersNum = mssp[1] + "00";
-		 
-		this->inputPath = basePath + customersNum + "_customer_instances/" 
-			+ this->example + ".TXT";
-
+	Environment(const string& inputp) {
+		this->inputPath = inputp;
 	};
 
-	Environment() {
-
-		this->example = "C1_8_2";
-		MyString ms;
-		vector<string> mssp = ms.split(this->example, "_");
-		string customersNum = mssp[1] + "00";
-		this->inputPath = basePath + customersNum + "_customer_instances/"
-			+ this->example + ".TXT";
-
-	};
-
-	bool setExample(string ex) {
-
-		this->example = ex;
-
-		MyString ms;
-		vector<string> mssp = ms.split(this->example, "_");
-		string customersNum = mssp[1] + "00";
-
-		this->inputPath = basePath + customersNum + "_customer_instances/"
-			+ this->example + ".TXT";
+	bool setInputPath(string& inPath) {
+		this->inputPath = inPath;
 		return true;
 	}
 
 	void show() {
-		debug(example);
+		debug(inputPath);
 		debug(seed);
 	}
 	~Environment() {};

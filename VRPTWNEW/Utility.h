@@ -58,6 +58,14 @@ void println(const T& firstArg, const Types&... args) {
     cout << firstArg << " ";
     println(args...);
 }
+template<typename T>
+void printve(T arr) {
+    cout << " ";
+    for (auto& i : arr) {
+        cout << i << ",";
+    }
+    cout << endl;
+}
 
 struct MyString {
 public:
@@ -68,7 +76,7 @@ public:
             ret.push_back(str);
             return ret;
         }
-        LL pos = 0;
+        std::size_t pos = 0;
         while ((pos = str.find(s)) != string::npos) {
             if (pos > 0) {
                 ret.push_back(str.substr(0, pos));
@@ -81,15 +89,15 @@ public:
         return ret;
     }
     //string to LL
-    LL str_LL(string s) {
+    int str_int(string s) {
         stringstream ss;
-        LL ret;
+        int ret;
         ss << s;
         ss >> ret;
         return ret;
     }
 
-    string LL_str(LL s) {
+    string int_str(int s) {
         stringstream ss;
         ss << s;
         return ss.str();
@@ -100,7 +108,7 @@ class Random {
 public:
     using Generator = std::mt19937;
 
-    Random(int seed) : rgen(seed) {}
+    Random(unsigned seed) : rgen(seed) {}
     Random() : rgen(generateSeed()) {}
 
 
@@ -123,7 +131,6 @@ public:
     int pick(int max) {
         return (rgen() % max);
     }
-
 
     Generator rgen;
 };

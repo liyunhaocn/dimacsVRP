@@ -12,10 +12,10 @@ namespace vrptwNew {
 
 struct Configuration {
 
-	LL squContiIter = 100;
-	LL squMinContiIter = 100;
-	LL squMaxContiIter = 199;
-	LL squIterStepUp = 10;
+	int squContiIter = 100;
+	int squMinContiIter = 100;
+	int squMaxContiIter = 199;
+	int squIterStepUp = 10;
 
 	/*vector<int> outNeiSize = { 199 };
 	vector<double> broaden = { 1.5 };*/
@@ -25,7 +25,7 @@ struct Configuration {
 	
 	int broadIndex = 0;
 
-	LL weightUpStep = 1;
+	int weightUpStep = 1;
 
 	int squGrea0AC = 1;
 	int squGrea0Range = 1;
@@ -50,8 +50,8 @@ struct Configuration {
 	//LL yearTabuLen = 5;
 	//LL yearTabuRand = 5;
 	
-	LL yearTabuLen = 20;
-	LL yearTabuRand = 10;
+	int yearTabuLen = 20;
+	int yearTabuRand = 10;
 
 	void show() {
 

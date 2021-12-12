@@ -3,9 +3,12 @@
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <DebuggerWorkingDirectory>$(SolutionDir)..\</DebuggerWorkingDirectory>
     <DebuggerFlavor>LinuxWSLDebugger</DebuggerFlavor>
+    <RemoteDebuggingTarget>WSL</RemoteDebuggingTarget>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <DebuggerWorkingDirectory>$(SolutionDir)..\</DebuggerWorkingDirectory>
     <DebuggerFlavor>LinuxWSLDebugger</DebuggerFlavor>
+    <RemoteDebuggingTarget>WSL</RemoteDebuggingTarget>
+    <RemoteDebuggingMode>gdbserver</RemoteDebuggingMode>
   </PropertyGroup>
 </Project>

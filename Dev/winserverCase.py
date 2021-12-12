@@ -62,12 +62,12 @@ for t in arr_types:
 
 cases = all300Cases
 print(len(cases))
-# strBase = "start cmd /k \"dimacsVRP.exe 1 C2_10_2 36000\""
-path = "./all300_2h.bat"
+# strBase = "start cmd /k \"DLLSMA.exe 1 ../Instances/Homberger/C2_10_2.txt 36000\""
+path = "./all300_0p5h.bat"
 
-part = 10
+part = 30
 part = min(part,len(cases))
-runTime = "7200"
+runTime = "1800"
 # runTime = "86400"
 isBreak = "0"
 
@@ -90,10 +90,9 @@ print( ret )
 for i in range(0,len(cases),part):
 	for j in range(0,part,1):
 		if i+j < len(cases):
-			print("dimacsVRP.exe " + isBreak + " " + cases[i+j] + " " + runTime + "&&")
-			ret[j] += "dimacsVRP.exe " + isBreak + " " + cases[i+j] + " " + runTime + "&&"
+			print("DLLSMA.exe " + isBreak + " ../Instances/Homberger/" + cases[i+j] + ".txt " + runTime + "&&")
+			ret[j] += "DLLSMA.exe " + isBreak + " ../Instances/Homberger/" + cases[i+j] + ".txt " + runTime + "&&"
 	print('\n')
-
 
 file_write_obj = open(path, 'w')
 

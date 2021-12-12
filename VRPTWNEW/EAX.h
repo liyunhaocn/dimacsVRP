@@ -1,7 +1,8 @@
 #ifndef LYH_EAX_H
 #define LYH_EAX_H
 
-#include<unordered_map>
+#include <unordered_map>
+#include <numeric>
 #include"./Flag.h"
 #include "./Solver.h"
 
@@ -10,81 +11,35 @@ namespace vrptwNew {
 class EAX
 {
 public:
-	/* 可支持节点数 */
-	const int supportNumNodes = 1000;
 
-	/* 存储及遍历过程所需数据结构 */
-	bool isFirstTimeEax = true;
-	struct RichEdge;
-	int maxNumRichEdges; // 最多所需存储的边数
-	int curSize = 0; // `richEdges` 下一次分配的 ID
-	Vec<RichEdge> richEdges; // 存储双亲所有边信息
-	Vec<Vec<int>> adjNodeTable; // 当前 GAB 中每个节点的邻接rich edge列表
-
-	UnorderedMap<int, int>
-		papbEMap, // 所有
-		GabEMap, // Gab
-		papbNotGabEMap; // 除 Gab
-
-	ConfSet paPriE; // pa 所有
-	ConfSet pbPriE;// pb 独有 
-	// 映射 `code` 到 `richEdges` 的 ID
-
-	Vec<Vec<int>> abCycleSet; // 一次分解 GAB 得到的 AB-Cycle 集合
-	Vec<Vec<int>> 
-		multiple, & cycles = multiple; 
-	// 多次分解 GAB 得到的数量最多的 AB-Cycle 集合
-
-	//Vec<bool> visited; // 标记一个节点是否已访问
-	int GabEsize = 0;
-	
-	int cusCnt;
-	int rCnt;
-	Random mr;
-
-	EAX(int cusCnt,int rCnt,LL seed):paPriE(2 * (cusCnt + rCnt)),pbPriE(2*(cusCnt + rCnt)), mr(seed){
-		
-		this->cusCnt = cusCnt;
-		this->rCnt = rCnt;
-
-		richEdges = Vec<RichEdge>(2* (cusCnt + 1 + rCnt - 1) );
-		adjNodeTable = Vec<Vec<int>>(cusCnt + 1, Vec<int>());
-		//visited = Vec<bool>(cusCnt+1,0);
-	};
-
-	enum class Owner { UNKNOWN=-1, Pa, Pb, COMMON };
+	enum class Owner { UNKNOWN = -1, Pa, Pb, COMMON };
 
 	struct Edge {
-		int a;
-		int b;
+		int a = -1;
+		int b = -1;
+		Edge() :a(-1), b(-1) {}
+		Edge(int aa, int bb) :a(aa), b(bb) {}
 	};
 
 	struct RichEdge
 	{
-		
-		int index=-1; // 在存储空间的 ID
+
+		int index = -1; // 在存储空间的 ID
 		Edge e;
-		int code =-1; // 边的哈希码
+		int code = -1; // 边的哈希码
 		Owner owner = Owner::UNKNOWN; // 边的所有权属性 0 pa 1 pb 2 pc -1 未知
 		//int baseRouteID, goalRouteID; // 在双亲中的路径 ID
 		bool visited = false; // 是否已访问
-		int cycleID=-1; // 该边被划分到的 AB-Cycle 的 ID
+		//int cycleID=-1; // 该边被划分到的 AB-Cycle 的 ID
 
 		RichEdge() :
-			index(-1), e({ -1 ,-1}), code(-1), owner(Owner::UNKNOWN),
+			index(-1)
+			, e(-1, -1)
+			, code(-1)
+			, owner(Owner::UNKNOWN)
 			//baseRouteID(-1), goalRouteID(-1),
-			visited(false), cycleID(-1)
-		{ }
-
-		RichEdge(int index,Edge e,
-		int code, // 边的哈希码
-		int owner, // 边的所有权属性 0 pa 1 pb 2 pc -1 未知
-		//int baseRouteID, goalRouteID; // 在双亲中的路径 ID
-		int visited, // 是否已访问
-		int cycleID) :
-			index(index),e(e), code(code), owner(Owner::UNKNOWN),
-			//baseRouteID(-1), goalRouteID(-1),
-			visited(visited), cycleID(cycleID)
+			, visited(false)
+			//,cycleID(-1)
 		{ }
 
 		/* 设置数据 */
@@ -95,8 +50,7 @@ public:
 			Owner owner, // 边的所有权属性 0 pa 1 pb 2 pc -1 未知
 			//int baseRouteID, goalRouteID; // 在双亲中的路径 ID
 			int visited, // 是否已访问
-			int cycleID) 
-			
+			int cycleID)
 		{
 
 			this->index = index;
@@ -105,25 +59,50 @@ public:
 			this->owner = owner;
 			//baseRouteID(-1), goalRouteID(-1),
 			this->visited = visited;
-			this->cycleID = cycleID;
+			//this->cycleID = cycleID;
 			return true;
 		}
 	};
 
-	/* 重置映射 */
-	void resetMap(UnorderedMap<int, int>& map, int size) {
-		
-	}
+	/* 可支持节点数 */
+	int supportNumNodes = -1;
 
-	/* 重置集合 */
-	void resetSet(UnorderedSet<int>& set, int size) {
-		
-	}
+	int richEdgeCurSize = 0; // `richEdges` 下一次分配的 ID
+	Vec<RichEdge> richEdges; // 存储双亲所有边信息
+	Vec<Vec<int>> adjEdgeTable; // 当前 GAB 中每个节点的邻接rich edge列表
 
-	/* 重置所有节点遍历到达的步数栈 */
-	void resetArrivalSteps() {
+	// 映射 `code` 到 `richEdges` 的 ID
+	UnorderedMap<int, int>	papbEMap; // 所有
+
+	ConfSet paPriE; // pa 所有
+	ConfSet pbPriE;// pb 独有 
+	Vec<Vec<int>> abCycleSet; // 一次分解 GAB 得到的 AB-Cycle 集合
+	int generSolNum = -1; //生成了多少解
+	int repairSolNum = -1; //生成了多少解
+	//Vec<bool> visited; // 标记一个节点是否已访问
+	int GabEsize = 0;
+	
+	int eaxCusCnt = -1;
+	int eaxRCnt = -1;
+	unsigned eaxSeed = 0;
+	
+	//enum EaxStateEnum:int {
+	//	noabcycle = 0,
+	//	cantRepair,
+	//};
+
+	EAX(Solver& pa,Solver& pb,unsigned seedarg):paPriE(2 * (pa.input.custCnt + pa.rts.cnt)),pbPriE(2 * (pb.input.custCnt + pb.rts.cnt)), eaxSeed(seedarg){
 		
-	}
+		this->eaxCusCnt = pa.input.custCnt;
+		this->eaxRCnt = pa.rts.cnt;
+
+		richEdges = Vec<RichEdge>(2* (this->eaxCusCnt + 1 + this->eaxRCnt - 1) );
+		adjEdgeTable = Vec<Vec<int>>(this->eaxCusCnt + 1, Vec<int>());
+		//visited = Vec<bool>(cusCnt+1,0);
+		supportNumNodes = this->eaxCusCnt + 1;
+
+		classifyEdges(pa, pb);
+	};
 
 	/* 从边到哈希码 */
 	int toCode(int i, int j) {
@@ -136,21 +115,6 @@ public:
 		e.a = code / supportNumNodes;
 		e.b = code % supportNumNodes;
 		return e;
-	}
-
-	/* 设置边的访问状态 */
-	void setVisited(UnorderedMap<int, int>& mp, bool stat) {
-	
-	}
-
-	/* 设置边的可用状态 */
-	void setUsable(UnorderedMap<int, int>& mp, bool stat) {
-	
-	}
-
-	/* 加入新的边 */
-	void addRichEdge(int i, int j, Owner owner, bool unique, int routeID) {
-	
 	}
 
 	/* 准备交叉算符所需的数据结构, 并使上一次交叉的结果无效 */
@@ -186,7 +150,7 @@ public:
 						re.owner = owner;
 						re.e = e;
 						re.code = code;
-						re.index = curSize++;
+						re.index = richEdgeCurSize++;
 						papbEMap[re.code] = re.index;
 						richEdges[re.index] = re;
 					}
@@ -199,10 +163,6 @@ public:
 
 		getAllEdgeInSol(pa,Owner::Pa);
 		getAllEdgeInSol(pb,Owner::Pb);
-
-		/*debug(pa.input.custCnt)
-		debug(pa.rts.cnt)
-		debug(curSize)*/
 
 		auto dispDeoptE = [&](Solver & ps) {
 
@@ -220,110 +180,111 @@ public:
 			}
 		};
 			
-		for (int i = 0; i < curSize; ++i) {
+		for (int i = 0; i < richEdgeCurSize; ++i) {
 			RichEdge& re = richEdges[i];
-			/*if (re.owner == Owner::Pa || re.owner == Owner::Pb) {
-				++adjNodeSizes[re.e.a];
-				++adjNodeSizes[re.e.b];
-				adjNodeTable[re.e.a].push_back(re.index);
-				adjNodeTable[re.e.b].push_back(re.index);
-			}*/
 			if (re.owner == Owner::Pa) {
-				//++adjNodeSizes[re.e.a];
 				++GabEsize;
 				paPriE.ins(re.index);
-				adjNodeTable[re.e.a].push_back(re.index);
+				adjEdgeTable[re.e.a].push_back(re.index);
 			}
 			else if(re.owner == Owner::Pb) {
-				//++adjNodeSizes[re.e.b];
 				++GabEsize;
 				pbPriE.ins(re.index);
-				adjNodeTable[re.e.b].push_back(re.index);
+				adjEdgeTable[re.e.b].push_back(re.index);
 			}
 		}
 		return true;
 	}
 
 	/* 分解 GAB, 获得 AB-Cycle */
-	bool generateCycles(int repeatTimes = 5) {
+	bool generateCycles() {
 
-		Vec<Vec<int>> cusVisitTime(cusCnt+1);
+		abCycleSet.clear();
+		for (auto i = 0; i < richEdges.size(); ++i) {
+			richEdges[i].visited = false;
+		}
 
+		Vec<Vec<int>> cusVisitTime(eaxCusCnt + 1);
+		cusVisitTime.reserve(eaxRCnt*2);
+		for (int i = 1; i <= eaxCusCnt; ++i) {
+			cusVisitTime[i].reserve(4);
+		}
 		//记录一个customer是第几步访问到的
 		//*(cusCnt + rCnt)
 
-		Vec<int> genAbCy(2 * (cusCnt + rCnt),0);
+		Vec<int> genAbCy(2 * (eaxCusCnt + eaxRCnt),0);
 
 		int genSize = 0;
 		int curCus = -1;
 		Owner lastEdge = Owner::UNKNOWN;
 
-		while (paPriE.cnt > 0 || pbPriE.cnt > 0) {
+		auto paPriEClone = paPriE;
+		auto pbPriEClone = pbPriE;
+
+		while (paPriEClone.cnt > 0 || pbPriEClone.cnt > 0) {
 
 			if (genSize == 0) {
-				if (mr.pick(2) == 0) {
+				if (myRand->pick(2) == 0) {
 
 					lastEdge = Owner::Pb;
-					int reIndex = paPriE.ve[mr.pick(paPriE.cnt)];
+					int reIndex = paPriEClone.ve[myRand->pick(paPriEClone.cnt)];
 					RichEdge& globalre = richEdges[reIndex];
 					curCus = globalre.e.a;
 				}
 				else {
 
 					lastEdge = Owner::Pa;
-					int reIndex = pbPriE.ve[mr.pick(pbPriE.cnt)];
+					int reIndex = pbPriEClone.ve[myRand->pick(pbPriEClone.cnt)];
 					RichEdge& globalre = richEdges[reIndex];
 					curCus = globalre.e.b;
 				}
 			}
 
 			int reIndex = -1;
+
 			if (lastEdge == Owner::Pb) {
 				// pa
 				int cnt = 0;
-				for (int i : adjNodeTable[curCus]) {
+				for (int i : adjEdgeTable[curCus]) {
 					RichEdge& re1 = richEdges[i];
+					//println("i:", i);
 					if (re1.visited == false) {
 						if (re1.owner == Owner::Pa && re1.e.a == curCus) {
 							++cnt;
-							if (mr.pick(cnt) == 0) {
+							if (myRand->pick(cnt) == 0) {
 								reIndex = re1.index;
 							}
 						}
 					}
 				}
-				paPriE.removeVal(reIndex);
+				//println("cnt:", cnt, "curCus", curCus);
+				paPriEClone.removeVal(reIndex);
 			}
 			else if (lastEdge == Owner::Pa) {
 
 				int cnt = 0;
-				for (int i : adjNodeTable[curCus]) {
-					RichEdge& re1 = richEdges[i];
-					if (re1.visited == false) {
-						if (re1.owner == Owner::Pb && re1.e.b == curCus) {
+				for (int i : adjEdgeTable[curCus]) {
+					//println("i:",i);
+					RichEdge& re2 = richEdges[i];
+					if (re2.visited == false) {
+						
+						if (re2.owner == Owner::Pb && re2.e.b == curCus) {
 							++cnt;
-							if (mr.pick(cnt) == 0) {
-								reIndex = re1.index;
+							if (myRand->pick(cnt) == 0) {
+								reIndex = re2.index;
 							}
 						}
 					}
 				}
-				pbPriE.removeVal(reIndex);
+				pbPriEClone.removeVal(reIndex);
 			}
 			else {
 				println("lastEdge:", enum_int(lastEdge));
 			}
 
-#if CHECKING
-			if (reIndex == -1) {
-				debug(reIndex == -1);
-				debug(reIndex == -1);
-			}
-#endif // CHECKING
-
 			RichEdge& re = richEdges[reIndex];
 			re.visited = true;
-
+			
 			cusVisitTime[curCus].push_back(genSize);
 			genAbCy[genSize++] = reIndex;
 
@@ -342,10 +303,12 @@ public:
 			if (cusVisitTime[curCus].size() > 0) {
 
 				int abcStart = -1;
+				int cnt = 0;
 				for (int i = 0; i < cusVisitTime[curCus].size(); ++i) {
 					if (genSize - cusVisitTime[curCus][i] > 0
 						&& (genSize - cusVisitTime[curCus][i]) % 2 == 0) {
 						abcStart = cusVisitTime[curCus][i];
+						++cnt;
 					}
 				}
 
@@ -353,7 +316,7 @@ public:
 
 					Vec<int> oneCycle(genAbCy.begin() + abcStart,
 						genAbCy.begin() + genSize);
-
+					
 					for (int i = genSize - 1; i >= abcStart; i--) {
 						int ei = genAbCy[i];
 						int cus = -1;
@@ -366,12 +329,13 @@ public:
 						cusVisitTime[cus].pop_back();
 					}
 
+					if (abcStart > 0)lastEdge = richEdges[genAbCy[abcStart - 1]].owner;
 					genSize = abcStart;
+					
 					abCycleSet.push_back(oneCycle);
 				}
 			}
 		}
-
 		return true;
 	}
 
@@ -383,6 +347,9 @@ public:
 		
 		Vec<int> deopt0;
 		Vec<int> deoptN;
+		
+		deopt0.reserve(pc.rts.cnt);
+		deoptN.reserve(pc.rts.cnt);
 
 		int curD0 = 0;
 		int curDN = 0;
@@ -435,24 +402,39 @@ public:
 	}
 
 	/* 对个体应用给定 eSet 集合; */
-	bool applyCycles(Vec<int>& cyclesIndex, Solver& pc) {
-		for (int index : cyclesIndex) {
+	Vec<int> applyCycles(Vec<int>& cyclesIndexes, Solver& pc) {
+		for (int index : cyclesIndexes) {
 			applyOneCycle(index, pc);
 		}
-		return true;
+
+		Vec<int> ret;
+		ret.reserve(eaxCusCnt);
+		for (auto& index : cyclesIndexes) {
+			auto& cy = abCycleSet[index];
+			for (auto& reIndex : cy) {
+				auto& re = richEdges[reIndex];
+				if (re.owner == Owner::Pa) {
+					ret.push_back(re.e.a);
+				}
+				else {
+					ret.push_back(re.e.b);
+				}
+			}
+		}
+		return ret;
 	}
 
 	bool removeSubring(Solver& pc) {
 
-		ConfSet subCyCus(cusCnt+1);
-		ConfSet cusSet(cusCnt+1);
+		ConfSet subCyCus(eaxCusCnt +1);
+		ConfSet cusSet(eaxCusCnt +1);
 
-		for (int i = 1; i <= cusCnt; ++i) {
+		for (int i = 1; i <= eaxCusCnt; ++i) {
 			subCyCus.ins(i);
 		}
 
 		for (int i = 0; i < pc.rts.cnt; ++i) {
-			vector<int> arr = pc.rPutCusInve(pc.rts[i]);
+			Vec<int> arr = pc.rPutCusInve(pc.rts[i]);
 			for (int c : arr) {
 				subCyCus.removeVal(c);
 				cusSet.ins(c);
@@ -467,7 +449,6 @@ public:
 
 			int w = subCyCus.ve[0];
 			
-
 			auto& close =  pc.input.allCloseOf[w];
 			int v = -1;
 			
@@ -478,23 +459,28 @@ public:
 				}
 			}
 
-			Route& rv = pc.rts.getRouteByRid(pc.customers[v].routeID);
+			
 
 			int pt = w;
-			vector<int>onesubcyle;
-
-			while (pt != -1) {
+			Vec<int> onesubcyle;
+			onesubcyle.reserve(eaxCusCnt);
+			int subcy = 0;
+			do {
 				subCyCus.removeVal(pt);
 				onesubcyle.push_back(pt);
 				pt = pc.customers[pt].next;
-				if (pt == w) {
-					break;
-				}
-			}
+				++subcy;
+			} while (pt!=w);
 
+			/*Route& rv = pc.rts.getRouteByRid(pc.customers[v].routeID);
 			for (auto pt: onesubcyle) {
 				pc.rInsAtPos(rv, v, pt);
 				v = pt;
+			}*/
+
+			for (auto pt : onesubcyle) {
+				auto bestFitPos = pc.findBestPosInSol(pt);
+				pc.rInsAtPos(pc.rts[bestFitPos.rIndex], bestFitPos.pos, pt);
 			}
 
 		}
@@ -509,39 +495,75 @@ public:
 		return static_cast<typename std::underlying_type<Enumeration>::type>(value);
 	}
 
-	bool doEAX(Solver& pa, Solver& pb,Solver & pc) {
-			
-		classifyEdges(pa, pb);
+	Vec<int> doNaEAX(Solver& pa, Solver& pb,Solver & pc) {
 		
-#if CHECKING
+		struct eRchNode
+		{
+			int deleABCost = 0;
+		};
 
-		if (GabEsize == 0) {
-			debug(pa.updateRtsCost());
-			debug(pb.updateRtsCost());
-			debug(GabEsize);
-			debug(GabEsize);
-			return false;
-		}
-
-		if (GabEsize == 0) {
-			debug(pa.updateRtsCost());
-			debug(pb.updateRtsCost());
-			debug(GabEsize);
-			debug(GabEsize);
-			return false;
-		}
-#endif // CHECKING
+		Solver sbest(pc);
 
 		generateCycles();
-		
-#if CHECKING
-		if (abCycleSet.size() == 0 && GabEsize > 0) {
-			debug(richEdges.size());
-			debug(GabEsize);
-			debug(GabEsize);
-			return false;
+
+		Vec<int> ret;
+		if (abCycleSet.size() == 0) {
+			println("abCycleSet.size() == 0");
+			return {};
 		}
-#endif // CHECKING
+
+		int chNum = std::min<int>(abCycleSet.size(),10);
+
+		auto& choseAbces = myRandX->getMN(chNum, chNum);
+
+		unsigned shuseed = (eaxSeed + (myRand->pick(10000007))) % Mod;
+		std::shuffle(choseAbces.begin(), choseAbces.end(), default_random_engine(shuseed));
+
+		generSolNum = 0;
+		repairSolNum = 0;
+
+		for (int cyId: choseAbces) {
+
+			pc = pa;
+
+			Vec<int> eset = { cyId };
+			Vec<int> retTemp = applyCycles(eset, pc);
+
+			removeSubring(pc);
+
+			pc.reCalRtsCostAndPen();
+			++generSolNum;
+
+			bool isRepair = pc.repair();
+			if (isRepair) {
+				++repairSolNum;
+				if (repairSolNum == 1) {
+					sbest = pc;
+					ret = retTemp;
+				}else if (pc.RoutesCost< sbest.RoutesCost) {
+					sbest = pc;
+					ret = retTemp;
+				}
+				/*if (mr.pick(repairSolNum) == 0) {
+					sbest = pc;
+					ret = retTemp;
+				}*/
+			}
+		}
+
+		//printve(applyabc);
+		if (ret.size() > 0) {
+			pc = sbest;
+		}
+		else {
+			//println("naEax cant repair");
+			pc = pa;
+		}
+		
+		return ret;
+	}
+
+	Vec<int> doPrEAX(Solver& pa, Solver& pb, Solver& pc) {
 
 		struct eRchNode
 		{
@@ -550,22 +572,31 @@ public:
 
 		Solver sbest(pc);
 
-		bool isSucceed = false;
+		generateCycles();
+
+		Vec<int> ret;
 		if (abCycleSet.size() == 0) {
-			return false;
+			println("abCycleSet.size() == 0");
+			return {};
 		}
+
+		generSolNum = 0;
+		repairSolNum = 0;
 
 		for (int children = 0; children < 10; ++children) {
 
 			pc = pa;
-			Vec<int> Alleset;
-			Vec<int> eset;
-			Alleset.reserve(abCycleSet.size());
-			for (int i = 0; i < abCycleSet.size(); ++i) {
-				Alleset.push_back(i);
-			}
 
+			Vec<int> Alleset(abCycleSet.size(),0);
+			std::iota(Alleset.begin(), Alleset.end(), 0);
+			Vec<int> eset;
+			eset.reserve(abCycleSet.size());
+			
+			int maxCycleCnt = -1;
+
+			/*maxCycleCnt = myRand->pick(Alleset.size()) + 1;
 			Vec<eRchNode> arrE;
+			arrE.reserve(abCycleSet.size());
 			for (int i = 0; i < abCycleSet.size(); ++i) {
 				eRchNode ern;
 				ern.deleABCost = 0;
@@ -580,63 +611,54 @@ public:
 				}
 				arrE.push_back(ern);
 			}
-
 			auto cmp = [&](int a, int b) {
 				return arrE[a].deleABCost < arrE[b].deleABCost;
 			};
+			sort(Alleset.begin(), Alleset.end(), cmp);
+			unsigned shuseed = (eaxSeed + (myRand->pick(10000007))) % Mod;
+			std::shuffle(Alleset.begin() + 1, Alleset.end(), default_random_engine(shuseed));*/
 
-			//sort(Alleset.begin(), Alleset.end(),cmp);
-
-			ShuffleCards sc;
-			std::random_shuffle(Alleset.begin(),Alleset.end());
-
-			int maxCycleCnt = mr.pick(Alleset.size()) + 1;
-			//maxCycleCnt = min(Alleset.size() / 2+1, maxCycleCnt);
-			
-			maxCycleCnt = (children&1)==0? 1: pc.myRand.pick(Alleset.size())+1;
+			maxCycleCnt = myRand->pick(Alleset.size()) + 1;
+			unsigned shuseed = (eaxSeed + (myRand->pick(10000007))) % Mod;
+			std::shuffle(Alleset.begin(), Alleset.end(), default_random_engine(shuseed));
 			//maxCycleCnt = 2;
 			maxCycleCnt = std::min<int>(Alleset.size(), maxCycleCnt);
 			for (int i = 0; i < maxCycleCnt; ++i) {
 				eset.push_back(Alleset[i]);
 			}
 
-			//pc.RTSDisPlay();
-			applyCycles(eset, pc);
-			/*debug(pc.getCusCnt())
-			debug(11111111111)*/
+			Vec<int> retTemp = applyCycles(eset, pc);
 			removeSubring(pc);
-
-			pc.updateRtsValsAndPen();
-			pc.rtsCheck();
-			//println("pc.verify(): ",pc.verify());
-			
-			pc.updateRtsCost();
-			if (pc.repair()) {
-
-				isSucceed = true;
-				if (isSucceed == false) {
-					
+			++generSolNum;
+			pc.reCalRtsCostAndPen();
+			//pc.rtsCheck();
+			//pc.reCalRtsCost();
+			bool isRepair = pc.repair();
+			if (isRepair) {
+				++repairSolNum;
+				if (repairSolNum == 1) {
 					sbest = pc;
+					ret = retTemp;
 				}
-				else {
-					if (pc.RoutesCost < sbest.RoutesCost) {
-						sbest = pc;
-					}
+				else if (pc.RoutesCost < sbest.RoutesCost) {
+					sbest = pc;
+					ret = retTemp;
 				}
+				/*if (mr.pick(repairSolNum) == 0) {
+					sbest = pc;
+					ret = retTemp;
+				}*/
 			}
-			
 		}
-		if (isSucceed) {
+		if (ret.size() > 0) {
 			pc = sbest;
 		}
-		
-		//println("abCycleSet.size():", abCycleSet.size());
-		int ecnt = 0;
-		for (Vec<int> c : abCycleSet) {
-			ecnt += c.size();
+		else {
+			//println("naEax cant repair");
+			pc = pa;
 		}
-		//debug(ecnt)
-		return isSucceed;
+
+		return ret;
 	}
 
 private:

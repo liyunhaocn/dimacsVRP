@@ -1,30 +1,10 @@
 #ifndef vrptwNew_SOLVER_H
 #define vrptwNew_SOLVER_H
 
-#include <iostream>
-#include <vector>
-#include <set>
-#include <string>
-#include <fstream>
-#include <stdlib.h>
-#include <time.h>
-#include <math.h>  
-#include <stack>
-#include <algorithm>
 #include <queue>
-#include <sstream>
-#include <cstdlib>
-#include <random>
-#include <chrono>
+#include <functional>
+#include <set>
 #include <limits.h>
-#include <map>
-#include <stdio.h>
-#include <ctime>
-#include <thread>
-#include <future>
-#include <iomanip>
-#include <bitset>
-#include <numeric>
 
 #include "./Environment.h"
 #include "./Utility.h"
@@ -40,7 +20,7 @@ namespace vrptwNew {
 	public:
 
 		int routeID = -1;
-		DisType rCustCnt = 0; //没有计算仓库
+		int rCustCnt = 0; //没有计算仓库
 		DisType rQ = 0;
 		int head = -1;
 		int tail = -1;
@@ -93,7 +73,7 @@ namespace vrptwNew {
 			this->routeCost = 0;
 		}
 
-		bool operator = (const Route& r) {
+		Route& operator = (const Route& r) {
 
 			this->routeID = r.routeID;
 			this->rCustCnt = r.rCustCnt;
@@ -105,15 +85,15 @@ namespace vrptwNew {
 			this->rPtw = r.rPtw;
 			this->rWeight = r.rWeight;
 			this->routeCost = r.routeCost;
-			return true;
+			return *this;
 		}
 
 	};
 
 	struct RTS {
 
-		vector<Route> ve;
-		vector<int> posOf;
+		Vec<Route> ve;
+		Vec<int> posOf;
 		int cnt = 0;
 
 		int size() {
@@ -126,14 +106,14 @@ namespace vrptwNew {
 				Route r;
 				ve.push_back(r);
 			}
-			posOf = vector<int>(200, -1);
+			posOf = Vec<int>(200, -1);
 		}
 
-		bool operator = (const RTS& r) {
+		RTS& operator = (const RTS& r) {
 			cnt = r.cnt;
 			ve = r.ve;
 			posOf = r.posOf;
-			return true;
+			return *this;
 		}
 
 		~RTS() {
@@ -146,7 +126,7 @@ namespace vrptwNew {
 
 #if CHECKING
 			if (index >= ve.size() || index < 0) {
-				vector<Customer> cus;
+				Vec<Customer> cus;
 
 				debug("Route & operator [] error!");
 					Route r1;
@@ -197,7 +177,7 @@ namespace vrptwNew {
 
 #if CHECKING
 			if (rid == -1 || rid >= posOf.size()) {
-				vector<Customer>cus;
+				Vec<Customer>cus;
 				Route r1;
 				return r1;
 			}
@@ -207,7 +187,7 @@ namespace vrptwNew {
 
 #if CHECKING
 			if (index < 0 || index >= cnt) {
-				vector<Customer>cus;
+				Vec<Customer>cus;
 				Route r1;
 				deOut(rid);
 				deOut(index);
@@ -231,20 +211,40 @@ namespace vrptwNew {
 
 	struct ConfSet {
 
-		vector<int> ve;
-		vector<int> pos;
+		Vec<int> ve;
+		Vec<int> pos;
 		int cnt = 0;
 
 		ConfSet(int maxSize) {
 			cnt = 0;
-			ve = vector<int>(maxSize + 1, -1);
-			pos = vector<int>(maxSize + 1, -1);
+			ve = Vec<int>(maxSize + 1, -1);
+			pos = Vec<int>(maxSize + 1, -1);
+		}
+		
+		ConfSet(const ConfSet& cs) {
+			cnt = cs.cnt;
+			ve = cs.ve;
+			pos = cs.pos;
+		}
+		
+		ConfSet& operator = (const ConfSet& cs) {
+			cnt = cs.cnt;
+			ve = cs.ve;
+			pos = cs.pos;
+			return *this;
 		}
 
-		ConfSet() {
-			cnt = 0;
-			ve = vector<int>(200, -1);
-			pos = vector<int>(200, -1);
+		ConfSet(ConfSet&& cs) noexcept {
+			cnt = std::move(cs.cnt);
+			ve = std::move(cs.ve);
+			pos = std::move(cs.pos);
+		}
+		
+		ConfSet& operator = (ConfSet&& cs) noexcept {
+			cnt = std::move(cs.cnt);
+			ve = std::move(cs.ve);
+			pos = std::move(cs.pos);
+			return *this;
 		}
 
 		bool reSet() {
@@ -277,7 +277,7 @@ namespace vrptwNew {
 
 		int posAt(int val) {
 
-			if (val < 0 && val >= pos.size()) {
+			if (val < 0 && val >= static_cast<int>(pos.size())) {
 				return -1;
 			}
 			return pos[val];
@@ -307,64 +307,14 @@ namespace vrptwNew {
 
 	};
 
-	struct ShuffleCards {
-
-		vector<int> ve;
-
-		Random myRand;
-
-		vector<int> disorder(int range) {
-			ve = vector<int>(range, 0);
-			for (int i = 0; i < range; ++i) {
-				ve[i] = i;
-			}
-			for (int i = range - 1; i > 1; i--) {
-				int index = myRand.pick(i);
-				swap(ve[i], ve[index]);
-			}
-			return ve;
-		}
-
-		bool makeItDisorder(vector<int>& it) {
-
-			if (it.size() <= 1) {
-				return false;
-			}
-
-			for (int i = it.size() - 1; i > 1; i--) {
-				int index = myRand.pick(i);
-				swap(it[i], it[index]);
-			}
-			return true;
-		}
-
-		vector<string> makeStringVeDisorder(vector<string>& it) {
-
-			if (it.size() <= 1) {
-				return it;
-			}
-
-			for (int i = it.size() - 1; i > 1; i--) {
-				int index = myRand.pick(i);
-				swap(it[i], it[index]);
-			}
-			return it;
-		}
-
-		ShuffleCards(int seed) :myRand(seed) {}
-		ShuffleCards() :myRand() {}
-
-	};
-
 	struct RandomX {
 
 	public:
 
 		using Generator = std::mt19937;
 
-		RandomX(LL seed) : rgen(seed) { initMpLLArr(); }
+		RandomX(unsigned seed) : rgen(seed) { initMpLLArr(); }
 		RandomX() : rgen(generateSeed()) { initMpLLArr(); }
-
 
 		RandomX(const RandomX& rhs) {
 			this->mpLLArr = rhs.mpLLArr;
@@ -372,24 +322,18 @@ namespace vrptwNew {
 			this->rgen = rhs.rgen;
 		}
 
-		vector< vector<int> > mpLLArr;
-		LL maxRange = 10001;
+		Vec< Vec<int> > mpLLArr;
+
+		int maxRange = 1001;
 
 		bool initMpLLArr() {
-			mpLLArr = vector< vector<int> >(maxRange);
-
-			for (int n = 1; n < mpLLArr.size(); ++n) {
-				mpLLArr[n] = vector<int>(n, 0);
-				for (int i = 0; i < n; ++i) {
-					mpLLArr[n][i] = i;
-				}
-			}
+			mpLLArr = Vec< Vec<int> >(maxRange);
 			return true;
 		}
 
-		static LL generateSeed() {
+		static unsigned generateSeed() {
 			unsigned seed = std::chrono::system_clock::now().time_since_epoch().count();
-			return static_cast<LL>(seed);
+			return seed;
 		}
 
 		Generator::result_type operator()() { return rgen(); }
@@ -400,31 +344,44 @@ namespace vrptwNew {
 		}
 
 		// pick from [min, max).
-		LL pick(LL min, LL max) {
+		int pick(int min, int max) {
 			return ((rgen() % (max - min)) + min);
 		}
 		// pick from [0, max).
-		LL pick(LL max) {
+		int pick(int max) {
 			return (rgen() % max);
 		}
 
-		bool getMN(LL M, int N) {
+		Vec<int>& getMN(int M, int N) {
 
-			vector<int>& ve = mpLLArr[M];
+			if (M >= maxRange) {
+				mpLLArr.resize(M * 2 + 1);
+				maxRange = M * 2 + 1;
+			}
+
+			Vec<int>& ve = mpLLArr[M];
+
+			if (ve.empty()) {
+				mpLLArr[M] = Vec<int>(M, 0);
+				for (int i = 0; i < M; ++i) {
+					mpLLArr[M][i] = i;
+				}
+			}
+
 			for (int i = 0; i < N; ++i) {
 				int index = pick(i, M);
 				swap(ve[i], ve[index]);
 			}
-			return true;
+			return ve;
 		}
-		
+
 		RandomX& operator = (RandomX&& rhs) noexcept {
 			this->mpLLArr = std::move(rhs.mpLLArr);
 			this->maxRange = rhs.maxRange;
 			this->rgen = rhs.rgen;
 			return *this;
 		}
-		
+
 		RandomX& operator = (const RandomX& rhs) {
 			this->mpLLArr = rhs.mpLLArr;
 			this->maxRange = rhs.maxRange;
@@ -437,7 +394,7 @@ namespace vrptwNew {
 
 	struct NextPermutation {
 
-		bool hasNext(vector<int>& ve, int Kmax, int& k, int N) {
+		bool hasNext(Vec<int>& ve, int Kmax, int& k, int N) {
 
 			if (k == 1 && ve[k] == N) {
 				return false;
@@ -448,7 +405,7 @@ namespace vrptwNew {
 			return false;
 		}
 
-		bool nextPer(vector<int>& ve, int Kmax, int& k, int N) {
+		bool nextPer(Vec<int>& ve, int Kmax, int& k, int N) {
 
 			if (k < Kmax && ve[k] < N) {
 				++k;
@@ -467,67 +424,17 @@ namespace vrptwNew {
 
 	};
 
-	struct Combination
-	{
-	public:
-
-		Combination() {};
-		~Combination() {};
-
-		vector<vector<int>>ret;
-		vector<vector<int>> get(int NN, int MM) {
-
-			int Kmax = MM;
-			int k = Kmax;
-			int N = NN;
-
-			vector<int> ve(Kmax + 1, 0);
-
-			for (int i = 1; i <= Kmax; ++i) {
-				ve[i] = i - 1;
-			}
-
-			do {
-
-				ret.push_back(vector<int>(ve.begin() + 1, ve.begin() + Kmax + 1));
-				/*for (int i = 1; i <= Kmax; ++i) {
-					cout << ve[i] << " ";
-				}
-				cout << endl;*/
-
-				++ve[k];
-				if (ve[k] >= N) {
-					while (k >= 1 && ve[k] >= N - (Kmax - k)) {
-						k--;
-						++ve[k];
-					}
-					++k;
-					while (k <= Kmax) {
-						ve[k] = ve[k - 1] + 1;
-						++k;
-					}
-					k = Kmax;
-				}
-
-			} while (ve[0] == 0);
-
-			return ret;
-		}
-	private:
-
-	};
-
 	class Solver
 	{
 	public:
 
 		Input& input;
 		Output output;
-		Environment& env;
-		Configuration& cfg;
+		Environment env;
+		Configuration cfg;
 
-		vector<Customer> customers;
-		vector<vector<LL>> yearTable;
+		Vec<Customer> customers;
+		Vec<Vec<LL>> yearTable;
 
 		int ourTarget = 0;
 		DisType penalty = 0;
@@ -546,7 +453,7 @@ namespace vrptwNew {
 
 		ConfSet PtwConfRts, PcConfRts;
 
-		vector<LL> P;
+		Vec<LL> P;
 
 		LL EPIter = 1;
 		int minEPcus = IntInf;
@@ -555,15 +462,14 @@ namespace vrptwNew {
 
 		struct DeltPen {
 
-			DisType deltPtw;
-			DisType deltPc;
-			DisType PcOnly;
-			DisType PtwOnly;
-			DisType deltCost;
+			DisType deltPtw = DisInf;
+			DisType deltPc = DisInf;
+			DisType PcOnly = DisInf;
+			DisType PtwOnly = DisInf;
+			DisType deltCost = DisInf;
 
 			DeltPen() {
 
-				deltPtw = DisInf;
 				deltPc = DisInf;
 				PcOnly = DisInf;
 				PtwOnly = DisInf;
@@ -580,10 +486,10 @@ namespace vrptwNew {
 
 		struct TwoNodeMove {
 
-			int v;
-			int w;
-			vector<int> ve;
-			int kind;
+			int v = -1;
+			int w = -1;
+			Vec<int> ve;
+			int kind = -1;
 
 			DeltPen deltPen;
 
@@ -591,7 +497,7 @@ namespace vrptwNew {
 				v(v), w(w), kind(kind), deltPen(d) {
 			}
 
-			TwoNodeMove(vector<int> ve, int kind, DeltPen d) :
+			TwoNodeMove(Vec<int> ve, int kind, DeltPen d) :
 				kind(kind), deltPen(d) {
 				this->ve = ve;
 			}
@@ -620,11 +526,11 @@ namespace vrptwNew {
 		};
 
 		struct Position {
-			int rIndex;
-			int pos;
-			DisType pen;
-			DisType cost;
-			LL year;
+			int rIndex =-1;
+			int pos = -1;
+			DisType pen = -1;
+			DisType cost = -1;
+			LL year = -1;
 			Position() :rIndex(-1), pos(-1), pen(DisInf), cost(DisInf) ,year(DisInf) {}
 			Position(int rIndex,int pos,DisType pen,DisType cost,LL year) :
 				rIndex(rIndex), pos(pos), pen(pen), cost(cost), year(year) {}
@@ -632,14 +538,14 @@ namespace vrptwNew {
 
 		struct eOneRNode {
 
-			vector<int> ejeVe;
+			Vec<int> ejeVe;
 			int Psum = 0;
 			int rId = -1;
 
 			int getMaxEle() {
 				int ret = -1;
 				for (int i : ejeVe) {
-					ret = max(ret,i);
+					ret = std::max<int>(ret,i);
 				}
 				return ret;
 			}
@@ -664,34 +570,16 @@ namespace vrptwNew {
 
 		struct bestSol
 		{
-			vector<Customer> customers;
+			Vec<Customer> customers;
 			RTS rts;
 			DisType Pc = 0;
 			DisType Ptw = 0;
 			DisType PtwNoWei = 0;
-			DisType RouteCost = 0;
 			DisType penalty = 0;
 			DisType RoutesCost = 0;
 			Route EPr;
 
-			bestSol(vector<Customer> customers,
-				RTS rts,
-				Route EPr,
-				DisType Pc,
-				DisType Ptw,
-				DisType PtwNoWei,
-				DisType penalty
-			) :
-				customers(customers),
-				rts(rts),
-				Pc(Pc),
-				Ptw(Ptw),
-				PtwNoWei(PtwNoWei),
-				penalty(penalty)
-				, EPr(EPr) {
-			}
-
-			bestSol(vector<Customer> customers,
+			bestSol(Vec<Customer>& customers,
 				RTS rts,
 				Route EPr,
 				DisType Pc,
@@ -710,7 +598,7 @@ namespace vrptwNew {
 				, EPr(EPr) {
 			}
 
-			bool operator = (const bestSol& s) {
+			bestSol& operator = (const bestSol& s) {
 				
 				this->customers = s.customers;
 				this->rts = s.rts;
@@ -721,15 +609,7 @@ namespace vrptwNew {
 				this->RoutesCost = s.RoutesCost;
 				this->EPr = s.EPr;
 
-				return true;
-			}
-			bestSol() {
-				Pc = 0;
-				PtwNoWei = 0;
-			}
-
-			~bestSol() {
-				customers.clear();
+				return *this;
 			}
 		};
 
@@ -742,16 +622,13 @@ namespace vrptwNew {
 			r.head = input.custCnt + 1;
 			r.tail = input.custCnt + 2;
 
-			customers.push_back(Customer());
-			customers.push_back(Customer());
-
 			customers[r.head].next = r.tail;
 			customers[r.tail].pre = r.head;
 
 			customers[r.head].routeID = -1;
 			customers[r.tail].routeID = -1;
 
-			customers[r.head].av = customers[r.head].avp
+			/*customers[r.head].av = customers[r.head].avp
 				= input.datas[r.head].READYTIME;
 			customers[r.head].QX_ = 0;
 			customers[r.head].Q_X = 0;
@@ -763,20 +640,21 @@ namespace vrptwNew {
 			customers[r.tail].QX_ = 0;
 			customers[r.tail].Q_X = 0;
 			customers[r.tail].TWX_ = 0;
-			customers[r.tail].TW_X = 0;
+			customers[r.tail].TW_X = 0;*/
 
 			return true;
 		}
 
 		Solver(Input& input, Configuration& cfg, Environment& env) :
 			input(input), env(env), cfg(cfg),
-			lyhTimer(cfg.runTimer), myRand(env.seed), myRandX(env.seed)
+			lyhTimer(cfg.runTimer),
+			PtwConfRts(input.custCnt), PcConfRts(input.custCnt)
 		{
 
-			P = vector<LL>(input.custCnt + 1, 1);
-			customers = vector<Customer>(input.custCnt + 1);
-			yearTable = vector<vector<LL>>(input.custCnt + 1, vector<LL>(input.custCnt + 1, 0));
-			//EPYearTable = vector<int> (input.custCnt + 1,  1);
+			P = Vec<LL>(input.custCnt + 1, 1);
+			customers = Vec<Customer>(input.custCnt *3+3);
+			yearTable = Vec<Vec<LL>>(input.custCnt + 1, Vec<LL>(input.custCnt + 1, 0));
+			//EPYearTable = Vec<int> (input.custCnt + 1,  1);
 			alpha = 1;
 			beta = 1;
 			gamma = 1;
@@ -788,20 +666,23 @@ namespace vrptwNew {
 			//minEPSize = inf;
 			RoutesCost = 0;
 			initEPr();
+			//println("Solver construct");
 		}
 
 		Solver(const Solver& s) :
 			input(s.input), env(s.env), cfg(s.cfg),
-			myRand(s.myRand), lyhTimer(s.lyhTimer), myRandX(s.myRandX) {
+			lyhTimer(s.lyhTimer), 
+			PtwConfRts(s.PtwConfRts),
+			PcConfRts(s.PcConfRts) 
+		{
 
-			this->output = s.output;
+			//this->output = s.output;
 			this->P = s.P;
 			this->customers = s.customers;
 			this->yearTable = s.yearTable;
 			//this->EPYearTable = s.EPYearTable;
 			this->rts = s.rts;
-			this->PtwConfRts = s.PtwConfRts;
-			this->PcConfRts = s.PcConfRts;
+			
 			this->penalty = s.penalty;
 			this->Ptw = s.Ptw;
 			this->PtwNoWei = s.PtwNoWei;
@@ -816,13 +697,14 @@ namespace vrptwNew {
 			this->ourTarget = s.ourTarget;
 			this->cfg = s.cfg;
 			//this->minEPSize = s.minEPSize;
+			//println("Solver copy");
 		}
 
-		void operator = (const Solver& s) {
+		Solver& operator = (const Solver& s) {
 
 			this->P = s.P;
 			this->customers = s.customers;
-			this->yearTable = s.yearTable;
+			//this->yearTable = s.yearTable;
 
 			this->rts = s.rts;
 			this->PtwConfRts = s.PtwConfRts;
@@ -830,16 +712,18 @@ namespace vrptwNew {
 			this->penalty = s.penalty;
 			this->Ptw = s.Ptw;
 			this->PtwNoWei = s.PtwNoWei;
-			this->Pc = s.Pc;
 			this->alpha = s.alpha;
+			this->Pc = s.Pc;
 			this->beta = s.beta;
 			this->gamma = s.gamma;
 			this->RoutesCost = s.RoutesCost;
 			this->squIter = s.squIter;
 			this->EPr = s.EPr;
 			this->EPIter = s.EPIter;
-			this->ourTarget = s.ourTarget;
+			//this->ourTarget = s.ourTarget;
 			//this->myRandX = s.myRandX;
+			//println("Solver =");
+			return *this;
 		}
 
 		// route function
@@ -850,9 +734,6 @@ namespace vrptwNew {
 
 			r.head = index;
 			r.tail = index + 1;
-
-			customers.push_back(Customer());
-			customers.push_back(Customer());
 
 			customers[r.head].next = r.tail;
 			customers[r.tail].pre = r.head;
@@ -886,7 +767,7 @@ namespace vrptwNew {
 				r.rQ += input.datas[pt].DEMAND;
 				pt = customers[pt].next;
 			}
-			r.rPc = max((DisType)0, r.rQ - input.Q);
+			r.rPc =std::max<DisType>((DisType)0, r.rQ - input.Q);
 			return r.rPc;
 		}
 
@@ -919,7 +800,7 @@ namespace vrptwNew {
 			r.routeCost = 0;
 			r.rWeight = 1;
 
-			vector<int> ve = rPutCusInve(r);
+			Vec<int> ve = rPutCusInve(r);
 			for (int pt : ve) {
 				rRemoveAtPos(r, pt);
 			}
@@ -934,7 +815,7 @@ namespace vrptwNew {
 
 			customers[node].routeID = r.routeID;
 			r.rQ += input.datas[node].DEMAND;
-			r.rPc = max((DisType)0, r.rQ - input.Q);
+			r.rPc =std::max<DisType>((DisType)0, r.rQ - input.Q);
 
 			int anext = customers[pos].next;
 			customers[node].next = anext;
@@ -951,7 +832,7 @@ namespace vrptwNew {
 
 			customers[node].routeID = r.routeID;
 			r.rQ += input.datas[node].DEMAND;
-			r.rPc = max((DisType)0, r.rQ - input.Q);
+			r.rPc =std::max<DisType>((DisType)0, r.rQ - input.Q);
 
 			int apre = customers[pos].pre;
 			customers[node].pre = apre;
@@ -970,7 +851,7 @@ namespace vrptwNew {
 			}
 
 			r.rQ -= input.datas[a].DEMAND;
-			r.rPc = max((DisType)0, r.rQ - input.Q);
+			r.rPc =std::max<DisType>((DisType)0, r.rQ - input.Q);
 
 			Customer& temp = customers[a];
 			Customer& tpre = customers[temp.pre];
@@ -1028,10 +909,10 @@ namespace vrptwNew {
 					customers[pt].av = customers[ptpre].av + input.disOf[reCusNo(ptpre)][reCusNo(pt)] + input.datas[ptpre].SERVICETIME;
 
 				customers[pt].TW_X = customers[ptpre].TW_X;
-				customers[pt].TW_X += max(customers[pt].avp - input.datas[pt].DUEDATE, (DisType)0);
+				customers[pt].TW_X +=std::max<DisType>(customers[pt].avp - input.datas[pt].DUEDATE, (DisType)0);
 
 				if (customers[pt].avp <= input.datas[pt].DUEDATE) {
-					customers[pt].av = max(customers[pt].avp, input.datas[pt].READYTIME);
+					customers[pt].av =std::max<DisType>(customers[pt].avp, input.datas[pt].READYTIME);
 				}
 				else {
 					customers[pt].av = input.datas[pt].DUEDATE;
@@ -1060,7 +941,7 @@ namespace vrptwNew {
 			}
 
 			r.rQ = customers[r.tail].Q_X;
-			r.rPc = max((DisType)0, r.rQ - input.Q);
+			r.rPc =std::max<DisType>((DisType)0, r.rQ - input.Q);
 			return r.rPc;
 		}
 
@@ -1079,10 +960,10 @@ namespace vrptwNew {
 					customers[pt].av = customers[ptpre].av + input.disOf[reCusNo(ptpre)][reCusNo(pt)] + input.datas[ptpre].SERVICETIME;
 
 				customers[pt].TW_X = customers[ptpre].TW_X;
-				customers[pt].TW_X += max(customers[pt].avp - input.datas[pt].DUEDATE, (DisType)0);
+				customers[pt].TW_X +=std::max<DisType>(customers[pt].avp - input.datas[pt].DUEDATE, (DisType)0);
 
 				if (customers[pt].avp <= input.datas[pt].DUEDATE) {
-					customers[pt].av = max(customers[pt].avp, input.datas[pt].READYTIME);
+					customers[pt].av =std::max<DisType>(customers[pt].avp, input.datas[pt].READYTIME);
 				}
 				else {
 					customers[pt].av = input.datas[pt].DUEDATE;
@@ -1096,7 +977,7 @@ namespace vrptwNew {
 
 			r.rPtw = customers[r.tail].TW_X;
 			r.rQ = customers[r.tail].Q_X;
-			r.rPc = max((DisType)0, r.rQ - input.Q);
+			r.rPc =std::max<DisType>((DisType)0, r.rQ - input.Q);
 
 			return true;
 		}
@@ -1119,10 +1000,10 @@ namespace vrptwNew {
 
 				customers[pt].TWX_ = customers[ptnext].TWX_;
 
-				customers[pt].TWX_ += max(input.datas[pt].READYTIME - customers[pt].zvp, (DisType)0);
+				customers[pt].TWX_ +=std::max<DisType>(input.datas[pt].READYTIME - customers[pt].zvp, (DisType)0);
 
 				customers[pt].zv = customers[pt].zvp >= input.datas[pt].READYTIME ?
-					min(customers[pt].zvp, input.datas[pt].DUEDATE) : input.datas[pt].READYTIME;
+					std::min<DisType>(customers[pt].zvp, input.datas[pt].DUEDATE) : input.datas[pt].READYTIME;
 
 				ptnext = pt;
 				pt = customers[pt].pre;
@@ -1145,7 +1026,7 @@ namespace vrptwNew {
 			}
 
 			r.rQ = customers[r.head].QX_;
-			r.rPc = max((DisType)0, r.rQ - input.Q);
+			r.rPc =std::max<DisType>((DisType)0, r.rQ - input.Q);
 			return r.rPc;
 		}
 
@@ -1167,10 +1048,10 @@ namespace vrptwNew {
 
 				customers[pt].TWX_ = customers[ptnext].TWX_;
 
-				customers[pt].TWX_ += max(input.datas[pt].READYTIME - customers[pt].zvp, (DisType)0);
+				customers[pt].TWX_ +=std::max<DisType>(input.datas[pt].READYTIME - customers[pt].zvp, (DisType)0);
 
 				customers[pt].zv = customers[pt].zvp >= input.datas[pt].READYTIME ?
-					min(customers[pt].zvp, input.datas[pt].DUEDATE) : input.datas[pt].READYTIME;
+					std::min<DisType>(customers[pt].zvp, input.datas[pt].DUEDATE) : input.datas[pt].READYTIME;
 				
 				customers[pt].QX_ = customers[ptnext].QX_ + input.datas[pt].DEMAND;
 				ptnext = pt;
@@ -1178,7 +1059,7 @@ namespace vrptwNew {
 			}
 			r.rPtw = customers[r.head].TWX_;
 			r.rQ = customers[r.head].QX_;
-			r.rPc = max((DisType)0, r.rQ - input.Q);
+			r.rPc =std::max<DisType>((DisType)0, r.rQ - input.Q);
 			return true;
 		}
 
@@ -1193,7 +1074,7 @@ namespace vrptwNew {
 			return ret;
 		}
 
-		DisType rUpdateRCost(Route& r) {
+		DisType rReCalRCost(Route& r) {
 
 			int pt = r.head;
 			int ptnext = customers[pt].next;
@@ -1206,9 +1087,9 @@ namespace vrptwNew {
 			return r.routeCost;
 		}
 
-		vector<int> rPutCusInve(Route& r) {
+		Vec<int> rPutCusInve(Route& r) {
 
-			vector<int> ret;
+			Vec<int> ret;
 			if (r.rCustCnt > 0) {
 				ret.reserve(r.rCustCnt);
 			}
@@ -1228,8 +1109,8 @@ namespace vrptwNew {
 			for (int i = 0; i < rts.cnt; ++i) {
 				Route& r = rts[i];
 
-				vector<int> cus1;
-				vector<int> cus2;
+				Vec<int> cus1;
+				Vec<int> cus2;
 
 				int pt = r.head;
 				while (pt != -1) {
@@ -1269,7 +1150,7 @@ namespace vrptwNew {
 			return true;
 		}
 
-		bool rUpdateRtsValsAndPen(Route& r) {
+		bool rReCalCusNum(Route& r) {
 
 			int pt = r.head;
 			r.rCustCnt = 0;
@@ -1285,30 +1166,27 @@ namespace vrptwNew {
 			return true;
 		}
 
-		bool updateRtsValsAndPen() {
+		bool reCalRtsCostAndPen() {
+
+			Pc = 0;
+			Ptw = 0;
+			PtwNoWei = 0;
+			RoutesCost = 0;
+
 			for (int i = 0; i < rts.cnt; ++i) {
 				Route& r = rts[i];
-				rUpdateRtsValsAndPen(r);
+				rReCalCusNum(r);
 				rUpdateAvQfrom(r,r.head);
 				rUpdateZvQfrom(r,r.tail);
-				rUpdateRCost(r);
-			}
-			updatePen();
-			return true;
-		}
+				rReCalRCost(r);
 
-		int getCusCnt() {
-			int ret = 0;
-			for (int i = 0; i < rts.cnt; ++i) {
-				ret += rGetCusCnt(rts[i]);
+				PtwNoWei += r.rPtw;
+				Ptw += r.rWeight * r.rPtw;
+				Pc += r.rPc; 
+				RoutesCost += r.routeCost;
 			}
-			return ret;
-		}
+			penalty = alpha * Ptw + beta * Pc;
 
-		bool RTSDisPlay() {
-			for (int i = 0; i < rts.cnt; ++i) {
-				rNextDisp(rts[i]);
-			}
 			return true;
 		}
 
@@ -1331,7 +1209,7 @@ namespace vrptwNew {
 			return penalty;
 		}
 		
-		DisType updatePen(DeltPen delt) {
+		DisType updatePen(const DeltPen& delt) {
 
 			Pc += delt.PcOnly;
 			Ptw += delt.deltPtw;
@@ -1341,11 +1219,11 @@ namespace vrptwNew {
 			return penalty;
 		}
 
-		DisType updateRtsCost() {
+		DisType reCalRtsCost() {
 
 			RoutesCost = 0;
 			for (int i = 0; i < rts.size(); ++i) {
-				RoutesCost += rUpdateRCost(rts[i]);
+				RoutesCost += rReCalRCost(rts[i]);
 			}
 			return RoutesCost;
 		}
@@ -1388,7 +1266,7 @@ namespace vrptwNew {
 				int vj = customers[v].next;
 
 				DisType oldrPc = rts[i].rPc;
-				DisType rPc = max((DisType)0, rt.rQ + input.datas[w].DEMAND - input.Q);
+				DisType rPc =std::max<DisType>((DisType)0, rt.rQ + input.datas[w].DEMAND - input.Q);
 				rPc = rPc - oldrPc;
 
 				while (v != -1 && vj != -1) {
@@ -1399,15 +1277,15 @@ namespace vrptwNew {
 					rPtw += customers[vj].TWX_;
 
 					DisType awp = customers[v].av + input.datas[v].SERVICETIME + input.disOf[reCusNo(v)][reCusNo(w)];
-					rPtw += max((DisType)0, awp - input.datas[w].DUEDATE);
+					rPtw +=std::max<DisType>((DisType)0, awp - input.datas[w].DUEDATE);
 					DisType aw =
-						awp <= input.datas[w].DUEDATE ? max(input.datas[w].READYTIME, awp) : input.datas[w].DUEDATE;
+						awp <= input.datas[w].DUEDATE ?std::max<DisType>(input.datas[w].READYTIME, awp) : input.datas[w].DUEDATE;
 
 					DisType avjp = aw + input.datas[w].SERVICETIME + input.disOf[reCusNo(w)][reCusNo(vj)];
-					rPtw += max((DisType)0, avjp - input.datas[vj].DUEDATE);
+					rPtw +=std::max<DisType>((DisType)0, avjp - input.datas[vj].DUEDATE);
 					DisType avj =
-						avjp <= input.datas[vj].DUEDATE ? max(input.datas[vj].READYTIME, avjp) : input.datas[vj].DUEDATE;
-					rPtw += max((DisType)0, avj - customers[vj].zv);
+						avjp <= input.datas[vj].DUEDATE ?std::max<DisType>(input.datas[vj].READYTIME, avjp) : input.datas[vj].DUEDATE;
+					rPtw +=std::max<DisType>((DisType)0, avj - customers[vj].zv);
 
 					rPtw = rPtw - oldrPtw;
 					
@@ -1454,7 +1332,7 @@ namespace vrptwNew {
 				}
 				else if (pos.pen == posPool[0].pen) {
 					++p0cnt;
-					if (myRand.pick(p0cnt)==0) {
+					if (myRand->pick(p0cnt)==0) {
 						posPool[0] = pos;
 					}
 				}
@@ -1465,7 +1343,7 @@ namespace vrptwNew {
 				}
 				else if (pos.year == posPool[1].year) {
 					++p1cnt;
-					if (myRand.pick(p1cnt)==0) {
+					if (myRand->pick(p1cnt)==0) {
 						posPool[1] = pos;
 					}
 				}
@@ -1476,7 +1354,7 @@ namespace vrptwNew {
 				}
 				else if (pos.cost == posPool[2].cost) {
 					++p2cnt;
-					if (myRand.pick(p2cnt)==0) {
+					if (myRand->pick(p2cnt)==0) {
 						posPool[2] = pos;
 					}
 				}
@@ -1494,16 +1372,15 @@ namespace vrptwNew {
 					}
 					else if (rpos.rCustCnt == rpool.rCustCnt) {
 						++p3cnt;
-						if (myRand.pick(p3cnt) == 0) {
+						if (myRand->pick(p3cnt) == 0) {
 							posPool[3] = pos;
 						}
 					}
 				}
 			}
 			
-			
 			if (posPool[0].pen > 0) {
-				int index = myRand.pick(posPool.size());
+				int index = myRand->pick(posPool.size());
 				//debug(index);
 				return posPool[index];
 			}
@@ -1513,7 +1390,7 @@ namespace vrptwNew {
 				for (int i = 0; i < posPool.size(); ++i) {
 					if (posPool[i].pen == 0) {
 						++cnt;
-						if (myRand.pick(cnt) == 0) {
+						if (myRand->pick(cnt) == 0) {
 							retP = posPool[i];
 						}
 					}
@@ -1529,6 +1406,23 @@ namespace vrptwNew {
 		Position findBestPosInSolForInit(int w) {
 
 			Position bestPos;
+
+			auto cmp = [=](const Position& a, const Position& b) ->bool {
+				if (a.pen == b.pen) {
+					return a.cost < a.cost;
+				}
+				return a.pen < b.pen;
+			};
+
+			priority_queue<Position,Vec<Position>,decltype(cmp)> qu(cmp);
+			int quMax = 10;
+
+			auto quPush = [&qu,&quMax](Position& p) {
+				qu.push(p);
+				if (qu.size() > quMax) {
+					qu.pop();
+				}
+			};
 
 			for (int i = 0; i < rts.size(); ++i) {
 				//debug(i)
@@ -1550,175 +1444,62 @@ namespace vrptwNew {
 
 
 					DisType awp = customers[v].av + input.datas[v].SERVICETIME + input.disOf[reCusNo(v)][reCusNo(w)];
-					Ptw += max((DisType)0, awp - input.datas[w].DUEDATE);
+					Ptw +=std::max<DisType>((DisType)0, awp - input.datas[w].DUEDATE);
 					DisType aw =
-						awp <= input.datas[w].DUEDATE ? max(input.datas[w].READYTIME, awp) : input.datas[w].DUEDATE;
+						awp <= input.datas[w].DUEDATE ?std::max<DisType>(input.datas[w].READYTIME, awp) : input.datas[w].DUEDATE;
 
 					DisType avjp = aw + input.datas[w].SERVICETIME + input.disOf[reCusNo(w)][reCusNo(vj)];
-					Ptw += max((DisType)0, avjp - input.datas[vj].DUEDATE);
+					Ptw +=std::max<DisType>((DisType)0, avjp - input.datas[vj].DUEDATE);
 					DisType avj =
-						avjp <= input.datas[vj].DUEDATE ? max(input.datas[vj].READYTIME, avjp) : input.datas[vj].DUEDATE;
-					Ptw += max((DisType)0, avj - customers[vj].zv);
+						avjp <= input.datas[vj].DUEDATE ?std::max<DisType>(input.datas[vj].READYTIME, avjp) : input.datas[vj].DUEDATE;
+					Ptw +=std::max<DisType>((DisType)0, avj - customers[vj].zv);
 
-					Pc = max((DisType)0, rt.rQ + input.datas[w].DEMAND - input.Q);
+					Pc =std::max<DisType>((DisType)0, rt.rQ + input.datas[w].DEMAND - input.Q);
 
 					Ptw = Ptw - oldPtw;
 					Pc = Pc - oldPc;
 
 					DisType cost = input.disOf[reCusNo(w)][reCusNo(v)] + input.disOf[reCusNo(w)][reCusNo(vj)];
-					if (bestPos.pen > Ptw + Pc) {
-						bestPos.cost = cost;
-						bestPos.pen = Ptw + Pc;
-						bestPos.pos = v;
-						bestPos.rIndex = i;
-					}
-					else if (bestPos.pen == Ptw + Pc) {
-						if (cost < bestPos.cost) {
-							bestPos.pen = Ptw + Pc;
-							bestPos.pos = v;
-							bestPos.rIndex = i;
-							bestPos.cost = cost;
-						}
-					}
+					
+					Position pt;
+					pt.cost = cost;
+					pt.pen = Ptw + Pc;
+					pt.pos = v;
+					pt.rIndex = i;
+
+					quPush(pt);
+
 					v = vj;
 					vj = customers[vj].next;
 				}
 			}
 
+			int cnt = 0;
+			while (!qu.empty()) {
+				++cnt;
+				if (myRand->pick(cnt) == 0) {
+					bestPos = qu.top();
+				}
+				qu.pop();
+			}
 			return bestPos;
-		}
-
-		bool init() {
-
-			auto cmp = [&](int x, int y) {
-				return input.datas[x].DUEDATE > input.datas[y].DUEDATE;
-			};
-
-			vector<int>que1;
-
-			for (int i = 1; i <= input.custCnt; ++i) {
-				que1.push_back(i);
-			}
-
-			sort(que1.begin(), que1.end(), cmp);
-
-			int rid = 0;
-
-			for (int i = 0; i < customers.size(); ++i) {
-				customers[i].id = i;
-			}
-
-			do {
-
-				int tp = que1.back();
-				que1.pop_back();
-
-				bool isSucceed = false;
-				for (int i = 0; i < rts.size(); ++i) {
-
-					rInsAtPosPre(rts[i], rts[i].tail, tp);
-					if (rUpdateAvfrom(rts[i], tp) == 0 && rts[i].rQ <= input.Q) {
-						isSucceed = true;
-						break;
-					}
-					else {
-						rRemoveAtPos(rts[i], tp);
-						rUpdateAvfrom(rts[i], rts[i].head);
-					}
-				}
-
-				if (isSucceed) {
-					continue;
-				}
-
-				Route r1 = rCreateRoute(rid++);
-				rInsAtPos(r1, r1.head, tp);
-				rUpdateAvfrom(r1, r1.head);
-				rts.push_back(r1);
-				//r1.nextDisp();
-
-			} while (!que1.empty());
-
-			Log(Log::Info) << "init: ";
-			Log(Log::Info) << "rts.size(): " << rts.size() << endl;
-
-
-			for (int i = 0; i < rts.size(); ++i) {
-
-				rUpdateZvQfrom(rts[i], rts[i].tail);
-				rUpdateAQfrom(rts[i], rts[i].head);
-				rUpdateRCost(rts[i]);
-			}
-
-			updatePen();
-
-			patternAdjustment();
-
-			return true;
-		}
-
-		bool initBybestSolution() {
-
-			MyString ms;
-			string csCnt = ms.LL_str(input.custCnt);
-			string path = env.sinBKSPath + "results" + csCnt + "/" + input.example + ".txt";
-			ifstream fin(path);
-			string str;
-
-			int rid = 0;
-
-			for (int i = 0; i < customers.size(); ++i) {
-				customers[i].id = i;
-			}
-
-			while (getline(fin, str)) {
-
-				if (str.find("Route") != string::npos) {
-					string cus = ms.split(str, ":")[1];
-					//debug(cus)
-					Route r = rCreateRoute(rid++);
-					vector<string> custs = ms.split(cus, " ");
-					for (int i = 0; i < custs.size(); ++i) {
-						int cusno = ms.str_LL(custs[i]);
-						rInsAtPosPre(r, r.tail, cusno);
-					}
-
-					rUpdateAvQfrom(r, r.head);
-					rUpdateZvQfrom(r, r.tail);
-
-					//rUpdatePc(r);
-					//rUpdateRouteCost(r);
-					rts.push_back(r);
-				}
-			}
-
-			//patternAdjustment();
-			updatePen();
-			updateRtsCost();
-			//rts.disp();
-			fin.clear();
-			fin.close();
-
-			Log(Log::Info) << "rts.size(): " << rts.size() << endl;
-
-			return true;
 		}
 
 		bool initMaxRoute() {
 
-			auto cmp = [&](int x, int y) {
-				return input.datas[x].DUEDATE < input.datas[y].DUEDATE;
-			};
-
-			vector<int>que1;
+			Vec<int>que1;
+			que1.reserve(input.custCnt);
 
 			for (int i = 1; i <= input.custCnt; ++i) {
 				que1.push_back(i);
 			}
+			unsigned shuseed = (env.seed + (myRand->pick(10000007))) % Mod;
+			std::shuffle(que1.begin(), que1.end(), default_random_engine(shuseed));
 
-			ShuffleCards sc;
-
-			sort(que1.begin(), que1.end(), cmp);
+			/*auto cmp = [&](int x, int y) {
+				return input.datas[x].DUEDATE < input.datas[y].DUEDATE;
+			};
+			sort(que1.begin(), que1.end(), cmp);*/
 
 			int rid = 0;
 
@@ -1769,87 +1550,14 @@ namespace vrptwNew {
 
 				rUpdateZvQfrom(r, r.tail);
 				rUpdateAQfrom(r, r.head);
-				
-				rUpdateRCost(r);
+				rReCalRCost(r);
 			}
 			updatePen();
 			//patternAdjustment();
 			return true;
 		}
 
-		bool InitBy2000betterSol(int cusNo = -1) {
-
-			MyString ms;
-			string csCnt = ms.LL_str(input.custCnt);
-
-			string caseNoStr;
-			string path = "";
-			if (cusNo == -1) {
-				caseNoStr = ms.LL_str(myRand.pick(2000));
-			}
-			else {
-				caseNoStr = ms.LL_str(cusNo);
-			}
-
-			//_root_vrptw_data_200_R1_2_1.TXT_11.sol
-			path = env.linBKSPath+"./betterInit/_root_vrptw_data_" + csCnt + "_" + input.example + ".TXT_" + caseNoStr + ".sol";
-
-			ifstream f(path.c_str());
-			Log(Log::Info) << "path: " << path << endl;
-			Log(Log::Info) << "f.good(): " << f.good() << endl;
-
-			if (!f.good()) {
-				caseNoStr = ms.LL_str(myRand.pick(200));
-				path = "./betterInit/_root_vrptw_data_" + csCnt + "_" + input.example + ".TXT_" + caseNoStr + ".sol";
-				ifstream ff(path.c_str());
-
-				Log(Log::Info) << "ff.good(): " << ff.good() << endl;
-				if (!ff.good()) {
-					return false;
-				}
-			}
-
-			Log(Log::Warning) << "init bettersol suc use case " << caseNoStr << endl;
-
-			ifstream fin(path);
-			string str;
-			int line = 1;
-			int rid = 0;
-
-			for (int i = 0; i < customers.size(); ++i) {
-				customers[i].id = i;
-			}
-
-			while (getline(fin, str)) {
-				++line;
-				//debug(str)
-				vector<string> arr = ms.split(str, " ");
-
-				Route r = rCreateRoute(rid++);
-				for (string cus : arr) {
-					//cout << s << " ";
-					rInsAtPosPre(r, r.tail, ms.str_LL(cus));
-				}
-
-				rUpdateAvQfrom(r, r.head);
-				rUpdateZvQfrom(r, r.tail);
-
-				rts.push_back(r);
-
-			}
-
-			//patternAdjustment();
-
-			updatePen();
-			//rts.disp();
-			fin.clear();
-			fin.close();
-			//debug(rts.size());
-			return true;
-
-		}
-
-		bool initByArr2(vector < vector<int>> arr2) {
+		bool initByArr2(Vec < Vec<int>> arr2) {
 			
 			int rid = 0;
 			for(auto& arr:arr2){
@@ -1871,36 +1579,7 @@ namespace vrptwNew {
 
 		bool initDiffSituation() {
 
-			if (cfg.breakRecord == 1) {
-				//init();
-				set<string> BetterSol = {
-				"RC2_2_1",
-				"RC2_4_1",
-				"RC2_8_2",
-				"RC2_10_1",
-				"R1_2_1",
-				"R1_4_1",
-				"R1_6_1",
-				"R1_8_1",
-				"R1_10_1",
-				"C2_8_7",
-				"C1_2_8",
-				"C1_4_7",
-				"C2_10_9",
-				};
-				if (BetterSol.count(input.example) > 0) {
-					if (!InitBy2000betterSol()) {
-						initBybestSolution();
-					}
-				}
-				else {
-					initBybestSolution();
-				}
-			}
-			else {
-				//init();
-				initMaxRoute();
-			}
+			initMaxRoute();
 
 			if (cfg.breakRecord) {
 				ourTarget = input.sintefRecRN - 1;
@@ -1909,10 +1588,7 @@ namespace vrptwNew {
 				ourTarget = input.sintefRecRN;
 			}
 
-			int Qbound = input.sumQToQ;
-
 			Log(Log::Level::Warning) << "penalty: " << penalty << endl;
-			Log(Log::Level::Warning) << "Qbound: " << Qbound << endl;
 			Log(Log::Level::Warning) << "ourTarget: " << ourTarget << endl;
 			Log(Log::Level::Warning) << "rts.size(): " << rts.size() << endl;
 
@@ -1977,9 +1653,9 @@ namespace vrptwNew {
 			return EPr.rCustCnt;
 		}
 
-		vector<int> EPve() {
+		Vec<int> EPve() {
 
-			vector<int>ret = rPutCusInve(EPr);
+			Vec<int>ret = rPutCusInve(EPr);
 			return ret;
 		}
 
@@ -2121,7 +1797,7 @@ namespace vrptwNew {
 				rvQ += customers[v_].Q_X;
 				rvQ += customers[wj].QX_;
 
-				bestM.deltPc = max((DisType)0, rwQ - input.Q) +
+				bestM.deltPc =std::max<DisType>((DisType)0, rwQ - input.Q) +
 					max((DisType)0, rvQ - input.Q) -
 					rv.rPc - rw.rPc;
 				bestM.PcOnly = bestM.deltPc;
@@ -2407,9 +2083,14 @@ namespace vrptwNew {
 					}
 					else {
 
-						rNextDisp(rv);
+						//rNextDisp(rv);
 						debug(front);
+						debug(back);
 						debug(v);
+						debug(w);
+						debug(env.seed);
+						debug(rv.head);
+						debug(rv.tail);
 						debug("error 333");
 					}
 
@@ -2428,7 +2109,7 @@ namespace vrptwNew {
 
 					DisType avp = customers[w_].av + input.datas[w_].SERVICETIME + input.disOf[reCusNo(w_)][reCusNo(v)];
 					DisType zvp = customers[w].zv - input.disOf[reCusNo(w)][reCusNo(v)] - input.datas[v].SERVICETIME;
-					newvwPtw += std::max<DisType>((DisType)0, std::max<DisType>(avp, input.datas[v].READYTIME) - min(input.datas[v].DUEDATE, zvp));
+					newvwPtw += std::max<DisType>((DisType)0, std::max<DisType>(avp, input.datas[v].READYTIME) - std::min<DisType>(input.datas[v].DUEDATE, zvp));
 
 					newv_vjPtw += customers[v_].TW_X;
 					newv_vjPtw += customers[vj].TWX_;
@@ -2440,12 +2121,10 @@ namespace vrptwNew {
 					bestM.deltPtw = newvwPtw * rw.rWeight + newv_vjPtw * rv.rWeight - vPtw - wPtw;
 					bestM.deltPtw *= alpha;
 				}
+				return bestM;
 			};
 			
 			auto getDeltPc = [&]() {
-
-				DisType vPc = rv.rPc;
-				DisType wPc = rw.rPc;
 
 				if (rv.routeID == rw.routeID) {
 					bestM.deltPc = 0;
@@ -2528,7 +2207,7 @@ namespace vrptwNew {
 					}
 
 
-					int w_ = customers[w].pre;
+					//int w_ = customers[w].pre;
 					////////////////////////
 					newv_vjPtw = newvwPtw = 0;
 
@@ -2656,7 +2335,7 @@ namespace vrptwNew {
 					newvwPtw += customers[wj].TWX_;
 					DisType avp = customers[w].av + input.datas[w].SERVICETIME + input.disOf[reCusNo(w)][reCusNo(v)];
 					DisType zvp = customers[wj].zv - input.disOf[reCusNo(wj)][reCusNo(v)] - input.datas[v].SERVICETIME;
-					newvwPtw += std::max<DisType>((DisType)0, std::max<DisType>(avp, input.datas[v].READYTIME) - min(input.datas[v].DUEDATE, zvp));
+					newvwPtw += std::max<DisType>((DisType)0, std::max<DisType>(avp, input.datas[v].READYTIME) - std::min<DisType>(input.datas[v].DUEDATE, zvp));
 
 					// insert v to (w,w-)
 					newv_vjPtw += customers[v_].TW_X;
@@ -2669,13 +2348,11 @@ namespace vrptwNew {
 					bestM.deltPtw = newvwPtw * rw.rWeight + newv_vjPtw * rv.rWeight - vPtw - wPtw;
 					bestM.deltPtw *= alpha;
 				}
+				return bestM;
 			};
 			// insert v to w and (w+)
 			
 			auto getDeltPc = [&]() {
-
-				DisType vPc = rv.rPc;
-				DisType wPc = rw.rPc;
 
 				if (rv.routeID == rw.routeID) {
 					bestM.deltPc = 0;
@@ -2776,7 +2453,7 @@ namespace vrptwNew {
 					newwvPtw += customers[v].TWX_;
 					DisType awp = customers[v_].av + input.datas[v_].SERVICETIME + input.disOf[reCusNo(v_)][reCusNo(w)];
 					DisType zwp = customers[v].zv - input.disOf[reCusNo(w)][reCusNo(v)] - input.datas[w].SERVICETIME;
-					newwvPtw += std::max<DisType>((DisType)0, std::max<DisType>(awp, input.datas[w].READYTIME) - min(input.datas[w].DUEDATE, zwp));
+					newwvPtw += std::max<DisType>((DisType)0, std::max<DisType>(awp, input.datas[w].READYTIME) - std::min<DisType>(input.datas[w].DUEDATE, zwp));
 
 					// insert w to (v,v-)
 					neww_wjPtw += customers[w_].TW_X;
@@ -2793,9 +2470,6 @@ namespace vrptwNew {
 			};
 
 			auto getDeltPc = [&]() {
-
-				DisType wPc = rw.rPc;
-				DisType vPc = rv.rPc;
 
 				if (rv.routeID == rw.routeID) {
 					bestM.deltPc = 0;
@@ -2896,7 +2570,7 @@ namespace vrptwNew {
 					newwvPtw += customers[vj].TWX_;
 					DisType awp = customers[v].av + input.datas[v].SERVICETIME + input.disOf[reCusNo(v)][reCusNo(w)];
 					DisType zwp = customers[vj].zv - input.disOf[reCusNo(vj)][reCusNo(w)] - input.datas[w].SERVICETIME;
-					newwvPtw += std::max<DisType>((DisType)0, std::max<DisType>(awp, input.datas[w].READYTIME) - min(input.datas[w].DUEDATE, zwp));
+					newwvPtw += std::max<DisType>((DisType)0, std::max<DisType>(awp, input.datas[w].READYTIME) - std::min<DisType>(input.datas[w].DUEDATE, zwp));
 
 					neww_wjPtw += customers[w_].TW_X;
 					neww_wjPtw += customers[wj].TWX_;
@@ -2965,6 +2639,11 @@ namespace vrptwNew {
 			Route& rv = rts.getRouteByRid(customers[v].routeID);
 			Route& rw = rts.getRouteByRid(customers[w].routeID);
 
+			if (w< 0 || v < 0) {
+				println(w);
+				println(v);
+			}
+
 			int wj = customers[w].next;
 			int v_ = customers[v].pre;
 			int vj = customers[v].next;
@@ -2978,7 +2657,10 @@ namespace vrptwNew {
 				if (v == w) {
 					return bestM;
 				}
-					
+			}
+
+			if (wj < 0 || v_ < 0 || vj < 0 || w_ < 0) {
+				println(wj < 0);
 			}
 			auto getDeltPtw = [&]() {
 
@@ -2996,7 +2678,17 @@ namespace vrptwNew {
 					if (v_ == w) {
 
 						// (v--)->(v-)->(v)->(v+)
+						if (v_ < 0) {
+							println("v_", v_);
+						}
+
 						int v__ = customers[v_].pre;
+
+						if (v__ < 0) {
+							println("v__",v__);
+							println("v__",v__);
+						}
+
 						DisType av = 0;
 						newvPtw = 0;
 
@@ -3021,7 +2713,16 @@ namespace vrptwNew {
 					else if (w_ == v) {
 
 						// (w--)->(w-)->(w)->(w+)
+						if (w_ < 0) {
+							println("w_", w_);
+						}
+
 						int w__ = customers[w_].pre;
+						if (w__ < 0) {
+							println("w__", w__);
+							println("w__", w__);
+						}
+
 						DisType aw = 0;
 						newvPtw = 0;
 
@@ -3098,6 +2799,13 @@ namespace vrptwNew {
 							pt = customers[pt].next;
 						}
 
+						if (lastv < 0 || front<0) {
+
+							println("env.seed:", env.seed);
+							println("lastv:", lastv);
+							println("front:", front);
+							println("back:", back);
+						}
 
 						DisType afrvp = lastav + input.datas[lastv].SERVICETIME + input.disOf[reCusNo(lastv)][reCusNo(front)];
 						newvPtw += std::max<DisType>((DisType)0, afrvp - input.datas[front].DUEDATE);
@@ -3119,7 +2827,7 @@ namespace vrptwNew {
 					bestM.deltPtw *= alpha;
 				}
 				else {
-
+					
 					newvPtw += customers[v_].TW_X;
 					newvPtw += customers[vj].TWX_;
 					newwPtw += customers[wj].TWX_;
@@ -3131,14 +2839,15 @@ namespace vrptwNew {
 					DisType zvp = customers[wj].zv - input.datas[v].SERVICETIME - input.disOf[reCusNo(wj)][reCusNo(v)];
 
 					newvPtw +=
-						std::max<DisType>((DisType)0, std::max<DisType>(awp, input.datas[w].READYTIME) - min(input.datas[w].DUEDATE, zwp));
+						std::max<DisType>((DisType)0, std::max<DisType>(awp, input.datas[w].READYTIME) - std::min<DisType>(input.datas[w].DUEDATE, zwp));
 
 					newwPtw +=
-						std::max<DisType>((DisType)0, std::max<DisType>(avp, input.datas[v].READYTIME) - min(input.datas[v].DUEDATE, zvp));
+						std::max<DisType>((DisType)0, std::max<DisType>(avp, input.datas[v].READYTIME) - std::min<DisType>(input.datas[v].DUEDATE, zvp));
 					bestM.PtwOnly = newwPtw + newvPtw - rv.rPtw - rw.rPtw;
 					bestM.deltPtw = newwPtw * rw.rWeight + newvPtw * rv.rWeight - vPtw - wPtw;
 					bestM.deltPtw *= alpha;
 				}
+				return bestM;
 			};
 
 			auto getDeltPc = [&]() {
@@ -3202,7 +2911,7 @@ namespace vrptwNew {
 				bestM.deltCost = delt * gamma;
 
 			};
-
+			//return bestM;
 			if (alpha > 0) {
 				getDeltPtw();
 			}
@@ -3372,7 +3081,7 @@ namespace vrptwNew {
 					DisType awp = customers[v_].av + input.datas[v_].SERVICETIME + input.disOf[reCusNo(v_)][reCusNo(w)];
 					DisType zwp = customers[vjj].zv - input.datas[w].SERVICETIME - input.disOf[reCusNo(w)][reCusNo(vjj)];
 					newvPtw +=
-						std::max<DisType>((DisType)0, std::max<DisType>(awp, input.datas[w].READYTIME) - min(input.datas[w].DUEDATE, zwp));
+						std::max<DisType>((DisType)0, std::max<DisType>(awp, input.datas[w].READYTIME) - std::min<DisType>(input.datas[w].DUEDATE, zwp));
 
 					// (w-) -> (v) -> (v+) -> (wj)
 					newwPtw += customers[w_].TW_X;
@@ -3388,7 +3097,7 @@ namespace vrptwNew {
 					DisType zvjp = customers[wj].zv - input.datas[vj].SERVICETIME - input.disOf[reCusNo(wj)][reCusNo(vj)];
 
 					newwPtw +=
-						std::max<DisType>((DisType)0, std::max<DisType>(avjp, input.datas[vj].READYTIME) - min(input.datas[vj].DUEDATE, zvjp));
+						std::max<DisType>((DisType)0, std::max<DisType>(avjp, input.datas[vj].READYTIME) - std::min<DisType>(input.datas[vj].DUEDATE, zvjp));
 					bestM.PtwOnly = newwPtw + newvPtw - rv.rPtw - rw.rPtw;
 					bestM.deltPtw = newwPtw * rw.rWeight + newvPtw * rv.rWeight - vPtw - wPtw;
 					bestM.deltPtw *= alpha;
@@ -3480,16 +3189,11 @@ namespace vrptwNew {
 			// exchange v and (ww+)
 			DeltPen bestM;
 
-			/*Route& rv = rts.getRouteByRid(customers[v].routeID);
-			Route& rw = rts.getRouteByRid(customers[w].routeID);*/
-
 			int wj = customers[w].next;
-			int vj = customers[v].next;
 
 			if (wj > input.custCnt) {
 				return bestM;
 			}
-
 			return exchangevvjw(w, v,oneR);
 
 		}
@@ -3659,7 +3363,7 @@ namespace vrptwNew {
 					DisType zwjp = customers[v3j].zv - input.datas[wj].SERVICETIME - input.disOf[reCusNo(wj)][reCusNo(v3j)];
 
 					newvPtw +=
-						std::max<DisType>((DisType)0, std::max<DisType>(awjp, input.datas[wj].READYTIME) - min(input.datas[wj].DUEDATE, zwjp));
+						std::max<DisType>((DisType)0, std::max<DisType>(awjp, input.datas[wj].READYTIME) - std::min<DisType>(input.datas[wj].DUEDATE, zwjp));
 
 					// (w-) -> (v) -> (vj) -> (vjj)-> (wjj)
 					newwPtw += customers[w_].TW_X;
@@ -3678,11 +3382,11 @@ namespace vrptwNew {
 
 					newwPtw += std::max<DisType>((DisType)0, input.datas[vjj].READYTIME - zvjjp);
 
-					DisType zvjj = zvjjp < input.datas[vjj].READYTIME ? input.datas[vjj].READYTIME : min(input.datas[vjj].DUEDATE, zvjjp);
+					DisType zvjj = zvjjp < input.datas[vjj].READYTIME ? input.datas[vjj].READYTIME : std::min<DisType>(input.datas[vjj].DUEDATE, zvjjp);
 					DisType zvjp = zvjj - input.disOf[reCusNo(vjj)][reCusNo(vj)] - input.datas[vj].SERVICETIME;
 
 					newwPtw +=
-						std::max<DisType>((DisType)0, std::max<DisType>(avjp, input.datas[vj].READYTIME) - min(input.datas[vj].DUEDATE, zvjp));
+						std::max<DisType>((DisType)0, std::max<DisType>(avjp, input.datas[vj].READYTIME) - std::min<DisType>(input.datas[vj].DUEDATE, zvjp));
 					
 					bestM.PtwOnly = newwPtw + newvPtw - rv.rPtw - rw.rPtw;
 					bestM.deltPtw = newwPtw * rw.rWeight + newvPtw * rv.rWeight - vPtw - wPtw;
@@ -3908,7 +3612,7 @@ namespace vrptwNew {
 					DisType zwp = customers[v3j].zv - input.datas[w].SERVICETIME - input.disOf[reCusNo(w)][reCusNo(v3j)];
 
 					newvPtw +=
-						std::max<DisType>((DisType)0, std::max<DisType>(awp, input.datas[w].READYTIME) - min(input.datas[w].DUEDATE, zwp));
+						std::max<DisType>((DisType)0, std::max<DisType>(awp, input.datas[w].READYTIME) - std::min<DisType>(input.datas[w].DUEDATE, zwp));
 
 					// (w-) -> (v) -> (vj) -> (vjj)-> (wj)
 					newwPtw += customers[w_].TW_X;
@@ -3927,11 +3631,11 @@ namespace vrptwNew {
 
 					newwPtw += std::max<DisType>((DisType)0, input.datas[vjj].READYTIME - zvjjp);
 
-					DisType zvjj = zvjjp < input.datas[vjj].READYTIME ? input.datas[vjj].READYTIME : min(input.datas[vjj].DUEDATE, zvjjp);
+					DisType zvjj = zvjjp < input.datas[vjj].READYTIME ? input.datas[vjj].READYTIME : std::min<DisType>(input.datas[vjj].DUEDATE, zvjjp);
 					DisType zvjp = zvjj - input.disOf[reCusNo(vjj)][reCusNo(vj)] - input.datas[vj].SERVICETIME;
 
 					newwPtw +=
-						std::max<DisType>((DisType)0, std::max<DisType>(avjp, input.datas[vj].READYTIME) - min(input.datas[vj].DUEDATE, zvjp));
+						std::max<DisType>((DisType)0, std::max<DisType>(avjp, input.datas[vj].READYTIME) - std::min<DisType>(input.datas[vj].DUEDATE, zvjp));
 					bestM.PtwOnly = newwPtw + newvPtw - rv.rPtw - rw.rPtw;
 					bestM.deltPtw = newwPtw * rw.rWeight + newvPtw * rv.rWeight - vPtw - wPtw;
 					bestM.deltPtw *= alpha;
@@ -4108,7 +3812,7 @@ namespace vrptwNew {
 					//}
 
 					newwPtw +=
-						std::max<DisType>((DisType)0, std::max<DisType>(avjp, input.datas[vj].READYTIME) - min(input.datas[vj].DUEDATE, zvjp));
+						std::max<DisType>((DisType)0, std::max<DisType>(avjp, input.datas[vj].READYTIME) - std::min<DisType>(input.datas[vj].DUEDATE, zvjp));
 
 					// link v- and vjj
 					newvPtw += customers[v_].TW_X;
@@ -4121,6 +3825,7 @@ namespace vrptwNew {
 					bestM.deltPtw *= alpha;
 
 				}
+				return bestM;
 			};
 			
 			auto getDeltPc = [&]() {
@@ -4297,6 +4002,7 @@ namespace vrptwNew {
 
 				bestM.PtwOnly = newPtw - r.rPtw;
 				bestM.deltPtw = (newPtw - r.rPtw) * r.rWeight * alpha;
+				return bestM;
 			};
 
 			auto getDeltPc = [&]() {
@@ -4333,7 +4039,7 @@ namespace vrptwNew {
 
 		}
 
-		DeltPen _Nopt(vector<int>& nodes) { //16 Nopt*
+		DeltPen _Nopt(Vec<int>& nodes) { //16 Nopt*
 
 			DeltPen bestM;
 
@@ -4360,7 +4066,7 @@ namespace vrptwNew {
 			DisType oldPtwNoWei = 0;
 			DisType oldPtw = 0;
 			DisType oldPc = 0;
-			for (int i = 0; i < nodes.size(); i += 2) {
+			for (std::size_t i = 0; i < nodes.size(); i += 2) {
 				int rId = customers[(nodes[i] == 0 ? nodes[i + 1] : nodes[i])].routeID;
 				Route& r = rts.getRouteByRid(rId);
 				oldPtwNoWei += r.rPtw;
@@ -4416,10 +4122,6 @@ namespace vrptwNew {
 
 			Route& rv = rts.getRouteByRid(customers[v].routeID);
 			Route& rw = rts.getRouteByRid(customers[w].routeID);
-
-			/*if (rv.routeID == rw.routeID) {
-				return false;
-			}*/
 
 			if (M.kind == 0) {
 
@@ -5148,7 +4850,7 @@ namespace vrptwNew {
 			int f_ = customers[front].pre;
 			int bj = customers[back].next;
 
-			vector<int> ve;
+			Vec<int> ve;
 			ve.reserve(r.rCustCnt);
 
 			int pt = front;
@@ -5186,8 +4888,8 @@ namespace vrptwNew {
 				int wj = customers[w].next > input.custCnt ? 0 : customers[w].next;
 				int v_ = customers[v].pre > input.custCnt ? 0 : customers[v].pre;
 
-				yearTable[v_][v] = squIter + cfg.yearTabuLen + myRand.pick(cfg.yearTabuRand);
-				yearTable[w][wj] = squIter + cfg.yearTabuLen + myRand.pick(cfg.yearTabuRand);
+				yearTable[v_][v] = squIter + cfg.yearTabuLen + myRand->pick(cfg.yearTabuRand);
+				yearTable[w][wj] = squIter + cfg.yearTabuLen + myRand->pick(cfg.yearTabuRand);
 
 			}
 			else if (t.kind == 1) {
@@ -5195,8 +4897,8 @@ namespace vrptwNew {
 				int w_ = customers[w].pre > input.custCnt ? 0 : customers[w].pre;
 				int vj = customers[v].next > input.custCnt ? 0 : customers[v].next;
 
-				yearTable[v][vj] = squIter + cfg.yearTabuLen + myRand.pick(cfg.yearTabuRand);
-				yearTable[w_][w] = squIter + cfg.yearTabuLen + myRand.pick(cfg.yearTabuRand);
+				yearTable[v][vj] = squIter + cfg.yearTabuLen + myRand->pick(cfg.yearTabuRand);
+				yearTable[w_][w] = squIter + cfg.yearTabuLen + myRand->pick(cfg.yearTabuRand);
 
 			}
 			else if (t.kind == 2) {
@@ -5205,9 +4907,9 @@ namespace vrptwNew {
 				int v_ = customers[v].pre > input.custCnt ? 0 : customers[v].pre;
 				int vj = customers[v].next > input.custCnt ? 0 : customers[v].next;
 
-				yearTable[v][vj] = squIter + cfg.yearTabuLen + myRand.pick(cfg.yearTabuRand);
-				yearTable[v_][v] = squIter + cfg.yearTabuLen + myRand.pick(cfg.yearTabuRand);
-				yearTable[w_][w] = squIter + cfg.yearTabuLen + myRand.pick(cfg.yearTabuRand);
+				yearTable[v][vj] = squIter + cfg.yearTabuLen + myRand->pick(cfg.yearTabuRand);
+				yearTable[v_][v] = squIter + cfg.yearTabuLen + myRand->pick(cfg.yearTabuRand);
+				yearTable[w_][w] = squIter + cfg.yearTabuLen + myRand->pick(cfg.yearTabuRand);
 
 			}
 			else if (t.kind == 3) {
@@ -5216,9 +4918,9 @@ namespace vrptwNew {
 				int v_ = customers[v].pre > input.custCnt ? 0 : customers[v].pre;
 				int vj = customers[v].next > input.custCnt ? 0 : customers[v].next;
 
-				yearTable[v][vj] = squIter + cfg.yearTabuLen + myRand.pick(cfg.yearTabuRand);
-				yearTable[v_][v] = squIter + cfg.yearTabuLen + myRand.pick(cfg.yearTabuRand);
-				yearTable[w][wj] = squIter + cfg.yearTabuLen + myRand.pick(cfg.yearTabuRand);
+				yearTable[v][vj] = squIter + cfg.yearTabuLen + myRand->pick(cfg.yearTabuRand);
+				yearTable[v_][v] = squIter + cfg.yearTabuLen + myRand->pick(cfg.yearTabuRand);
+				yearTable[w][wj] = squIter + cfg.yearTabuLen + myRand->pick(cfg.yearTabuRand);
 
 			}
 			else if (t.kind == 4) {
@@ -5228,9 +4930,9 @@ namespace vrptwNew {
 				int wj = customers[w].next > input.custCnt ? 0 : customers[w].next;
 				int v_ = customers[v].pre > input.custCnt ? 0 : customers[v].pre;
 
-				yearTable[w][wj] = squIter + cfg.yearTabuLen + myRand.pick(cfg.yearTabuRand);
-				yearTable[w_][w] = squIter + cfg.yearTabuLen + myRand.pick(cfg.yearTabuRand);
-				yearTable[v_][v] = squIter + cfg.yearTabuLen + myRand.pick(cfg.yearTabuRand);
+				yearTable[w][wj] = squIter + cfg.yearTabuLen + myRand->pick(cfg.yearTabuRand);
+				yearTable[w_][w] = squIter + cfg.yearTabuLen + myRand->pick(cfg.yearTabuRand);
+				yearTable[v_][v] = squIter + cfg.yearTabuLen + myRand->pick(cfg.yearTabuRand);
 
 			}
 			else if (t.kind == 5) {
@@ -5240,9 +4942,9 @@ namespace vrptwNew {
 				int wj = customers[w].next > input.custCnt ? 0 : customers[w].next;
 				int vj = customers[v].next > input.custCnt ? 0 : customers[v].next;
 
-				yearTable[v][vj] = squIter + cfg.yearTabuLen + myRand.pick(cfg.yearTabuRand);
-				yearTable[w_][w] = squIter + cfg.yearTabuLen + myRand.pick(cfg.yearTabuRand);
-				yearTable[w][wj] = squIter + cfg.yearTabuLen + myRand.pick(cfg.yearTabuRand);
+				yearTable[v][vj] = squIter + cfg.yearTabuLen + myRand->pick(cfg.yearTabuRand);
+				yearTable[w_][w] = squIter + cfg.yearTabuLen + myRand->pick(cfg.yearTabuRand);
+				yearTable[w][wj] = squIter + cfg.yearTabuLen + myRand->pick(cfg.yearTabuRand);
 
 			}
 			else if (t.kind == 6) {
@@ -5260,34 +4962,34 @@ namespace vrptwNew {
 
 					if (v == w__) {
 
-						yearTable[v_][v] = squIter + cfg.yearTabuLen + myRand.pick(cfg.yearTabuRand);
-						yearTable[v][vj] = squIter + cfg.yearTabuLen + myRand.pick(cfg.yearTabuRand);
-						yearTable[w_][w] = squIter + cfg.yearTabuLen + myRand.pick(cfg.yearTabuRand);
+						yearTable[v_][v] = squIter + cfg.yearTabuLen + myRand->pick(cfg.yearTabuRand);
+						yearTable[v][vj] = squIter + cfg.yearTabuLen + myRand->pick(cfg.yearTabuRand);
+						yearTable[w_][w] = squIter + cfg.yearTabuLen + myRand->pick(cfg.yearTabuRand);
 
 					}
 					else {
 
-						yearTable[v_][v] = squIter + cfg.yearTabuLen + myRand.pick(cfg.yearTabuRand);
-						yearTable[v][vj] = squIter + cfg.yearTabuLen + myRand.pick(cfg.yearTabuRand);
-						yearTable[w__][w_] = squIter + cfg.yearTabuLen + myRand.pick(cfg.yearTabuRand);
-						yearTable[w_][w] = squIter + cfg.yearTabuLen + myRand.pick(cfg.yearTabuRand);
+						yearTable[v_][v] = squIter + cfg.yearTabuLen + myRand->pick(cfg.yearTabuRand);
+						yearTable[v][vj] = squIter + cfg.yearTabuLen + myRand->pick(cfg.yearTabuRand);
+						yearTable[w__][w_] = squIter + cfg.yearTabuLen + myRand->pick(cfg.yearTabuRand);
+						yearTable[w_][w] = squIter + cfg.yearTabuLen + myRand->pick(cfg.yearTabuRand);
 
 					}
 
 				}
 				else {
 
-					yearTable[v_][v] = squIter + cfg.yearTabuLen + myRand.pick(cfg.yearTabuRand);
-					yearTable[v][vj] = squIter + cfg.yearTabuLen + myRand.pick(cfg.yearTabuRand);
-					yearTable[w__][w_] = squIter + cfg.yearTabuLen + myRand.pick(cfg.yearTabuRand);
-					yearTable[w_][w] = squIter + cfg.yearTabuLen + myRand.pick(cfg.yearTabuRand);
+					yearTable[v_][v] = squIter + cfg.yearTabuLen + myRand->pick(cfg.yearTabuRand);
+					yearTable[v][vj] = squIter + cfg.yearTabuLen + myRand->pick(cfg.yearTabuRand);
+					yearTable[w__][w_] = squIter + cfg.yearTabuLen + myRand->pick(cfg.yearTabuRand);
+					yearTable[w_][w] = squIter + cfg.yearTabuLen + myRand->pick(cfg.yearTabuRand);
 
 				}
 
 			}
 			else if (t.kind == 7) {
 				// exchangevwj
-				int w_ = customers[w].pre > input.custCnt ? 0 : customers[w].pre;
+				//int w_ = customers[w].pre > input.custCnt ? 0 : customers[w].pre;
 				int v_ = customers[v].pre > input.custCnt ? 0 : customers[v].pre;
 				int vj = customers[v].next > input.custCnt ? 0 : customers[v].next;
 				int wj = customers[w].next > input.custCnt ? 0 : customers[w].next;
@@ -5303,27 +5005,27 @@ namespace vrptwNew {
 					}
 					else if (v == wjj) {
 
-						yearTable[v_][v] = squIter + cfg.yearTabuLen + myRand.pick(cfg.yearTabuRand);
-						yearTable[v][vj] = squIter + cfg.yearTabuLen + myRand.pick(cfg.yearTabuRand);
-						yearTable[w][wj] = squIter + cfg.yearTabuLen + myRand.pick(cfg.yearTabuRand);
+						yearTable[v_][v] = squIter + cfg.yearTabuLen + myRand->pick(cfg.yearTabuRand);
+						yearTable[v][vj] = squIter + cfg.yearTabuLen + myRand->pick(cfg.yearTabuRand);
+						yearTable[w][wj] = squIter + cfg.yearTabuLen + myRand->pick(cfg.yearTabuRand);
 
 					}
 					else {
 
-						yearTable[v_][v] = squIter + cfg.yearTabuLen + myRand.pick(cfg.yearTabuRand);
-						yearTable[v][vj] = squIter + cfg.yearTabuLen + myRand.pick(cfg.yearTabuRand);
-						yearTable[w][wj] = squIter + cfg.yearTabuLen + myRand.pick(cfg.yearTabuRand);
-						yearTable[wj][wjj] = squIter + cfg.yearTabuLen + myRand.pick(cfg.yearTabuRand);
+						yearTable[v_][v] = squIter + cfg.yearTabuLen + myRand->pick(cfg.yearTabuRand);
+						yearTable[v][vj] = squIter + cfg.yearTabuLen + myRand->pick(cfg.yearTabuRand);
+						yearTable[w][wj] = squIter + cfg.yearTabuLen + myRand->pick(cfg.yearTabuRand);
+						yearTable[wj][wjj] = squIter + cfg.yearTabuLen + myRand->pick(cfg.yearTabuRand);
 
 					}
 
 				}
 				else {
 
-					yearTable[v_][v] = squIter + cfg.yearTabuLen + myRand.pick(cfg.yearTabuRand);
-					yearTable[v][vj] = squIter + cfg.yearTabuLen + myRand.pick(cfg.yearTabuRand);
-					yearTable[w][wj] = squIter + cfg.yearTabuLen + myRand.pick(cfg.yearTabuRand);
-					yearTable[wj][wjj] = squIter + cfg.yearTabuLen + myRand.pick(cfg.yearTabuRand);
+					yearTable[v_][v] = squIter + cfg.yearTabuLen + myRand->pick(cfg.yearTabuRand);
+					yearTable[v][vj] = squIter + cfg.yearTabuLen + myRand->pick(cfg.yearTabuRand);
+					yearTable[w][wj] = squIter + cfg.yearTabuLen + myRand->pick(cfg.yearTabuRand);
+					yearTable[wj][wjj] = squIter + cfg.yearTabuLen + myRand->pick(cfg.yearTabuRand);
 
 				}
 
@@ -5343,34 +5045,34 @@ namespace vrptwNew {
 
 					if (v_ == w) {
 
-						yearTable[v_][v] = squIter + cfg.yearTabuLen + myRand.pick(cfg.yearTabuRand);
-						yearTable[v][vj] = squIter + cfg.yearTabuLen + myRand.pick(cfg.yearTabuRand);
-						yearTable[w_][w] = squIter + cfg.yearTabuLen + myRand.pick(cfg.yearTabuRand);
+						yearTable[v_][v] = squIter + cfg.yearTabuLen + myRand->pick(cfg.yearTabuRand);
+						yearTable[v][vj] = squIter + cfg.yearTabuLen + myRand->pick(cfg.yearTabuRand);
+						yearTable[w_][w] = squIter + cfg.yearTabuLen + myRand->pick(cfg.yearTabuRand);
 
 					}
 					else if (w_ == v) {
 
-						yearTable[v_][v] = squIter + cfg.yearTabuLen + myRand.pick(cfg.yearTabuRand);
-						yearTable[w_][w] = squIter + cfg.yearTabuLen + myRand.pick(cfg.yearTabuRand);
-						yearTable[w][wj] = squIter + cfg.yearTabuLen + myRand.pick(cfg.yearTabuRand);
+						yearTable[v_][v] = squIter + cfg.yearTabuLen + myRand->pick(cfg.yearTabuRand);
+						yearTable[w_][w] = squIter + cfg.yearTabuLen + myRand->pick(cfg.yearTabuRand);
+						yearTable[w][wj] = squIter + cfg.yearTabuLen + myRand->pick(cfg.yearTabuRand);
 
 					}
 					else {
 
-						yearTable[v_][v] = squIter + cfg.yearTabuLen + myRand.pick(cfg.yearTabuRand);
-						yearTable[v][vj] = squIter + cfg.yearTabuLen + myRand.pick(cfg.yearTabuRand);
-						yearTable[w_][w] = squIter + cfg.yearTabuLen + myRand.pick(cfg.yearTabuRand);
-						yearTable[w][wj] = squIter + cfg.yearTabuLen + myRand.pick(cfg.yearTabuRand);
+						yearTable[v_][v] = squIter + cfg.yearTabuLen + myRand->pick(cfg.yearTabuRand);
+						yearTable[v][vj] = squIter + cfg.yearTabuLen + myRand->pick(cfg.yearTabuRand);
+						yearTable[w_][w] = squIter + cfg.yearTabuLen + myRand->pick(cfg.yearTabuRand);
+						yearTable[w][wj] = squIter + cfg.yearTabuLen + myRand->pick(cfg.yearTabuRand);
 
 					}
 
 				}
 				else {
 
-					yearTable[v_][v] = squIter + cfg.yearTabuLen + myRand.pick(cfg.yearTabuRand);
-					yearTable[v][vj] = squIter + cfg.yearTabuLen + myRand.pick(cfg.yearTabuRand);
-					yearTable[w_][w] = squIter + cfg.yearTabuLen + myRand.pick(cfg.yearTabuRand);
-					yearTable[w][wj] = squIter + cfg.yearTabuLen + myRand.pick(cfg.yearTabuRand);
+					yearTable[v_][v] = squIter + cfg.yearTabuLen + myRand->pick(cfg.yearTabuRand);
+					yearTable[v][vj] = squIter + cfg.yearTabuLen + myRand->pick(cfg.yearTabuRand);
+					yearTable[w_][w] = squIter + cfg.yearTabuLen + myRand->pick(cfg.yearTabuRand);
+					yearTable[w][wj] = squIter + cfg.yearTabuLen + myRand->pick(cfg.yearTabuRand);
 
 				}
 
@@ -5388,10 +5090,10 @@ namespace vrptwNew {
 				int wj = customers[w].next > input.custCnt ? 0 : customers[w].next;
 				int wjj = customers[wj].next > input.custCnt ? 0 : customers[wj].next;
 
-				yearTable[v_][v] = squIter + cfg.yearTabuLen + myRand.pick(cfg.yearTabuRand);
-				yearTable[vjj][v3j] = squIter + cfg.yearTabuLen + myRand.pick(cfg.yearTabuRand);
-				yearTable[w_][w] = squIter + cfg.yearTabuLen + myRand.pick(cfg.yearTabuRand);
-				yearTable[wj][wjj] = squIter + cfg.yearTabuLen + myRand.pick(cfg.yearTabuRand);
+				yearTable[v_][v] = squIter + cfg.yearTabuLen + myRand->pick(cfg.yearTabuRand);
+				yearTable[vjj][v3j] = squIter + cfg.yearTabuLen + myRand->pick(cfg.yearTabuRand);
+				yearTable[w_][w] = squIter + cfg.yearTabuLen + myRand->pick(cfg.yearTabuRand);
+				yearTable[wj][wjj] = squIter + cfg.yearTabuLen + myRand->pick(cfg.yearTabuRand);
 
 
 			}
@@ -5407,10 +5109,10 @@ namespace vrptwNew {
 				int w_ = customers[w].pre > input.custCnt ? 0 : customers[w].pre;
 				int wj = customers[w].next > input.custCnt ? 0 : customers[w].next;
 
-				yearTable[v_][v] = squIter + cfg.yearTabuLen + myRand.pick(cfg.yearTabuRand);
-				yearTable[vjj][v3j] = squIter + cfg.yearTabuLen + myRand.pick(cfg.yearTabuRand);
-				yearTable[w_][w] = squIter + cfg.yearTabuLen + myRand.pick(cfg.yearTabuRand);
-				yearTable[w][wj] = squIter + cfg.yearTabuLen + myRand.pick(cfg.yearTabuRand);
+				yearTable[v_][v] = squIter + cfg.yearTabuLen + myRand->pick(cfg.yearTabuRand);
+				yearTable[vjj][v3j] = squIter + cfg.yearTabuLen + myRand->pick(cfg.yearTabuRand);
+				yearTable[w_][w] = squIter + cfg.yearTabuLen + myRand->pick(cfg.yearTabuRand);
+				yearTable[w][wj] = squIter + cfg.yearTabuLen + myRand->pick(cfg.yearTabuRand);
 
 			}
 			else if (t.kind == 11) {
@@ -5422,10 +5124,10 @@ namespace vrptwNew {
 				int w_ = customers[w].pre > input.custCnt ? 0 : customers[w].pre;
 				int wj = customers[w].next > input.custCnt ? 0 : customers[w].next;
 
-				yearTable[v_][v] = squIter + cfg.yearTabuLen + myRand.pick(cfg.yearTabuRand);
-				yearTable[vj][vjj] = squIter + cfg.yearTabuLen + myRand.pick(cfg.yearTabuRand);
-				yearTable[w_][w] = squIter + cfg.yearTabuLen + myRand.pick(cfg.yearTabuRand);
-				yearTable[w][wj] = squIter + cfg.yearTabuLen + myRand.pick(cfg.yearTabuRand);
+				yearTable[v_][v] = squIter + cfg.yearTabuLen + myRand->pick(cfg.yearTabuRand);
+				yearTable[vj][vjj] = squIter + cfg.yearTabuLen + myRand->pick(cfg.yearTabuRand);
+				yearTable[w_][w] = squIter + cfg.yearTabuLen + myRand->pick(cfg.yearTabuRand);
+				yearTable[w][wj] = squIter + cfg.yearTabuLen + myRand->pick(cfg.yearTabuRand);
 
 			}
 			else if (t.kind == 12) {
@@ -5439,10 +5141,10 @@ namespace vrptwNew {
 				int wj = customers[w].next > input.custCnt ? 0 : customers[w].next;
 				int wjj = customers[wj].next > input.custCnt ? 0 : customers[wj].next;
 
-				yearTable[v_][v] = squIter + cfg.yearTabuLen + myRand.pick(cfg.yearTabuRand);
-				yearTable[v][vj] = squIter + cfg.yearTabuLen + myRand.pick(cfg.yearTabuRand);
-				yearTable[w_][w] = squIter + cfg.yearTabuLen + myRand.pick(cfg.yearTabuRand);
-				yearTable[wj][wjj] = squIter + cfg.yearTabuLen + myRand.pick(cfg.yearTabuRand);
+				yearTable[v_][v] = squIter + cfg.yearTabuLen + myRand->pick(cfg.yearTabuRand);
+				yearTable[v][vj] = squIter + cfg.yearTabuLen + myRand->pick(cfg.yearTabuRand);
+				yearTable[w_][w] = squIter + cfg.yearTabuLen + myRand->pick(cfg.yearTabuRand);
+				yearTable[wj][wjj] = squIter + cfg.yearTabuLen + myRand->pick(cfg.yearTabuRand);
 
 			}
 			else if (t.kind == 13) {
@@ -5452,13 +5154,13 @@ namespace vrptwNew {
 				int vjj = customers[vj].next > input.custCnt ? 0 : customers[vj].next;
 				int v_ = customers[v].pre > input.custCnt ? 0 : customers[v].pre;
 
-				int w_ = customers[w].pre > input.custCnt ? 0 : customers[w].pre;
+				//int w_ = customers[w].pre > input.custCnt ? 0 : customers[w].pre;
 				int wj = customers[w].next > input.custCnt ? 0 : customers[w].next;
-				int wjj = customers[wj].next > input.custCnt ? 0 : customers[wj].next;
+				//int wjj = customers[wj].next > input.custCnt ? 0 : customers[wj].next;
 
-				yearTable[v_][v] = squIter + cfg.yearTabuLen + myRand.pick(cfg.yearTabuRand);
-				yearTable[vj][vjj] = squIter + cfg.yearTabuLen + myRand.pick(cfg.yearTabuRand);
-				yearTable[w][wj] = squIter + cfg.yearTabuLen + myRand.pick(cfg.yearTabuRand);
+				yearTable[v_][v] = squIter + cfg.yearTabuLen + myRand->pick(cfg.yearTabuRand);
+				yearTable[vj][vjj] = squIter + cfg.yearTabuLen + myRand->pick(cfg.yearTabuRand);
+				yearTable[w][wj] = squIter + cfg.yearTabuLen + myRand->pick(cfg.yearTabuRand);
 
 			}
 			else if (t.kind == 14) {
@@ -5470,9 +5172,9 @@ namespace vrptwNew {
 				int vj = customers[v].next > input.custCnt ? 0 : customers[v].next;
 				int w_ = customers[w].pre > input.custCnt ? 0 : customers[w].pre;
 
-				yearTable[v__][v_] = squIter + cfg.yearTabuLen + myRand.pick(cfg.yearTabuRand);
-				yearTable[v][vj] = squIter + cfg.yearTabuLen + myRand.pick(cfg.yearTabuRand);
-				yearTable[w_][w] = squIter + cfg.yearTabuLen + myRand.pick(cfg.yearTabuRand);
+				yearTable[v__][v_] = squIter + cfg.yearTabuLen + myRand->pick(cfg.yearTabuRand);
+				yearTable[v][vj] = squIter + cfg.yearTabuLen + myRand->pick(cfg.yearTabuRand);
+				yearTable[w_][w] = squIter + cfg.yearTabuLen + myRand->pick(cfg.yearTabuRand);
 
 			}
 			else if (t.kind == 15) {
@@ -5482,14 +5184,14 @@ namespace vrptwNew {
 				int wj = customers[w].next > input.custCnt ? 0 : customers[w].next;
 
 
-				yearTable[v_][v] = squIter + cfg.yearTabuLen + myRand.pick(cfg.yearTabuRand);
-				yearTable[w][wj] = squIter + cfg.yearTabuLen + myRand.pick(cfg.yearTabuRand);
+				yearTable[v_][v] = squIter + cfg.yearTabuLen + myRand->pick(cfg.yearTabuRand);
+				yearTable[w][wj] = squIter + cfg.yearTabuLen + myRand->pick(cfg.yearTabuRand);
 
 				int pt = v;
 				int ptn = customers[pt].next;
 				while (pt != w) {
 
-					yearTable[pt][ptn] = squIter + cfg.yearTabuLen + myRand.pick(cfg.yearTabuRand);
+					yearTable[pt][ptn] = squIter + cfg.yearTabuLen + myRand->pick(cfg.yearTabuRand);
 
 					pt = ptn;
 					ptn = customers[ptn].next;
@@ -5514,10 +5216,9 @@ namespace vrptwNew {
 			return true;
 		}
 
-		vector<int> getPtwNodes(Route& r, int ptwKind = 0) {
+		Vec<int> getPtwNodes(Route& r, int ptwKind = 0) {
 
-			vector<int> ptwNodes;
-
+			Vec<int> ptwNodes;
 			ptwNodes.reserve(r.rCustCnt);
 
 			int v = 0;
@@ -5529,60 +5230,6 @@ namespace vrptwNew {
 				return ptwNodes;
 			}
 #endif // CHECKING
-
-			/*auto findRangeCanDePtw1 = [&]() {
-
-				int startNode = customers[r.tail].pre;
-				int endNode = customers[r.head].next;
-
-				int pt =  customers[r.head].next;
-				bool stop = false;
-				while (pt <=input.custCnt) {
-
-					if (customers[pt].avp > input.datas[pt].DUEDATE) {
-						endNode = pt;
-						stop = true;
-						break;
-					}
-					pt = customers[pt].next;
-				}
-				if (stop == false) {
-					endNode = customers[r.tail].pre;
-				}
-
-				pt = customers[r.tail].pre;
-				stop = false;
-				while (pt <= input.custCnt) {
-
-					if (customers[pt].zvp < input.datas[pt].READYTIME) {
-						startNode = pt;
-						stop = true;
-						break;
-					}
-					pt = customers[pt].pre;
-				}
-
-				if (stop == false) {
-					startNode = customers[r.head].next;
-				}
-
-				if (customers[startNode].pre <= input.custCnt) {
-					startNode = customers[startNode].pre;
-				}
-
-				if (customers[endNode].next <= input.custCnt) {
-					endNode = customers[endNode].next;
-				}
-
-				pt = startNode;
-				while (pt <= input.custCnt) {
-					ptwNodes.push_back(pt);
-					if (pt == endNode) {
-						break;
-					}
-					pt = customers[pt].next;
-				}
-			};*/
 
 			auto getPtwNodesByFirstPtw = [&]() {
 
@@ -5835,7 +5482,7 @@ namespace vrptwNew {
 			}
 			else if (t.kind == 7) {
 				//exchangevwj
-				int w_ = customers[w].pre > input.custCnt ? 0 : customers[w].pre;
+				//int w_ = customers[w].pre > input.custCnt ? 0 : customers[w].pre;
 				int v_ = customers[v].pre > input.custCnt ? 0 : customers[v].pre;
 				int vj = customers[v].next > input.custCnt ? 0 : customers[v].next;
 				int wj = customers[w].next > input.custCnt ? 0 : customers[w].next;
@@ -5942,10 +5589,10 @@ namespace vrptwNew {
 				int v_ = customers[v].pre > input.custCnt ? 0 : customers[v].pre;
 				int vj = customers[v].next > input.custCnt ? 0 : customers[v].next;
 				int vjj = customers[vj].next > input.custCnt ? 0 : customers[vj].next;
-
+				
 				int w_ = customers[w].pre > input.custCnt ? 0 : customers[w].pre;
 				int wj = customers[w].next > input.custCnt ? 0 : customers[w].next;
-
+				//TODO[lyh][bug]:
 				sumYear = (yearTable[v][w_] + yearTable[vj][wj]
 					+ yearTable[v_][w] + yearTable[w][vjj]) / 4;
 			}
@@ -5969,7 +5616,7 @@ namespace vrptwNew {
 				//outrelocatevvjTowwj(v, w); 扔两个 v v+  | w w+
 
 				int vj = customers[v].next > input.custCnt ? 0 : customers[v].next;
-				int w_ = customers[w].pre > input.custCnt ? 0 : customers[w].pre;
+				//int w_ = customers[w].pre > input.custCnt ? 0 : customers[w].pre;
 				int wj = customers[w].next > input.custCnt ? 0 : customers[w].next;
 				//int wjj = customers[wj].next > input.custCnt ? 0 : customers[wj].next;
 
@@ -6031,7 +5678,7 @@ namespace vrptwNew {
 				else {
 					v_pos *= broaden;
 				}
-				v_pos = min(v_pos, input.custCnt);
+				v_pos = std::min<int>(v_pos, input.custCnt);
 
 				for (int wpos = 0; wpos < v_pos; ++wpos) {
 
@@ -6063,7 +5710,7 @@ namespace vrptwNew {
 				else {
 					vjpos *= broaden;
 				}
-				vjpos = min(vjpos, input.custCnt);
+				vjpos = std::min<int>(vjpos, input.custCnt);
 
 				for (int wpos = 0; wpos < vjpos; ++wpos) {
 
@@ -6104,14 +5751,13 @@ namespace vrptwNew {
 					vpos1 *= broaden;
 				}
 
-				vpos1 = min(vpos1, input.custCnt);
+				vpos1 = std::min<int>(vpos1, input.custCnt);
 
 				if (vpos1 > 0) {
 
 					int N = vpos1;
-					int m = std::max<DisType>(1, N / devided);
-					myRandX.getMN(N, m);
-					vector<int>& ve = myRandX.mpLLArr[N];
+					int m = std::max<int>(1, N / devided);
+					Vec<int>& ve = myRandX->getMN(N, m);
 					for (int i = 0; i < m; ++i) {
 						int wpos = ve[i];
 
@@ -6151,16 +5797,16 @@ namespace vrptwNew {
 					vpos2 *= broaden;
 				}
 
-				vpos2 = min(vpos2, input.custCnt);
+				vpos2 = std::min<int>(vpos2, input.custCnt);
 
 				if (vpos2 > 0) {
 
 					int N = vpos2;
-					int m = std::max<DisType>(1, N / devided);
+					int m = std::max<int>(1, N / devided);
 
-					m = std::max<DisType>(1, m);
-					myRandX.getMN(N, m);
-					vector<int>& ve = myRandX.mpLLArr[N];
+					m = std::max<int>(1, m);
+					myRandX->getMN(N, m);
+					Vec<int>& ve = myRandX->mpLLArr[N];
 
 					for (int i = 0; i < m; ++i) {
 						int wpos = ve[i];
@@ -6192,13 +5838,12 @@ namespace vrptwNew {
 			auto outrelocateEffectively = [&](int v) {
 
 				int devided = 20;
-				vector<int>& relatedToV = input.iInNeicloseOfUnionNeiCloseOfI[cfg.broadIndex][v];
+				Vec<int>& relatedToV = input.iInNeicloseOfUnionNeiCloseOfI[v];
 
 				int N = relatedToV.size();
 				int m = std::max<DisType>(1, N / devided);
 
-				myRandX.getMN(N, m);
-				vector<int>& ve = myRandX.mpLLArr[N];
+				Vec<int>& ve = myRandX->getMN(N, m);
 				for (int i = 0; i < m; ++i) {
 					int wpos = ve[i];
 					int w = relatedToV[wpos];
@@ -6246,14 +5891,14 @@ namespace vrptwNew {
 					vjpos *= broaden;
 				}
 
-				vjpos = min(vjpos, input.custCnt);
+				vjpos = std::min<int>(vjpos, input.custCnt);
 				int vrId = customers[v].routeID;
 
 				int N = vjpos;
 				int m = std::max<DisType>(1, sqrt(N));
 
-				myRandX.getMN(N, m);
-				vector<int>& ve = myRandX.mpLLArr[N];
+				myRandX->getMN(N, m);
+				Vec<int>& ve = myRandX.mpLLArr[N];
 				for (int i = 0; i < m; ++i) {
 					int wpos = ve[i];
 
@@ -6274,9 +5919,9 @@ namespace vrptwNew {
 						wIsw_pos *= broaden;
 					}
 
-					wIsw_pos = min(wIsw_pos, input.custCnt);
+					wIsw_pos = std::min<int>(wIsw_pos, input.custCnt);
 
-					int mpos = myRand.pick(wIsw_pos);
+					int mpos = myRand->pick(wIsw_pos);
 					int m = input.allCloseOf[w_][mpos];
 					int mrId = customers[m].routeID;
 
@@ -6298,7 +5943,7 @@ namespace vrptwNew {
 						continue;
 					}
 
-					vector<int>ve = { v,vj,w_,w,m_,m };
+					Vec<int>ve = { v,vj,w_,w,m_,m };
 					TwoNodeMove m16(ve, 16, _Nopt(ve));
 					updateBestM(m16, bestM);
 				}
@@ -6312,12 +5957,12 @@ namespace vrptwNew {
 			int rId = -1;
 			if (PtwConfRts.cnt > 0) {
 				int index = -1;
-				index = myRand.pick(PtwConfRts.cnt);
+				index = myRand->pick(PtwConfRts.cnt);
 				rId = PtwConfRts.ve[index];
 			}
 			else if (PcConfRts.cnt > 0) {
 				int index = -1;
-				index = myRand.pick(PcConfRts.cnt);
+				index = myRand->pick(PcConfRts.cnt);
 				rId = PcConfRts.ve[index];
 			}
 			else {
@@ -6327,7 +5972,7 @@ namespace vrptwNew {
 			/*int confRCnt = PtwConfRts.cnt + PcConfRts.cnt;
 			int index = -1;
 			if (confRCnt > 0) {
-				index = myRand.pick(confRCnt);
+				index = myRand->pick(confRCnt);
 			}
 			else {
 				debug("no conf route")
@@ -6355,7 +6000,7 @@ namespace vrptwNew {
 
 			if (r.rPtw > 0) {
 
-				vector<int> ptwNodes = getPtwNodes(r);
+				Vec<int> ptwNodes = getPtwNodes(r);
 				
 				int v = ptwNodes[0];
 				int w = v;
@@ -6382,15 +6027,12 @@ namespace vrptwNew {
 					exchangevwEffectively(v);
 					outrelocateEffectively(v);
 
-					//sectorArea(v);
-					//_3optEffectively(v);
-
 					int w = v;
 					int maxL = std::max<int>(5, r.rCustCnt / 5);
 					//int maxL = 5;
 					//debug(r.rCustCnt)
 
-					if (myRand.pick(3) == 0 ) {
+					if (myRand->pick(3) == 0 ) {
 						for (int i = 1; i <= maxL; ++i) {
 							w = customers[w].next;
 							if (w > input.custCnt) {
@@ -6418,13 +6060,12 @@ namespace vrptwNew {
 
 				for (int v : rPutCusInve(r)) {
 
-					vector<int>& relatedToV = input.iInNeicloseOfUnionNeiCloseOfI[cfg.broadIndex][v];
+					Vec<int>& relatedToV = input.iInNeicloseOfUnionNeiCloseOfI[v];
 					int N = relatedToV.size();
 					int m = N / 7;
-					m = std::max<DisType>(1, m);
+					m = std::max<int>(1, m);
 
-					myRandX.getMN(N, m);
-					vector<int>& ve = myRandX.mpLLArr[N];
+					Vec<int>& ve = myRandX->getMN(N, m);
 					for (int i = 0; i < m; ++i) {
 						int wpos = ve[i];
 
@@ -6499,7 +6140,7 @@ namespace vrptwNew {
 			return true;
 		};
 
-		bool resetConfRtsByOneMove(vector<int> ids) {
+		bool resetConfRtsByOneMove(Vec<int> ids) {
 
 			for (int id : ids) {
 				PtwConfRts.removeVal(id);
@@ -6520,33 +6161,7 @@ namespace vrptwNew {
 			return true;
 		};
 
-		bool rCheckRoutePreNext(Route& r) {
-
-			vector<int> pre;
-			vector<int> next;
-			for (int i = r.head; i != -1; i = customers[i].next) {
-				next.push_back(i);
-			}
-			for (int i = r.tail; i != -1; i = customers[i].pre) {
-				pre.push_back(i);
-			}
-
-			if (next.size() != pre.size()) {
-				debug(next.size() != pre.size());
-				return false;
-			}
-
-			for (int i = 0; i < next.size(); ++i) {
-				if (next[i] != pre[next.size() - 1 - i]) {
-					debug("not same ele in two arr");
-					return false;
-				}
-			}
-
-			return true;
-		}
-
-		bool doEject(vector<eOneRNode>& XSet) {
+		bool doEject(Vec<eOneRNode>& XSet) {
 
 #if CHECKING
 
@@ -6661,8 +6276,10 @@ namespace vrptwNew {
 		bool EPNodesCanEasilyPut() {
 
 			for (int EPIndex = 0; EPIndex < EPsize();) {
-
+#if CHECKING
 				DisType oldpenalty = PtwNoWei + Pc;
+#endif // CHECKING
+
 				Vec<int> arr = EPve();
 				int top = arr[EPIndex];
 
@@ -6674,7 +6291,7 @@ namespace vrptwNew {
 					Route& r = rts[bestP.rIndex];
 
 					P[top] += cfg.Pwei0;
-					//EPYearTable[top] = EPIter + cfg.EPTabuStep + myRand.pick(cfg.EPTabuRand);
+					//EPYearTable[top] = EPIter + cfg.EPTabuStep + myRand->pick(cfg.EPTabuRand);
 					EPremoveByVal(top);
 
 					rInsAtPos(r, bestP.pos, top);
@@ -6708,60 +6325,51 @@ namespace vrptwNew {
 			return true;
 		}
 
-		bool managerCusMem() {
+		bool managerCusMem(Vec<int>& releaseNodes) {
 
-			for (int i = input.custCnt + 3; i < customers.size(); ++i) {
-				if (customers[i].routeID == -1) {
+			//printve(releaseNodes);
+			int useEnd = input.custCnt + 2 + (rts.cnt+1) * 2 + 1;
 
-					for (int j = customers.size()-1; j > i; --j) {
+			for (int i : releaseNodes) {
+			
+				for (int j = useEnd -1; j > i; --j) {
 
-						if (customers[j].routeID != -1) {
+					if (customers[j].routeID != -1) {
 
-							customers[i] = customers[j];
+						customers[i] = customers[j];
 
-							Route& r = rts.getRouteByRid(customers[j].routeID);
+						Route& r = rts.getRouteByRid(customers[j].routeID);
 
-							int jn = customers[j].next;
-							if (jn != -1) {
-								customers[jn].pre = i;
-								r.head = i;
-							}
-
-							int jp = customers[j].pre;
-							if (jp != -1) {
-								customers[jp].next = i;
-								r.tail = i;
-							}
-
-							customers[j].reSet();
-							break;
+						int jn = customers[j].next;
+						if (jn != -1) {
+							customers[jn].pre = i;
+							r.head = i;
 						}
+
+						int jp = customers[j].pre;
+						if (jp != -1) {
+							customers[jp].next = i;
+							r.tail = i;
+						}
+
+						customers[j].reSet();
+						break;
+						--useEnd;
 					}
 				}
 			}
-			
-			/*while (customers.back().routeID==-1)
-			{
-				customers.pop_back();
-			} 
-			while (input.datas.size()> customers.size())
-			{
-				input.datas.pop_back();
-			}*/
-
 			return true;
 		}
 
 		bool removeOneRouteRandomly(int index = -1) {
 
-			//disUsangeOfHashArr();
 			// delete one route randomly
 			/*for (int i = 0; i <= input.custCnt; ++i) {
 				P[i] = 1;
 			}*/
 
-			vector<CircleSector> angs(rts.cnt);
-			vector<int> range(rts.cnt);
+			Vec<CircleSector> angs(rts.cnt);
+			Vec<int> range(rts.cnt);
 			for (int i = 0; i < rts.cnt; ++i) {
 				auto ve = rPutCusInve(rts[i]);
 				angs[i].initialize(input.datas[ve[0]].polarAngle);
@@ -6779,13 +6387,13 @@ namespace vrptwNew {
 			}
 
 			if (index == -1) {
-				index = myRand.pick(rts.size());
+				index = myRand->pick(rts.size());
 			}
 
 			Route& rt = rts[index];
 
-			vector<int> rtVe = rPutCusInve(rt);
-
+			Vec<int> rtVe = rPutCusInve(rt);
+			Vec<int> releasedNodes = { rt.head,rt.tail };
 			rReset(rt);
 			rts.removeIndex(index);
 
@@ -6795,38 +6403,14 @@ namespace vrptwNew {
 
 			updatePen();
 			resetConfRts();
-			managerCusMem();
+			managerCusMem(releasedNodes);
 
 			return true;
 		}
 		
-		bool removeEveryRoute(Vec<bestSol>& arr) {
-
-			bestSol sClone(customers, rts, EPr, Pc, Ptw, PtwNoWei, penalty);
-			for (int index = 0; index < rts.size(); ++index) {
-				Route& rt = rts[index];
-				vector<int> rtVe = rPutCusInve(rt);
-				rReset(rt);
-				rts.removeIndex(index);
-
-				for (int pt : rtVe) {
-					EPpush_back(pt);
-				}
-
-				updatePen();
-				resetConfRts();
-				managerCusMem();
-
-				arr.push_back(bestSol(customers, rts, EPr, Pc, Ptw, PtwNoWei, penalty));
-				setCurSolBy(sClone);
-			}
-			
-			return true;
-		}
-
 		DisType verify() {
 
-			vector<int> visitCnt(input.custCnt + 1, 0);
+			Vec<int> visitCnt(input.custCnt + 1, 0);
 
 			int cusCnt = 0;
 			DisType routesCost = 0;
@@ -6842,7 +6426,7 @@ namespace vrptwNew {
 				Ptw += rUpdateAvfrom(r, r.head);
 				Pc += rUpdatePc(r);
 
-				vector<int> cusve = rPutCusInve(r);
+				Vec<int> cusve = rPutCusInve(r);
 				for (int pt : cusve) {
 					++cusCnt;
 					++visitCnt[pt];
@@ -6850,7 +6434,7 @@ namespace vrptwNew {
 						return -1;
 					}
 				}
-				routesCost += rUpdateRCost(r);
+				routesCost += rReCalRCost(r);
 				//debug(routesCost)
 			}
 
@@ -6922,13 +6506,14 @@ namespace vrptwNew {
 			return true;
 		};
 
-		vector<eOneRNode> ejeNodesAfterSqueeze;
+		Vec<eOneRNode> ejeNodesAfterSqueeze;
 
 		bool squeeze(Configuration squCon) {
 
-			vector<bestSol> bestPool;
+			Vec<bestSol> bestPool;
+			bestPool.reserve(2);
 
-			bestSol sClone(customers, rts, EPr, Pc, Ptw, PtwNoWei, penalty);
+			bestSol sClone(customers, rts, EPr, Pc, Ptw, PtwNoWei, penalty,RoutesCost);
 
 			bestPool.push_back(sClone);
 
@@ -6937,7 +6522,7 @@ namespace vrptwNew {
 				bool isUpdate = false;
 				bool dominate = false;
 
-				vector<bestSol> ::iterator it = bestPool.begin();
+				Vec<bestSol> ::iterator it = bestPool.begin();
 				for (it = bestPool.begin(); it != bestPool.end();) {
 
 					if (Pc < (*it).Pc && PtwNoWei < (*it).PtwNoWei
@@ -6958,7 +6543,7 @@ namespace vrptwNew {
 
 				if (!dominate && bestPool.size() < 50) {
 
-					bestSol s(customers, rts, EPr, Pc, Ptw, PtwNoWei, penalty);
+					bestSol s(customers, rts, EPr, Pc, Ptw, PtwNoWei, penalty,RoutesCost);
 
 					bestPool.push_back(s);
 				}
@@ -6966,20 +6551,19 @@ namespace vrptwNew {
 				return isUpdate;
 			};
 
-			auto getBestSolIndex = [&]() {
-
-				DisType min1 = DisInf;
-				int index = 0;
-				for (int i = 0; i < bestPool.size(); ++i) {
-					//debug(i)
-					DisType temp = bestPool[i].Pc + bestPool[i].PtwNoWei;
-					if (temp < min1) {
-						min1 = temp;
-						index = i;
-					}
-				}
-				return index;
-			};
+			//auto getBestSolIndex = [&]() {
+			//	DisType min1 = DisInf;
+			//	int index = 0;
+			//	for (int i = 0; i < bestPool.size(); ++i) {
+			//		//debug(i)
+			//		DisType temp = bestPool[i].Pc + bestPool[i].PtwNoWei;
+			//		if (temp < min1) {
+			//			min1 = temp;
+			//			index = i;
+			//		}
+			//	}
+			//	return index;
+			//};
 
 			auto getMinPsumSolIndex = [&]() {
 
@@ -6992,7 +6576,7 @@ namespace vrptwNew {
 					resetConfRts();
 					updatePen();
 
-					vector<eOneRNode> ret = ejectFromPatialSol();
+					Vec<eOneRNode> ret = ejectFromPatialSol();
 
 					int bestCnt = 1;
 					int sum = 0;
@@ -7016,7 +6600,7 @@ namespace vrptwNew {
 					}
 					else if (sum == min1) {
 						++bestCnt;
-						if (myRand.pick(bestCnt) == 0) {
+						if (myRand->pick(bestCnt) == 0) {
 							index = i;
 							ejeNodesAfterSqueeze = ret;
 						}
@@ -7036,8 +6620,8 @@ namespace vrptwNew {
 			resetConfRts();
 			updatePen();
 
-			int deTimeOneTurn = 0;
-			int contiTurnNoDe = 0;
+			//int deTimeOneTurn = 0;
+			//int contiTurnNoDe = 0;
 
 			squIter += cfg.yearTabuLen + cfg.yearTabuRand;
 
@@ -7077,7 +6661,7 @@ namespace vrptwNew {
 
 				/*LL tYear = getYearOfMove(t);
 				bool isTabu = (squIter <= tYear);
-				/*bool isTabu = false;
+				bool isTabu = false;
 				if (isTabu) {
 					if (t.deltPen.deltPc + t.deltPen.deltPtw
 						< golbalTabuBestM.deltPen.deltPc + golbalTabuBestM.deltPen.deltPtw) {
@@ -7135,9 +6719,9 @@ namespace vrptwNew {
 
 #if CHECKING
 
-				vector<vector<int>> oldRoutes;
-				vector<int> oldrv;
-				vector<int> oldrw;
+				Vec<Vec<int>> oldRoutes;
+				Vec<int> oldrv;
+				Vec<int> oldrw;
 
 				DisType oldpenalty = penalty;
 				DisType oldPtw = Ptw;
@@ -7145,7 +6729,7 @@ namespace vrptwNew {
 				DisType oldPtwNoWei = PtwNoWei;
 				DisType oldPtwOnly = PtwNoWei;
 				DisType oldPcOnly = Pc;
-				DisType oldRcost = updateRtsCost();
+				DisType oldRcost = reCalRtsCost();
 
 				Route& rv = rts.getRouteByRid(customers[bestM.v].routeID);
 				Route& rw = rts.getRouteByRid(customers[bestM.w].routeID);
@@ -7192,7 +6776,7 @@ namespace vrptwNew {
 
 #if CHECKING
 
-				updateRtsCost();
+				reCalRtsCost();
 				updatePen();
 				bool iderror = false;
 				bool penaltyWeiError = 
@@ -7309,8 +6893,9 @@ namespace vrptwNew {
 					++contiNotDe;
 				}
 
-				bool isDown = updateBestPool(Pc, PtwNoWei);
-
+				//bool isDown = updateBestPool(Pc, PtwNoWei);
+				updateBestPool(Pc, PtwNoWei);
+				
 				//if (contiNotDe == squCon.squContiIter / 2) {
 					//if (PtwNoWei < Pc) {
 					//	beta *= 1.01;
@@ -7329,7 +6914,7 @@ namespace vrptwNew {
 					//penalty =  alpha*Ptw +  beta*Pc;
 					//LL minW = squCon.inf;
 					//for (int i = 0; i < rts.size(); ++i) {
-					//	minW = min(minW, rts[i].rWeight);
+					//	minW = std::min<int>(minW, rts[i].rWeight);
 					//}
 					//minW = minW/3 + 1;
 					//for (int i = 0; i < rts.size(); ++i) {
@@ -7376,19 +6961,9 @@ namespace vrptwNew {
 				bestPool.push_back(sClone);
 				int index = getMinPsumSolIndex();
 				//debug(index)
-				customers = bestPool[index].customers;
-				rts = bestPool[index].rts;
-				PtwNoWei = bestPool[index].PtwNoWei;
-				Ptw = bestPool[index].Ptw;
-				Pc = bestPool[index].Pc;
-				penalty = bestPool[index].penalty;
-				EPr = bestPool[index].EPr;
 
-				/*for (int i = 0; i < rts.cnt; ++i) {
-					rts[i].rWeight = 1;
-				}*/
-
-				resetConfRts();
+				setCurSolBy(bestPool[index]);
+				
 
 #if CHECKING
 				DisType oldp = penalty;
@@ -7415,6 +6990,191 @@ namespace vrptwNew {
 			return true;
 		}
 
+		Position findBestPosForRuin(int w) {
+
+			// 惩罚最大的排在最前面
+			auto cmp = [&](const Position a, const Position& b) {
+				/*if (a.pen == b.pen) {
+					return  a.cost < b.cost;
+				}
+				else {
+					return a.pen < b.pen;
+				}*/
+
+				return a.cost + a.pen < b.cost + b.pen;
+			};
+
+			priority_queue<Position, Vec<Position>, decltype(cmp)> qu(cmp);
+			
+			auto updatePool = [&](Position& pos) {
+
+				if (qu.empty()) {
+					qu.push(pos);
+				}
+				else {
+					if (pos.cost + pos.pen < qu.top().cost + qu.top().pen) {
+						qu.push(pos);
+					}
+				}
+				if (qu.size() < 10) {
+					;
+				}
+				else {
+					qu.pop();
+				}
+			};
+
+			for (int i = 0; i < rts.size(); ++i) {
+				//debug(i)
+				Route& rt = rts[i];
+
+				int v = rt.head;
+				int vj = customers[v].next;
+
+				DisType oldrPc = rts[i].rPc;
+				DisType rPc = std::max<DisType>((DisType)0, rt.rQ + input.datas[w].DEMAND - input.Q);
+				rPc = rPc - oldrPc;
+
+				while (v != -1 && vj != -1) {
+
+					DisType oldrPtw = rts[i].rPtw;
+
+					DisType rPtw = customers[v].TW_X;
+					rPtw += customers[vj].TWX_;
+
+					DisType awp = customers[v].av + input.datas[v].SERVICETIME + input.disOf[reCusNo(v)][reCusNo(w)];
+					rPtw += std::max<DisType>((DisType)0, awp - input.datas[w].DUEDATE);
+					DisType aw =
+						awp <= input.datas[w].DUEDATE ? std::max<DisType>(input.datas[w].READYTIME, awp) : input.datas[w].DUEDATE;
+
+					DisType avjp = aw + input.datas[w].SERVICETIME + input.disOf[reCusNo(w)][reCusNo(vj)];
+					rPtw += std::max<DisType>((DisType)0, avjp - input.datas[vj].DUEDATE);
+					DisType avj =
+						avjp <= input.datas[vj].DUEDATE ? std::max<DisType>(input.datas[vj].READYTIME, avjp) : input.datas[vj].DUEDATE;
+					rPtw += std::max<DisType>((DisType)0, avj - customers[vj].zv);
+
+					rPtw = rPtw - oldrPtw;
+
+					DisType cost = input.disOf[reCusNo(w)][reCusNo(v)] + input.disOf[reCusNo(w)][reCusNo(vj)];
+
+					Position pos(i, v, rPtw + rPc, cost, -1);
+					updatePool(pos);
+
+					v = vj;
+					vj = customers[vj].next;
+				}
+			}
+			return qu.top();
+		}
+
+		bool ruinLocalSearch() {
+			
+			bestSol sClone(customers, rts, EPr, Pc, Ptw, PtwNoWei, penalty,RoutesCost);
+
+			int selRtNum = std::max<int>(rts.cnt*0.1,3);
+
+			/*Vec<int> rIndexArr(rts.cnt, 0);
+			std::iota(rIndexArr.begin(), rIndexArr.end(), 0);
+			auto cmp = [&](int i,int j) {
+				return rts[i].routeCost / rts[i].rCustCnt 
+				< rts[j].routeCost / rts[j].rCustCnt;
+			};
+			sort(rIndexArr.begin(), rIndexArr.end(), cmp);*/
+
+			//auto& rIndexArr = myRandX->getMN(rts.cnt, min(rts.cnt, selRtNum));
+			
+			ConfSet selrtSet(rts.cnt);
+			selrtSet.ins(myRand->pick(rts.cnt));
+			Vec<int> ruinCusArr;
+			ruinCusArr.reserve(selRtNum);
+
+			while (selrtSet.cnt < selRtNum) {
+				for (int i = 0; i < selrtSet.cnt && selrtSet.cnt < selRtNum; ++i) {
+					int index = selrtSet.ve[i];
+					Route& r = rts[index];
+					auto rCusArr = rPutCusInve(r);
+					
+					int cusIndex = myRand->pick(r.rCustCnt);
+
+					int v = rCusArr[cusIndex];
+
+					for (int wpos = 0; wpos < (input.custCnt-1) && selrtSet.cnt < selRtNum; ++wpos) {
+						int w = input.allCloseOf[v][wpos];
+						if (customers[w].routeID != -1) {
+							int wrIndex = rts.posOf[customers[w].routeID];
+							if (selrtSet.pos[wrIndex] >= 0) {
+								;
+							}
+							else {
+								ruinCusArr.push_back(w);
+								selrtSet.ins(wrIndex);
+							}
+							
+						}
+					}
+				}
+			}
+
+			vector<int> cuses;
+			cuses.resize(input.custCnt);
+
+			for (int rcus:ruinCusArr) {
+
+				Route& r = rts.getRouteByRid(customers[rcus].routeID);
+				int rCusNum = r.rCustCnt;
+				int selCusNum = std::max<int>(rCusNum * 0.4, 1);
+				selCusNum = std::min<int>(rCusNum-1, selCusNum);
+				int pt = rcus;
+				while (pt <= input.custCnt) {
+					rRemoveAtPos(r, pt);
+					cuses.push_back(pt);
+					EPpush_back(pt);
+					pt = customers[pt].next;
+				}
+
+			}
+			
+			while (EPr.rCustCnt > 0) {
+				Vec<int> EPrVe = rPutCusInve(EPr);
+				int pt = EPrVe[myRand->pick(EPrVe.size())];
+				EPrRemoveAtPos(pt);
+				auto bestFitPos = findBestPosForRuin(pt);
+				rInsAtPos(rts[bestFitPos.rIndex], bestFitPos.pos, pt);
+			}
+
+			ConfSet cs(input.custCnt);
+			for (int v : cuses) {
+				cs.ins(v);
+				for (int i = 0; i < 50; ++i) {
+					cs.ins(input.allCloseOf[v][i]);
+				}
+			}
+			cuses = std::move( Vec<int>(cs.ve.begin(),cs.ve.begin()+cs.cnt));
+
+			reCalRtsCostAndPen();
+			bool ruinIsRepair = repair();
+			if (ruinIsRepair) {
+				//mRLLocalSearch({});
+				mRLLocalSearch(cuses);
+				if (RoutesCost < sClone.RoutesCost*1.02) {
+					//debug(ruinIsRepair);
+					
+					return true;
+				}
+				else {
+					return false;
+				}
+			}
+			else {
+				setCurSolBy(sClone);
+				reCalRtsCostAndPen();
+				return false;
+			}
+			//debug(RoutesCost);
+
+			return false;
+		}
+		
 		bool ejectLocalSearch() {
 
 			minEPcus = IntInf;
@@ -7442,7 +7202,7 @@ namespace vrptwNew {
 				}
 				else if (EPr.rCustCnt == curBestSol.EPr.rCustCnt) {
 					++minRPSolCnt;
-					if (myRand.pick(minRPSolCnt) == 0) {
+					if (myRand->pick(minRPSolCnt) == 0) {
 						gBestSol = bestSol(customers, rts, EPr, Pc, Ptw, PtwNoWei, penalty);
 					}
 					return false;
@@ -7506,7 +7266,7 @@ namespace vrptwNew {
 						solClone = bestSol(customers, rts, EPr, Pc, Ptw, PtwNoWei, penalty);
 					}
 					
-					if (myRand.pick(5) < 4 ) {
+					if (myRand->pick(5) < 4 ) {
 						if (curUse == 1) {
 							P = cloneP;
 							setCurSolBy(solClone);
@@ -7538,14 +7298,14 @@ namespace vrptwNew {
 				}
 				#endif // SAVE_LOCAL_BEST_SOL
 
-				vector<int> EPrVe = rPutCusInve(EPr);
-				int top = EPrVe[myRand.pick(EPrVe.size())];
+				Vec<int> EPrVe = rPutCusInve(EPr);
+				int top = EPrVe[myRand->pick(EPrVe.size())];
 				Position bestP = findBestPosInSol(top);
 				Route& r = rts[bestP.rIndex];
 				EPremoveByVal(top);
 
 				P[top] += cfg.Pwei0;
-				maxOfPval = max(P[top], maxOfPval);
+				maxOfPval = std::max<int>(P[top], maxOfPval);
 
 				if (maxOfPval >= 1000) {
 					maxOfPval = 0;
@@ -7604,8 +7364,8 @@ namespace vrptwNew {
 							for (int c : en.ejeVe) {
 								/*int cpre = customers[c].pre > input.custCnt ? 0 : customers[c].pre;
 								int cnext = customers[c].next > input.custCnt ? 0 : customers[c].next;
-								yearTable[cpre][c] = squIter + cfg.yearTabuLen + myRand.pick(cfg.yearTabuRand);
-								yearTable[c][cnext] = squIter + cfg.yearTabuLen + myRand.pick(cfg.yearTabuRand);*/
+								yearTable[cpre][c] = squIter + cfg.yearTabuLen + myRand->pick(cfg.yearTabuRand);
+								yearTable[c][cnext] = squIter + cfg.yearTabuLen + myRand->pick(cfg.yearTabuRand);*/
 								P[c] += cfg.Pwei1;
 								maxOfPval = std::max<DisType>(P[c], maxOfPval);
 								
@@ -7616,7 +7376,7 @@ namespace vrptwNew {
 
 						doEject(XSet);
 						int Irand = input.custCnt / EPr.rCustCnt/4;
-						Irand = std::max<DisType>(Irand,100);
+						Irand = std::max<int>(Irand,100);
 						patternAdjustment(Irand);
 						//system("pause");
 						//saveOutAsSintefFile();
@@ -7635,18 +7395,17 @@ namespace vrptwNew {
 
 		bool patternMakeBigBigger() {
 
-			int I1000 = myRand.pick(cfg.Irand);
-			int Irand = I1000;
+			int I1000 = myRand->pick(cfg.Irand);
 
 			LL iter = 0;
 
-			vector<int> arr;
+			Vec<int> arr;
 			arr.reserve(rts.cnt);
 			// iota(arr.begin(),arr.end(),0);
 
 			int maxRId = 0;
 			for (int i = 0; i < rts.size(); ++i) {
-				maxRId = max(maxRId,rts[i].routeID);
+				maxRId = std::max<int>(maxRId,rts[i].routeID);
 				arr.push_back(rts[i].routeID);
 			}
 
@@ -7657,7 +7416,7 @@ namespace vrptwNew {
 			ConfSet bigRts(maxRId+1);
 			ConfSet litRts(maxRId+1);
 
-			for (int i = 0; i < arr.size(); ++i) {
+			for (std::size_t i = 0; i < arr.size(); ++i) {
 				if (i < arr.size() / 2) {
 					bigRts.ins(arr[i]);
 				}
@@ -7668,19 +7427,18 @@ namespace vrptwNew {
 
 			Timer t1(1);
 
-			vector<int> kindSet = { /*0,1,6,7,*/ 2,3,8 };
-			int N = 60;
-			int m = 10;
-
+			Vec<int> kindSet = { /*0,1,6,7,*/ 2,3,8 };
+			/*int N = 60;
+			int m = 10;*/
 
 			auto makeBigBiger = [&]() {
 
 				while (!t1.isTimeOut()) {
 
-					int bId = myRand.pick(bigRts.cnt);
+					int bId = myRand->pick(bigRts.cnt);
 					bId = bigRts.ve[bId];
 
-					int litId = myRand.pick(litRts.cnt);
+					int litId = myRand->pick(litRts.cnt);
 					litId = litRts.ve[litId];
 
 					auto bigR = rPutCusInve(rts.getRouteByRid(bId));
@@ -7701,15 +7459,12 @@ namespace vrptwNew {
 				return TwoNodeMove(0, 0, 0, DeltPen());
 			};
 
-
-			ShuffleCards sc;
-
 			++squIter;
 
 			do {
 
 				TwoNodeMove bestM = makeBigBiger();
-				//if (myRand.pick(3) != 0) {
+				//if (myRand->pick(3) != 0) {
 				/*while (bestM.deltPen.deltPc + bestM.deltPen.deltPtw > 0 && !t1.isTimeOut()) {
 					bestM = makeBigBiger();
 				}*/
@@ -7729,8 +7484,8 @@ namespace vrptwNew {
 					debug("error");
 				}
 
-				vector<int> oldrv;
-				vector<int> oldrw;
+				Vec<int> oldrv;
+				Vec<int> oldrw;
 				int pt = rv.head;
 
 				while (pt != -1) {
@@ -7812,7 +7567,7 @@ namespace vrptwNew {
 
 		bool patternAdjustment(int Irand = -1) {
 
-			int I1000 = myRand.pick(cfg.Irand);
+			int I1000 = myRand->pick(cfg.Irand);
 			if (Irand > 0) {
 				I1000 = Irand;
 			}
@@ -7821,7 +7576,7 @@ namespace vrptwNew {
 
 			Timer t1(1);
 
-			vector<int> kindSet = { 0,1,6,7,/*8,9,10,2,3,4,5*/ };
+			Vec<int> kindSet = { 0,1,6,7,/*8,9,10,2,3,4,5*/ };
 			int N = 60;
 			int m = 10;
 
@@ -7831,15 +7586,15 @@ namespace vrptwNew {
 
 				while (!t1.isTimeOut()) {
 
-					int v = myRand.pick(input.custCnt) + 1;
+					int v = myRand->pick(input.custCnt) + 1;
 
 					if (customers[v].routeID == -1) {
 						continue;
 					}
 
 					m = std::max<DisType>(1, m);
-					myRandX.getMN(N, m);
-					vector<int>& ve = myRandX.mpLLArr[N];
+					myRandX->getMN(N, m);
+					Vec<int>& ve = myRandX->mpLLArr[N];
 					for (int i = 0; i < m; ++i) {
 						int wpos = ve[i];
 
@@ -7894,14 +7649,12 @@ namespace vrptwNew {
 				return ret;
 			};
 
-			ShuffleCards sc;
-
 			++squIter;
 
 			do {
 
 				TwoNodeMove bestM = getDelt0MoveRandomly();;
-				//if (myRand.pick(3) != 0) {
+				//if (myRand->pick(3) != 0) {
 
 				/*while (bestM.deltPen.deltPc + bestM.deltPen.deltPtw > 0 && !t1.isTimeOut()) {
 					bestM = getDelt0MoveRandomly();
@@ -7922,8 +7675,8 @@ namespace vrptwNew {
 					debug("error");
 				}
 
-				vector<int> oldrv;
-				vector<int> oldrw;
+				Vec<int> oldrv;
+				Vec<int> oldrw;
 				int pt = rv.head;
 
 				while (pt != -1) {
@@ -8016,7 +7769,7 @@ namespace vrptwNew {
 			for (int v : cus) {
 
 				for (int wpos = 0; wpos <= 10; ++wpos) {
-					//int wpos = myRand.pick(10);
+					//int wpos = myRand->pick(10);
 					int w = input.allCloseOf[v][wpos];
 					if (customers[w].routeID != -1 && P[w] >= P[v]) {
 
@@ -8053,11 +7806,11 @@ namespace vrptwNew {
 			return true;
 		}
 
-		vector<eOneRNode> ejectFromPatialSol() {
+		Vec<eOneRNode> ejectFromPatialSol() {
 
-			vector<eOneRNode>ret;
+			Vec<eOneRNode>ret;
 
-			vector<int>confRSet;
+			Vec<int>confRSet;
 
 			confRSet.reserve(PtwConfRts.cnt + PcConfRts.cnt);
 			for (int i = 0; i < PtwConfRts.cnt; ++i) {
@@ -8156,7 +7909,7 @@ namespace vrptwNew {
 			eOneRNode noTabuN(r.routeID);
 			noTabuN.Psum = 0;
 
-			vector<int> R = rPutCusInve(r);
+			Vec<int> R = rPutCusInve(r);
 
 			auto cmpMinP = [&](const int& a, const int& b) {
 
@@ -8208,7 +7961,7 @@ namespace vrptwNew {
 
 			eOneRNode noTabuN(r.routeID);
 			
-			int sameCnt = 1;
+			//int sameCnt = 1;
 			eOneRNode etemp(r.routeID);
 			etemp.Psum = 0;
 
@@ -8241,7 +7994,7 @@ namespace vrptwNew {
 				//		noTabuN = etemp;
 				//		debug(11)
 				//	}
-				//	/*if (myRand.pick(sameCnt) == 0) {
+				//	/*if (myRand->pick(sameCnt) == 0) {
 				//		
 				//	}*/
 				//}
@@ -8263,8 +8016,8 @@ namespace vrptwNew {
 
 					customers[n].avp = customers[pre].av + input.datas[pre].SERVICETIME + input.disOf[reCusNo(pre)][reCusNo(n)];
 					customers[n].av = customers[n].avp > input.datas[n].DUEDATE ? input.datas[n].DUEDATE
-						: max(customers[n].avp, input.datas[n].READYTIME);
-					customers[n].TW_X = max((DisType)0, customers[n].avp - input.datas[n].DUEDATE);
+						:std::max<DisType>(customers[n].avp, input.datas[n].READYTIME);
+					customers[n].TW_X =std::max<DisType>((DisType)0, customers[n].avp - input.datas[n].DUEDATE);
 					customers[n].TW_X += customers[pre].TW_X;
 					pre = n;
 					n = customers[n].next;
@@ -8286,7 +8039,7 @@ namespace vrptwNew {
 			auto getPtwUseEq2 = [&](int v) {
 
 				DisType avp = getAvpOf(v);
-				DisType ptw = max((DisType)0, avp - customers[v].zv) + customers[v].TWX_;
+				DisType ptw =std::max<DisType>((DisType)0, avp - customers[v].zv) + customers[v].TWX_;
 				int pre = customers[v].pre;
 				ptw += customers[pre].TW_X;
 				return ptw;
@@ -8322,7 +8075,7 @@ namespace vrptwNew {
 
 					//debug(pt)
 					DisType avnp = customers[pre].av + input.datas[pre].SERVICETIME + input.disOf[reCusNo(pre)][reCusNo(next)];
-					ptw = max((DisType)0, avnp - customers[next].zv) + customers[next].TWX_ + customers[pre].TW_X;
+					ptw =std::max<DisType>((DisType)0, avnp - customers[next].zv) + customers[next].TWX_ + customers[pre].TW_X;
 
 					if (customers[pre].TW_X > 0) { // 剪枝 删除ik之后 前面的时间窗没有消除
 						return etemp;
@@ -8363,9 +8116,9 @@ namespace vrptwNew {
 				rUpdateAvfrom(r, r.head);
 			};
 
-			vector<int> R = rPutCusInve(r);
+			Vec<int> R = rPutCusInve(r);
 
-			vector<int> ptwArr;
+			Vec<int> ptwArr;
 
 			if (r.rPtw > 0) {
 
@@ -8385,7 +8138,7 @@ namespace vrptwNew {
 
 			int k = 0;
 			int N = ptwArr.size() - 1;
-			vector<int> ve(Kmax + 1, -1);
+			Vec<int> ve(Kmax + 1, -1);
 
 			/*etemp = getPtwIfRemoveOneNode(r.head);
 			updateEje();*/
@@ -8512,13 +8265,12 @@ namespace vrptwNew {
 				rNextDisp(r);
 				rPreDisp(r);
 
-				debug(rCheckRoutePreNext(r));
 				debug("eject not restore state");
 				debug("eject not restore state");
 			}
 
-			vector<int> v1 = rPutCusInve(r);
-			vector<int> v2;
+			Vec<int> v1 = rPutCusInve(r);
+			Vec<int> v2;
 
 			for (int pt = customers[r.tail].pre; pt <= input.custCnt; pt = customers[pt].pre) {
 				v2.push_back(pt);
@@ -8538,7 +8290,7 @@ namespace vrptwNew {
 
 			eOneRNode ret(r.routeID);
 			ret.Psum = 0;
-			vector<int> R = rPutCusInve(r);
+			Vec<int> R = rPutCusInve(r);
 
 			auto cmp = [&](const int& a,const int& b) {
 
@@ -8576,7 +8328,7 @@ namespace vrptwNew {
 				int pre = customers[ctop].pre;
 				int nex = customers[ctop].next;
 				DisType avnp = customers[pre].av + input.datas[pre].SERVICETIME + input.disOf[reCusNo(pre)][reCusNo(nex)];
-				DisType ptw = max((DisType)0, avnp - customers[nex].zv) + customers[nex].TWX_ + customers[pre].TW_X;
+				DisType ptw =std::max<DisType>((DisType)0, avnp - customers[nex].zv) + customers[nex].TWX_ + customers[pre].TW_X;
 
 				if (ptw < curPtw) {
 
@@ -8634,9 +8386,32 @@ namespace vrptwNew {
 			penalty = sClone.penalty;
 			EPr = sClone.EPr;
 			resetConfRts();
+
 			return true;
 		}
 		
+		bool resetSol() {
+
+			alpha = 1;
+			beta = 1;
+			gamma = 1;
+			squIter = 0;
+			penalty = 0;
+			Ptw = 0;
+			PtwNoWei = 0;
+			Pc = 0;
+			//minEPSize = inf;
+			RoutesCost = 0;
+			
+			for (int i = 0; i < rts.cnt; ++i) {
+				rReset(rts[i]);
+			}
+			rts.reSet();
+			rReset(EPr);
+			initEPr();
+			return true;
+		}
+
 		bool minimizeRN() {
 
 			gamma = 0;
@@ -8695,27 +8470,27 @@ namespace vrptwNew {
 			}
 			//lyhTimer.disp();
 			output.state = state;
-			return true;
+			return isSucceed;
 		}
 
 		TwoNodeMove evalMinRLMovesFromConfRts(function<bool(TwoNodeMove & t, TwoNodeMove & bestM)>updateBestM) {
 
 			TwoNodeMove bestM;
 
-			vector<int> confRts;
+			Vec<int> confRts;
 
 			confRts.insert(confRts.begin(),PtwConfRts.ve.begin(), PtwConfRts.ve.begin()+ PtwConfRts.cnt);
 			confRts.insert(confRts.begin(), PcConfRts.ve.begin(), PcConfRts.ve.begin()+ PcConfRts.cnt);
 			//debug(confRts.size())
 			for (int rId : confRts) {
 				Route& r = rts.getRouteByRid(rId);
-				vector<int> cusV = rPutCusInve(r);
+				Vec<int> cusV = rPutCusInve(r);
 				for (int v : cusV) {
 
 					if (customers[v].routeID == -1) {
 						continue;
 					}
-					for (int wpos = 0; wpos < 50; ++wpos) {
+					for (int wpos = 0; wpos < 10; ++wpos) {
 
 						int w = input.allCloseOf[v][wpos];
 						if (customers[w].routeID == -1) {
@@ -8724,13 +8499,12 @@ namespace vrptwNew {
 						for (int i = 0; i < 15; ++i) {
 
 							TwoNodeMove m;
-							m = TwoNodeMove(v, w, i, estimatevw(i, v, w, 1));
+							m = TwoNodeMove(v, w, i, estimatevw(i, v, w, 0));
 							updateBestM(m, bestM);
 						}
 					}
 				}
 			}
-			
 			return bestM;
 		}
 
@@ -8745,7 +8519,7 @@ namespace vrptwNew {
 			resetConfRts();
 			updatePen();
 
-			int deTimeOneTurn = 0;
+			//int deTimeOneTurn = 0;
 			int contiTurnNoDe = 0;
 
 			squIter += cfg.yearTabuLen + cfg.yearTabuRand;
@@ -8783,9 +8557,16 @@ namespace vrptwNew {
 					return false;
 				}
 
-				if (t.deltPen.PcOnly + t.deltPen.PtwOnly < 0) {
+				/*if (t.deltPen.PcOnly + t.deltPen.PtwOnly < 0) {
 					if (t.deltPen.PcOnly + t.deltPen.PtwOnly + t.deltPen.deltCost
 						< bestM.deltPen.PcOnly + bestM.deltPen.PtwOnly + bestM.deltPen.deltCost) {
+						bestM = t;
+					}
+				}*/
+
+				if (t.deltPen.PcOnly + t.deltPen.PtwOnly < 0) {
+					if (t.deltPen.deltPc + t.deltPen.deltPtw + t.deltPen.deltCost
+						< bestM.deltPen.deltPc + bestM.deltPen.deltPtw + bestM.deltPen.deltCost) {
 						bestM = t;
 					}
 				}
@@ -8807,53 +8588,11 @@ namespace vrptwNew {
 					if (bestM.v == 0 && bestM.w == 0) {
 						return false;
 					}
+					else {
+						++contiNotDe;
+					}
 					//return false;
 				}
-
-#if CHECKING
-
-				vector<vector<int>> oldRoutes;
-				vector<int> oldrv;
-				vector<int> oldrw;
-
-				DisType oldpenalty = penalty;
-				DisType oldPtw = Ptw;
-				DisType oldPc = Pc;
-				DisType oldPtwNoWei = PtwNoWei;
-				DisType oldPtwOnly = PtwNoWei;
-				DisType oldPcOnly = Pc;
-				DisType oldRcost = updateRtsCost();
-
-				Route& rv = rts.getRouteByRid(customers[bestM.v].routeID);
-				Route& rw = rts.getRouteByRid(customers[bestM.w].routeID);
-				oldrv = rPutCusInve(rv);
-				oldrw = rPutCusInve(rw);
-
-				for (int i = 0; i < rts.cnt; ++i) {
-					Route& r = rts[i];
-					if (rPutCusInve(r).size() != r.rCustCnt) {
-						debug(rPutCusInve(r).size() != r.rCustCnt);
-						debug(rPutCusInve(r).size() != r.rCustCnt);
-						debug(r.routeID);
-						debug(r.rCustCnt);
-						debug(rPutCusInve(r).size());
-						rNextDisp(r);
-						rNextDisp(r);
-
-					}
-
-					int pt = r.head;
-					while (pt != -1) {
-						if (pt >= customers.size()) {
-							debug(pt);
-							debug(customers.size());
-							debug(customers.size());
-						}
-						pt = customers[pt].next;
-					}
-				}
-
-#endif // CHECKING
 
 				updateYearTable(bestM);
 				int rvId = customers[bestM.v].routeID;
@@ -8865,115 +8604,9 @@ namespace vrptwNew {
 				/*solTabuTurnSolToBitArr();
 				solTabuUpBySolToBitArr();*/
 				updatePen();
-				//updateRtsCost();
+				//reCalRtsCost();
 				RoutesCost += bestM.deltPen.deltCost;
 				//updatePen(bestM.deltPen);
-
-#if CHECKING
-
-				updateRtsCost();
-				updatePen();
-				bool iderror = false;
-				bool penaltyWeiError =
-					!DISlfeq(oldpenalty + bestM.deltPen.deltPc + bestM.deltPen.deltPtw, penalty);
-				bool penaltyError =
-					!DISlfeq(oldPcOnly + oldPtwOnly + bestM.deltPen.PcOnly + bestM.deltPen.PtwOnly, PtwNoWei + Pc);
-
-				bool RoutesCostError = false;
-				//!DISlfeq(oldRcost + bestM.deltPen.deltCost, RoutesCost);
-				for (int i = 0; i < rts.cnt; ++i) {
-					Route& r = rts[i];
-					if (rPutCusInve(r).size() != r.rCustCnt) {
-						debug(rPutCusInve(r).size() != r.rCustCnt);
-						debug(rPutCusInve(r).size() != r.rCustCnt);
-						debug(r.routeID);
-						debug(r.rCustCnt);
-						debug(rPutCusInve(r).size());
-						rNextDisp(r);
-						rNextDisp(r);
-
-					}
-
-					int pt = r.head;
-					while (pt != -1) {
-						if (pt >= customers.size()) {
-							debug(pt);
-							debug(customers.size());
-							debug(customers.size());
-						}
-						pt = customers[pt].next;
-					}
-				}
-
-				if (iderror || penaltyWeiError || penaltyError || RoutesCostError) {
-
-					debug("naRepair penalty update error!");
-
-					debug(bestM.v);
-					debug(bestM.w);
-					debug(bestM.kind);
-
-					debug(rv.routeID == rw.routeID);
-
-					debug(iderror);
-					debug(penaltyWeiError);
-					debug(penaltyError);
-					debug(RoutesCostError);
-
-
-					debug(oldpenalty);
-
-					debug(bestM.deltPen.deltPc);
-					debug(bestM.deltPen.deltPtw);
-					debug(bestM.deltPen.deltCost);
-					debug(oldpenalty + bestM.deltPen.deltPc + bestM.deltPen.deltPtw);
-					debug(penalty);
-					debug(bestM.deltPen.deltPc + bestM.deltPen.deltPtw);
-					debug(penalty - oldpenalty);
-
-					debug(oldRcost);
-					debug(bestM.deltPen.deltCost);
-					debug(RoutesCost);
-					debug(RoutesCost - oldRcost);
-
-					debug(oldPtw);
-					debug(bestM.deltPen.deltPtw);
-					debug(Ptw);
-					debug(Ptw - oldPtw);
-
-
-					debug(oldPtwNoWei);
-					debug(bestM.deltPen.PtwOnly);
-					debug(PtwNoWei);
-
-					debug(oldPc);
-					debug(bestM.deltPen.deltPc);
-					debug(bestM.deltPen.PcOnly);
-					debug(Pc);
-
-					cout << "oldrv: ";
-
-					for (auto i : oldrv) {
-						cout << i << " ,";
-					}
-					cout << endl;
-					cout << "oldrw: ";
-					for (auto i : oldrw) {
-						cout << i << " ,";
-					}
-					cout << endl;
-
-					rNextDisp(rv);
-					rNextDisp(rw);
-
-					debug(squIter);
-
-					debug(DEFabs(oldpenalty + bestM.deltPen.deltPc + bestM.deltPen.deltPtw, penalty));
-					debug("false false");
-					debug("false false");
-
-				}
-#endif // CHECKING
 
 				//resetConfRts();
 				resetConfRtsByOneMove({ rvId,rwId });
@@ -8991,7 +8624,6 @@ namespace vrptwNew {
 					break;
 				}
 			}
-
 
 			if (penalty == 0) {
 				resetConfRts();
@@ -9011,11 +8643,11 @@ namespace vrptwNew {
 			return naRepair();
 		}
 
-		bool mRLLocalSearch() {
+		bool mRLLocalSearch(Vec<int> newCus) {
 
 			resetConfRts();
 			updatePen();
-			updateRtsCost();
+			reCalRtsCost();
 
 			TwoNodeMove MRLbestM;
 
@@ -9033,17 +8665,22 @@ namespace vrptwNew {
 					}
 				}
 			};
-
-			auto getMRLAllMoves = [&]() {
+			if (newCus.size() == 0) {
+				newCus = myRandX->getMN(input.custCnt, input.custCnt);
+				unsigned shuseed = (env.seed + (myRand->pick(10000007))) % Mod;
+				std::shuffle(newCus.begin(), newCus.end(), default_random_engine(shuseed));
+			}
+			
+			auto getMRLAllMoves = [&](int range) {
 
 				MRLbestM.reSet();
 				
-				for (int v = 1; v <= input.custCnt; ++v) {
-
+				for (int v : newCus) {
+					++v;
 					if (customers[v].routeID == -1) {
 						continue;
 					}
-					for (int wpos = 0; wpos < 50; ++wpos) {
+					for (int wpos = 0; wpos < range; ++wpos) {
 
 						int w = input.allCloseOf[v][wpos];
 						if (customers[w].routeID == -1) {
@@ -9064,42 +8701,6 @@ namespace vrptwNew {
 				return MRLbestM;
 			};
 			
-			auto getMRLPartMoves = [&]() {
-
-				MRLbestM.reSet();
-
-				for (int v = 1; v <= input.custCnt; ++v) {
-
-					if (customers[v].routeID == -1) {
-						continue;
-					}
-
-					Vec<int> reV = input.allCloseOf[v];
-
-					for (int wpos = 0; wpos < 50; ++wpos) {
-						//int w = myRand.pick(input.custCnt) + 1;
-						int w = reV[wpos];
-						if (customers[w].routeID == -1) {
-							continue;
-						}
-						for (int i = 0; i < 15; ++i) {
-
-							if (MRLbestM.deltPen.deltCost < 0) {
-								return MRLbestM;
-							}
-
-							TwoNodeMove m;
-							m = TwoNodeMove(v, w, i, estimatevw(i, v, w));
-							MRLUpdateM(m);
-						}
-					}
-				}
-
-				return MRLbestM;
-			};
-
-			LL contiNotDe = 0;
-
 			bestSol bestS(customers, rts, 
 				EPr, Pc, Ptw, PtwNoWei, penalty,RoutesCost);
 			
@@ -9110,22 +8711,35 @@ namespace vrptwNew {
 			}
 			squIter += cfg.yearTabuLen + cfg.yearTabuRand;
 
+			Vec<int> ranges = {10,50};
+
 			while (!lyhTimer.isTimeOut()) {
 
-				TwoNodeMove bestM = getMRLAllMoves();
+				TwoNodeMove bestM;
 				//TwoNodeMove bestM = getMRLPartMoves();
+				for (int range : ranges) {
+					if (bestM.deltPen.PtwOnly > 0
+						|| bestM.deltPen.PcOnly > 0
+						|| bestM.deltPen.deltCost > 0
+						) {
+						bestM = getMRLAllMoves(range);
+					}
+					else {
+						break;
+					}
+				}
 				if (bestM.deltPen.PtwOnly > 0
 					|| bestM.deltPen.PcOnly > 0
 					|| bestM.deltPen.deltCost > 0
 					) {
-						break;
+					break;
 				}
 				
 #if CHECKING
 
-				vector<vector<int>> oldRoutes;
-				vector<int> oldrv;
-				vector<int> oldrw;
+				Vec<Vec<int>> oldRoutes;
+				Vec<int> oldrv;
+				Vec<int> oldrw;
 
 				DisType oldpenalty = penalty;
 				DisType oldPtw = Ptw;
@@ -9133,19 +8747,19 @@ namespace vrptwNew {
 				DisType oldPtwNoWei = PtwNoWei;
 				DisType oldPtwOnly = PtwNoWei;
 				DisType oldPcOnly = Pc;
-				DisType oldRcost = updateRtsCost();
+				DisType oldRcost = reCalRtsCost();
 
 				Route& rv = rts.getRouteByRid(customers[bestM.v].routeID);
 				Route& rw = rts.getRouteByRid(customers[bestM.w].routeID);
 				oldrv = rPutCusInve(rv);
 				oldrw = rPutCusInve(rw);
 
-#endif // CHECKING
-
-				updateYearTable(bestM);
 				int rvId = customers[bestM.v].routeID;
 				int rwId = customers[bestM.w].routeID;
 
+#endif // CHECKING
+
+				updateYearTable(bestM);
 				/*debug(bestM.v)
 				debug(bestM.w)
 				debug(bestM.kind)*/
@@ -9156,7 +8770,7 @@ namespace vrptwNew {
 				solTabuUpBySolToBitArr();*/
 
 				updatePen();
-				//updateRtsCost();
+				//reCalRtsCost();
 				RoutesCost += bestM.deltPen.deltCost;
 
 				//debug(RoutesCost)
@@ -9184,7 +8798,7 @@ namespace vrptwNew {
 						debug(customers[r.head].QX_ != customers[r.tail].Q_X);
 					}
 
-					vector<int> ve = rPutCusInve(r);
+					Vec<int> ve = rPutCusInve(r);
 					for (int node : ve) {
 						if (customers[node].routeID != r.routeID) {
 							deOut(node); 
@@ -9275,21 +8889,16 @@ namespace vrptwNew {
 			return true;
 		}
 
-		bool minimizeRL() {
-
+		/*bool minimizeRL(Vec<int> newCus = {}) {
 			gamma = 1;
-
-			mRLLocalSearch();
-			LL rc = verify();
-			if (RoutesCost != rc) {
-				println("RoutesCost != verify()");
-			}
-			return true;
-		}
+			return mRLLocalSearch(newCus);
+		}*/
 
 		bool saveToOutPut() {
 
+			DisType rc = RoutesCost;
 			DisType state = verify();
+
 			output.runTime = lyhTimer.getRunTime();
 			output.EP = rPutCusInve(EPr);
 			output.minEP = minEPcus;
@@ -9305,12 +8914,25 @@ namespace vrptwNew {
 			return true;
 		}
 
+		bool printDimacs() {
+
+			for (int i = 0; i < rts.size(); ++i) {
+				Route& r = rts[i];
+
+				printf("Route #%d:",i+1);
+				int pt = customers[r.head].next;
+				while (pt <= input.custCnt) {
+					printf(" %d", pt);
+					pt = customers[pt].next;
+				}
+				printf("\n");
+			}
+			printf("Cost %.1lf\n",double(RoutesCost/10));
+			fflush(stdout);
+			return true;
+		}
+
 		bool saveOutAsSintefFile() {
-			
-			DateTime d(time(0));
-			d.year;
-			d.month;
-			d.day;
 			
 			string s = "";
 			
@@ -9323,25 +8945,25 @@ namespace vrptwNew {
 			s += "Solution\n";
 			for (int i = 0; i < rts.cnt; i++) {
 				auto cus = rPutCusInve(rts[i]);
-				string r = "Route " + ms.LL_str(i+1) +" :";
+				string r = "Route " + ms.int_str(i+1) +" :";
 
 				for (auto c : cus) {
-					r += " " + ms.LL_str(c);
+					r += " " + ms.int_str(c);
 				}
 				r += "\n";
 				s += r;
 			}
 
-			updateRtsCost();
+			reCalRtsCost();
 
 			std::ofstream rgbData;
 			string wrPath = env.outputPath
-				+ "sinType" + input.example + "L" + ms.LL_str(RoutesCost) + ".txt";
+				+ "sinType" + input.example + "L" + ms.int_str(RoutesCost) + ".txt";
 
 			rgbData.open(wrPath, std::ios::app | std::ios::out);
 
 			if (!rgbData) {
-				Log(Log::Level::Warning) << "output file open errno" << endl;
+				Log(Log::Level::Warning) << "sintefoutput file open errno" << endl;
 				return false;
 			}
 
@@ -9363,9 +8985,9 @@ P: 1, 7, 7, 4, 1, 4, 5, 13, 1, 7, 7, 1, 4, 10, 4, 10, 7, 4, 7, 10, 10, 7, 2, 4, 
 nextdisp: 697 ,13 ,10 ,166 ,202 ,189 ,181 ,340 ,251 ,345 ,472 ,698 ,
 			*/
 			
-			vector<int>oldrv = { 13, 76, 308, 338, 393, 55, 38, 34, 56, 289 };
-			//vector<int>oldrw = { 120,121 };
-			//vector<int>oldrw = { 118,109 };
+			Vec<int>oldrv = { 13, 76, 308, 338, 393, 55, 38, 34, 56, 289 };
+			//Vec<int>oldrw = { 120,121 };
+			//Vec<int>oldrw = { 118,109 };
 			P = { 1, 127, 58, 133, 31, 103, 136, 145, 7, 136, 115, 11, 67, 116, 40, 37, 136, 67, 58, 124, 127, 133, 70, 77, 10, 19, 46, 25, 124, 142, 103, 121, 10, 64, 40, 58, 91, 28, 82, 52, 23, 19, 142, 13, 142, 112, 7, 97, 52, 61, 136, 142, 133, 91, 13, 67, 19, 142, 103, 43, 148, 109, 16, 109, 10, 106, 13, 28, 100, 145, 10, 91, 61, 55, 37, 133, 134, 28, 16, 43, 7, 10, 40, 13, 94, 10, 124, 55, 100, 64, 124, 52, 40, 22, 58, 61, 70, 28, 118, 139, 13, 70, 10, 124, 115, 13, 61, 118, 7, 121, 16, 145, 46, 11, 10, 43, 124, 100, 16, 136, 73, 10, 46, 4, 13, 34, 22, 94, 94, 13, 73, 85, 16, 31, 7, 40, 91, 73, 46, 106, 139, 13, 124, 82, 70, 4, 19, 139, 124, 97, 145, 40, 130, 10, 139, 109, 13, 136, 139, 10, 64, 4, 49, 19, 67, 52, 112, 115, 10, 64, 106, 7, 112, 130, 133, 97, 85, 16, 46, 7, 10, 100, 7, 109, 136, 49, 13, 10, 19, 136, 100, 133, 103, 127, 7, 25, 121, 37, 10, 52, 4, 43, 109, 109, 136, 142, 127, 37, 55, 55, 130, 94, 112, 100, 55, 10, 7, 91, 16, 127, 43, 61, 58, 13, 136, 7, 103, 55, 82, 13, 130, 10, 121, 133, 13, 16, 49, 97, 25, 85, 10, 82, 13, 130, 82, 52, 121, 97, 91, 19, 142, 16, 22, 106, 136, 19, 136, 85, 139, 109, 49, 103, 121, 70, 121, 10, 10, 124, 139, 7, 16, 19, 40, 55, 13, 49, 130, 4, 133, 10, 4, 7, 135, 49, 13, 100, 61, 115, 106, 16, 73, 130, 136, 40, 19, 7, 7, 247, 43, 46, 103, 67, 25, 136, 10, 19, 136, 19, 110, 115, 136, 10, 46, 13, 10, 132, 16, 13, 10, 19, 88, 106, 124, 10, 112, 7, 16, 121, 28, 19, 91, 85, 67, 49, 16, 4, 124, 70, 113, 7, 46, 43, 43, 67, 142, 16, 97, 97, 91, 133, 97, 79, 139, 139, 83, 127, 10, 136, 139, 40, 124, 139, 73, 115, 22, 13, 16, 145, 7, 1, 103, 139, 13, 46, 109, 22, 118, 25, 79, 127, 133, 103, 19, 97, 127, 70, 70, 7, 46, 16, 22, 127, 91, 88, 28, 40, 10, 7, 10, 136, 79, 4, 127, 4, 10, 118, 52, 7, 118, 10, 7, 16, 97, 97, 133, 37, 94, 97, 67, 13, 145, 100, 10, 10, 10, 88, 130, 133, 16, 82, 7, 118, 10, 4, 139, 25, 10, 25, 67, 52, 142, 82, 97, 10, 139, 22, 91, 10, 85, 70, 13, 10, 40, 58, 46, 4, 121, 118, 127, 133, 22, 136, 58, 109, 40, 148, 31, 4, 82, 145, 103, 43, 7, 22, 91, 136, 10, 67, 46, 142, 94, 46, 139, 43, 16, 46, 7, 133, 10, 106, 106, 10, 124, 127, 43, 34, 7, 130, 13, 13, 121, 124, 10, 10, 13, 25, 31, 28, 91, 118, 139, 13, 112, 73, 13, 7, 22, 77, 118, 112, 10, 100, 91, 133, 121, 11, 139, 94, 10, 22, 22, 145, 142, 109, 82, 34, 139, 103, 124, 58, 130, 67, 130, 22, 10, 133, 133, 100, 10, 13, 52, 127, 10, 7, 136, 22, 46, 70, 16, 88, 124, 13, 79, 49, 115, 136, 76, 13, 91, 139, 13, 97, 130, 136, 55, 124, 25, 142, 4, 94, 103, 13, 91, 13, 7, 10, 121, 133, 130, 136, 100, 58, 124, 109, 130, 121, 124, 34, 139, 40, 142, }; Route rvv = rCreateRoute(0);
 			rts.push_back(rvv);
 			Route rww = rCreateRoute(1);
@@ -9411,11 +9033,11 @@ nextdisp: 697 ,13 ,10 ,166 ,202 ,189 ,181 ,340 ,251 ,345 ,472 ,698 ,
 
 
 			/*DeltPen d = _2optOpenvvj(431, 211);
-			DisType old = updateRtsCost();
+			DisType old = reCalRtsCost();
 			TwoNodeMove m(431,211,1,d);
 
 			twoOptStar(m);
-			updateRtsCost();
+			reCalRtsCost();
 			debug(old)
 
 			debug(d.deltCost)
@@ -9440,107 +9062,10 @@ nextdisp: 697 ,13 ,10 ,166 ,202 ,189 ,181 ,340 ,251 ,345 ,472 ,698 ,
 			//operator =
 		};
 
-		int getBoundByIncompatible() {
-
-			int n = input.custCnt;
-			vector<pos> arr(n);
-			
-			for (int i = 0; i < n; ++i) {
-				arr[i].id = i+1;
-			}
-
-			for (int i = 1; i <= n; ++i) {
-				for (int j = i + 1; j <= n; ++j) {
-
-					auto getptw = [&] (int v,int w){
-						DisType av = input.datas[0].READYTIME;
-						av += input.disOf[0][v];
-						DisType aw = av + input.datas[v].SERVICETIME + input.disOf[v][w];
-						DisType an = aw + input.datas[w].SERVICETIME + input.disOf[0][w];
-						DisType rPtw = std::max<DisType>(0,aw-input.datas[w].DUEDATE);
-						rPtw += std::max<DisType>(0,an-input.datas[0].DUEDATE);
-						return rPtw;
-					};
-					
-					bool s1 = (getptw(i,j) == 0);
-					bool s2 = (getptw(j,i) == 0);
-
-					if (s1 || s2) {
-						arr[i-1].s.insert(j);
-						arr[j-1].s.insert(i);
-					}
-				}
-			}
-
-			int rid = 0;
-
-			for (int i = 0; i < customers.size(); ++i) {
-				customers[i].id = i;
-			}
-
-			auto cmp = [&](const pos& a, const pos& b) {
-				return P[a.id] > P[b.id];
-				return input.datas[a.id].DUEDATE < input.datas[b.id].DUEDATE;
-				return a.id<b.id;
-				return a.s.size() < b.s.size();
-			};
-
-			while (true){
-
-				sort(arr.begin(), arr.end(), cmp);
-
-				bool isSucceed = true;
-				int cus = -1;
-
-				for (auto it=arr.begin(); it!= arr.end();) {
-					cus = it->id;
-					Position tPos = findBestPosInSolForInit(cus);
-					//debug(tPos.pen)
-					if (tPos.pen > 0 ) {
-						isSucceed = false;
-						it = arr.erase(it);
-						break;
-					}
-					else {
-						++it;
-					}
-				}
-
-				if (isSucceed) {
-					debug(arr.size());
-					break;
-				}
-
-				Route r1 = rCreateRoute(rid++);
-				rInsAtPosPre(r1, r1.tail, cus);
-				rUpdateAvfrom(r1, r1.head);
-				rUpdateZvfrom(r1, r1.tail);
-				for (auto& node : arr) {
-					auto it = node.s.find(cus);
-					if ( it!= node.s.end()) {
-						node.s.erase(it);
-					}
-				}
-				rts.push_back(r1);
-			} 
-
-			for (int i = 0; i < rts.size(); ++i) {
-				Route& r = rts[i];
-				rUpdateZvQfrom(r, r.tail);
-				rUpdateAQfrom(r, r.head);
-				rUpdateRCost(r);
-			}
-			updatePen();
-
-			return rts.size();
-		}
-
 		~Solver() {};
 
 	public:
-		Random myRand;
 		Timer lyhTimer;
-		RandomX myRandX;
 	};
 
 };

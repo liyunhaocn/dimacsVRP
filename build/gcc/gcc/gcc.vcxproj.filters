@@ -23,12 +23,6 @@
     <ClInclude Include="..\..\..\VRPTWNEW\Flag.h">
       <Filter>src</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\..\VRPTWNEW\getBound.h">
-      <Filter>src</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\..\VRPTWNEW\MakeCase.h">
-      <Filter>src</Filter>
-    </ClInclude>
     <ClInclude Include="..\..\..\VRPTWNEW\Problem.h">
       <Filter>src</Filter>
     </ClInclude>

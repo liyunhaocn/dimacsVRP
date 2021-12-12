@@ -76,6 +76,40 @@
   <ImportGroup Label="Shared" />
   <ImportGroup Label="PropertySheets" />
   <PropertyGroup Label="UserMacros" />
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
+    <TargetExt />
+    <TargetName>solver1</TargetName>
+    <RemoteDeployDir>$(RemoteRootDir)</RemoteDeployDir>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
+    <TargetExt />
+    <TargetName>solver1</TargetName>
+    <RemoteDeployDir>$(RemoteProjectDir)</RemoteDeployDir>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|ARM'">
+    <TargetName>solver1</TargetName>
+    <TargetExt />
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|ARM'">
+    <TargetName>solver1</TargetName>
+    <TargetExt />
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|ARM64'">
+    <TargetName>solver1</TargetName>
+    <TargetExt />
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|ARM64'">
+    <TargetName>solver1</TargetName>
+    <TargetExt />
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x86'">
+    <TargetName>solver1</TargetName>
+    <TargetExt />
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x86'">
+    <TargetName>solver1</TargetName>
+    <TargetExt />
+  </PropertyGroup>
   <ItemGroup>
     <ClCompile Include="..\..\..\VRPTWNEW\main.cpp" />
   </ItemGroup>
@@ -84,13 +118,15 @@
     <ClInclude Include="..\..\..\VRPTWNEW\EAX.h" />
     <ClInclude Include="..\..\..\VRPTWNEW\Environment.h" />
     <ClInclude Include="..\..\..\VRPTWNEW\Flag.h" />
-    <ClInclude Include="..\..\..\VRPTWNEW\getBound.h" />
-    <ClInclude Include="..\..\..\VRPTWNEW\MakeCase.h" />
     <ClInclude Include="..\..\..\VRPTWNEW\Problem.h" />
     <ClInclude Include="..\..\..\VRPTWNEW\Solver.h" />
     <ClInclude Include="..\..\..\VRPTWNEW\Utility.h" />
   </ItemGroup>
-  <ItemDefinitionGroup />
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
+    <ClCompile>
+      <Optimization>Full</Optimization>
+    </ClCompile>
+  </ItemDefinitionGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets" />
 </Project>
