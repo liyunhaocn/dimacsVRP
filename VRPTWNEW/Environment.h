@@ -7,7 +7,7 @@
 
 using namespace std;
 
-namespace vrptwNew {
+namespace hust {
 
 class Environment
 {

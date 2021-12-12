@@ -13,7 +13,7 @@ using namespace std;
 #include "./Environment.h"
 #include "./Flag.h"
 
-namespace vrptwNew {
+namespace hust {
 
 struct CircleSector
 {
@@ -836,15 +836,6 @@ struct Input {
 
 	Input(Environment& env,Configuration& cfg):cfg(cfg) {
 		initInput(env);
-	}
-
-	double cartesianToPolar(LL x, LL y) {
-
-		double angle = atan2(y, x);
-		if (angle < 0) {
-			angle += 2 * PI;
-		}
-		return angle;
 	}
 
 	bool initInput(Environment env) {

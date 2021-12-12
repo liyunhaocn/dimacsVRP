@@ -8,7 +8,7 @@ using namespace std;
 // $(SolutionDir)$(Platform)\$(Configuration)
 // $(SolutionDir)\dimacsVRP
 
-namespace vrptwNew {
+namespace hust {
 
 struct Configuration {
 

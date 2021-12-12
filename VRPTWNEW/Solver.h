@@ -11,7 +11,7 @@
 #include "./Problem.h"
 #include "./Flag.h"
 
-namespace vrptwNew {
+namespace hust {
 
 #define reCusNo(x) (((x)<=(input.custCnt+1))?(x):(input.custCnt+1))
 
@@ -612,8 +612,6 @@ namespace vrptwNew {
 				return *this;
 			}
 		};
-
-		DisType pBestThisTurn = DisInf;
 
 		bool initEPr() {
 
@@ -6626,8 +6624,7 @@ namespace vrptwNew {
 			squIter += cfg.yearTabuLen + cfg.yearTabuRand;
 
 			squCon.squContiIter = squCon.squMinContiIter;
-			pBestThisTurn = DisInf;
-
+			DisType pBestThisTurn = DisInf;
 			int contiNotDe = 0;
 
 			//debug(squIter)
@@ -8524,8 +8521,7 @@ namespace vrptwNew {
 
 			squIter += cfg.yearTabuLen + cfg.yearTabuRand;
 
-			pBestThisTurn = DisInf;
-
+			DisType pBestThisTurn = DisInf;
 #if DISDOUBLE
 
 			auto updateBestM = [&](TwoNodeMove& t, TwoNodeMove& bestM)->bool {
@@ -8889,11 +8885,6 @@ namespace vrptwNew {
 			return true;
 		}
 
-		/*bool minimizeRL(Vec<int> newCus = {}) {
-			gamma = 1;
-			return mRLLocalSearch(newCus);
-		}*/
-
 		bool saveToOutPut() {
 
 			DisType rc = RoutesCost;
@@ -9054,13 +9045,6 @@ nextdisp: 697 ,13 ,10 ,166 ,202 ,189 ,181 ,340 ,251 ,345 ,472 ,698 ,
 
 			return true;
 		}
-
-		class pos {
-		public:
-			int id = 0;
-			unordered_set<int> s;
-			//operator =
-		};
 
 		~Solver() {};
 

@@ -17,10 +17,6 @@
 #include "./Flag.h"
 #include "./EAX.h"
 
-//#include "./getBound.h"
-
-namespace vrpSln = vrptwNew;
-//namespace vrpSln = lyh;
 using namespace std;
 
 #include<cstdlib>
@@ -34,12 +30,12 @@ using namespace std;
 
 void findbug() {
 
-	vrpSln::Environment env("../Instances/Solomon/C101.txt");
-	vrpSln::Configuration cfg;
+	hust::Environment env("../Instances/Solomon/C101.txt");
+	hust::Configuration cfg;
 	//lyh::MyString ms;
 
-	vrpSln::println("__DATE__: ", __DATE__);
-	vrpSln::println("__TIME__: ", __TIME__);
+	hust::println("__DATE__: ", __DATE__);
+	hust::println("__TIME__: ", __TIME__);
 
 	if (env.seed == -1) {
 		env.seed = std::time(nullptr) + std::clock();
@@ -50,9 +46,9 @@ void findbug() {
 	env2.seed = env.seed + 1611589828;
 	env.show();
 	cfg.show();
-	vrpSln::Input input(env, cfg);
+	hust::Input input(env, cfg);
 
-	vrpSln::Vec< vrpSln::Vec<int> > vpa = {
+	hust::Vec< hust::Vec<int> > vpa = {
 {581,654,125,954,39,782,857,256,404,510},
 {811,153,986,27,189,680,563,411},
 {997,337,947,588,637,515,166,496,751},
@@ -145,7 +141,7 @@ void findbug() {
 {904,971,794,855,13,78,376,893,311,140,22,663,183}
 	};
 
-	vrpSln::Vec< vrpSln::Vec<int> > vpb = {
+	hust::Vec< hust::Vec<int> > vpb = {
 {781,246,943,850,828,161,71,567,433,999,880,703},
 {355,923,926,888,732,979,898,359,964,988,277,286},
 {997,312,947,588,854,673,166,70,638},
@@ -238,8 +234,8 @@ void findbug() {
 {815,160,81,385,816,538,579,713,185},
 	};
 
-	vrpSln::Solver pa(input, cfg, env);
-	vrpSln::Solver pb(input, cfg, env2);
+	hust::Solver pa(input, cfg, env);
+	hust::Solver pb(input, cfg, env2);
 
 
 	pa.initByArr2(vpa);
@@ -247,9 +243,9 @@ void findbug() {
 	//pa.saveOutAsSintefFile();
 	//pb.saveOutAsSintefFile();
 
-	vrpSln::EAX eax(pa, pb,0);
+	hust::EAX eax(pa, pb,0);
 
-	vrpSln::Solver pc(pa);
+	hust::Solver pc(pa);
 
 	debug(pa.verify());
 	debug(pb.verify());
@@ -262,9 +258,9 @@ void findbug() {
 
 bool run(int argc, char* argv[]) {
 
-	vrpSln::Environment env("../Instances/Homberger/C1_8_2.txt");
+	hust::Environment env("../Instances/Homberger/C1_8_2.txt");
 
-	vrpSln::Configuration cfg;
+	hust::Configuration cfg;
 	solveCommandLine(argc, argv, cfg, env);
 
 	//env.seed = 1611589828;
@@ -273,15 +269,15 @@ bool run(int argc, char* argv[]) {
 	env.show();
 	cfg.show();
 	
-	vrpSln::DateTime d(time(0));
+	hust::DateTime d(time(0));
 	cout << d << endl;
 	debug("compile tag:");
 	debug(__DATE__);
 	debug(__TIME__);
 	
-	vrpSln::Vec<string> e1 = {"C1_", "C2_" ,"R1_","R2_","RC1_","RC2_"};
-	vrpSln::Vec<string> e2 = { "2_","4_","6_","8_","10_" };
-	vrpSln::Vec<string> e3 = { "11","12","13","14","15","16","17","18","19","20" };
+	hust::Vec<string> e1 = {"C1_", "C2_" ,"R1_","R2_","RC1_","RC2_"};
+	hust::Vec<string> e2 = { "2_","4_","6_","8_","10_" };
+	hust::Vec<string> e3 = { "11","12","13","14","15","16","17","18","19","20" };
 
 	/*Vec<string> allCase;
 	for (string a : e1) {
@@ -293,8 +289,8 @@ bool run(int argc, char* argv[]) {
 	}
 	}*/
 
-	vrpSln::Input input(env, cfg);
-	vrpSln::Solver solver(input, cfg, env);
+	hust::Input input(env, cfg);
+	hust::Solver solver(input, cfg, env);
 	
 	solver.minimizeRN();
 
@@ -313,7 +309,7 @@ bool run(int argc, char* argv[]) {
 
 	auto f2 = freopen("CON", "a", stdout);
 
-	vrpSln::saveSln(input, solver.output, cfg, env);
+	hust::saveSln(input, solver.output, cfg, env);
 	//solver.saveOutAsSintefFile();
 
 	return true;
@@ -321,10 +317,10 @@ bool run(int argc, char* argv[]) {
 
 bool solverByEAX(int argc, char* argv[]) {
 
-	//vrpSln::Environment env("../Instances/Solomon/C101.txt");
-	vrpSln::Environment env("../Instances/Homberger/RC1_8_3.txt");
+	//hust::Environment env("../Instances/Solomon/C101.txt");
+	hust::Environment env("../Instances/Homberger/RC1_8_3.txt");
 
-	vrpSln::Configuration cfg;
+	hust::Configuration cfg;
 	//lyh::MyString ms;
 
 	solveCommandLine(argc, argv, cfg, env);
@@ -336,26 +332,26 @@ bool solverByEAX(int argc, char* argv[]) {
 	env.show();
 	cfg.show();
 
-	vrpSln::myRand = new vrpSln::Random(env.seed);
-	vrpSln::myRandX = new vrpSln::RandomX(env.seed);
+	hust::myRand = new hust::Random(env.seed);
+	hust::myRandX = new hust::RandomX(env.seed);
 
-	vrpSln::Input input(env, cfg);
-	vrpSln::Solver pBest(input, cfg, env);
+	hust::Input input(env, cfg);
+	hust::Solver pBest(input, cfg, env);
 	//TODO[lyh][0]:
-	pBest.RoutesCost = vrpSln::DisInf;
+	pBest.RoutesCost = hust::DisInf;
 
 	int contiNoDown = 1;
 
-	vrpSln::Timer t1(cfg.runTimer);
+	hust::Timer t1(cfg.runTimer);
 	t1.setLenUseSecond(cfg.runTimer);
 	t1.reStart();
 
-	auto updateBestSol = [&](vrpSln::Solver& pTemp) {
+	auto updateBestSol = [&](hust::Solver& pTemp) {
 		if (pTemp.RoutesCost < pBest.RoutesCost) {
 			pBest = pTemp;
 			contiNoDown = 1;
 			pBest.saveToOutPut();
-			vrpSln::println("cost:", pBest.RoutesCost);
+			hust::println("cost:", pBest.RoutesCost);
 			return true;
 		}
 		else {
@@ -366,12 +362,12 @@ bool solverByEAX(int argc, char* argv[]) {
 
 	int popSize = 3;
 
-	vrpSln::Vec<vrpSln::Solver> pool;
+	hust::Vec<hust::Solver> pool;
 	pool.reserve(popSize);
 	for (int i = 0; i < popSize; ++i) {
-		vrpSln::Environment envt = env;
-		envt.seed = env.seed + ( (i+1) * (vrpSln::myRand->pick(10000007))) % vrpSln::Mod;
-		vrpSln::Solver st(input, cfg, envt);
+		hust::Environment envt = env;
+		envt.seed = env.seed + ( (i+1) * (hust::myRand->pick(10000007))) % hust::Mod;
+		hust::Solver st(input, cfg, envt);
 		st.minimizeRN();
 		st.mRLLocalSearch({});
 		if (st.RoutesCost < pBest.RoutesCost) {
@@ -382,29 +378,29 @@ bool solverByEAX(int argc, char* argv[]) {
 
 	while (pBest.RoutesCost > input.sintefRecRL && !t1.isTimeOut()){
 		
-		int paIndex = vrpSln::myRand->pick( popSize );
-		int pbIndex = (paIndex + vrpSln::myRand->pick(popSize-1) + 1) % popSize;
+		int paIndex = hust::myRand->pick( popSize );
+		int pbIndex = (paIndex + hust::myRand->pick(popSize-1) + 1) % popSize;
 		/*debug(paIndex);
 		debug(pbIndex);*/
-		vrpSln::Solver& pa  = pool[paIndex];
-		vrpSln::Solver& pb  = pool[pbIndex];
-		vrpSln::Solver pc = pa;
+		hust::Solver& pa  = pool[paIndex];
+		hust::Solver& pb  = pool[pbIndex];
+		hust::Solver pc = pa;
 		
-		unsigned eaxSeed = env.seed + (vrpSln::myRand->pick(10000007)) % vrpSln::Mod;
-		vrpSln::EAX eax(pa, pb, eaxSeed);
+		unsigned eaxSeed = env.seed + (hust::myRand->pick(10000007)) % hust::Mod;
+		hust::EAX eax(pa, pb, eaxSeed);
 		auto newCus = eax.doNaEAX(pa, pb, pc);
 
 		if (eax.repairSolNum == 0) {
 
 			// TODO[lyh][0]: 如果是没有ab环 那么就是说这两个解一模一样,把b的函数值升高以跳出局部最优
 			if (eax.abCycleSet.size() == 0) {
-				vrpSln::println("no abcycle");
+				hust::println("no abcycle");
 				bool isRuin = pb.ruinLocalSearch();
 				if (isRuin) {
-					vrpSln::println("ruin success", "333pb.RoutesCost: ", pb.RoutesCost);
+					hust::println("ruin success", "333pb.RoutesCost: ", pb.RoutesCost);
 				}
 				else {
-					vrpSln::println("ruin fail patternAdjustment");
+					hust::println("ruin fail patternAdjustment");
 					pb.patternAdjustment(input.custCnt * 0.1);
 					pb.mRLLocalSearch({});
 				}
@@ -413,7 +409,7 @@ bool solverByEAX(int argc, char* argv[]) {
 			}
 			else {
 				// TODO[lyh][1]: 如果是有ab环 重新生成ab环，采用path relinking
-				vrpSln::println("has abcycle repeat gen abcy");
+				hust::println("has abcycle repeat gen abcy");
 				
 				int succRepairNum = 0;
 				auto pcColone = pa;
@@ -424,12 +420,12 @@ bool solverByEAX(int argc, char* argv[]) {
 					if (eax.repairSolNum > 0) {
 						++succRepairNum;
 						if (succRepairNum == 1) {
-							vrpSln::println("na get first");
+							hust::println("na get first");
 							pc = pcColone;
 							newCus = newCusTemp;
 						}
 						else if (succRepairNum > 1 && pcColone.RoutesCost < pc.RoutesCost) {
-							vrpSln::println("na is better");
+							hust::println("na is better");
 							pc = pcColone;
 							newCus = newCusTemp;
 						}
@@ -439,12 +435,12 @@ bool solverByEAX(int argc, char* argv[]) {
 					if (eax.repairSolNum > 0) {
 						++succRepairNum;
 						if (succRepairNum == 1) {
-							vrpSln::println("path get first");
+							hust::println("path get first");
 							pc = pcColone;
 							newCus = newCusTemp;
 						}
 						else if (succRepairNum > 1 && pcColone.RoutesCost < pc.RoutesCost) {
-							vrpSln::println("path is better");
+							hust::println("path is better");
 							pc = pcColone;
 							newCus = newCusTemp;
 						}
@@ -452,17 +448,17 @@ bool solverByEAX(int argc, char* argv[]) {
 				}
 
 				if (succRepairNum == 0) {
-					vrpSln::println("repeat fail");
+					hust::println("repeat fail");
 					continue;
 				}
 				else {
-					vrpSln::println("repeat gen succeess");
+					hust::println("repeat gen succeess");
 				}
 			}
 		}
 
 		if (pc.penalty > 0) {
-			vrpSln::println("error pc penalty > 0");
+			hust::println("error pc penalty > 0");
 		}
 		pc.mRLLocalSearch(newCus);
 		//pc.mRLLocalSearch({});
@@ -483,7 +479,7 @@ bool solverByEAX(int argc, char* argv[]) {
 			pool[0] = pBest;
 			/*bool isRuin = pb.ruinLocalSearch();
 			if (isRuin) {
-				vrpSln::println("333pb.RoutesCost: ", pb.RoutesCost);
+				hust::println("333pb.RoutesCost: ", pb.RoutesCost);
 			}*/
 			/*else {
 				pb.patternAdjustment(30);
@@ -494,40 +490,35 @@ bool solverByEAX(int argc, char* argv[]) {
 	}
 
 	pBest.output.runTime = t1.getRunTime();
-	vrpSln::saveSln(input, pBest.output, cfg, env);
+	hust::saveSln(input, pBest.output, cfg, env);
 	t1.disp();
 
-	delete vrpSln::myRand;
-	delete vrpSln::myRandX;
+	delete hust::myRand;
+	delete hust::myRandX;
 
 	return true;
 }
 
 int main(int argc, char* argv[])
 {
+	hust::println(sizeof(std::mt19937));
+	hust::println(sizeof(hust::Solver));
+	hust::println(sizeof(hust::Timer));
+	hust::println(sizeof(hust::Solver::alpha));
+	hust::println(sizeof(hust::Solver::yearTable));
+	hust::println(sizeof(hust::Solver::input));
+	hust::println(sizeof(hust::Solver::output));
+	hust::println(sizeof(hust::Solver::env));
+	hust::println(sizeof(hust::Solver::cfg));
+	hust::println(sizeof(hust::Input));
 
-	//std::thread t2(run,argc, argv); // pass by value
-	//std::thread t4(run, argc, argv); // t4 is now running f2(). t3 is no longer a thread
-	//t2.join();
-	//t4.join();
-	//solverByEAX(argc, argv);
-	//makeCases(argc, argv);
-	//testGetbound(argc, argv);
-	//return 0;
-	//for(;;)
-	vrpSln::Vec<string> all63 = { "C1_10_1", "C1_10_5", "C1_10_6", "C1_10_7", "C1_10_8", "C1_8_1", "C1_8_5", "C1_8_6", "C1_8_7",
-								"C1_8_8", "C1_6_1", "C1_6_5", "C1_6_6", "C1_6_7", "C1_4_1", "C1_4_5", "C1_4_6", "C1_4_7",
-								"C1_4_8", "C1_2_1", "C1_2_5", "C1_2_6", "C1_2_7", "C1_2_8",
-
-								"C2_10_1", "C2_10_2", "C2_10_5", "C2_10_6", "C2_10_7", "C2_10_9", "C2_8_1", "C2_8_2", "C2_8_3",
-								"C2_8_5", "C2_8_6", "C2_8_7", "C2_8_8", "C2_8_9", "C2_8_10", "C2_6_1", "C2_6_5", "C2_6_6",
-								"C2_6_7", "C2_4_1", "C2_4_2", "C2_4_5", "C2_4_6", "C2_4_7", "C2_4_9",
-
-										"R1_10_1", "R1_8_1", "R1_6_1", "R1_4_1", "R1_2_1",
-
-										"RC2_10_1", "RC2_8_1", "RC2_8_2", "RC2_6_1", "RC2_6_2", "RC2_4_1", "RC2_4_2", "RC2_2_1", "RC2_2_2" 
-	};
-
+	/*for (;;) {
+		hust::myRand = new hust::Random(0);
+		hust::myRandX = new hust::RandomX(0);
+		delete hust::myRand;
+		delete hust::myRandX;
+	}
+	return 0;*/
 	solverByEAX(argc, argv);
 	//run(argc, argv);
 

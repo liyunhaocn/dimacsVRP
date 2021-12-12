@@ -36,7 +36,7 @@
 #define lfeq13(a,b)  ((a) > (b) ? ((a)-(b) < 1e-13):((b)-(a) < 1e-13) )
 #define DISlfeq lfeq10
 
-namespace vrptwNew {
+namespace hust {
 
 	int IntInf = 0x3f3f3f3f;
 	long long int LLInf = 0x3f3f3f3f3f3f3f3f/4;

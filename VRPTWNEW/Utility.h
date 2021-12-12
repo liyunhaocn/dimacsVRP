@@ -36,7 +36,7 @@
 
 using namespace std;
 
-namespace vrptwNew {
+namespace hust {
 
 // if there is "#define x  y", VERBATIM_STRINGIFY(x) will get "x".
 #define VERBATIM_STRINGIFY(x)  #x

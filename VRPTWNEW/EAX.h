@@ -6,7 +6,7 @@
 #include"./Flag.h"
 #include "./Solver.h"
 
-namespace vrptwNew {
+namespace hust {
 
 class EAX
 {
