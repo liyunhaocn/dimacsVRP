@@ -1,8 +1,6 @@
 #ifndef vrptwNew_PROBLEM_H
 #define vrptwNew_PROBLEM_H
 
-using namespace std;
-
 #include <algorithm>
 #include <fstream>
 #include <map>
@@ -79,7 +77,7 @@ struct InsData {
 struct Customer {
 public:
 
-	int id = -1;
+	//int id = -1;
 	int pre = -1;
 	int next = -1;
 	int routeID = -1;
@@ -121,8 +119,8 @@ public:
 	}
 };
 
-static InsData getInsData(string& ins) {
-	static unordered_map<string, InsData> dataBase = {
+static InsData getInsData(std::string& ins) {
+	static std::unordered_map<std::string, InsData> dataBase = {
 {"C101", {10,827.3,1}},
 {"C102", {10,827.3,1}},
 {"C103", {10,826.3,1}},
@@ -490,9 +488,9 @@ static InsData getInsData(string& ins) {
 	}
 }
 
-static double getSintefRL(string& ins) {
+static double getSintefRL(std::string& ins) {
 
-	static unordered_map<string, double> sintefMinlen = {
+	static std::unordered_map<std::string, double> sintefMinlen = {
 {"C1_2_1", 2704.57},
 {"C1_2_2", 2917.89},
 {"C1_2_3", 2707.35},
@@ -803,11 +801,325 @@ static double getSintefRL(string& ins) {
 	}
 }
 
+static double getNagataRL(std::string ins) {
+
+	static std::unordered_map<std::string, double> nagataRL = {
+	{ "R1_2_1", 4784.11 },
+	{ "R2_2_1", 4483.16 },
+	{ "C1_2_1", 2704.57 },
+	{ "C2_2_1", 1931.44 },
+	{ "RC1_2_1", 3618.05 },
+	{ "RC2_2_1", 3099.53 },
+	{ "R1_2_2", 4041.71 },
+	{ "R2_2_2", 3621.20 },
+	{ "C1_2_2", 2917.89 },
+	{ "C2_2_2", 1863.16 },
+	{ "RC1_2_2", 3249.34 },
+	{ "RC2_2_2", 2825.24 },
+	{ "R1_2_3", 3381.96 },
+	{ "R2_2_3", 2880.62 },
+	{ "C1_2_3", 2707.35 },
+	{ "C2_2_3", 1775.08 },
+	{ "RC1_2_3", 3008.33 },
+	{ "RC2_2_3", 2601.87 },
+	{ "R1_2_4", 3057.81 },
+	{ "R2_2_4", 1981.30 },
+	{ "C1_2_4", 2643.31 },
+	{ "C2_2_4", 1703.43 },
+	{ "RC1_2_4", 2851.68 },
+	{ "RC2_2_4", 2038.56 },
+	{ "R1_2_5", 4107.86 },
+	{ "R2_2_5", 3366.79 },
+	{ "C1_2_5", 2702.05 },
+	{ "C2_2_5", 1879.31 },
+	{ "RC1_2_5", 3372.88 },
+	{ "RC2_2_5", 2911.46 },
+	{ "R1_2_6", 3583.77 },
+	{ "R2_2_6", 2913.03 },
+	{ "C1_2_6", 2701.04 },
+	{ "C2_2_6", 1857.35 },
+	{ "RC1_2_6", 3328.91 },
+	{ "RC2_2_6", 2873.12 },
+	{ "R1_2_7", 3150.11 },
+	{ "R2_2_7", 2451.14 },
+	{ "C1_2_7", 2701.04 },
+	{ "C2_2_7", 1849.46 },
+	{ "RC1_2_7", 3189.32 },
+	{ "RC2_2_7", 2525.83 },
+	{ "R1_2_8", 2951.99 },
+	{ "R2_2_8", 1849.87 },
+	{ "C1_2_8", 2775.48 },
+	{ "C2_2_8", 1820.53 },
+	{ "RC1_2_8", 3083.93 },
+	{ "RC2_2_8", 2295.97 },
+	{ "R1_2_9", 3762.57 },
+	{ "R2_2_9", 3092.04 },
+	{ "C1_2_9", 2687.83 },
+	{ "C2_2_9", 1830.05 },
+	{ "RC1_2_9", 3081.13 },
+	{ "RC2_2_9", 2175.04 },
+	{ "R1_2_10", 3301.18 },
+	{ "R2_2_10", 2654.97 },
+	{ "C1_2_10", 2643.55 },
+	{ "C2_2_10", 1806.58 },
+	{ "RC1_2_10", 3002.97 },
+	{ "RC2_2_10", 2015.61 },
+	{ "R1_4_1", 10396.72 },
+	{ "R2_4_1", 9210.15 },
+	{ "C1_4_1", 7152.06 },
+	{ "C2_4_1", 4116.14 },
+	{ "RC1_4_1", 8749.98 },
+	{ "RC2_4_1", 6682.37 },
+	{ "R1_4_2", 8962.13 },
+	{ "R2_4_2", 7606.75 },
+	{ "C1_4_2", 7695.55 },
+	{ "C2_4_2", 3930.05 },
+	{ "RC1_4_2", 7925.66 },
+	{ "RC2_4_2", 6197.42 },
+	{ "R1_4_3", 7836.18 },
+	{ "R2_4_3", 5911.50 },
+	{ "C1_4_3", 7069.24 },
+	{ "C2_4_3", 4018.74 },
+	{ "RC1_4_3", 7554.95 },
+	{ "RC2_4_3", 4930.84 },
+	{ "R1_4_4", 7301.61 },
+	{ "R2_4_4", 4241.47 },
+	{ "C1_4_4", 6803.41 },
+	{ "C2_4_4", 3707.38 },
+	{ "RC1_4_4", 7323.08 },
+	{ "RC2_4_4", 3631.01 },
+	{ "R1_4_5", 9294.34 },
+	{ "R2_4_5", 7132.14 },
+	{ "C1_4_5", 7152.06 },
+	{ "C2_4_5", 3938.69 },
+	{ "RC1_4_5", 8230.39 },
+	{ "RC2_4_5", 6711.72 },
+	{ "R1_4_6", 8408.02 },
+	{ "R2_4_6", 6127.60 },
+	{ "C1_4_6", 7153.45 },
+	{ "C2_4_6", 3875.94 },
+	{ "RC1_4_6", 8195.99 },
+	{ "RC2_4_6", 5766.61 },
+	{ "R1_4_7", 7649.48 },
+	{ "R2_4_7", 5028.33 },
+	{ "C1_4_7", 7421.56 },
+	{ "C2_4_7", 3894.16 },
+	{ "RC1_4_7", 7987.79 },
+	{ "RC2_4_7", 5336.58 },
+	{ "R1_4_8", 7293.21 },
+	{ "R2_4_8", 4015.60 },
+	{ "C1_4_8", 7364.31 },
+	{ "C2_4_8", 3792.76 },
+	{ "RC1_4_8", 7801.11 },
+	{ "RC2_4_8", 4795.72 },
+	{ "R1_4_9", 8758.61 },
+	{ "R2_4_9", 6404.83 },
+	{ "C1_4_9", 7076.02 },
+	{ "C2_4_9", 3865.65 },
+	{ "RC1_4_9", 7777.79 },
+	{ "RC2_4_9", 4551.80 },
+	{ "R1_4_10", 8128.01 },
+	{ "R2_4_10", 5791.70 },
+	{ "C1_4_10", 6860.63 },
+	{ "C2_4_10", 3835.85 },
+	{ "RC1_4_10", 7625.34 },
+	{ "RC2_4_10", 4285.05 },
+	{ "R1_6_1", 21426.76 },
+	{ "R2_6_1", 18214.90 },
+	{ "C1_6_1", 14103.87 },
+	{ "C2_6_1", 7774.16 },
+	{ "RC1_6_1", 17405.31 },
+	{ "RC2_6_1", 13360.73 },
+	{ "R1_6_2", 19014.13 },
+	{ "R2_6_2", 14779.26 },
+	{ "C1_6_2", 14163.31 },
+	{ "C2_6_2", 8290.76 },
+	{ "RC1_6_2", 16091.11 },
+	{ "RC2_6_2", 11555.76 },
+	{ "R1_6_3", 17191.34 },
+	{ "R2_6_3", 11191.01 },
+	{ "C1_6_3", 13778.75 },
+	{ "C2_6_3", 7528.76 },
+	{ "RC1_6_3", 15322.93 },
+	{ "RC2_6_3", 9447.97 },
+	{ "R1_6_4", 15957.34 },
+	{ "R2_6_4", 8032.28 },
+	{ "C1_6_4", 13561.11 },
+	{ "C2_6_4", 6910.62 },
+	{ "RC1_6_4", 14891.50 },
+	{ "RC2_6_4", 7092.90 },
+	{ "R1_6_5", 20018.41 },
+	{ "R2_6_5", 15107.97 },
+	{ "C1_6_5", 14086.23 },
+	{ "C2_6_5", 7575.20 },
+	{ "RC1_6_5", 16856.18 },
+	{ "RC2_6_5", 13000.84 },
+	{ "R1_6_6", 18211.84 },
+	{ "R2_6_6", 12503.26 },
+	{ "C1_6_6", 14089.66 },
+	{ "C2_6_6", 7479.04 },
+	{ "RC1_6_6", 16778.82 },
+	{ "RC2_6_6", 11973.95 },
+	{ "R1_6_7", 16793.65 },
+	{ "R2_6_7", 10147.52 },
+	{ "C1_6_7", 14855.32 },
+	{ "C2_6_7", 7512.22 },
+	{ "RC1_6_7", 16322.95 },
+	{ "RC2_6_7", 10724.85 },
+	{ "R1_6_8", 15766.32 },
+	{ "R2_6_8", 7574.39 },
+	{ "C1_6_8", 14559.16 },
+	{ "C2_6_8", 7601.94 },
+	{ "RC1_6_8", 16136.38 },
+	{ "RC2_6_8", 10007.82 },
+	{ "R1_6_9", 19153.71 },
+	{ "R2_6_9", 13377.56 },
+	{ "C1_6_9", 13694.94 },
+	{ "C2_6_9", 8036.01 },
+	{ "RC1_6_9", 15996.82 },
+	{ "RC2_6_9", 9580.87 },
+	{ "R1_6_10", 18047.99 },
+	{ "R2_6_10", 12265.83 },
+	{ "C1_6_10", 13637.34 },
+	{ "C2_6_10", 7274.04 },
+	{ "RC1_6_10", 15795.75 },
+	{ "RC2_6_10", 9069.41 },
+	{ "R1_8_1", 36852.06 },
+	{ "R2_8_1", 28125.99 },
+	{ "C1_8_1", 25191.94 },
+	{ "C2_8_1", 11662.08 },
+	{ "RC1_8_1", 35467.41 },
+	{ "RC2_8_1", 21018.41 },
+	{ "R1_8_2", 32790.69 },
+	{ "R2_8_2", 22795.79 },
+	{ "C1_8_2", 27058.99 },
+	{ "C2_8_2", 12376.66 },
+	{ "RC1_8_2", 30095.13 },
+	{ "RC2_8_2", 18181.14 },
+	{ "R1_8_3", 29708.38 },
+	{ "R2_8_3", 17714.05 },
+	{ "C1_8_3", 24362.72 },
+	{ "C2_8_3", 11411.53 },
+	{ "RC1_8_3", 28520.62 },
+	{ "RC2_8_3", 14442.40 },
+	{ "R1_8_4", 28078.94 },
+	{ "R2_8_4", 13206.10 },
+	{ "C1_8_4", 23848.03 },
+	{ "C2_8_4", 10752.87 },
+	{ "RC1_8_4", 27311.32 },
+	{ "RC2_8_4", 11019.70 },
+	{ "R1_8_5", 34342.50 },
+	{ "R2_8_5", 24345.47 },
+	{ "C1_8_5", 25171.39 },
+	{ "C2_8_5", 11425.23 },
+	{ "RC1_8_5", 32978.66 },
+	{ "RC2_8_5", 19137.47 },
+	{ "R1_8_6", 31341.06 },
+	{ "R2_8_6", 20479.46 },
+	{ "C1_8_6", 25169.13 },
+	{ "C2_8_6", 11353.61 },
+	{ "RC1_8_6", 33181.53 },
+	{ "RC2_8_6", 18146.03 },
+	{ "R1_8_7", 29195.72 },
+	{ "R2_8_7", 16677.31 },
+	{ "C1_8_7", 25906.47 },
+	{ "C2_8_7", 11379.87 },
+	{ "RC1_8_7", 30768.36 },
+	{ "RC2_8_7", 16843.96 },
+	{ "R1_8_8", 27960.28 },
+	{ "R2_8_8", 12645.63 },
+	{ "C1_8_8", 25401.38 },
+	{ "C2_8_8", 11309.98 },
+	{ "RC1_8_8", 30694.45 },
+	{ "RC2_8_8", 15799.03 },
+	{ "R1_8_9", 32791.14 },
+	{ "R2_8_9", 22335.51 },
+	{ "C1_8_9", 24726.74 },
+	{ "C2_8_9", 11721.31 },
+	{ "RC1_8_9", 30299.38 },
+	{ "RC2_8_9", 15361.73 },
+	{ "R1_8_10", 31474.59 },
+	{ "R2_8_10", 20401.47 },
+	{ "C1_8_10", 24197.40 },
+	{ "C2_8_10", 10990.64 },
+	{ "RC1_8_10", 29765.69 },
+	{ "RC2_8_10", 14439.14 },
+	{ "R1_10_1", 53501.39 },
+	{ "R2_10_1", 42294.31 },
+	{ "C1_10_1", 42482.61 },
+	{ "C2_10_1", 16879.24 },
+	{ "RC1_10_1", 47188.44 },
+	{ "RC2_10_1", 30289.39 },
+	{ "R1_10_2", 49951.00 },
+	{ "R2_10_2", 33459.32 },
+	{ "C1_10_2", 43023.01 },
+	{ "C2_10_2", 17126.39 },
+	{ "RC1_10_2", 44620.38 },
+	{ "RC2_10_2", 25425.65 },
+	{ "R1_10_3", 45707.48 },
+	{ "R2_10_3", 24938.95 },
+	{ "C1_10_3", 40339.01 },
+	{ "C2_10_3", 16322.02 },
+	{ "RC1_10_3", 42786.69 },
+	{ "RC2_10_3", 20043.04 },
+	{ "R1_10_4", 43262.82 },
+	{ "R2_10_4", 17880.11 },
+	{ "C1_10_4", 39568.77 },
+	{ "C2_10_4", 15696.68 },
+	{ "RC1_10_4", 41892.10 },
+	{ "RC2_10_4", 15741.56 },
+	{ "R1_10_5", 53289.48 },
+	{ "R2_10_5", 36258.34 },
+	{ "C1_10_5", 42478.21 },
+	{ "C2_10_5", 16572.60 },
+	{ "RC1_10_5", 46078.09 },
+	{ "RC2_10_5", 27140.77 },
+	{ "R1_10_6", 48424.28 },
+	{ "R2_10_6", 30073.60 },
+	{ "C1_10_6", 42472.31 },
+	{ "C2_10_6", 17109.56 },
+	{ "RC1_10_6", 45932.63 },
+	{ "RC2_10_6", 26877.69 },
+	{ "R1_10_7", 44975.94 },
+	{ "R2_10_7", 23253.89 },
+	{ "C1_10_7", 42844.23 },
+	{ "C2_10_7", 16428.11 },
+	{ "RC1_10_7", 45405.13 },
+	{ "RC2_10_7", 25161.74 },
+	{ "R1_10_8", 42960.69 },
+	{ "R2_10_8", 17509.69 },
+	{ "C1_10_8", 42436.10 },
+	{ "C2_10_8", 16191.70 },
+	{ "RC1_10_8", 44628.29 },
+	{ "RC2_10_8", 23740.40 },
+	{ "R1_10_9", 51615.61 },
+	{ "R2_10_9", 33068.74 },
+	{ "C1_10_9", 40983.55 },
+	{ "C2_10_9", 16372.09 },
+	{ "RC1_10_9", 44634.17 },
+	{ "RC2_10_9", 23065.64 },
+	{ "R1_10_10", 48979.36 },
+	{ "R2_10_10", 30312.50 },
+	{ "C1_10_10", 40205.01 },
+	{ "C2_10_10", 16077.57 },
+	{ "RC1_10_10", 44265.86 },
+	{ "RC2_10_10", 21910.33 }
+
+	};
+
+	if (nagataRL.count(ins) > 0) {
+		auto ret = nagataRL[ins];
+		return ret;
+	}
+	else {
+		return 0.0;
+	}
+	return 0.0;
+}
+
 struct Input {
 
-	Configuration cfg;
-
-	string example = "";
+	std::string example = "";
 	int custCnt = 0;
 	DisType Q = 0;
 	int vehicleCnt = 0;
@@ -815,6 +1127,8 @@ struct Input {
 	int sintefRecRN = 0;
 	DisType dimacsRecRL = 0;
 	DisType sintefRecRL = 0;
+	//  TODO[lyh][0]:提交之前要去掉
+	DisType naRecRL = 0;
 	bool isOptRL = false;
 
 	Vec<Vec<DisType>> disOf;
@@ -827,14 +1141,11 @@ struct Input {
 	Vec<Vec<int>> addSTJIsxthcloseOf;
 	//表示v的地理位置加上v的服务时间作为排序依据 input.addSTJIsxthcloseOf[v][w],w是v的第几近
 
-	Vec<Vec<int>> jIsxthcloseOf;
-	//表示v的地理位置距离作为排序依据 jIsxthcloseOf[v][w],w是v的第几近
-
-	Vec<Vec<int>> iInNeicloseOf;
-
 	Vec<Vec<int>> iInNeicloseOfUnionNeiCloseOfI;
 
-	Input(Environment& env,Configuration& cfg):cfg(cfg) {
+	Vec<Vec<int>> sectorClose;
+
+	Input(Environment& env) {
 		initInput(env);
 	}
 
@@ -848,7 +1159,7 @@ struct Input {
 		}
 
 		disOf = Vec< Vec<DisType> >
-			(custCnt + 2, Vec<DisType>(custCnt + 2, 0));
+			(custCnt + 1, Vec<DisType>(custCnt + 1, 0));
 
 		/*
 			sqrt函数有三种形式
@@ -859,25 +1170,18 @@ struct Input {
 		*/
 
 		for (int i = 0; i <= custCnt + 1; ++i) {
-			for (int j = i + 1; j <= custCnt + 1; ++j) {
+			for (int j = i + 1; j <= custCnt; ++j) {
 				Data& d1 = datas[i];
 				Data& d2 = datas[j];
 				double dis = sqrtl((d1.XCOORD - d2.XCOORD) * (d1.XCOORD - d2.XCOORD)
 					+ (d1.YCOORD - d2.YCOORD) * (d1.YCOORD - d2.YCOORD));
-
-#if DISDOUBLE 
+				//TODO[lyh][000]:dimacs的距离计算不同！！！！
 				disOf[j][i] = disOf[i][j] = dis;
-#else
-				disOf[j][i] = disOf[i][j] = dis;
-				//disOf[j][i] = disOf[i][j] = dis;
-#endif // DISDOUBLE
-
+				//disOf[j][i] = disOf[i][j] = ceil(dis);
 			}
 		}
 
-		allCloseOf = Vec< Vec<int>>(custCnt + 1, Vec<int>(0));
-
-		auto canlinkDir = [&](int v, int w) {
+		auto canlinkDir = [&](int v, int w) ->bool {
 
 			DisType av = disOf[0][v];
 			DisType aw = av + datas[v].SERVICETIME + disOf[v][w];
@@ -887,14 +1191,34 @@ struct Input {
 			return ptw == 0;
 		};
 
-		auto canLinkNode = [&](int v, int w) {
-			
-			if (!canlinkDir(v,w) && !canlinkDir(w,v)) {
+		auto canLinkNode = [&](int v, int w) ->bool {
+
+			if (!canlinkDir(v, w) && !canlinkDir(w, v)) {
 				return false;
 			}
 			return true;
 		};
 
+		sectorClose = Vec< Vec<int>>(custCnt + 1, Vec<int>(0));
+		for (int v = 0; v <= custCnt; ++v) {
+			Vec<int> nums;
+			nums.reserve(custCnt + 1);
+			for (int pos = 0; pos <= custCnt; ++pos) {
+				if (pos != v) {
+					nums.push_back(pos);
+				}
+			}
+			auto cmp = [&](const int a, const int b) {
+				return abs(datas[a].polarAngle- datas[v].polarAngle) 
+					< abs(datas[b].polarAngle - datas[v].polarAngle);
+			};
+			sort(nums.begin(), nums.end(), cmp);
+			sectorClose[v] = std::move(nums);
+		}
+
+		allCloseOf = Vec< Vec<int>>(custCnt + 1, Vec<int>(0));
+		
+		
 		for (int v = 0; v <= custCnt; ++v) {
 
 			Vec<int> nums;
@@ -920,8 +1244,13 @@ struct Input {
 
 			sort(nums.begin(), nums.end(), cmp);
 
-			allCloseOf[v] = nums;
+			allCloseOf[v] = std::move(nums);
 		}
+
+		Vec<Vec<int>> jIsxthcloseOf;
+		//表示v的地理位置距离作为排序依据 jIsxthcloseOf[v][w],w是v的第几近
+
+		Vec<Vec<int>> iInNeicloseOf;
 
 		jIsxthcloseOf = Vec< Vec<int> >
 			(custCnt + 1, Vec<int>(custCnt + 1, -1));
@@ -934,8 +1263,9 @@ struct Input {
 
 		iInNeicloseOfUnionNeiCloseOfI =  Vec< Vec<int> > (custCnt+1);
 
-		Vec<int> devs = cfg.outNeiSize;
-		int deNeiSize = devs[0];
+		int deNeiSize = cfg->outNeiSize;
+		deNeiSize = std::min(custCnt - 1, deNeiSize);
+
 		iInNeicloseOf = Vec< Vec<int> >
 			(custCnt + 1, Vec<int>());
 		for (int i = 0; i < custCnt + 1; ++i) {
@@ -965,7 +1295,7 @@ struct Input {
 
 		addSTclose = Vec< Vec<int>>
 			(custCnt + 1, Vec<int>());
-
+		
 		for (int v = 0; v <= custCnt; ++v) {
 			addSTclose[v].reserve(custCnt);
 			for (int w = 0; w <= custCnt; ++w) {
@@ -1005,18 +1335,19 @@ struct Input {
 		sintefRecRN = info.minRN;
 		dimacsRecRL = info.minRL * disMul;
 		sintefRecRL = getSintefRL(example)* disMul;
+		naRecRL = getNagataRL(example)* disMul;
 		isOptRL = info.isOpt;
 
-		Log(Log::Level::Warning) <<"sintefRecRN: " << sintefRecRN << endl;
-		Log(Log::Level::Warning) <<"sintefRecRL: " << sintefRecRL << endl;
-		Log(Log::Level::Warning) <<"dimacsRecRL: " << dimacsRecRL << endl;
-		Log(Log::Level::Warning) <<"isOptRL: " << isOptRL << endl;
-		Log(Log::Level::Warning) <<"Q: " << Q << endl;
+		Log(Log::Level::Warning) <<"sintefRecRN: " << sintefRecRN << std::endl;
+		Log(Log::Level::Warning) <<"sintefRecRL: " << sintefRecRL << std::endl;
+		Log(Log::Level::Warning) <<"dimacsRecRL: " << dimacsRecRL << std::endl;
+		Log(Log::Level::Warning) <<"isOptRL: " << isOptRL << std::endl;
+		Log(Log::Level::Warning) <<"Q: " << Q << std::endl;
 			
 		return true;
 	}
 
-	bool readDimacsInstance(string& instanciaPath) {
+	bool readDimacsInstance(std::string& instanciaPath) {
 
 		//debug(instanciaPath.c_str());
 		FILE* file = fopen(instanciaPath.c_str(), "r");
@@ -1038,7 +1369,7 @@ struct Input {
 		fscanf(file, "%*[^\n]\n");
 		
 		this->Q *= disMul;
-		string line = "";
+		std::string line = "";
 		size_t len = 0;
 		long read = 0;
 		 
@@ -1076,24 +1407,23 @@ struct Output
 	int minEP = -1;
 	DisType state = -1;
 	double runTime = 0.0;
-	Vec<bool> HArr;
 
 };
 
-bool solveCommandLine(int argc, char* argv[], Configuration& cfg,Environment& env) {
+bool solveCommandLine(int argc, char* argv[], Configuration* cfg,Environment& env) {
 	
 	MyString ms;
 	if (argc >= 2) {
-		cfg.breakRecord = ms.str_int(argv[1]);
+		cfg->breakRecord = ms.str_int(argv[1]);
 	}
 
 	if (argc >= 3) {
-		string inpath = argv[2];
+		std::string inpath = argv[2];
 		env.setInputPath(inpath);
 	}
 
 	if (argc >= 4) {
-		cfg.runTimer = ms.str_int(argv[3]);
+		cfg->runTimer = ms.str_int(argv[3]);
 	}
 
 	if (argc >= 5) {
@@ -1102,27 +1432,27 @@ bool solveCommandLine(int argc, char* argv[], Configuration& cfg,Environment& en
 	return true;
 }
 
-bool saveSln(Input& input, Output& output,Configuration& cfg,Environment& env) {
+bool saveSlnFile(Input& input, Output& output, Configuration* cfg, Environment& env) {
 
 	DateTime d(time(0));
 	MyString ms;
 	// 输出 tm 结构的各个组成部分
-	//string day = /*ms.LL_str(d.year) + */ms.LL_str(d.month) + ms.LL_str(d.day);
-	string day = __DATE__;
+	//std::string day = /*ms.LL_str(d.year) + */ms.LL_str(d.month) + ms.LL_str(d.day);
+	std::string day = __DATE__;
 	for (auto& c : day) {
 		if (c == ' ') {
 			c = '_';
 		}
 	}
-	string pwe0 = ms.int_str(cfg.Pwei0);
-	string pwe1 = ms.int_str(cfg.Pwei1);
-	string minKmax = ms.int_str(cfg.minKmax);
-	string maxKmax = ms.int_str(cfg.maxKmax);
+	std::string pwe0 = ms.int_str(cfg->Pwei0);
+	std::string pwe1 = ms.int_str(cfg->Pwei1);
+	std::string minKmax = ms.int_str(cfg->minKmax);
+	std::string maxKmax = ms.int_str(cfg->maxKmax);
 
-	string type = output.rts.size() < input.sintefRecRN ? "br" : "Ej";
+	std::string type = output.rts.size() < input.sintefRecRN ? "br" : "Ej";
 
 	std::ofstream rgbData;
-	string wrPath = env.outputPath 
+	std::string wrPath = env.outputPath
 		+ type + "_" + day
 		/*+ "PW" + pwe0 + pwe1
 		+ "KM" + minKmax + maxKmax
@@ -1130,26 +1460,36 @@ bool saveSln(Input& input, Output& output,Configuration& cfg,Environment& env) {
 		//+input.example 
 		+".csv";
 
+	bool isGood = false;
+	{
+		std::ifstream f(wrPath.c_str());
+		isGood = f.good();
+	}
+
 	rgbData.open(wrPath, std::ios::app | std::ios::out);
 
 	if (!rgbData) {
-		Log(Log::Level::Warning) << "output file open errno" << endl;
+		Log(Log::Level::Warning) << "output file open errno" << std::endl;
 		return false;
 	}
-	
-	// instance,sintefRecRN,sinrn,lyhrn,dimacsRecRL，sinrl,lyhrl,time,epsize,minep,ptw,pc,rts,seeds
+	if (!isGood) {
+		rgbData << "ins,lyhrn,sinrn,lyhrl,dimRL,rate, sinRL,rate,naRL,rate,time,epsize,minep,ptw,pc,rts,seed" << std::endl;
+	}
 
 	rgbData << input.example << ",";
-	//rgbData << input.sumQToQ << ",";
-	rgbData << input.sintefRecRN << ",";
 	rgbData << output.rts.size() << ",";
+	rgbData << input.sintefRecRN << ",";
 	
 	rgbData << output.state << ",";
 
 	rgbData << input.dimacsRecRL << ",";
 	rgbData << double((double)(output.state - input.dimacsRecRL)/ input.dimacsRecRL)*100 << ",";
+	
 	rgbData << input.sintefRecRL << ",";
 	rgbData << double((double)(output.state - input.sintefRecRL) / input.sintefRecRL) * 100 << ",";
+	
+	rgbData << input.naRecRL << ",";
+	rgbData << double((double)(output.state - input.naRecRL) / input.naRecRL) * 100 << ",";
 	
 	rgbData << output.runTime << ",";
 	rgbData << output.EP.size() << ",";
@@ -1168,7 +1508,7 @@ bool saveSln(Input& input, Output& output,Configuration& cfg,Environment& env) {
 	rgbData << ",";
 	rgbData << env.seed;
 
-	rgbData << endl;
+	rgbData << std::endl;
 	rgbData.close();
 
 	return true;

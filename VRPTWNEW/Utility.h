@@ -34,8 +34,6 @@
 // [off] use chrono instead of ctime in DateTime.
 #define UTILITY_DATE_TIME_CPP_STYLE  0
 
-using namespace std;
-
 namespace hust {
 
 // if there is "#define x  y", VERBATIM_STRINGIFY(x) will get "x".
@@ -50,34 +48,34 @@ namespace hust {
 #define RESOLVED_CONCAT2(a, b, c)  VERBATIM_CONCAT2(a, b, c)
 #define RESOLVED_CONCAT3(a, b, c, d)  VERBATIM_CONCAT3(a, b, c, d)
 
-void println() { cout << endl; }
+void println() { std::cout << std::endl; }
 template<typename T, typename ... Types>
 void println(const T& firstArg, const Types&... args) {
 
     //cout << "size of args: " << sizeof...(args) << endl;
-    cout << firstArg << " ";
+    std::cout << firstArg << " ";
     println(args...);
 }
 template<typename T>
 void printve(T arr) {
-    cout << " ";
+    std::cout << " ";
     for (auto& i : arr) {
-        cout << i << ",";
+        std::cout << i << ",";
     }
-    cout << endl;
+    std::cout << std::endl;
 }
 
 struct MyString {
 public:
     //split 
-    vector<string> split(string str, string s) {
-        vector<string> ret;
+    Vec<std::string> split(std::string str, std::string s) {
+        Vec<std::string> ret;
         if (s.size() == 0) {
             ret.push_back(str);
             return ret;
         }
         std::size_t pos = 0;
-        while ((pos = str.find(s)) != string::npos) {
+        while ((pos = str.find(s)) != std::string::npos) {
             if (pos > 0) {
                 ret.push_back(str.substr(0, pos));
             }
@@ -89,16 +87,16 @@ public:
         return ret;
     }
     //string to LL
-    int str_int(string s) {
-        stringstream ss;
+    int str_int(std::string s) {
+        std::stringstream ss;
         int ret;
         ss << s;
         ss >> ret;
         return ret;
     }
 
-    string int_str(int s) {
-        stringstream ss;
+    std::string int_str(int s) {
+        std::stringstream ss;
         ss << s;
         return ss.str();
     }
@@ -197,10 +195,10 @@ public:
 
 
     #if UTILITY_TIMER_CPP_STYLE
-    Timer(const Millisecond &duration, const TimePoint &st = Clock::now(),string name="")
+    Timer(const Millisecond &duration, const TimePoint &st = Clock::now(),std::string name="")
         : duration(duration),startTime(st), endTime(startTime + duration),name(name) {}
 
-    Timer(LL duration, const TimePoint& st = Clock::now(), string name = "")
+    Timer(LL duration, const TimePoint& st = Clock::now(), std::string name = "")
         : duration(Millisecond(duration * 1000)),startTime(st), endTime(startTime + Millisecond(duration*1000) ), name(name) {}
 
     #else
@@ -272,7 +270,7 @@ public:
     const TimePoint& getEndTime() const { return endTime; }
 
     void disp() {
-        cout << name << "run :" << elapsedSeconds() << "s" << endl;
+        std::cout << name << "run :" << elapsedSeconds() << "s" << std::endl;
     }
 
     double getRunTime() {
@@ -293,7 +291,7 @@ protected:
     TimePoint startTime;
     TimePoint endTime;
     Millisecond duration;
-    string name;
+    std::string name;
 };
 
 class DateTime {
@@ -383,7 +381,7 @@ public:
         Error = On,
         Warning = On,
         Debug = On,
-        Info, // = Off.
+        Info = On, // = Off.
     };
 
 #define SZX_DEBUG 1

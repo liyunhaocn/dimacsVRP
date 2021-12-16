@@ -13,28 +13,25 @@
 
 #define LINUX 0
 #define ATTRIBUTETABU 1
-
 #define LOGINFO 1
 
 #define CHECKING 0
-#define DISDOUBLE 0
 
-#define debug(x) cout<<#x<<": "<<(x)<<endl
-#define deOut(x) cout<<#x<<": "<<(x)<<" "
-#define de15lf(x) {cout<<#x<<": "; printf("%.15lf\n",x);}
-#define outVe(arr) {cout<<#arr<<": ";for(auto i:arr){cout<<i<<", ";}cout<<endl;}
+#define debug(x) std::cout<<#x<<": "<<(x)<<std::endl
+#define deOut(x) std::cout<<#x<<": "<<(x)<<" "
+#define de15lf(x) {std::cout<<#x<<": "; printf("%.15lf\n",x);}
+#define outVe(arr) {std::cout<<#arr<<": ";for(auto i:arr){std::cout<<i<<", ";}std::cout<<std::endl;}
 #define DEFabs(a,b) ((a)>=(b))?((a)-(b)):((b)-(a))
 
-#define lfeq4(a,b)  ((a) > (b) ? ((a)-(b) < 1e-4):((b)-(a) < 1e-4) )
-#define lfeq5(a,b)  ((a) > (b) ? ((a)-(b) < 1e-5):((b)-(a) < 1e-5) )
-#define lfeq7(a,b)  ((a) > (b) ? ((a)-(b) < 1e-7):((b)-(a) < 1e-7) )
-#define lfeq8(a,b)  ((a) > (b) ? ((a)-(b) < 1e-8):((b)-(a) < 1e-8) )
-#define lfeq9(a,b)  ((a) > (b) ? ((a)-(b) < 1e-9):((b)-(a) < 1e-9) )
-#define lfeq10(a,b)  ((a) > (b) ? ((a)-(b) < 1e-10):((b)-(a) < 1e-10) )
-#define lfeq11(a,b)  ((a) > (b) ? ((a)-(b) < 1e-11):((b)-(a) < 1e-11) )
-#define lfeq12(a,b)  ((a) > (b) ? ((a)-(b) < 1e-12):((b)-(a) < 1e-12) )
-#define lfeq13(a,b)  ((a) > (b) ? ((a)-(b) < 1e-13):((b)-(a) < 1e-13) )
-#define DISlfeq lfeq10
+#define lyhCheckTrue(x) {				\
+	if(!(x) ){							\
+		std::cout						\
+		<< "[" << __FILE__ << "]"		\
+		<< "[line:" << __LINE__ << "]"  \
+		<< "[" << __FUNCTION__ << "]: " \
+		<< #x <<std::endl;				\
+	}									\
+}
 
 namespace hust {
 
@@ -50,12 +47,9 @@ namespace hust {
 	double PI_16 = PI / 16;
 	double PI_32 = PI / 32;
 
-#if DISDOUBLE
-	int mul = 1;
-#else
+	//TODO[lyh][000]:dimacsÊÇ10
 	int disMul = 10000;
-	int Mod = 1000000007;
-#endif // DISDOUBLE
+	unsigned Mod = 1000000007;
 
 	using LL = long long int;
 
@@ -67,19 +61,19 @@ namespace hust {
 
 	template<typename V>
 	using Vec = std::vector<V>;
-
-#if DISDOUBLE
-	using DisType = double;
-	DisType DisInf = LFInf;
-#else
+	
 	using DisType = LL;
 	DisType DisInf = LLInf;
-#endif // DISDOUBLE
+
 	struct Random;
 	struct RandomX;
+	struct Configuration;
 
-	Random* myRand;
-	RandomX* myRandX;
+	Random* myRand = nullptr;
+	RandomX* myRandX = nullptr;
+	Vec<Vec<LL>> * yearTable = nullptr;
+	Configuration* cfg = nullptr;
+	LL squIter = 1;
 }
 
 #endif // !vrptwNew_FLAG_H

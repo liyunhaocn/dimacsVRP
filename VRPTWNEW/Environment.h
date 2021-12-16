@@ -5,8 +5,6 @@
 #include "./Flag.h"
 #include "./Utility.h"
 
-using namespace std;
-
 namespace hust {
 
 class Environment
@@ -14,14 +12,14 @@ class Environment
 public:
 
 	unsigned seed = 0;
-	string inputPath = "";
-	string outputPath = "../Results/";
+	std::string inputPath = "";
+	std::string outputPath = "../Results/";
 
-	Environment(const string& inputp) {
+	Environment(const std::string& inputp) {
 		this->inputPath = inputp;
 	};
 
-	bool setInputPath(string& inPath) {
+	bool setInputPath(std::string& inPath) {
 		this->inputPath = inPath;
 		return true;
 	}
