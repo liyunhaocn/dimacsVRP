@@ -4,11 +4,13 @@
     <DebuggerWorkingDirectory>$(SolutionDir)..\</DebuggerWorkingDirectory>
     <DebuggerFlavor>LinuxWSLDebugger</DebuggerFlavor>
     <RemoteDebuggingTarget>WSL</RemoteDebuggingTarget>
+    <RemoteDebuggerWorkingDirectory>$(SolutionDir)..\..\Dev</RemoteDebuggerWorkingDirectory>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <DebuggerWorkingDirectory>$(SolutionDir)..\</DebuggerWorkingDirectory>
     <DebuggerFlavor>LinuxWSLDebugger</DebuggerFlavor>
     <RemoteDebuggingTarget>WSL</RemoteDebuggingTarget>
     <RemoteDebuggingMode>gdbserver</RemoteDebuggingMode>
+    <RemoteDebuggerWorkingDirectory>$(SolutionDir)..\..\Dev</RemoteDebuggerWorkingDirectory>
   </PropertyGroup>
 </Project>

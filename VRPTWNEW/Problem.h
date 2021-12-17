@@ -1364,7 +1364,7 @@ struct Input {
 		this->example = std::string(name);
 		fscanf(file, "%*[^\n]\n");
 		fscanf(file, "%*[^\n]\n");
-		fscanf(file, "%d %d\n", &this->vehicleCnt, &this->Q);
+		fscanf(file, "%lld %lld\n", &this->vehicleCnt, &this->Q);
 		fscanf(file, "%*[^\n]\n");
 		fscanf(file, "%*[^\n]\n");
 		
@@ -1395,6 +1395,7 @@ struct Input {
 		}
 		custCnt = index-1;
 		fclose(file);
+		return true;
 	}
 };
 

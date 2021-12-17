@@ -578,7 +578,7 @@ public:
 
 		Vec<int> ret;
 		if (abCycleSet.size() <=2 ) {
-			println("abCycleSet.size() <=2");
+			//println("abCycleSet.size() <=2");
 			return {};
 		}
 		generSolNum = 0;

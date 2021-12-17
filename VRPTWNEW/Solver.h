@@ -6778,15 +6778,16 @@ public:
 		auto updatePool = [&](Position& pos) {
 
 			qu.push(pos);
-			if (qu.size() < cfg->findBestPosForRuinPqSize) {
+			
+			if (qu.size() <= cfg->findBestPosForRuinPqSize) {
 				;
 			}
 			else {
 				qu.pop();
 			}
 		};
-
-		for (int vpos = 0;vpos< 20;vpos++) {
+		// TODO[lyh][-1]:bug vpos上限小了 可能找不到合适的位置
+		for (int vpos = 0; vpos  + 1 < input.custCnt;vpos++) {
 
 			int v = input.allCloseOf[w][vpos]; 
 			int vrId = customers[v].routeID;
@@ -6831,7 +6832,9 @@ public:
 				posTemp.year = year;
 				posTemp.secDis = abs(input.datas[w].polarAngle - input.datas[v].polarAngle);
 				updatePool(posTemp);
-
+				if (qu.size() == cfg->findBestPosForRuinPqSize) {
+					break;
+				}
 			}
 		}
 

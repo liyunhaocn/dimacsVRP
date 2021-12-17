@@ -78,37 +78,45 @@
   <PropertyGroup Label="UserMacros" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <TargetExt />
-    <TargetName>solver1</TargetName>
+    <TargetName>DLLSMA</TargetName>
     <RemoteDeployDir>$(RemoteRootDir)</RemoteDeployDir>
+    <OutDir>$(SolutionDir)..\..\Dev</OutDir>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <TargetExt />
-    <TargetName>solver1</TargetName>
+    <TargetName>DLLSMA</TargetName>
     <RemoteDeployDir>$(RemoteProjectDir)</RemoteDeployDir>
+    <OutDir>$(SolutionDir)..\..\Dev</OutDir>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|ARM'">
-    <TargetName>solver1</TargetName>
+    <TargetName>DLLSMA</TargetName>
     <TargetExt />
+    <OutDir>$(SolutionDir)..\..\Dev</OutDir>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|ARM'">
-    <TargetName>solver1</TargetName>
+    <TargetName>DLLSMA</TargetName>
     <TargetExt />
+    <OutDir>$(SolutionDir)..\..\Dev</OutDir>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|ARM64'">
-    <TargetName>solver1</TargetName>
+    <TargetName>DLLSMA</TargetName>
     <TargetExt />
+    <OutDir>$(SolutionDir)..\..\Dev</OutDir>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|ARM64'">
-    <TargetName>solver1</TargetName>
+    <TargetName>DLLSMA</TargetName>
     <TargetExt />
+    <OutDir>$(SolutionDir)..\..\Dev</OutDir>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x86'">
-    <TargetName>solver1</TargetName>
+    <TargetName>DLLSMA</TargetName>
     <TargetExt />
+    <OutDir>$(SolutionDir)..\..\Dev</OutDir>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x86'">
-    <TargetName>solver1</TargetName>
+    <TargetName>DLLSMA</TargetName>
     <TargetExt />
+    <OutDir>$(SolutionDir)..\..\Dev</OutDir>
   </PropertyGroup>
   <ItemGroup>
     <ClCompile Include="..\..\..\VRPTWNEW\main.cpp" />
