@@ -290,9 +290,9 @@ bool justLocalSearch(int argc, char* argv[]) {
 
 	Solver st(input, env);
 	st.minimizeRN();
-	st.saveOutAsSintefFile("minR");
+	//st.saveOutAsSintefFile("minR");
 	st.mRLLocalSearch({});
-	st.saveOutAsSintefFile("minL");
+	//st.saveOutAsSintefFile("minL");
 	//TODO[lyh][0]:
 	pBest = st;
 
@@ -308,23 +308,27 @@ bool justLocalSearch(int argc, char* argv[]) {
 
 		st = pBest;
 
-		int rnum = myRand->pick(10) + 1;
+		int rnum = myRand->pick(20) + 1;
 		bool isRuin = st.ruinLocalSearch(rnum);
 		bool up1 = updateBestSol(pBest, st);
 		if (up1) {
-			println("cost:", pBest.RoutesCost, " ruinNum:", ruinNum, " parNum:", parNum);
+			//println("cost:", pBest.RoutesCost, " ruinNum:", ruinNum, " parNum:", parNum);
+			println("cost:", pBest.RoutesCost );
 			contiNoDown = 1;
 			++ruinNum;
 		}
+		else {
+			println("cost:", pBest.RoutesCost );
+		}
 
 		//st.perturb(per);
-		st.patternAdjustment();
-		st.mRLLocalSearch({});
-		bool up2 = updateBestSol(pBest, st);
-		if (up2) {
-			++parNum;
-			println("cost:",pBest.RoutesCost, " ruinNum:", ruinNum, " parNum:", parNum);
-		}
+		//st.patternAdjustment();
+		//st.mRLLocalSearch({});
+		//bool up2 = updateBestSol(pBest, st);
+		//if (up2) {
+		//	++parNum;
+		//	println("cost:",pBest.RoutesCost, " ruinNum:", ruinNum, " parNum:", parNum);
+		//}
 		
 	}
 
@@ -360,8 +364,8 @@ int main(int argc, char* argv[])
 		delete hust::myRandX;
 	}
 	return 0;*/
-	hust::solverByEAX(argc, argv);return 0;
-	//hust::justLocalSearch(argc, argv); return 0;
+	//hust::solverByEAX(argc, argv);return 0;
+	hust::justLocalSearch(argc, argv); return 0;
 	//run(argc, argv);
 
 	return 0;

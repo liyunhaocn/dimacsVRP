@@ -6974,81 +6974,29 @@ public:
 
 	Vec<int> ruinGetRuinCusBySting(int runCusNum) {
 
-		int ruinRtNum = runCusNum;
-		ruinRtNum = std::min<int>(rts.cnt, ruinRtNum);
-
-		std::set<int> ridSet;
-		Vec<int> ruinBeginCusArr;
-		ruinBeginCusArr.reserve(ruinRtNum);
-
-		Vec<CircleSector> angs(rts.cnt);
-		Vec<int> range(rts.cnt);
-		for (int i = 0; i < rts.cnt; ++i) {
-			auto ve = rPutCusInve(rts[i]);
-			angs[i].initialize(input.datas[ve[0]].polarAngle);
-			for (int j = 1; j < ve.size(); ++j) {
-				angs[i].extend(input.datas[ve[j]].polarAngle);
-			}
-			range[i] = CircleSector::positive_mod(angs[i].end - angs[i].start);
-		}
-
-		int index = 0;
-		for (int i = 1; i < rts.cnt; ++i) {
-			if (range[i] > range[index]) {
-				index = i;
-			}
-		}
-
+		int index = myRand->pick(rts.cnt);
 		Route& firstR = rts[index];
 		auto cusInArr = rPutCusInve(firstR);
 
-		int v = cusInArr[myRand->pick(firstR.rCustCnt)];
-		ridSet.insert(firstR.routeID);
-		ruinBeginCusArr.push_back(v);
+		int v = cusInArr[myRand->pick(std::max<int>(1,firstR.rCustCnt/2) )];
 
-		while (ridSet.size() < ruinRtNum) {
+		std::unordered_set<int> uset;
+		Vec<int> runCus;
 
-			v = ruinBeginCusArr[myRand->pick(ruinBeginCusArr.size())];
+		while (uset.size() < runCusNum && v<=input.custCnt) {
 
-			for (int wpos = 0; wpos < (input.custCnt - 1) && ridSet.size() < ruinRtNum; ++wpos) {
+			for (int wpos = 0; wpos < myRand->pick(1,3) * 5 && uset.size() < runCusNum; ++wpos) {
 				int w = input.allCloseOf[v][wpos];
 				int wrId = customers[w].routeID;
 				if (wrId != -1) {
-					if (ridSet.count(wrId) > 0) {
-						;
-					}
-					else {
-						ruinBeginCusArr.push_back(w);
-						ridSet.insert(wrId);
-						break;
-					}
+					uset.insert(w);
 				}
 			}
+			v = customers[v].next;
 		}
-
-		Vec<int> runCus;
-		runCus.reserve(ruinRtNum/rts.cnt*input.custCnt);
-
-		for (int rcus : ruinBeginCusArr) {
-
-			Route& r = rts.getRouteByRid(customers[rcus].routeID);
-			int rCusNum = r.rCustCnt;
-
-			//获取ruin一条路径上要ruin的cus的数量
-			int ruinCusNumInOneRoute = std::max<int>(rCusNum * 0.3, 1);
-			ruinCusNumInOneRoute = std::min<int>(rCusNum - 1, ruinCusNumInOneRoute);
-
-			int pt = rcus;
-			int isruinedNum = 0;
-			//rNextDisp(r);
-			while (pt <= input.custCnt && ++isruinedNum < ruinCusNumInOneRoute) {
-				int ptn = customers[pt].next;
-				runCus.push_back(pt);
-				if (runCus.size() >= runCusNum) {
-					return runCus;
-				}
-				pt = ptn;
-			}
+		runCus.reserve(uset.size());
+		for (int c : uset) {
+			runCus.push_back(c);
 		}
 		return runCus;
 	}
@@ -7126,84 +7074,80 @@ public:
 			< rts[j].routeCost / rts[j].rCustCnt;
 		};
 		sort(rIndexArr.begin(), rIndexArr.end(), cmp);*/
-
 		//auto& rIndexArr = myRandX->getMN(rts.cnt, min(rts.cnt, ruinRtNum));
 			
 		//TODO[lyh][1]:这里可能可以去掉，如果之前每一条路径的cost都维护的话
 		//TODO[lyh][1]:但是接到扰动后面就不太行了
 		reCalRtsCostSumCost();
 
-		Vec<int> cuses;
-		cuses.resize(input.custCnt);
+		Timer t1(2);
+		
+		while (!t1.isTimeOut()) {
 
-		Vec<int> ruinCus;
-		int kind = myRand->pick(3);
-		if (kind == 0) {
-			ruinCus = ruinGetRuinCusByRound(ruinCusNum);
-		}
-		else if(kind==1){
-			ruinCus = ruinGetRuinCusBySting(ruinCusNum);
-		}
-		else {
-			ruinCus = ruinGetRuinCusBySec(ruinCusNum);
-		}
+			Vec<int> cuses;
+			cuses.resize(input.custCnt);
 
-		std::unordered_set<int> rIds;
-		for (int cus: ruinCus) {
-			Route& r = rts.getRouteByRid(customers[cus].routeID);
-			rIds.insert(r.routeID);
-			rRemoveAtPos(r, cus);
-			cuses.push_back(cus);
-			EPpush_back(cus);
-		}
-
-		for (auto rid : rIds) {
-			Route& r = rts.getRouteByRid(rid);
-			rUpdateAvQfrom(r,r.head);
-			rUpdateZvQfrom(r,r.tail);
-			rReCalRCost(r);
-		}
-		sumRtsCost();
-		sumRtsPen();
-
-		// 局部搜索下一次的邻域
-		ConfSet cs(input.custCnt);
-		for (int v : cuses) {
-			cs.ins(v);
-			for (int i = 0; i < cfg->ruinLocalSearchNextNeiBroad; ++i) {
-				cs.ins(input.allCloseOf[v][i]);
+			Vec<int> ruinCus;
+			int kind = myRand->pick(3);
+			/*if (kind == 0) {
+				ruinCus = ruinGetRuinCusByRound(ruinCusNum);
 			}
-		}
-		cuses = std::move(Vec<int>(cs.ve.begin(), cs.ve.begin() + cs.cnt));
+			else if (kind == 1) {*/
+				ruinCus = ruinGetRuinCusBySting(ruinCusNum);
+			/*}
+			else {
+				ruinCus = ruinGetRuinCusBySec(ruinCusNum);
+			}*/
 
-		//TODO[lyh][0]:更新惩罚值可以更快
+			std::unordered_set<int> rIds;
+			for (int cus : ruinCus) {
+				Route& r = rts.getRouteByRid(customers[cus].routeID);
+				rIds.insert(r.routeID);
+				rRemoveAtPos(r, cus);
+				cuses.push_back(cus);
+				EPpush_back(cus);
+			}
 
-		// hust::Log(Log::Info) << "ruinCusNum: " << EPr.rCustCnt <<" ruinRtNum: " << ruinRtNum << std::endl;
-		//TODO[lyh][0]:将EP中的点拿出来放进解里面
-		ruinClearEP();
+			for (auto rid : rIds) {
+				Route& r = rts.getRouteByRid(rid);
+				rUpdateAvQfrom(r, r.head);
+				rUpdateZvQfrom(r, r.tail);
+				rReCalRCost(r);
+			}
+			sumRtsCost();
+			sumRtsPen();
 
-		//reCalRtsCostSumCost(); return true;
+			// 局部搜索下一次的邻域
+			ConfSet cs(input.custCnt);
+			for (int v : cuses) {
+				cs.ins(v);
+				for (int i = 0; i < cfg->ruinLocalSearchNextNeiBroad; ++i) {
+					cs.ins(input.allCloseOf[v][i]);
+				}
+			}
+			cuses = std::move(Vec<int>(cs.ve.begin(), cs.ve.begin() + cs.cnt));
 
-		bool ruinIsRepair = repair();
-			
-		if (ruinIsRepair) {
-			//mRLLocalSearch({});
-			mRLLocalSearch(cuses);
+			//TODO[lyh][0]:更新惩罚值可以更快
 
-			if (RoutesCost < sClone.RoutesCost) {
-				return true;
+			// hust::Log(Log::Info) << "ruinCusNum: " << EPr.rCustCnt <<" ruinRtNum: " << ruinRtNum << std::endl;
+			//TODO[lyh][0]:将EP中的点拿出来放进解里面
+			ruinClearEP();
+
+			repair();
+
+			if (penalty == 0) {
+				mRLLocalSearch(cuses);
+				if (RoutesCost < sClone.RoutesCost) {
+					return true;
+				}
+				else {
+					setCurSolBy(sClone);
+				}
 			}
 			else {
 				setCurSolBy(sClone);
-				return false;
 			}
 		}
-		else {
-			setCurSolBy(sClone);
-			//reCalRtsCostAndPen();
-			return false;
-		}
-		//debug(RoutesCost);
 
 		return false;
 	}
