@@ -177,7 +177,7 @@ bool solverByEAX(int argc, char* argv[]) {
 
 			if (eax.repairSolNum == 0) {
 				if (eax.abCycleSet.size() == 0) {
-					bool ruined = pa.ruinLocalSearch(myRand->pick(10) + 1);
+					bool ruined = pa.ruinLocalSearch(myRand->pick(3),myRand->pick(10) + 1);
 					println("ruined: ", ruined, " paIndex:", paIndex, " pbIndex:", pbIndex);
 				}
 				continue;
@@ -204,11 +204,11 @@ bool solverByEAX(int argc, char* argv[]) {
 		}
 		++bestSolContiNotUp;
 		//println("bestSolContiNotUp:", bestSolContiNotUp);
-		if (bestSolContiNotUp >= 50) {
+		if (bestSolContiNotUp >= 30) {
 			
 			for (int i = 0; i < pool.size(); ++i) {
 				Solver& si = pool[i];
-				bool isruined = si.ruinLocalSearch(myRand->pick(10)+1);
+				bool isruined = si.ruinLocalSearch(myRand->pick(3),myRand->pick(10)+1);
 				if (isruined) {
 					println("i:",i,"runined can update");
 					bool up = updateBestSol(pBest, si);
@@ -282,7 +282,7 @@ bool justLocalSearch(int argc, char* argv[]) {
 		(input.custCnt + 1, Vec<LL>(input.custCnt + 1, 0));
 	squIter = 1;
 
-	int contiNoDown = 1;
+	
 
 	Timer t1(cfg->runTimer);
 	t1.setLenUseSecond(cfg->runTimer);
@@ -304,21 +304,31 @@ bool justLocalSearch(int argc, char* argv[]) {
 	Vec<int> cusOrder(input.custCnt,1);
 	std::iota(cusOrder.begin(), cusOrder.end(),1);
 
+	int avg = input.custCnt / st.rts.cnt;
+	int contiNoDown = 1;
+
+	Vec<Vec<int>> table(3, Vec<int>(50, 0));
 	while (pBest.RoutesCost > input.sintefRecRL && !t1.isTimeOut()) {
 
 		st = pBest;
-
-		int rnum = myRand->pick(20) + 1;
-		bool isRuin = st.ruinLocalSearch(rnum);
+		int kind = myRand->pick(3);
+		int rnum = myRand->pick((contiNoDown % 20) + 1) + 1;
+		bool isRuin = st.ruinLocalSearch(kind,rnum);
 		bool up1 = updateBestSol(pBest, st);
 		if (up1) {
 			//println("cost:", pBest.RoutesCost, " ruinNum:", ruinNum, " parNum:", parNum);
-			println("cost:", pBest.RoutesCost );
-			contiNoDown = 1;
+			println("-cost:", pBest.RoutesCost," rnum:",rnum);
+			contiNoDown = 5;
+			++table[kind][rnum];
+			//println("-----------");
+			//for (auto& i : table) {
+			//	printve(i);
+			//}
 			++ruinNum;
 		}
 		else {
-			println("cost:", pBest.RoutesCost );
+			++contiNoDown;
+			//println("+cost:", pBest.RoutesCost, " rnum:", rnum);
 		}
 
 		//st.perturb(per);

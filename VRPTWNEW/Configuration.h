@@ -60,7 +60,7 @@ struct Configuration {
 	int mRLLSgetAllRange = 50;
 
 	//ruinLocalSearch
-	int ruinLocalSearchNextNeiBroad = 50;
+	int ruinLocalSearchNextNeiBroad = 20;
 
 	//applyCycles
 	int applyCyclesNextNeiBroad = 50;

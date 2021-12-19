@@ -6767,9 +6767,9 @@ public:
 			else {
 				return a.pen < b.pen;
 			}*/
-			return  a.pen < b.pen;
+			//return  a.pen < b.pen;
 			//return a.pen < b.pen;
-			//return a.cost  < b.cost;
+			return a.cost  < b.cost;
 			//return a.year < b.year;
 		};
 
@@ -6842,7 +6842,7 @@ public:
 		int retNum = 0;
 		while (!qu.empty()) {
 			++retNum;
-			if (qu.top().cost < ret.cost) {
+			if (myRand->pick(retNum)==0) {
 				ret = qu.top();
 			}
 			qu.pop();
@@ -6946,14 +6946,18 @@ public:
 
 #endif // 1
 
-		
 	void ruinClearEP() {
 
 		// 保存放入节点的路径，放入结束之后只更新这些路径的cost值
 		std::unordered_set<int> insRts;
-		while (EPr.rCustCnt > 0) {
-			Vec<int> EPrVe = rPutCusInve(EPr);
-			int pt = EPrVe[myRand->pick(EPrVe.size())];
+		Vec<int> EPArr = rPutCusInve(EPr);
+		auto cmp = [&](int a, int b) {
+			return input.disOf[a][0] > input.disOf[b][0];
+		};
+
+		std::sort(EPArr.begin(), EPArr.end(), cmp);
+
+		for (int pt: EPArr) {
 			EPrRemoveAtPos(pt);
 			//debug(pt);
 			auto bestFitPos = findBestPosForRuin(pt);
@@ -6977,17 +6981,27 @@ public:
 		int index = myRand->pick(rts.cnt);
 		Route& firstR = rts[index];
 		auto cusInArr = rPutCusInve(firstR);
-
-		int v = cusInArr[myRand->pick(std::max<int>(1,firstR.rCustCnt/2) )];
+		//runCusNum =5
+		//firstR.rCustCnt=3
+		runCusNum = std::min<int>(runCusNum, firstR.rCustCnt);
+		int v = cusInArr[myRand->pick(firstR.rCustCnt - runCusNum + 1)];
 
 		std::unordered_set<int> uset;
+		uset.insert(v);
 		Vec<int> runCus;
-
-		while (uset.size() < runCusNum && v<=input.custCnt) {
-
-			for (int wpos = 0; wpos < myRand->pick(1,3) * 5 && uset.size() < runCusNum; ++wpos) {
+		//println("-------");
+		for (int i = 0; i < runCusNum; ++i) {
+			int wposMax = myRand->pick(1, 5);
+			//println("v:", v);
+			//println("wposMax:", wposMax);
+			if (v > input.custCnt) {
+				break;
+			}
+			for (int wpos = 0; wpos < wposMax ; ++wpos) {
 				int w = input.allCloseOf[v][wpos];
 				int wrId = customers[w].routeID;
+				//println("w:",w);
+				//println("wrId:",wrId);
 				if (wrId != -1) {
 					uset.insert(w);
 				}
@@ -6997,6 +7011,9 @@ public:
 		runCus.reserve(uset.size());
 		for (int c : uset) {
 			runCus.push_back(c);
+		}
+		if (runCus.size() == 0) {
+			println("runCusNum: ",runCusNum);
 		}
 		return runCus;
 	}
@@ -7061,11 +7078,10 @@ public:
 		return runCus;
 	}
 
-	bool ruinLocalSearch(int ruinCusNum) {
+	bool ruinLocalSearch(int kind ,int ruinCusNum) {
 			
-		SolClone sClone(customers, rts, EPr, Pc, Ptw, PtwNoWei, penalty,RoutesCost);
+		
 		gamma = 1;
-
 		//TODO[lyh][1]:一种选择ruin cus的方式
 		/*Vec<int> rIndexArr(rts.cnt, 0);
 		std::iota(rIndexArr.begin(), rIndexArr.end(), 0);
@@ -7079,25 +7095,28 @@ public:
 		//TODO[lyh][1]:这里可能可以去掉，如果之前每一条路径的cost都维护的话
 		//TODO[lyh][1]:但是接到扰动后面就不太行了
 		reCalRtsCostSumCost();
+		SolClone sClone(customers, rts, EPr, Pc, Ptw, PtwNoWei, penalty, RoutesCost);
 
-		Timer t1(2);
-		
-		while (!t1.isTimeOut()) {
+		int reTime = rts.cnt/2;
+		SolClone easilyRepirSol(sClone);
 
+		Vec<int> cusRet;
+		for (int gen = 0; gen < reTime ; ++gen) {
+
+			setCurSolBy(sClone);
 			Vec<int> cuses;
-			cuses.resize(input.custCnt);
+			cuses.reserve(input.custCnt);
 
 			Vec<int> ruinCus;
-			int kind = myRand->pick(3);
-			/*if (kind == 0) {
+			if (kind == 0) {
 				ruinCus = ruinGetRuinCusByRound(ruinCusNum);
 			}
-			else if (kind == 1) {*/
+			else if (kind == 1) {
 				ruinCus = ruinGetRuinCusBySting(ruinCusNum);
-			/*}
+			}
 			else {
 				ruinCus = ruinGetRuinCusBySec(ruinCusNum);
-			}*/
+			}
 
 			std::unordered_set<int> rIds;
 			for (int cus : ruinCus) {
@@ -7117,38 +7136,53 @@ public:
 			sumRtsCost();
 			sumRtsPen();
 
-			// 局部搜索下一次的邻域
-			ConfSet cs(input.custCnt);
-			for (int v : cuses) {
-				cs.ins(v);
-				for (int i = 0; i < cfg->ruinLocalSearchNextNeiBroad; ++i) {
-					cs.ins(input.allCloseOf[v][i]);
+			ruinClearEP();
+				
+			if (gen == 0) {
+				cusRet = cuses;
+				easilyRepirSol = SolClone(customers, rts, EPr, Pc, Ptw, PtwNoWei, penalty, RoutesCost);
+			}
+			else {
+				if (
+					//RoutesCost 
+					+ PtwNoWei 
+					+ Pc 
+					< 
+					//easilyRepirSol.RoutesCost 
+					+ easilyRepirSol.PtwNoWei 
+					+ easilyRepirSol.Pc) {
+					cusRet = cuses;
+					easilyRepirSol = SolClone(customers, rts, EPr, Pc, Ptw, PtwNoWei, penalty, RoutesCost);
 				}
 			}
-			cuses = std::move(Vec<int>(cs.ve.begin(), cs.ve.begin() + cs.cnt));
+		}
 
-			//TODO[lyh][0]:更新惩罚值可以更快
+		// 局部搜索下一次的邻域
+		ConfSet cs(input.custCnt);
+		for (int v : cusRet) {
+			cs.ins(v);
+			for (int i = 0; i < cfg->ruinLocalSearchNextNeiBroad; ++i) {
+				cs.ins(input.allCloseOf[v][i]);
+			}
+		}
+		cusRet = std::move(Vec<int>(cs.ve.begin(), cs.ve.begin() + cs.cnt));
 
-			// hust::Log(Log::Info) << "ruinCusNum: " << EPr.rCustCnt <<" ruinRtNum: " << ruinRtNum << std::endl;
-			//TODO[lyh][0]:将EP中的点拿出来放进解里面
-			ruinClearEP();
+		setCurSolBy(easilyRepirSol);
+		repair();
+		//println("iter:", iter);
 
-			repair();
-
-			if (penalty == 0) {
-				mRLLocalSearch(cuses);
-				if (RoutesCost < sClone.RoutesCost) {
-					return true;
-				}
-				else {
-					setCurSolBy(sClone);
-				}
+		if (penalty == 0) {
+			mRLLocalSearch(cusRet);
+			if (RoutesCost < sClone.RoutesCost) {
+				return true;
 			}
 			else {
 				setCurSolBy(sClone);
 			}
 		}
-
+		else {
+			setCurSolBy(sClone);
+		}
 		return false;
 	}
 		
@@ -7158,39 +7192,6 @@ public:
 		squIter += cfg->yearTabuLen + cfg->yearTabuRand;
 		LL maxOfPval = -1;
 		gamma = 0;
-
-		#ifdef SAVE_LOCAL_BEST_SOL
-		SolClone solClone(customers, rts, EPr, Pc, Ptw, PtwNoWei, penalty);
-		SolClone gBestSol(customers, rts, EPr, Pc, Ptw, PtwNoWei, penalty);
-		auto cloneP = P;
-
-		LL maxContiNode = 1024;
-
-		LL contiNoReduce = 1;
-		int minRPSolCnt = 1;
-
-		auto updateGBestSolPool = [&]() {
-
-			auto& curBestSol = gBestSol;
-
-			if (EPr.rCustCnt < curBestSol.EPr.rCustCnt) {
-				minRPSolCnt = 1;
-				gBestSol = SolClone(customers, rts, EPr, Pc, Ptw, PtwNoWei, penalty);
-				return true;
-			}
-			else if (EPr.rCustCnt == curBestSol.EPr.rCustCnt) {
-				++minRPSolCnt;
-				if (myRand->pick(minRPSolCnt) == 0) {
-					gBestSol = SolClone(customers, rts, EPr, Pc, Ptw, PtwNoWei, penalty);
-				}
-				return false;
-			}
-			return false;
-		};
-
-		int curUse = 0;// 0 global 1 pool
-
-		#endif // SAVE_LOCAL_BEST_SOL
 
 		LL EpCusNoDown = 1;
 
@@ -7219,61 +7220,6 @@ public:
 			if (EPsize() == 0 && penalty == 0) {
 				return true;
 			}
-
-				
-			#ifdef SAVE_LOCAL_BEST_SOL
-
-			auto isUp = updateGBestSolPool();
-			if (isUp) {
-				contiNoReduce = 1;
-			}
-			else {
-				++contiNoReduce;
-			}
-			//debug(minRPSolCnt)
-
-			if (contiNoReduce % maxContiNode == 0) {
-
-				/*deOut(minEPcus)
-				debug(contiNoReduce)*/
-				//debug(minRPSolCnt)
-				minRPSolCnt = 1;
-
-				if (curUse == 0) {
-					solClone = SolClone(customers, rts, EPr, Pc, Ptw, PtwNoWei, penalty);
-				}
-					
-				if (myRand->pick(5) < 4 ) {
-					if (curUse == 1) {
-						P = cloneP;
-						setCurSolBy(solClone);
-						//debug("sclo")
-						curUse = 0;
-					}
-				}
-				else {
-					if (curUse == 0) {
-						cloneP = P;
-
-						debug("glob")
-						debug(EPsize())
-
-						setCurSolBy(gBestSol);
-						ejectPatternAdjustment();
-						debug(EPsize())
-						//ejectPatternAdjustment();
-						//patternAdjustment(-1, 2*input.custCnt);
-							
-						curUse = 1;
-					}
-				}
-
-				patternAdjustment(-1, input.custCnt*2);
-				squIter += cfg->yearTabuLen + cfg->yearTabuRand;
-
-				continue;
-			}
-			#endif // SAVE_LOCAL_BEST_SOL
 
 			Vec<int> EPrVe = rPutCusInve(EPr);
 			int top = EPrVe[myRand->pick(EPrVe.size())];
@@ -8070,29 +8016,29 @@ public:
 		return true;
 	}
 
-	bool minimizeRN() {
+	void minimizeRN() {
 
 		gamma = 0;
 		initSolution();
 		bool isSucceed = false;
 		lyhTimer.reStart();
 
-		while (!lyhTimer.isTimeOut()&& rts.cnt > ourTarget) {
+		while (!lyhTimer.isTimeOut() && rts.cnt > ourTarget) {
 
+			SolClone sclone(customers, rts, EPr, Pc, Ptw, PtwNoWei, penalty, RoutesCost);
 			removeOneRouteRandomly();
 
 			fill(P.begin(), P.end(), 1);
 			bool isDelete = ejectLocalSearch();
-			Log(Log::Level::Warning) << "rts.size(): " << rts.size() << std::endl;
-			if (rts.size() <= ourTarget) {
-				if ((EPsize() == 0 && penalty == 0)) {
-					isSucceed = true;
-				}
+			if (isDelete) {
+				;
+			}
+			else {
+				setCurSolBy(sclone);
 				break;
 			}
 		} 
-
-		return isSucceed;
+		Log(Log::Level::Warning) << "minRN,rts.size(): " << rts.size() << std::endl;
 	}
 
 	TwoNodeMove naRepairGetMoves(std::function<bool(TwoNodeMove & t, TwoNodeMove & bestM)>updateBestM) {

@@ -1231,15 +1231,18 @@ struct Input {
 			}
 
 			auto cmp = [&](const int a, const int b) {
-				int aLinkv = canLinkNode(a, v);
-				int bLinkv = canLinkNode(b, v);
-				if ( (aLinkv && bLinkv) || (!aLinkv && !bLinkv)) {
-					return disOf[a][v] < disOf[b][v];
-				}
-				else {
-					return aLinkv ? true : false;
-				}
-				return false;
+
+				return disOf[a][v] < disOf[b][v];
+
+				//int aLinkv = canLinkNode(a, v);
+				//int bLinkv = canLinkNode(b, v);
+				//if ( (aLinkv && bLinkv) || (!aLinkv && !bLinkv)) {
+				//	return disOf[a][v] < disOf[b][v];
+				//}
+				//else {
+				//	return aLinkv ? true : false;
+				//}
+				//return false;
 			};
 
 			sort(nums.begin(), nums.end(), cmp);
@@ -1364,7 +1367,7 @@ struct Input {
 		this->example = std::string(name);
 		fscanf(file, "%*[^\n]\n");
 		fscanf(file, "%*[^\n]\n");
-		fscanf(file, "%lld %lld\n", &this->vehicleCnt, &this->Q);
+		fscanf(file, "%d %lld\n", &this->vehicleCnt, &this->Q);
 		fscanf(file, "%*[^\n]\n");
 		fscanf(file, "%*[^\n]\n");
 		
