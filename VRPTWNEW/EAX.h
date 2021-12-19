@@ -540,7 +540,6 @@ public:
 	Vec<int> doNaEAX(Solver& pa, Solver& pb,Solver & pc) {
 		
 		generateCycles();
-
 		repairSolNum = 0;
 
 		if (abCycleSet.size() == 0) {
@@ -572,7 +571,7 @@ public:
 
 	Vec<int> doPrEAX(Solver& pa, Solver& pb, Solver& pc) {
 
-		pc = pa;
+		
 		generateCycles();
 		repairSolNum = 0;
 
@@ -581,6 +580,8 @@ public:
 			//println("abCycleSet.size() <=2");
 			return {};
 		}
+
+		pc = pa;
 		generSolNum = 0;
 
 		int abcyNum = abCycleSet.size();

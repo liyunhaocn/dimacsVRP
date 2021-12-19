@@ -42,7 +42,7 @@ struct Configuration {
 	
 	//int yearTabuLen = 20;
 	//int yearTabuRand = 10;
-	int popSize = 5;
+	int popSize = 3;
 	int repairExitStep = 40;
 	int initFindPosPqSize = 5;
 	int findBestPosForRuinPqSize = 10;

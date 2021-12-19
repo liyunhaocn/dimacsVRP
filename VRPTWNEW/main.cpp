@@ -99,11 +99,14 @@ bool naEAX(Solver& pBest,Solver& pa, Solver& pb) {
 
 	int repairNum = 0;
 
+	
+
 	for (int ch = 1; ch <= 10; ++ch) {
+
+		EAX eax(pa, pb);
 
 		Solver pc = pa;
 		//unsigned eaxSeed = (env.seed % Mod) + ((myRand->pick(10000007))) % Mod;
-		EAX eax(pa, pb);
 		Vec<int> newCus;
 		// newCus = eax.doNaEAX(pa, pb, pc);
 		if (ch <= 9) {
