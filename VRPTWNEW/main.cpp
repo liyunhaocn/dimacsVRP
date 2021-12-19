@@ -98,9 +98,8 @@ bool naEAX(Solver& pBest,Solver& pa, Solver& pb) {
 	int wtihoutSubcyRepair = 0;
 
 	int repairNum = 0;
-	int bestSolContiNotUp = 1;
 
-	for (int ch = 1; ch <= 20; ++ch) {
+	for (int ch = 1; ch <= 10; ++ch) {
 
 		Solver pc = pa;
 		//unsigned eaxSeed = (env.seed % Mod) + ((myRand->pick(10000007))) % Mod;
@@ -144,12 +143,24 @@ bool naEAX(Solver& pBest,Solver& pa, Solver& pb) {
 		if (up) {
 			//println("MAiter:", MAiter, " rep:", repairNum, " paUp:", paUpNum, " paNUp:", paNotUpNum, " pa:", paIndex, " pb:", pbIndex, " cost", pBest.RoutesCost, "bSolNUp", bestSolContiNotUp);
 			println("eax update");
-			bestSolContiNotUp = 1;
+			//ch = 1;
+		}
+
+		for (int i = 0; i < 20; ++i) {
+			pc.ruinLocalSearch(1, myRand->pick(2) + 1);
+			bool up = updateBestSol(pBest, pc);
+			if (up) {
+				//println("MAiter:", MAiter, " rep:", repairNum, " paUp:", paUpNum, " paNUp:", paNotUpNum, " pa:", paIndex, " pb:", pbIndex, " cost", pBest.RoutesCost, "bSolNUp", bestSolContiNotUp);
+				println("eax ruin local update");
+				//i = 0;
+				//ch = 1;
+			}
 		}
 
 		if (pc.RoutesCost < pa.RoutesCost) {
+			//lyhCheckTrue(pc.RoutesCost < pa.RoutesCost);
 			pa = pc;
-			ch = 1;
+			//ch = 1;
 			++paUpNum;
 		}
 		else {
@@ -180,6 +191,17 @@ bool solverByEAX(int argc, char* argv[]) {
 		st.minimizeRN();
 		//saveSlnFile(input, pBest.output, cfg, env);
 		st.mRLLocalSearch({});
+
+		//for (int i = 0; i < 20; ++i) {
+		//	st.ruinLocalSearch(1, myRand->pick(2) + 1);
+		//	bool up = updateBestSol(pBest, st);
+		//	if (up) {
+		//		//println("MAiter:", MAiter, " rep:", repairNum, " paUp:", paUpNum, " paNUp:", paNotUpNum, " pa:", paIndex, " pb:", pbIndex, " cost", pBest.RoutesCost, "bSolNUp", bestSolContiNotUp);
+		//		println("init ruin local update");
+		//		i = 0;
+		//	}
+		//}
+
 		if (st.RoutesCost < pBest.RoutesCost) {
 			pBest = st;
 		}
@@ -227,24 +249,32 @@ bool solverByEAX(int argc, char* argv[]) {
 		Solver& pa = pool[paIndex];
 		Solver& pb = pool[pbIndex];
 
-		if (myRand->pick(3) ==0 ) {
-			for (int i = 0; i < 20; ++i) {
-				int ruinCusNum = myRand->pick(2) + 1;
-				pa.ruinLocalSearch(1, ruinCusNum);
-				pb.ruinLocalSearch(1, ruinCusNum);
-				if (updateBestSol(pBest, pa)) {
-					println("ruin a update");
-					i = 0;
-				}
-				if (updateBestSol(pBest, pb)) {
-					println("ruin b update");
-					i = 0;
-				}
+		for (int i = 0; i < 20; ++i) {
+			int ruinCusNum = myRand->pick(2) + 1;
+			bool ruin = pa.ruinLocalSearch(1, ruinCusNum);
+			if (ruin) {
+				i = 0;
+			}
+			if (updateBestSol(pBest, pa)) {
+				println("ruin a update");
+				i = 0;
 			}
 		}
-		else {
-			naEAX(pBest,pa,pb);
+		
+		for (int i = 0; i < 20; ++i) {
+			int ruinCusNum = myRand->pick(2) + 1;
+			bool ruin = pb.ruinLocalSearch(1, ruinCusNum);
+			if (ruin) {
+				i = 0;
+			}
+			if (updateBestSol(pBest, pb)) {
+				println("ruin b update");
+				i = 0;
+			}
 		}
+
+		naEAX(pBest, pa, pb);
+
 	}
 
 	Output output = pBest.saveToOutPut();
