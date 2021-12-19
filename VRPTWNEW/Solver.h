@@ -6978,25 +6978,61 @@ public:
 
 	Vec<int> ruinGetRuinCusBySting(int runCusNum) {
 
+		//Vec<int> adjDisOrder = Vec<int>(cusInArr.size());
+		//std::iota(adjDisOrder.begin(), adjDisOrder.end(),0);
+		//Vec<DisType> adjDisVal(firstR.rCustCnt,0);
+
+		//for (int i = 0; i < cusInArr.size(); ++i) {
+		//	int t = cusInArr[i];
+		//	int tpre = customers[t].pre;
+		//	if (tpre > input.custCnt) {
+		//		tpre = 0;
+		//	}
+		//	int tnext = customers[t].next;
+		//	if (tnext > input.custCnt) {
+		//		tnext = 0;
+		//	}
+		//	adjDisVal[i] = input.disOf[t][tpre] + input.disOf[t][tnext];
+		//}
+		//auto cmp = [&](int a,int b) ->bool {
+		//	adjDisVal[a] > adjDisVal[b];
+		//};
+		//std::sort(adjDisOrder.begin(), adjDisOrder.end(), cmp);
+		//std::unordered_set<int> uset;
+		//uset.insert(v);
+		//Vec<int> runCus;
+		//return runCus;
+
 		int index = myRand->pick(rts.cnt);
 		Route& firstR = rts[index];
 		auto cusInArr = rPutCusInve(firstR);
-		//runCusNum =5
-		//firstR.rCustCnt=3
-		runCusNum = std::min<int>(runCusNum, firstR.rCustCnt);
-		int v = cusInArr[myRand->pick(firstR.rCustCnt - runCusNum + 1)];
 
+		//runCusNum = std::min<int>(runCusNum, firstR.rCustCnt);
+		//int vIndex = myRand->pick(firstR.rCustCnt - runCusNum + 1);
+
+		int ruinCusNumInRoute = myRand->pick(1,firstR.rCustCnt + 1) ;
+		ruinCusNumInRoute = std::min<int>(runCusNum, ruinCusNumInRoute);
+		int vIndex = myRand->pick(firstR.rCustCnt - ruinCusNumInRoute + 1);
+		int v = cusInArr[vIndex];
+		
+		int avg = runCusNum / (ruinCusNumInRoute);
+		//int v = cusInArr[myRand->pick(std::max<int>(firstR.rCustCnt / 2, 1))];
 		std::unordered_set<int> uset;
-		uset.insert(v);
 		Vec<int> runCus;
-		//println("-------");
-		for (int i = 0; i < runCusNum; ++i) {
-			int wposMax = myRand->pick(1, 5);
+		//println("runCusNum:", runCusNum);
+		//println("ruinCusNumInRoute:", ruinCusNumInRoute);
+		//println("avg:", avg);
+
+		for (int i = 0; i < ruinCusNumInRoute; ++i) {
+			int wposMax = myRand->pick(1, 10);
+			//int wposMax = myRand->pick(1, avg*2);
 			//println("v:", v);
 			//println("wposMax:", wposMax);
 			if (v > input.custCnt) {
 				break;
 			}
+
+			uset.insert(v);
 			for (int wpos = 0; wpos < wposMax ; ++wpos) {
 				int w = input.allCloseOf[v][wpos];
 				int wrId = customers[w].routeID;
@@ -7047,6 +7083,7 @@ public:
 
 		Vec<int> runCus;
 		runCus.reserve(runCusNum);
+		runCus.push_back(v);
 
 		//auto& wposArr = myRandX->getMN(50, runCusNum);
 		for (int i = 0;i< runCusNum;++i) {
@@ -7082,22 +7119,14 @@ public:
 			
 		
 		gamma = 1;
-		//TODO[lyh][1]:一种选择ruin cus的方式
-		/*Vec<int> rIndexArr(rts.cnt, 0);
-		std::iota(rIndexArr.begin(), rIndexArr.end(), 0);
-		auto cmp = [&](int i,int j) {
-			return rts[i].routeCost / rts[i].rCustCnt 
-			< rts[j].routeCost / rts[j].rCustCnt;
-		};
-		sort(rIndexArr.begin(), rIndexArr.end(), cmp);*/
-		//auto& rIndexArr = myRandX->getMN(rts.cnt, min(rts.cnt, ruinRtNum));
-			
 		//TODO[lyh][1]:这里可能可以去掉，如果之前每一条路径的cost都维护的话
 		//TODO[lyh][1]:但是接到扰动后面就不太行了
 		reCalRtsCostSumCost();
 		SolClone sClone(customers, rts, EPr, Pc, Ptw, PtwNoWei, penalty, RoutesCost);
 
-		int reTime = rts.cnt/2;
+		//int reTime = 3;
+		//int reTime = rts.cnt*2;
+		int reTime = 3;
 		SolClone easilyRepirSol(sClone);
 
 		Vec<int> cusRet;
@@ -7108,15 +7137,15 @@ public:
 			cuses.reserve(input.custCnt);
 
 			Vec<int> ruinCus;
-			if (kind == 0) {
-				ruinCus = ruinGetRuinCusByRound(ruinCusNum);
-			}
-			else if (kind == 1) {
+			//if (kind == 0) {
+			//	ruinCus = ruinGetRuinCusByRound(ruinCusNum);
+			//}
+			//else if (kind == 1) {
 				ruinCus = ruinGetRuinCusBySting(ruinCusNum);
-			}
-			else {
-				ruinCus = ruinGetRuinCusBySec(ruinCusNum);
-			}
+			//}
+			//else {
+			//	ruinCus = ruinGetRuinCusBySec(ruinCusNum);
+			//}
 
 			std::unordered_set<int> rIds;
 			for (int cus : ruinCus) {
@@ -7144,11 +7173,11 @@ public:
 			}
 			else {
 				if (
-					//RoutesCost 
+					RoutesCost 
 					+ PtwNoWei 
 					+ Pc 
 					< 
-					//easilyRepirSol.RoutesCost 
+					easilyRepirSol.RoutesCost 
 					+ easilyRepirSol.PtwNoWei 
 					+ easilyRepirSol.Pc) {
 					cusRet = cuses;
@@ -7299,7 +7328,7 @@ public:
 		return false;
 	}
 
-	bool patternAdjustment(int Irand = -1) {
+	Vec<int> patternAdjustment(int Irand = -1) {
 
 		int I1000 = myRand->pick(cfg->Irand);
 		if (Irand > 0) {
@@ -7372,6 +7401,8 @@ public:
 
 		++squIter;
 
+		Vec<int> ret;
+
 		do {
 
 			TwoNodeMove bestM = getDelt0MoveRandomly();
@@ -7385,6 +7416,9 @@ public:
 				break;
 			}
 
+			ret.push_back(bestM.v);
+			ret.push_back(bestM.w);
+
 			updateYearTable(bestM);
 			doMoves(bestM);
 			++squIter;
@@ -7392,7 +7426,7 @@ public:
 		} while (++iter < I1000 && !t1.isTimeOut());
 		//debug(iter)
 		sumRtsPen();
-		return true;
+		return ret;
 	}
 
 	bool perturb(Vec<int> cusArr) {

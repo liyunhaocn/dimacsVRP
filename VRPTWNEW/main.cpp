@@ -33,7 +33,7 @@ bool updateBestSol(hust::Solver& pBest, hust::Solver& pTemp) {
 		pBest = pTemp;
 		//pBest.saveToOutPut();
 		//pBest.saveOutAsSintefFile();
-		//hust::println("cost:", pBest.RoutesCost);
+		hust::println("cost:", pBest.RoutesCost);
 		return true;
 	}
 	else {
@@ -42,36 +42,128 @@ bool updateBestSol(hust::Solver& pBest, hust::Solver& pTemp) {
 	return false;
 };
 
-bool solverByEAX(int argc, char* argv[]) {
+bool allocGlobalMem(int argc, char* argv[]) {
 
 	//Environment env("../Instances/Solomon/C101.txt");
 	//Environment env("../Instances/Homberger/RC1_8_3.txt");
-	Environment env("../Instances/Homberger/RC1_8_1.txt");
+	globalEnv = new Environment("../Instances/Homberger/RC1_8_1.txt");
 	//Environment env("../Instances/Homberger/C1_2_8.txt");
 
 	cfg = new hust::Configuration();
 	//lyh::MyString ms;
 
-	solveCommandLine(argc, argv, cfg, env);
+	solveCommandLine(argc, argv, cfg, globalEnv);
 
-	if (env.seed == -1) {
-		env.seed = std::time(nullptr) + std::clock();
+	if (globalEnv->seed == -1) {
+		globalEnv->seed = std::time(nullptr) + std::clock();
 	}
-	env.seed = 1611589828;
-	env.show();
+
+	globalEnv->seed = 1611589828;
+	globalEnv->show();
 	cfg->show();
 
-	myRand = new Random(env.seed);
-	myRandX = new RandomX(env.seed);
+	myRand = new Random(globalEnv->seed);
+	myRandX = new RandomX(globalEnv->seed);
 
-	Input input(env);
-	Solver pBest(input, env);
+	globalInput = new Input(*globalEnv);
+
 	// TODO[lyh][0]:一定要记得cfg用cusCnt合法化一下
-	cfg->repairByCusCnt(input.custCnt);
+	cfg->repairByCusCnt(globalInput->custCnt);
 
 	yearTable = new Vec<Vec<LL> >
-		(input.custCnt + 1, Vec<LL>(input.custCnt + 1, 0));
+		(globalInput->custCnt + 1, Vec<LL>(globalInput->custCnt + 1, 0));
 	//TODO[lyh][0]:
+}
+
+bool deallocGlobalMem() {
+
+	delete myRand;
+	delete myRandX;
+	delete yearTable;
+	delete cfg;
+	delete globalEnv;
+	delete globalInput;
+
+	return true;
+}
+
+bool naEAX(Solver& pBest,Solver& pa, Solver& pb) {
+
+	int paUpNum = 0;
+	int paNotUpNum = 0;
+
+	int wtihSubcyNum = 0;
+	int wtihSubcyRepair = 0;
+	int wtihoutSubcyNum = 0;
+	int wtihoutSubcyRepair = 0;
+
+	int repairNum = 0;
+	int bestSolContiNotUp = 1;
+
+	for (int ch = 1; ch <= 20; ++ch) {
+
+		Solver pc = pa;
+		//unsigned eaxSeed = (env.seed % Mod) + ((myRand->pick(10000007))) % Mod;
+		EAX eax(pa, pb);
+		Vec<int> newCus;
+		// newCus = eax.doNaEAX(pa, pb, pc);
+		if (ch <= 9) {
+			newCus = eax.doNaEAX(pa, pb, pc);
+		}
+		else if (ch == 10) {
+			newCus = eax.doPrEAX(pa, pb, pc);
+		}
+
+		//if (eax.subCyNum > 0) {
+		//	++wtihSubcyNum;
+		//	if (eax.repairSolNum > 0) {
+		//		++wtihSubcyRepair;
+		//	}
+		//}
+		//else {
+		//	++wtihoutSubcyNum;
+		//	if(eax.repairSolNum > 0) {
+		//		++wtihoutSubcyRepair;
+		//	}
+		//}
+		//println("eax.subCusNum:",eax.subCyCusNum, " wtihSb:", wtihSubcyNum, " wtihSbRe:", wtihSubcyRepair, " wtihoutSb:", wtihoutSubcyNum, " wtihoutSbRe:", wtihoutSubcyRepair);
+
+		if (eax.repairSolNum == 0) {
+			if (eax.abCycleSet.size() == 0) {
+				println("eax.abCycleSet.size() == 0");
+				return false;
+			}
+			continue;
+		}
+
+		++repairNum;
+
+		pc.mRLLocalSearch(newCus);
+		//pc.mRLLocalSearch({});
+		bool up = updateBestSol(pBest, pc);
+		if (up) {
+			//println("MAiter:", MAiter, " rep:", repairNum, " paUp:", paUpNum, " paNUp:", paNotUpNum, " pa:", paIndex, " pb:", pbIndex, " cost", pBest.RoutesCost, "bSolNUp", bestSolContiNotUp);
+			println("eax update");
+			bestSolContiNotUp = 1;
+		}
+
+		if (pc.RoutesCost < pa.RoutesCost) {
+			pa = pc;
+			ch = 1;
+			++paUpNum;
+		}
+		else {
+			++paNotUpNum;
+		}
+	}
+	return true;
+}
+
+bool solverByEAX(int argc, char* argv[]) {
+
+	allocGlobalMem(argc,argv);
+
+	Solver pBest(*globalInput, *globalEnv);
 	pBest.RoutesCost = DisInf;
 
 	Timer t1(cfg->runTimer);
@@ -82,9 +174,9 @@ bool solverByEAX(int argc, char* argv[]) {
 	pool.reserve(cfg->popSize);
 
 	for (int i = 0; i < cfg->popSize; ++i) {
-		Environment envt = env;
-		envt.seed = (env.seed % Mod) + ((i + 1) * (myRand->pick(10000007))) % Mod;
-		Solver st(input, envt);
+		Environment envt = *globalEnv;
+		envt.seed = (globalEnv->seed % Mod) + ((i + 1) * (myRand->pick(10000007))) % Mod;
+		Solver st(*globalInput, envt);
 		st.minimizeRN();
 		//saveSlnFile(input, pBest.output, cfg, env);
 		st.mRLLocalSearch({});
@@ -101,21 +193,10 @@ bool solverByEAX(int argc, char* argv[]) {
 	(cfg->popSize, Vec<LL>(cfg->popSize));
 	LL MAiter = 0;
 
-	int paUpNum = 0;
-	int paNotUpNum = 0;
-
-	int wtihSubcyNum = 0;
-	int wtihSubcyRepair = 0;
-	int wtihoutSubcyNum = 0;
-	int wtihoutSubcyRepair = 0;
-
-	int repairNum = 0;
-	int bestSolContiNotUp = 1;
-
 	Vec<int> solConti(cfg->popSize, 1);
 
 
-	while (pBest.RoutesCost > input.sintefRecRL && !t1.isTimeOut()) {
+	while (pBest.RoutesCost > globalInput->sintefRecRL && !t1.isTimeOut()) {
 		++MAiter;
 
 		#pragma region ChoosePaPb
@@ -143,183 +224,93 @@ bool solverByEAX(int argc, char* argv[]) {
 		pbIndex = retPbIndex;
 		#pragma endregion
 
-		
-		for (int ch = 1; ch <= 10; ++ch) {
+		Solver& pa = pool[paIndex];
+		Solver& pb = pool[pbIndex];
 
-			Solver& pa = pool[paIndex];
-			Solver& pb = pool[pbIndex];
-			Solver pc = pa;
-
-			//unsigned eaxSeed = (env.seed % Mod) + ((myRand->pick(10000007))) % Mod;
-			EAX eax(pa, pb);
-			Vec<int> newCus;
-			// newCus = eax.doNaEAX(pa, pb, pc);
-			if (ch <= 9) {
-				newCus = eax.doNaEAX(pa, pb, pc);
-			}
-			else if (ch==10) {
-				newCus = eax.doPrEAX(pa, pb, pc);
-			}
-
-			//if (eax.subCyNum > 0) {
-			//	++wtihSubcyNum;
-			//	if (eax.repairSolNum > 0) {
-			//		++wtihSubcyRepair;
-			//	}
-			//}
-			//else {
-			//	++wtihoutSubcyNum;
-			//	if(eax.repairSolNum > 0) {
-			//		++wtihoutSubcyRepair;
-			//	}
-			//}
-			//println("eax.subCusNum:",eax.subCyCusNum, " wtihSb:", wtihSubcyNum, " wtihSbRe:", wtihSubcyRepair, " wtihoutSb:", wtihoutSubcyNum, " wtihoutSbRe:", wtihoutSubcyRepair);
-
-			if (eax.repairSolNum == 0) {
-				if (eax.abCycleSet.size() == 0) {
-					bool ruined = pa.ruinLocalSearch(myRand->pick(3),myRand->pick(10) + 1);
-					println("ruined: ", ruined, " paIndex:", paIndex, " pbIndex:", pbIndex);
+		if (myRand->pick(3) ==0 ) {
+			for (int i = 0; i < 20; ++i) {
+				int ruinCusNum = myRand->pick(2) + 1;
+				pa.ruinLocalSearch(1, ruinCusNum);
+				pb.ruinLocalSearch(1, ruinCusNum);
+				if (updateBestSol(pBest, pa)) {
+					println("ruin a update");
+					i = 0;
 				}
-				continue;
-			}
-
-			++repairNum;
-
-			pc.mRLLocalSearch(newCus);
-			//pc.mRLLocalSearch({});
-			bool up = updateBestSol(pBest, pc);
-			if (up) {
-				println("MAiter:", MAiter, " rep:", repairNum, " paUp:", paUpNum, " paNUp:", paNotUpNum, " pa:", paIndex, " pb:", pbIndex, " cost", pBest.RoutesCost,"bSolNUp", bestSolContiNotUp);
-				bestSolContiNotUp = 1;
-			}
-			
-			if (pc.RoutesCost < pa.RoutesCost) {
-				pa = pc;
-				ch = 1;
-				++paUpNum;
-			}
-			else {
-				++paNotUpNum;
+				if (updateBestSol(pBest, pb)) {
+					println("ruin b update");
+					i = 0;
+				}
 			}
 		}
-		++bestSolContiNotUp;
-		//println("bestSolContiNotUp:", bestSolContiNotUp);
-		if (bestSolContiNotUp >= 30) {
-			
-			for (int i = 0; i < pool.size(); ++i) {
-				Solver& si = pool[i];
-				bool isruined = si.ruinLocalSearch(myRand->pick(3),myRand->pick(10)+1);
-				if (isruined) {
-					println("i:",i,"runined can update");
-					bool up = updateBestSol(pBest, si);
-					if (up) {
-						println("i:", i, "runined update best sol");
-					}
-				}
-				else {
-					auto sclone = si;
-					sclone.patternAdjustment(input.custCnt*0.1);
-					sclone.mRLLocalSearch({});
-					if (sclone.RoutesCost < si.RoutesCost) {
-						si = sclone;
-						println("i:", i, "patternAdjustment can update");
-						bool up = updateBestSol(pBest, si);
-						if (up) {
-							println("i:", i, "patternAdjustment update best sol");
-						}
-					}
-					else {
-						println("i:", i, "cant update");
-					}
-				}
-			}
-
-			bestSolContiNotUp = 1;
+		else {
+			naEAX(pBest,pa,pb);
 		}
-
 	}
 
 	Output output = pBest.saveToOutPut();
 	output.runTime = t1.getRunTime();
-	saveSlnFile(input, output, cfg, env);
+	saveSlnFile(*globalInput, output, cfg, *globalEnv);
 	t1.disp();
 
-	delete myRand;
-	delete myRandX;
-	delete yearTable;
-	delete cfg;
+	deallocGlobalMem();
 
 	return true;
 }
 
 bool justLocalSearch(int argc, char* argv[]) {
 
-	//Environment env("../Instances/Solomon/C101.txt");
-	//Environment env("../Instances/Homberger/RC1_8_3.txt");
-	//Environment env("../Instances/Homberger/C1_4_2.txt");
-	Environment env("../Instances/Homberger/RC1_8_1.txt");
+	allocGlobalMem(argc, argv);
 
-	cfg = new Configuration();
-
-	solveCommandLine(argc, argv, cfg, env);
-
-	if (env.seed == -1) {
-		env.seed = std::time(nullptr) + std::clock();
-	}
-	env.seed = 1611589828;
-	env.show();
-	cfg->show();
-
-	myRand = new Random(env.seed);
-	myRandX = new RandomX(env.seed);
-
-	Input input(env);
-	Solver pBest(input, env);
-	// TODO[lyh][0]:一定要记得cfg用cusCnt合法化一下
-	cfg->repairByCusCnt(input.custCnt);
-
-	yearTable = new Vec< Vec<LL> >
-		(input.custCnt + 1, Vec<LL>(input.custCnt + 1, 0));
 	squIter = 1;
-
-	
 
 	Timer t1(cfg->runTimer);
 	t1.setLenUseSecond(cfg->runTimer);
 	t1.reStart();
 
-	Solver st(input, env);
+	Solver st(*globalInput, *globalEnv);
 	st.minimizeRN();
 	//st.saveOutAsSintefFile("minR");
 	st.mRLLocalSearch({});
 	//st.saveOutAsSintefFile("minL");
 	//TODO[lyh][0]:
-	pBest = st;
+	Solver pBest = st;
 
 	//updateBestSol(st);
 
 	int ruinNum = 0;
 	int parNum = 0;
 
-	Vec<int> cusOrder(input.custCnt,1);
+	Vec<int> cusOrder(globalInput->custCnt,1);
 	std::iota(cusOrder.begin(), cusOrder.end(),1);
 
-	int avg = input.custCnt / st.rts.cnt;
+	int avg = globalInput->custCnt / st.rts.cnt;
 	int contiNoDown = 1;
 
 	Vec<Vec<int>> table(3, Vec<int>(50, 0));
-	while (pBest.RoutesCost > input.sintefRecRL && !t1.isTimeOut()) {
+
+	//int kind = myRand->pick(3);
+	int kind = 1;
+	//int rnum = std::min<int>(contiNoDown/10,20) + 1;
+	int rnum = 1;
+
+	while (pBest.RoutesCost > globalInput->sintefRecRL && !t1.isTimeOut()) {
 
 		st = pBest;
-		int kind = myRand->pick(3);
-		int rnum = myRand->pick((contiNoDown % 20) + 1) + 1;
-		bool isRuin = st.ruinLocalSearch(kind,rnum);
+
+		#if 1
+		if (contiNoDown >= 500) {
+			rnum = std::min<int>(rnum+1,10);
+			contiNoDown = 1;
+		}
+
+		bool isRuin = st.ruinLocalSearch(kind, rnum);
 		bool up1 = updateBestSol(pBest, st);
 		if (up1) {
 			//println("cost:", pBest.RoutesCost, " ruinNum:", ruinNum, " parNum:", parNum);
-			println("-cost:", pBest.RoutesCost," rnum:",rnum);
-			contiNoDown = 5;
-			++table[kind][rnum];
+			println("-cost:", pBest.RoutesCost, " rnum:", rnum);
+			contiNoDown = 1;
+			rnum = 1;
+			//++table[kind][rnum];
 			//println("-----------");
 			//for (auto& i : table) {
 			//	printve(i);
@@ -330,27 +321,23 @@ bool justLocalSearch(int argc, char* argv[]) {
 			++contiNoDown;
 			//println("+cost:", pBest.RoutesCost, " rnum:", rnum);
 		}
-
-		//st.perturb(per);
-		//st.patternAdjustment();
-		//st.mRLLocalSearch({});
-		//bool up2 = updateBestSol(pBest, st);
-		//if (up2) {
-		//	++parNum;
-		//	println("cost:",pBest.RoutesCost, " ruinNum:", ruinNum, " parNum:", parNum);
-		//}
-		
+		#else
+		Vec<int> cus = st.patternAdjustment(200);
+		st.mRLLocalSearch(cus);
+		bool up2 = updateBestSol(pBest, st);
+		if (up2) {
+			++parNum;
+			println("cost:", pBest.RoutesCost, " ruinNum:", ruinNum, " parNum:", parNum);
+		}
+		#endif // 0
 	}
 
 	Output output = pBest.saveToOutPut();
 	output.runTime = t1.getRunTime();
-	saveSlnFile(input, output, cfg, env);
+	saveSlnFile(*globalInput, output, cfg, *globalEnv);
 	t1.disp();
 
-	delete myRand;
-	delete myRandX;
-	delete yearTable;
-	delete cfg;
+	deallocGlobalMem();
 
 	return true;
 }
@@ -374,8 +361,8 @@ int main(int argc, char* argv[])
 		delete hust::myRandX;
 	}
 	return 0;*/
-	//hust::solverByEAX(argc, argv);return 0;
-	hust::justLocalSearch(argc, argv); return 0;
+	hust::solverByEAX(argc, argv);return 0;
+	//hust::justLocalSearch(argc, argv); return 0;
 	//run(argc, argv);
 
 	return 0;

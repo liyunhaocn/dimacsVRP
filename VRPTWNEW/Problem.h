@@ -1414,7 +1414,7 @@ struct Output
 
 };
 
-bool solveCommandLine(int argc, char* argv[], Configuration* cfg,Environment& env) {
+bool solveCommandLine(int argc, char* argv[], Configuration* cfg,Environment* env) {
 	
 	MyString ms;
 	if (argc >= 2) {
@@ -1423,7 +1423,7 @@ bool solveCommandLine(int argc, char* argv[], Configuration* cfg,Environment& en
 
 	if (argc >= 3) {
 		std::string inpath = argv[2];
-		env.setInputPath(inpath);
+		env->setInputPath(inpath);
 	}
 
 	if (argc >= 4) {
@@ -1431,7 +1431,7 @@ bool solveCommandLine(int argc, char* argv[], Configuration* cfg,Environment& en
 	}
 
 	if (argc >= 5) {
-		env.seed = ms.str_int(argv[4]);
+		env->seed = ms.str_int(argv[4]);
 	}
 	return true;
 }

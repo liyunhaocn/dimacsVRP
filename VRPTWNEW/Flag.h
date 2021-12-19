@@ -68,11 +68,16 @@ namespace hust {
 	struct Random;
 	struct RandomX;
 	struct Configuration;
+	struct Environment;
+	struct Input;
 
 	Random* myRand = nullptr;
 	RandomX* myRandX = nullptr;
 	Vec<Vec<LL>> * yearTable = nullptr;
 	Configuration* cfg = nullptr;
+	Environment * globalEnv = nullptr;
+	Input* globalInput = nullptr;
+
 	LL squIter = 1;
 }
 
