@@ -147,18 +147,21 @@ bool naEAX(Solver& pBest,Solver& pa, Solver& pb) {
 		}
 
 		for (int i = 0; i < 20; ++i) {
-			pc.ruinLocalSearch(1, myRand->pick(2) + 1);
+			bool ruin = pc.ruinLocalSearch(1, myRand->pick(2) + 1);
+			if (ruin) {
+				i = 0;
+			}
 			bool up = updateBestSol(pBest, pc);
 			if (up) {
 				//println("MAiter:", MAiter, " rep:", repairNum, " paUp:", paUpNum, " paNUp:", paNotUpNum, " pa:", paIndex, " pb:", pbIndex, " cost", pBest.RoutesCost, "bSolNUp", bestSolContiNotUp);
 				println("eax ruin local update");
-				//i = 0;
+				i = 0;
 				//ch = 1;
 			}
 		}
 
 		if (pc.RoutesCost < pa.RoutesCost) {
-			//lyhCheckTrue(pc.RoutesCost < pa.RoutesCost);
+			println("pc.RoutesCost < pa.RoutesCost");
 			pa = pc;
 			//ch = 1;
 			++paUpNum;
