@@ -588,7 +588,7 @@ public:
 		// 
 		//TODO[lyh][001]:最多放置多少个abcycle[2,(abcyNum+1)/2]
 		generSolNum = (abcyNum + 1) / 2 - 2 + 1;
-		generSolNum = std::min<int>(generSolNum,3);
+		//generSolNum = std::min<int>(generSolNum,3);
 		auto& choseCyOrder = myRandX->getMN(abCycleSet.size(), generSolNum);
 
 		Vec<hust::Solver> pool;
@@ -628,7 +628,6 @@ public:
 					}
 				}
 			}
-			break;
 			/*Log(Log::Info) 
 				<< " index: "<< index  
 				<< " subcy: "<< solScores[index].subcyNum

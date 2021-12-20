@@ -44,10 +44,10 @@ bool updateBestSol(hust::Solver& pBest, hust::Solver& pTemp) {
 
 bool allocGlobalMem(int argc, char* argv[]) {
 
-	//Environment env("../Instances/Solomon/C101.txt");
-	//Environment env("../Instances/Homberger/RC1_8_3.txt");
-	globalEnv = new Environment("../Instances/Homberger/RC1_8_1.txt");
-	//Environment env("../Instances/Homberger/C1_2_2.txt");
+	//globalEnv = new Environment("../Instances/Solomon/C101.txt");
+	//globalEnv = new Environment("../Instances/Homberger/RC1_8_3.txt");
+	//globalEnv = new Environment("../Instances/Homberger/RC1_8_1.txt");
+	globalEnv  = new Environment("../Instances/Homberger/C1_4_2.txt");
 
 	cfg = new hust::Configuration();
 	//lyh::MyString ms;
@@ -88,7 +88,7 @@ bool deallocGlobalMem() {
 	return true;
 }
 
-bool naEAX(Solver& pBest,Solver& pa, Solver& pb) {
+bool naEAX(Solver& pBest,Solver& pa, Solver& pb,int kind) {
 
 	int wtihSubcyNum = 0;
 	int wtihSubcyRepair = 0;
@@ -101,8 +101,13 @@ bool naEAX(Solver& pBest,Solver& pa, Solver& pb) {
 	//static int prEaxRepair = 0;
 	//static int naUp = 0;
 	//static int prUp = 0;
-
-	for (int ch = 1; ch <= 10; ++ch) {
+	bool isUp = false;
+	int reTime = 10;
+	if (kind == 1) {
+		//println(kind);
+		reTime = 1;
+	}
+	for (int ch = 1; ch <= reTime; ++ch) {
 
 		EAX eax(pa, pb);
 
@@ -110,54 +115,19 @@ bool naEAX(Solver& pBest,Solver& pa, Solver& pb) {
 		//unsigned eaxSeed = (env.seed % Mod) + ((myRand->pick(10000007))) % Mod;
 		Vec<int> newCus;
 		// newCus = eax.doNaEAX(pa, pb, pc);
-		if (ch <= 10) {
+		if (kind == 0) {
 			newCus = eax.doNaEAX(pa, pb, pc);
-			//if (eax.repairSolNum > 0) {
-			//	++naEaxRepair;
-			//}
 		}
-		else{
+		else {
 			newCus = eax.doPrEAX(pa, pb, pc);
-			//if (eax.repairSolNum > 0) {
-			//	++prEaxRepair;
-			//}
 		}
-
-		//int kind = 0;
-		//if ( ch%2 ==0) {
-		//	newCus = eax.doNaEAX(pa, pb, pc);
-		//	//if (eax.repairSolNum > 0) {
-		//	//	++naEaxRepair;
-		//	//}
-		//	//kind = 0;
-		//}
-		//else {
-		//	newCus = eax.doPrEAX(pa, pb, pc);
-		//	//if (eax.repairSolNum > 0) {
-		//	//	++prEaxRepair;
-		//	//}
-		//	//kind = 1;
-		//}
-
-		//println("naEaxRepair:", naEaxRepair," prEaxRepair:", prEaxRepair);
-		
-		//if (eax.subCyNum > 0) {
-		//	++wtihSubcyNum;
-		//	if (eax.repairSolNum > 0) {
-		//		++wtihSubcyRepair;
-		//	}
-		//}
-		//else {
-		//	++wtihoutSubcyNum;
-		//	if(eax.repairSolNum > 0) {
-		//		++wtihoutSubcyRepair;
-		//	}
-		//}
-		//println("eax.subCusNum:",eax.subCyCusNum, " wtihSb:", wtihSubcyNum, " wtihSbRe:", wtihSubcyRepair, " wtihoutSb:", wtihoutSubcyNum, " wtihoutSbRe:", wtihoutSubcyRepair);
 
 		if (eax.repairSolNum == 0) {
 			if (eax.abCycleSet.size() == 0) {
 				println("eax.abCycleSet.size() == 0");
+				println("kind:",kind);
+				pa.patternAdjustment();
+				pa.mRLLocalSearch({});
 				return false;
 			}
 			continue;
@@ -169,15 +139,7 @@ bool naEAX(Solver& pBest,Solver& pa, Solver& pb) {
 		//pc.mRLLocalSearch({});
 		bool up = updateBestSol(pBest, pc);
 		if (up) {
-			//if (kind == 0) {
-			//	++naUp;
-			//}
-			//else {
-			//	++prUp;
-			//}
-			//println("MAiter:", MAiter, " rep:", repairNum, " paUp:", paUpNum, " paNUp:", paNotUpNum, " pa:", paIndex, " pb:", pbIndex, " cost", pBest.RoutesCost, "bSolNUp", bestSolContiNotUp);
-			//println("naUp", naUp,"prUp", prUp);
-
+			isUp = true;
 			ch = 1;
 		}
 
@@ -189,6 +151,7 @@ bool naEAX(Solver& pBest,Solver& pa, Solver& pb) {
 			}
 			bool up = updateBestSol(pBest, pc);
 			if (up) {
+				isUp = true;
 				//println("MAiter:", MAiter, " rep:", repairNum, " paUp:", paUpNum, " paNUp:", paNotUpNum, " pa:", paIndex, " pb:", pbIndex, " cost", pBest.RoutesCost, "bSolNUp", bestSolContiNotUp);
 				println("eax ruin local update");
 				i = 0;
@@ -202,7 +165,7 @@ bool naEAX(Solver& pBest,Solver& pa, Solver& pb) {
 			//ch = 1;
 		}
 	}
-	return true;
+	return isUp;
 }
 
 bool solverByEAX(int argc, char* argv[]) {
@@ -227,16 +190,6 @@ bool solverByEAX(int argc, char* argv[]) {
 		//saveSlnFile(input, pBest.output, cfg, env);
 		st.mRLLocalSearch({});
 
-		//for (int i = 0; i < 20; ++i) {
-		//	st.ruinLocalSearch(1, myRand->pick(2) + 1);
-		//	bool up = updateBestSol(pBest, st);
-		//	if (up) {
-		//		//println("MAiter:", MAiter, " rep:", repairNum, " paUp:", paUpNum, " paNUp:", paNotUpNum, " pa:", paIndex, " pb:", pbIndex, " cost", pBest.RoutesCost, "bSolNUp", bestSolContiNotUp);
-		//		println("init ruin local update");
-		//		i = 0;
-		//	}
-		//}
-
 		if (st.RoutesCost < pBest.RoutesCost) {
 			pBest = st;
 		}
@@ -252,6 +205,7 @@ bool solverByEAX(int argc, char* argv[]) {
 
 	Vec<int> solConti(cfg->popSize, 1);
 
+	int contiNotDown = 1;
 
 	while (pBest.RoutesCost > globalInput->sintefRecRL && !t1.isTimeOut()) {
 		++MAiter;
@@ -292,6 +246,7 @@ bool solverByEAX(int argc, char* argv[]) {
 				i = 0;
 			}
 			if (updateBestSol(pBest, pa)) {
+				contiNotDown = 1;
 				println("ruin a update");
 				i = 0;
 			}
@@ -304,12 +259,25 @@ bool solverByEAX(int argc, char* argv[]) {
 				i = 0;
 			}
 			if (updateBestSol(pBest, pb)) {
+				contiNotDown = 1;
 				println("ruin b update");
 				i = 0;
 			}
 		}
-		naEAX(pBest, pa, pb);
 
+		bool isUp = false;
+		++contiNotDown;
+		if (contiNotDown > 100) {
+			isUp = naEAX(pBest, pa, pb, 1);
+		}
+		else {
+			isUp = naEAX(pBest, pa, pb, 0);
+		}
+
+		if (isUp) {
+			contiNotDown = 1;
+		}
+		
 	}
 
 	Output output = pBest.saveToOutPut();
