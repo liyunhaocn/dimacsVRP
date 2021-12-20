@@ -1004,7 +1004,7 @@ public:
 		return r.rPc;
 	}
 
-	bool rUpdateZvQfrom(Route& r, int vv) {
+	void rUpdateZvQfrom(Route& r, int vv) {
 
 		int v = vv;
 
@@ -1034,7 +1034,6 @@ public:
 		r.rPtw = customers[r.head].TWX_;
 		r.rQ = customers[r.head].QX_;
 		r.rPc =std::max<DisType>(0, r.rQ - input.Q);
-		return true;
 	}
 
 	int rGetCusCnt(Route& r) {
@@ -1160,6 +1159,19 @@ public:
 		penalty = alpha * Ptw + beta * Pc;
 
 		return true;
+	}
+
+
+
+	CircleSector rGetCircleSector(Route& r) {
+
+		CircleSector ret;
+		auto ve = rPutCusInve(r);
+		ret.initialize(input.datas[ ve.front() ].polarAngle);
+		for (int j = 1; j < ve.size(); ++j) {
+			ret.extend(input.datas[ve[j]].polarAngle);
+		}
+		return ret;
 	}
 
 	void sumRtsPen() {
@@ -6951,15 +6963,43 @@ public:
 		// 保存放入节点的路径，放入结束之后只更新这些路径的cost值
 		std::unordered_set<int> insRts;
 		Vec<int> EPArr = rPutCusInve(EPr);
-		auto cmp = [&](int a, int b) {
-			return input.disOf[a][0] > input.disOf[b][0];
+		//auto cmp = [&](int a, int b) {
+		//	return input.disOf[a][0] > input.disOf[b][0];
+		//};
+		//auto cmp = [&](int a, int b) {
+		//	return P[a] < P[b];
+		//};
+
+
+		//unsigned shuseed = (env.seed % hust::Mod) + ((hust::myRand->pick(10000007))) % hust::Mod;
+		//std::shuffle(EPArr.begin(), EPArr.end(), std::default_random_engine(shuseed));
+		auto cmp1 = [&](int a, int b) {
+
+			if (input.datas[a].DEMAND == input.datas[b].DEMAND) {
+				return input.disOf[a][0] > input.disOf[b][0];
+			}
+			return input.datas[a].DEMAND > input.datas[b].DEMAND;
 		};
 
-		std::sort(EPArr.begin(), EPArr.end(), cmp);
+		auto cmp2 = [&](int a, int b) {
+			return input.datas[a].DUEDATE-input.datas[a].READYTIME
+					 < input.datas[b].DUEDATE - input.datas[b].READYTIME;
+		};
 
-		for (int pt: EPArr) {
+		std::sort(EPArr.begin(), EPArr.end(), cmp1);
+
+		//if (myRand->pick(2) == 0) {
+		//	std::sort(EPArr.begin(), EPArr.end(), cmp1);
+		//}
+		//else {
+		//	std::sort(EPArr.begin(), EPArr.end(), cmp2);
+		//}
+		
+		for (int i = 0;i < EPArr.size(); ++i) {
+		//for (int i = EPArr.size() - 1;i>=0;--i) {
+			int pt = EPArr[i];
 			EPrRemoveAtPos(pt);
-			//debug(pt);
+			//++P[pt];
 			auto bestFitPos = findBestPosForRuin(pt);
 			Route& r = rts[bestFitPos.rIndex];
 			insRts.insert(r.routeID);
@@ -6977,73 +7017,41 @@ public:
 	}
 
 	Vec<int> ruinGetRuinCusBySting(int runCusNum) {
+		Vec<int> indexes = myRandX->getMN(rts.cnt,1);
 
-		//Vec<int> adjDisOrder = Vec<int>(cusInArr.size());
-		//std::iota(adjDisOrder.begin(), adjDisOrder.end(),0);
-		//Vec<DisType> adjDisVal(firstR.rCustCnt,0);
-
-		//for (int i = 0; i < cusInArr.size(); ++i) {
-		//	int t = cusInArr[i];
-		//	int tpre = customers[t].pre;
-		//	if (tpre > input.custCnt) {
-		//		tpre = 0;
-		//	}
-		//	int tnext = customers[t].next;
-		//	if (tnext > input.custCnt) {
-		//		tnext = 0;
-		//	}
-		//	adjDisVal[i] = input.disOf[t][tpre] + input.disOf[t][tnext];
-		//}
-		//auto cmp = [&](int a,int b) ->bool {
-		//	adjDisVal[a] > adjDisVal[b];
-		//};
-		//std::sort(adjDisOrder.begin(), adjDisOrder.end(), cmp);
-		//std::unordered_set<int> uset;
-		//uset.insert(v);
-		//Vec<int> runCus;
-		//return runCus;
-
-		int index = myRand->pick(rts.cnt);
-		Route& firstR = rts[index];
-		auto cusInArr = rPutCusInve(firstR);
-
-		//runCusNum = std::min<int>(runCusNum, firstR.rCustCnt);
-		//int vIndex = myRand->pick(firstR.rCustCnt - runCusNum + 1);
-
-		int ruinCusNumInRoute = myRand->pick(1,firstR.rCustCnt + 1) ;
-		ruinCusNumInRoute = std::min<int>(runCusNum, ruinCusNumInRoute);
-		int vIndex = myRand->pick(firstR.rCustCnt - ruinCusNumInRoute + 1);
-		int v = cusInArr[vIndex];
-		
-		int avg = runCusNum / (ruinCusNumInRoute);
-		//int v = cusInArr[myRand->pick(std::max<int>(firstR.rCustCnt / 2, 1))];
 		std::unordered_set<int> uset;
-		Vec<int> runCus;
-		//println("runCusNum:", runCusNum);
-		//println("ruinCusNumInRoute:", ruinCusNumInRoute);
-		//println("avg:", avg);
 
-		for (int i = 0; i < ruinCusNumInRoute; ++i) {
-			int wposMax = myRand->pick(1, 10);
-			//int wposMax = myRand->pick(1, avg*2);
-			//println("v:", v);
-			//println("wposMax:", wposMax);
-			if (v > input.custCnt) {
-				break;
-			}
+		for (int i = 0; i < 1; ++i) {
 
-			uset.insert(v);
-			for (int wpos = 0; wpos < wposMax ; ++wpos) {
-				int w = input.allCloseOf[v][wpos];
-				int wrId = customers[w].routeID;
-				//println("w:",w);
-				//println("wrId:",wrId);
-				if (wrId != -1) {
-					uset.insert(w);
+			int index = indexes[i];
+			Route& firstR = rts[index];
+			auto cusInArr = rPutCusInve(firstR);
+
+			int ruinCusNumInRoute = myRand->pick(firstR.rCustCnt) + 1;
+			ruinCusNumInRoute = std::min<int>(runCusNum, ruinCusNumInRoute);
+			int vIndex = myRand->pick(firstR.rCustCnt - ruinCusNumInRoute + 1);
+			int v = cusInArr[vIndex];
+
+			int avg = runCusNum / (ruinCusNumInRoute)+1;
+
+			for (int i = 0; i < ruinCusNumInRoute; ++i) {
+				int wposMax = myRand->pick(1, avg * 2 + 1);
+				if (v > input.custCnt) {
+					break;
 				}
+				uset.insert(v);
+				for (int wpos = 0; wpos < wposMax; ++wpos) {
+					int w = input.allCloseOf[v][wpos];
+					int wrId = customers[w].routeID;
+					if (wrId != -1) {
+						uset.insert(w);
+					}
+				}
+				v = customers[v].next;
 			}
-			v = customers[v].next;
 		}
+
+		Vec<int> runCus;
 		runCus.reserve(uset.size());
 		for (int c : uset) {
 			runCus.push_back(c);
@@ -7102,22 +7110,105 @@ public:
 		int v = myRand->pick(input.custCnt)+1;
 		//int v = 0;
 
-		Vec<int> runCus;
-		runCus.reserve(runCusNum);
+		Vec<CircleSector> secs(rts.cnt);
+		for (int i = 0; i < rts.cnt; ++i) {
+			secs[i] = rGetCircleSector(rts[i]);
+			// println("secs[i].start: ", secs[i].start, " secs[i].end: ", secs[i].end);
+		}
+		
+		Vec<int> rOrder(rts.cnt,0);
+		std::iota(rOrder.begin(), rOrder.end(), 0);
+		unsigned shuseed = (env.seed % hust::Mod) + ((hust::myRand->pick(10000007))) % hust::Mod;
+		std::shuffle(rOrder.begin(), rOrder.end(), std::default_random_engine(shuseed));
 
-		for (int wpos = 0;wpos< runCusNum;++wpos) {
-			int w = input.sectorClose[v][wpos];
-			//int w = input.allCloseOf[v][wpos];
-			if (customers[w].routeID != -1) {
-				runCus.push_back(w);
+		int rti = 0;
+		int rtj = 0;
+
+		for (int i = 0; i < rts.cnt; ++i) {
+			rti = rOrder[i];
+			bool isbreak = false;
+			for (int j = i + 1; j < rts.cnt; ++j) {
+				rtj = rOrder[j];
+				bool is = CircleSector::overlap(secs[rti],secs[rtj]);
+				//println("i:", i, " j:", j, " over:", is);
+				//println("secs[rti].start: ", secs[rti].start, " secs[rti].end: ", secs[rti].end);
+				//println("secs[rtj].start: ", secs[rtj].start, " secs[rtj].end: ", secs[rtj].end);
+				if (is) {
+					isbreak = true;
+					break;
+				}
 			}
+			if (isbreak) {
+				break;
+			}
+		}
+
+		auto ve = rPutCusInve(rts[rti]);
+
+		//unsigned shuseed = (env.seed % hust::Mod) + ((hust::myRand->pick(10000007))) % hust::Mod;
+		//std::shuffle(ve.begin(), ve.end(), std::default_random_engine(shuseed));
+
+		int vstart = -1;
+		int vend = -1;
+
+		for (int i = 0; i < ve.size(); ++i) {
+			int v = ve[i];
+			//debug(input.datas[v].polarAngle);
+			//println("secs[rti].start: ", secs[rti].start, " secs[rti].end: ", secs[rti].end);
+			//println("secs[rtj].start: ", secs[rtj].start, " secs[rtj].end: ", secs[rtj].end);
+
+			if (secs[rti].isEnclosed(input.datas[v].polarAngle)
+				&& secs[rtj].isEnclosed(input.datas[v].polarAngle)) {
+				if (vstart == -1) {
+					vstart = i;
+					vend = i;
+				}
+				else {
+					vend = i;
+				}
+			}
+		}
+
+		if (vstart == -1) {
+			vstart = 0;
+			vend = ve.size() - 1;
+		}
+
+		std::unordered_set<int> uset;
+		//int ruinCusNumInr = std::min<int>(3,vend - vstart + 1);
+		int ruinCusNumInr =  vend - vstart + 1;
+		int avg = std::max<int>(1, runCusNum / ruinCusNumInr);
+
+		for (int i = vstart; i <= vend; ++i) {
+			int v = ve[i];
+			uset.insert(v);
+			int wposMax = myRand->pick(1, 2*avg+1);
+
+			for (int wpos = 0; wpos < wposMax; ++wpos) {
+				int w = input.allCloseOf[v][wpos];
+				int wrId = customers[w].routeID;
+				//println("w:",w);
+				//println("wrId:",wrId);
+				if (wrId != -1) {
+					uset.insert(w);
+				}
+			}
+			//break;
+		}
+
+		Vec<int> runCus;
+		runCus.reserve(uset.size());
+		for (int c : uset) {
+			runCus.push_back(c);
+		}
+		if (runCus.size() == 0) {
+			println("runCusNum: ", runCusNum);
 		}
 		return runCus;
 	}
 
 	bool ruinLocalSearch(int kind ,int ruinCusNum) {
 			
-		
 		gamma = 1;
 		//TODO[lyh][1]:这里可能可以去掉，如果之前每一条路径的cost都维护的话
 		//TODO[lyh][1]:但是接到扰动后面就不太行了
@@ -7136,17 +7227,19 @@ public:
 			Vec<int> cuses;
 			cuses.reserve(input.custCnt);
 
-			Vec<int> ruinCus;
+			//Vec<int> ruinCus;
 			//if (kind == 0) {
 			//	ruinCus = ruinGetRuinCusByRound(ruinCusNum);
 			//}
 			//else if (kind == 1) {
-				ruinCus = ruinGetRuinCusBySting(ruinCusNum);
+				//ruinCus = ruinGetRuinCusBySting(ruinCusNum);
 			//}
 			//else {
-			//	ruinCus = ruinGetRuinCusBySec(ruinCusNum);
+				//auto ruinCus = ruinGetRuinCusBySec(ruinCusNum);
 			//}
-
+				auto ruinCus = ruinGetRuinCusBySting(ruinCusNum);
+			//println(ruinCus.size());
+			//println(ruinCus1.size());
 			std::unordered_set<int> rIds;
 			for (int cus : ruinCus) {
 				Route& r = rts.getRouteByRid(customers[cus].routeID);

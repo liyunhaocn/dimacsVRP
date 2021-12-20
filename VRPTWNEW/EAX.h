@@ -628,6 +628,7 @@ public:
 					}
 				}
 			}
+			break;
 			/*Log(Log::Info) 
 				<< " index: "<< index  
 				<< " subcy: "<< solScores[index].subcyNum

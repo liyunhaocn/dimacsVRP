@@ -63,7 +63,7 @@ struct Data {
 	LL READYTIME = -1;
 	LL DUEDATE = -1;
 	LL SERVICETIME = -1;
-	LL polarAngle = -1;
+	LL polarAngle = 0;
 };
 
 struct InsData {

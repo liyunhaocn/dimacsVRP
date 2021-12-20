@@ -47,7 +47,7 @@ bool allocGlobalMem(int argc, char* argv[]) {
 	//Environment env("../Instances/Solomon/C101.txt");
 	//Environment env("../Instances/Homberger/RC1_8_3.txt");
 	globalEnv = new Environment("../Instances/Homberger/RC1_8_1.txt");
-	//Environment env("../Instances/Homberger/C1_2_8.txt");
+	//Environment env("../Instances/Homberger/C1_2_2.txt");
 
 	cfg = new hust::Configuration();
 	//lyh::MyString ms;
@@ -73,6 +73,7 @@ bool allocGlobalMem(int argc, char* argv[]) {
 	yearTable = new Vec<Vec<LL> >
 		(globalInput->custCnt + 1, Vec<LL>(globalInput->custCnt + 1, 0));
 	//TODO[lyh][0]:
+	return true;
 }
 
 bool deallocGlobalMem() {
@@ -89,9 +90,6 @@ bool deallocGlobalMem() {
 
 bool naEAX(Solver& pBest,Solver& pa, Solver& pb) {
 
-	int paUpNum = 0;
-	int paNotUpNum = 0;
-
 	int wtihSubcyNum = 0;
 	int wtihSubcyRepair = 0;
 	int wtihoutSubcyNum = 0;
@@ -99,7 +97,10 @@ bool naEAX(Solver& pBest,Solver& pa, Solver& pb) {
 
 	int repairNum = 0;
 
-	
+	//static int naEaxRepair = 0;
+	//static int prEaxRepair = 0;
+	//static int naUp = 0;
+	//static int prUp = 0;
 
 	for (int ch = 1; ch <= 10; ++ch) {
 
@@ -109,13 +110,37 @@ bool naEAX(Solver& pBest,Solver& pa, Solver& pb) {
 		//unsigned eaxSeed = (env.seed % Mod) + ((myRand->pick(10000007))) % Mod;
 		Vec<int> newCus;
 		// newCus = eax.doNaEAX(pa, pb, pc);
-		if (ch <= 9) {
+		if (ch <= 10) {
 			newCus = eax.doNaEAX(pa, pb, pc);
+			//if (eax.repairSolNum > 0) {
+			//	++naEaxRepair;
+			//}
 		}
-		else if (ch == 10) {
+		else{
 			newCus = eax.doPrEAX(pa, pb, pc);
+			//if (eax.repairSolNum > 0) {
+			//	++prEaxRepair;
+			//}
 		}
 
+		//int kind = 0;
+		//if ( ch%2 ==0) {
+		//	newCus = eax.doNaEAX(pa, pb, pc);
+		//	//if (eax.repairSolNum > 0) {
+		//	//	++naEaxRepair;
+		//	//}
+		//	//kind = 0;
+		//}
+		//else {
+		//	newCus = eax.doPrEAX(pa, pb, pc);
+		//	//if (eax.repairSolNum > 0) {
+		//	//	++prEaxRepair;
+		//	//}
+		//	//kind = 1;
+		//}
+
+		//println("naEaxRepair:", naEaxRepair," prEaxRepair:", prEaxRepair);
+		
 		//if (eax.subCyNum > 0) {
 		//	++wtihSubcyNum;
 		//	if (eax.repairSolNum > 0) {
@@ -144,13 +169,21 @@ bool naEAX(Solver& pBest,Solver& pa, Solver& pb) {
 		//pc.mRLLocalSearch({});
 		bool up = updateBestSol(pBest, pc);
 		if (up) {
+			//if (kind == 0) {
+			//	++naUp;
+			//}
+			//else {
+			//	++prUp;
+			//}
 			//println("MAiter:", MAiter, " rep:", repairNum, " paUp:", paUpNum, " paNUp:", paNotUpNum, " pa:", paIndex, " pb:", pbIndex, " cost", pBest.RoutesCost, "bSolNUp", bestSolContiNotUp);
-			println("eax update");
-			//ch = 1;
+			//println("naUp", naUp,"prUp", prUp);
+
+			ch = 1;
 		}
 
 		for (int i = 0; i < 20; ++i) {
-			bool ruin = pc.ruinLocalSearch(1, myRand->pick(2) + 1);
+			int ruinCusNum =  i/5 + 1;
+			bool ruin = pc.ruinLocalSearch(1, ruinCusNum);
 			if (ruin) {
 				i = 0;
 			}
@@ -164,13 +197,9 @@ bool naEAX(Solver& pBest,Solver& pa, Solver& pb) {
 		}
 
 		if (pc.RoutesCost < pa.RoutesCost) {
-			println("pc.RoutesCost < pa.RoutesCost");
+			//println("pc.RoutesCost",pc.RoutesCost," pa.RoutesCost",pa.RoutesCost);
 			pa = pc;
 			//ch = 1;
-			++paUpNum;
-		}
-		else {
-			++paNotUpNum;
 		}
 	}
 	return true;
@@ -254,9 +283,10 @@ bool solverByEAX(int argc, char* argv[]) {
 
 		Solver& pa = pool[paIndex];
 		Solver& pb = pool[pbIndex];
-
+		//println("paIndex:", paIndex);
+		//println("pbIndex:", pbIndex);
 		for (int i = 0; i < 20; ++i) {
-			int ruinCusNum = myRand->pick(2) + 1;
+			int ruinCusNum = i / 5 + 1;
 			bool ruin = pa.ruinLocalSearch(1, ruinCusNum);
 			if (ruin) {
 				i = 0;
@@ -268,7 +298,7 @@ bool solverByEAX(int argc, char* argv[]) {
 		}
 		
 		for (int i = 0; i < 20; ++i) {
-			int ruinCusNum = myRand->pick(2) + 1;
+			int ruinCusNum = i / 5 + 1;
 			bool ruin = pb.ruinLocalSearch(1, ruinCusNum);
 			if (ruin) {
 				i = 0;
@@ -278,7 +308,6 @@ bool solverByEAX(int argc, char* argv[]) {
 				i = 0;
 			}
 		}
-
 		naEAX(pBest, pa, pb);
 
 	}
@@ -329,13 +358,16 @@ bool justLocalSearch(int argc, char* argv[]) {
 	//int rnum = std::min<int>(contiNoDown/10,20) + 1;
 	int rnum = 1;
 
+	std::fill(st.P.begin(), st.P.end(), 1);
+
 	while (pBest.RoutesCost > globalInput->sintefRecRL && !t1.isTimeOut()) {
 
 		st = pBest;
 
 		#if 1
-		if (contiNoDown >= 500) {
-			rnum = std::min<int>(rnum+1,10);
+		if (contiNoDown >= 300) {
+			rnum = (rnum + 3) % 40 + 1;
+			//std::min<int>(rnum + 1, 20);
 			contiNoDown = 1;
 		}
 
@@ -378,7 +410,7 @@ bool justLocalSearch(int argc, char* argv[]) {
 	return true;
 }
 
-}
+}//namespace hust
 
 int main(int argc, char* argv[])
 {
