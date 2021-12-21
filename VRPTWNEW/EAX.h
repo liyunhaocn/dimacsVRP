@@ -524,8 +524,8 @@ public:
 		Vec<int> repairOrder(generSolNum, 0);
 		auto cmp = [&](int a, int b) ->bool {
 			if (solScores[a].subcyNum == solScores[b].subcyNum) {
-				return /*solScores[a].cost + */solScores[a].pen <
-					/*solScores[b].cost +*/ solScores[b].pen;
+				return solScores[a].cost + solScores[a].pen <
+					solScores[b].cost + solScores[b].pen;
 			}
 			else {
 				return solScores[a].subcyNum < solScores[b].subcyNum;
@@ -547,31 +547,59 @@ public:
 			return {};
 		}
 
-		SolScore solScores;
-		pc = pa;
-		int cyId = myRand->pick(abCycleSet.size());
-		Vec<int> eset = { cyId };
-		solScores.newCus = applyCycles({ cyId }, pc);
-		solScores.subcyNum = removeSubring(pc);
-		pc.reCalRtsCostAndPen();
-		solScores.pen = pc.penalty;
-		solScores.cost = pc.RoutesCost;
+		int abcyNum = abCycleSet.size();
+		// 
+		//TODO[lyh][001]:最多放置多少个abcycle[2,(abcyNum+1)/2]
+		generSolNum = std::min<int>(abcyNum, 2);
+		auto& choseCyOrder = myRandX->getMN(abCycleSet.size(), generSolNum);
 
-		bool isRepair = pc.repair();
+		Vec<hust::Solver> pool;
+		pool.reserve(generSolNum);
 
-		if (isRepair) {
-			repairSolNum = 1;
-			return solScores.newCus;
+		Vec<Vec<int> > newCuses;
+		newCuses.reserve(generSolNum);
+
+		Vec<SolScore> solScores(generSolNum);
+		for (int i = 0; i < generSolNum; ++i) {
+			pc = pa;
+			Vec<int> eset = { choseCyOrder [i]};
+			solScores[i].newCus = applyCycles(eset, pc);
+			solScores[i].subcyNum = removeSubring(pc);
+			pc.reCalRtsCostAndPen();
+			pool.push_back(pc);
+			solScores[i].pen = pc.penalty;
+			solScores[i].cost = pc.RoutesCost;
+		}
+
+		Vec<int> repairOrder = getRepartOrder(solScores);
+
+		int retIndex = -1;
+
+		int index = repairOrder.front();
+		auto& soltemp = pool[index];
+		auto repRet = soltemp.repair();
+		if (repRet.isRepair) {
+			++repairSolNum;
+			retIndex = index;
+			auto& arr = solScores[index].newCus;
+			arr.insert(arr.end(), repRet.cuses.begin(), repRet.cuses.end());
+		}
+
+		if (retIndex >= 0) {
+			pc = pool[retIndex];
+			
+			return solScores[retIndex].newCus;
 		}
 		else {
-			return solScores.newCus;
+			//
+			pc = pa;
+			return {};
 		}
 		return {};
 	}
 
 	Vec<int> doPrEAX(Solver& pa, Solver& pb, Solver& pc) {
 
-		
 		generateCycles();
 		repairSolNum = 0;
 
@@ -585,7 +613,9 @@ public:
 		generSolNum = 0;
 
 		int abcyNum = abCycleSet.size();
-		// 
+		
+		Vec<std::set<int>> cusInAbcy;
+
 		//TODO[lyh][001]:最多放置多少个abcycle[2,(abcyNum+1)/2]
 		generSolNum = (abcyNum + 1) / 2 - 2 + 1;
 		//generSolNum = std::min<int>(generSolNum,3);
@@ -613,11 +643,16 @@ public:
 
 		int retIndex = -1;
 
-		for (int index : repairOrder) {
+		int callRepairNum = std::min<int>(4, repairOrder.size());
+
+		for (int i = 0;i< callRepairNum; ++i) {
+			int index = repairOrder[i];
 			auto& soltemp = pool[index];
-			bool isRepair = soltemp.repair();
-			if (isRepair) {
+			auto repRet = soltemp.repair();
+			if (repRet.isRepair) {
 				++repairSolNum;
+				auto& arr = solScores[index].newCus;
+				arr.insert(arr.end(), repRet.cuses.begin(), repRet.cuses.end());
 				if (repairSolNum == 1) {
 					retIndex = index;
 					break;

@@ -57,10 +57,10 @@ struct Configuration {
 
 	// TODO[lyh][2] mRLLocalSearchRange
 	Vec<int> mRLLocalSearchRange = { 10,50 };
-	int mRLLSgetAllRange = 50;
+	//int mRLLSgetAllRange = 50;
 
 	//ruinLocalSearch
-	int ruinLocalSearchNextNeiBroad = 20;
+	int ruinLocalSearchNextNeiBroad = 5;
 
 	//applyCycles
 	int applyCyclesNextNeiBroad = 50;
@@ -90,7 +90,7 @@ struct Configuration {
 		//mRLLocalSearchRange = { 10,50 };
 		mRLLocalSearchRange[0] = std::min<int>(cusCnt, mRLLocalSearchRange[0]);
 		mRLLocalSearchRange[1] = std::min<int>(cusCnt, mRLLocalSearchRange[1]);
-		mRLLSgetAllRange = std::min<int>(cusCnt, mRLLSgetAllRange);
+		//mRLLSgetAllRange = std::min<int>(cusCnt, mRLLSgetAllRange);
 
 		//ruinLocalSearch
 		ruinLocalSearchNextNeiBroad = std::min<int>(cusCnt, ruinLocalSearchNextNeiBroad);

@@ -59,15 +59,29 @@ for t in arr_types:
 		for i in range(1,11):
 			all300Cases.append(t + cuscnt + str(i) )
 
-
-cases = all300Cases
+minRLhardlist = [
+"C1_4_2",
+"C1_6_6",
+"C2_4_4",
+"C2_10_4",
+"R1_6_5",
+"R1_10_10",
+"R2_6_6",
+"R2_8_10",
+"RC1_4_5",
+"RC1_8_1",
+"RC2_6_4",
+"RC2_10_8",
+]
+ 
+cases = minRLhardlist
 print(len(cases))
 # strBase = "start cmd /k \"DLLSMA.exe 1 ../Instances/Homberger/C2_10_2.txt 36000\""
-path = "./all300_0p5h.bat"
+path = "./hard12_1h.bat"
 
-part = 30
+part = len(cases)
 part = min(part,len(cases))
-runTime = "1800"
+runTime = "3600"
 # runTime = "86400"
 isBreak = "0"
 

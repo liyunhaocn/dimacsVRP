@@ -65,6 +65,17 @@ void printve(T arr) {
     std::cout << std::endl;
 }
 
+template<typename T>
+Vec<int> putEleInVec(T arr) {
+    Vec<int> ret;
+    ret.reserve(arr.size());
+    for (const auto& i : arr) {
+        ret.push_back(i);
+    }
+    return ret;
+}
+
+
 struct MyString {
 public:
     //split 

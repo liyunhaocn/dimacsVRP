@@ -1381,6 +1381,7 @@ struct Input {
 		int ready_time = -1, due_date = -1, service_time = -1;
 		int readArgNum = 0;
 		while ( (readArgNum = fscanf(file, "%d %d %d %d %d %d %d\n", &id, &coordx, &coordy, &demand, &ready_time, &due_date, &service_time)) == 7) {
+			
 			this->datas[index].CUSTNO = id;
 			this->datas[index].XCOORD = coordx* disMul;
 			this->datas[index].YCOORD = coordy * disMul;
@@ -1442,27 +1443,24 @@ bool saveSlnFile(Input& input, Output& output, Configuration* cfg, Environment& 
 	MyString ms;
 	// 输出 tm 结构的各个组成部分
 	//std::string day = /*ms.LL_str(d.year) + */ms.LL_str(d.month) + ms.LL_str(d.day);
-	std::string day = __DATE__;
-	for (auto& c : day) {
-		if (c == ' ') {
+	std::string path = __DATE__;
+	path += std::string(1, '_') + __TIME__;
+
+	for (auto& c : path) {
+		if (c == ' ' || c == ':') {
 			c = '_';
 		}
 	}
+
 	std::string pwe0 = ms.int_str(cfg->Pwei0);
 	std::string pwe1 = ms.int_str(cfg->Pwei1);
 	std::string minKmax = ms.int_str(cfg->minKmax);
 	std::string maxKmax = ms.int_str(cfg->maxKmax);
 
-	std::string type = output.rts.size() < input.sintefRecRN ? "br" : "Ej";
+	//std::string type = output.rts.size() < input.sintefRecRN ? "br" : "Ej";
 
 	std::ofstream rgbData;
-	std::string wrPath = env.outputPath
-		+ type + "_" + day
-		/*+ "PW" + pwe0 + pwe1
-		+ "KM" + minKmax + maxKmax
-		+ "SW" + EPPerturbStep*/
-		//+input.example 
-		+".csv";
+	std::string wrPath = env.outputPath + "_" + path + ".csv";
 
 	bool isGood = false;
 	{

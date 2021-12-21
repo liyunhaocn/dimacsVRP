@@ -28,26 +28,15 @@
 
 namespace hust {
 
-bool updateBestSol(hust::Solver& pBest, hust::Solver& pTemp) {
-	if (pTemp.RoutesCost < pBest.RoutesCost) {
-		pBest = pTemp;
-		//pBest.saveToOutPut();
-		//pBest.saveOutAsSintefFile();
-		hust::println("cost:", pBest.RoutesCost);
-		return true;
-	}
-	else {
-		return false;
-	}
-	return false;
-};
-
 bool allocGlobalMem(int argc, char* argv[]) {
 
 	//globalEnv = new Environment("../Instances/Solomon/C101.txt");
 	//globalEnv = new Environment("../Instances/Homberger/RC1_8_3.txt");
 	//globalEnv = new Environment("../Instances/Homberger/RC1_8_1.txt");
-	globalEnv  = new Environment("../Instances/Homberger/C1_4_2.txt");
+	//globalEnv  = new Environment("../Instances/Homberger/C1_4_2.txt");
+	// 
+	//75296223
+	globalEnv = new Environment("../Instances/Homberger/RC2_6_4.txt");
 
 	cfg = new hust::Configuration();
 	//lyh::MyString ms;
@@ -88,132 +77,22 @@ bool deallocGlobalMem() {
 	return true;
 }
 
-bool naEAX(Solver& pBest,Solver& pa, Solver& pb,int kind) {
+struct Goal {
+	
+	Vec<Vec<LL>> eaxYearTable;
+	Solver* pBest = nullptr;
 
-	int wtihSubcyNum = 0;
-	int wtihSubcyRepair = 0;
-	int wtihoutSubcyNum = 0;
-	int wtihoutSubcyRepair = 0;
-
-	int repairNum = 0;
-
-	//static int naEaxRepair = 0;
-	//static int prEaxRepair = 0;
-	//static int naUp = 0;
-	//static int prUp = 0;
-	bool isUp = false;
-	int reTime = 10;
-	if (kind == 1) {
-		//println(kind);
-		reTime = 1;
-	}
-	for (int ch = 1; ch <= reTime; ++ch) {
-
-		EAX eax(pa, pb);
-
-		Solver pc = pa;
-		//unsigned eaxSeed = (env.seed % Mod) + ((myRand->pick(10000007))) % Mod;
-		Vec<int> newCus;
-		// newCus = eax.doNaEAX(pa, pb, pc);
-		if (kind == 0) {
-			newCus = eax.doNaEAX(pa, pb, pc);
-		}
-		else {
-			newCus = eax.doPrEAX(pa, pb, pc);
-		}
-
-		if (eax.repairSolNum == 0) {
-			if (eax.abCycleSet.size() == 0) {
-				println("eax.abCycleSet.size() == 0");
-				println("kind:",kind);
-				pa.patternAdjustment();
-				pa.mRLLocalSearch({});
-				return false;
-			}
-			continue;
-		}
-
-		++repairNum;
-
-		pc.mRLLocalSearch(newCus);
-		//pc.mRLLocalSearch({});
-		bool up = updateBestSol(pBest, pc);
-		if (up) {
-			isUp = true;
-			ch = 1;
-		}
-
-		for (int i = 0; i < 20; ++i) {
-			int ruinCusNum =  i/5 + 1;
-			bool ruin = pc.ruinLocalSearch(1, ruinCusNum);
-			if (ruin) {
-				i = 0;
-			}
-			bool up = updateBestSol(pBest, pc);
-			if (up) {
-				isUp = true;
-				//println("MAiter:", MAiter, " rep:", repairNum, " paUp:", paUpNum, " paNUp:", paNotUpNum, " pa:", paIndex, " pb:", pbIndex, " cost", pBest.RoutesCost, "bSolNUp", bestSolContiNotUp);
-				println("eax ruin local update");
-				i = 0;
-				//ch = 1;
-			}
-		}
-
-		if (pc.RoutesCost < pa.RoutesCost) {
-			//println("pc.RoutesCost",pc.RoutesCost," pa.RoutesCost",pa.RoutesCost);
-			pa = pc;
-			//ch = 1;
-		}
-	}
-	return isUp;
-}
-
-bool solverByEAX(int argc, char* argv[]) {
-
-	allocGlobalMem(argc,argv);
-
-	Solver pBest(*globalInput, *globalEnv);
-	pBest.RoutesCost = DisInf;
-
-	Timer t1(cfg->runTimer);
-	t1.setLenUseSecond(cfg->runTimer);
-	t1.reStart();
-
-	Vec<Solver> pool;
-	pool.reserve(cfg->popSize);
-
-	for (int i = 0; i < cfg->popSize; ++i) {
-		Environment envt = *globalEnv;
-		envt.seed = (globalEnv->seed % Mod) + ((i + 1) * (myRand->pick(10000007))) % Mod;
-		Solver st(*globalInput, envt);
-		st.minimizeRN();
-		//saveSlnFile(input, pBest.output, cfg, env);
-		st.mRLLocalSearch({});
-
-		if (st.RoutesCost < pBest.RoutesCost) {
-			pBest = st;
-		}
-		pool.push_back(st);
+	Goal() {
+		eaxYearTable = Vec<Vec<LL>>
+		(cfg->popSize, Vec<LL>(cfg->popSize));
+		pBest = new Solver(*globalInput, *globalEnv);
+		pBest->RoutesCost = DisInf;
 	}
 
-	int paIndex =  myRand->pick( cfg->popSize);
-	int pbIndex = (paIndex + myRand->pick(cfg->popSize - 1) + 1) % cfg->popSize;
+	Vec<int> getpairOfPaPb() {
 
-	Vec<Vec<LL>> eaxYearTable
-	(cfg->popSize, Vec<LL>(cfg->popSize));
-	LL MAiter = 0;
-
-	Vec<int> solConti(cfg->popSize, 1);
-
-	int contiNotDown = 1;
-
-	while (pBest.RoutesCost > globalInput->sintefRecRL && !t1.isTimeOut()) {
-		++MAiter;
-
-		#pragma region ChoosePaPb
-		eaxYearTable[paIndex][pbIndex] = MAiter;
-		paIndex = myRand->pick(cfg->popSize);
-		pbIndex = (paIndex + 1) % cfg->popSize;
+		int paIndex = myRand->pick(cfg->popSize);
+		int pbIndex = (paIndex + 1) % cfg->popSize;
 		int sameNum = 1;
 		int retPbIndex = pbIndex;
 		for (int i = 1; i + 1 < cfg->popSize; ++i) {
@@ -233,150 +112,323 @@ bool solverByEAX(int argc, char* argv[]) {
 			}
 		}
 		pbIndex = retPbIndex;
-		#pragma endregion
+		return { paIndex,pbIndex };
+	}
 
-		Solver& pa = pool[paIndex];
-		Solver& pb = pool[pbIndex];
-		//println("paIndex:", paIndex);
-		//println("pbIndex:", pbIndex);
-		for (int i = 0; i < 20; ++i) {
-			int ruinCusNum = i / 5 + 1;
-			bool ruin = pa.ruinLocalSearch(1, ruinCusNum);
-			if (ruin) {
-				i = 0;
-			}
-			if (updateBestSol(pBest, pa)) {
-				contiNotDown = 1;
-				println("ruin a update");
-				i = 0;
-			}
+	bool updateBestSol(hust::Solver& pTemp) {
+		if (pTemp.RoutesCost < pBest->RoutesCost) {
+			*pBest = pTemp;
+			//pBest.saveToOutPut();
+			//pBest.saveOutAsSintefFile();
+			hust::println("cost:", pBest->RoutesCost);
+			return true;
 		}
-		
-		for (int i = 0; i < 20; ++i) {
-			int ruinCusNum = i / 5 + 1;
-			bool ruin = pb.ruinLocalSearch(1, ruinCusNum);
-			if (ruin) {
-				i = 0;
-			}
-			if (updateBestSol(pBest, pb)) {
-				contiNotDown = 1;
-				println("ruin b update");
-				i = 0;
-			}
+		else {
+			return false;
 		}
+		return false;
+	};
 
+	bool naEAX(Solver& pa, Solver& pb, int kind) {
+
+		int wtihSubcyNum = 0;
+		int wtihSubcyRepair = 0;
+		int wtihoutSubcyNum = 0;
+		int wtihoutSubcyRepair = 0;
+
+		int repairNum = 0;
+
+		static int naEaxRepair = 0;
+		static int prEaxRepair = 0;
+		static int naUp = 0;
+		static int prUp = 0;
 		bool isUp = false;
-		++contiNotDown;
-		if (contiNotDown > 100) {
-			isUp = naEAX(pBest, pa, pb, 1);
-		}
-		else {
-			isUp = naEAX(pBest, pa, pb, 0);
-		}
+		int reTime = 3;
 
-		if (isUp) {
-			contiNotDown = 1;
+		println("kind", kind);
+
+		if (kind == 1) {
+
+			reTime = 1;
 		}
-		
+		for (int ch = 1; ch <= reTime; ++ch) {
+
+			EAX eax(pa, pb);
+
+			Solver pc = pa;
+			//unsigned eaxSeed = (env.seed % Mod) + ((myRand->pick(10000007))) % Mod;
+			Vec<int> newCus;
+			// newCus = eax.doNaEAX(pa, pb, pc);
+			if (kind == 0) {
+				newCus = eax.doNaEAX(pa, pb, pc);
+			}
+			else {
+				newCus = eax.doPrEAX(pa, pb, pc);
+			}
+
+			if (eax.repairSolNum == 0) {
+				if (eax.abCycleSet.size() == 0) {
+
+					println("eax.abCycleSet.size() == 0");
+					println("kind:", kind);
+
+					while (true) {
+						println("pa.patternAdjustment");
+						auto cuses = pa.patternAdjustment();
+						pa.mRLLocalSearch(cuses);
+
+						EAX eaxt(pa, pb);
+						eaxt.doNaEAX(pa, pb, pc);
+						if (eaxt.abCycleSet.size() > 0) {
+							break;
+						}
+					}
+					return false;
+				}
+				continue;
+			}
+
+			++repairNum;
+			if (kind == 0) {
+				++naEaxRepair;
+			}
+			else {
+				++prEaxRepair;
+			}
+			println(" repairNum:", repairNum, " naEaxRepair:", naEaxRepair, " prEaxRepair:", prEaxRepair);
+			pc.mRLLocalSearch(newCus);
+			//pc.mRLLocalSearch({});
+			bool up = updateBestSol(pc);
+			if (up) {
+				isUp = true;
+				ch = 1;
+			}
+
+			for (int i = 0; i < 20; ++i) {
+				int ruinCusNum =  i/5 + 1;
+				//int ruinCusNum = i + 1;
+				bool ruin = pc.ruinLocalSearch(1, ruinCusNum);
+				if (ruin) {
+					i = 0;
+				}
+				bool up = updateBestSol(pc);
+				if (up) {
+					isUp = true;
+					//println("MAiter:", MAiter, " rep:", repairNum, " paUp:", paUpNum, " paNUp:", paNotUpNum, " pa:", paIndex, " pb:", pbIndex, " cost", pBest.RoutesCost, "bSolNUp", bestSolContiNotUp);
+					println("eax ruin local update,ruinCusNum:", ruinCusNum);
+					i = 0;
+				}
+			}
+
+			if (pc.RoutesCost < pa.RoutesCost) {
+				//println("pc.RoutesCost",pc.RoutesCost," pa.RoutesCost",pa.RoutesCost);
+				pa = pc;
+			}
+		}
+		return isUp;
 	}
 
-	Output output = pBest.saveToOutPut();
-	output.runTime = t1.getRunTime();
-	saveSlnFile(*globalInput, output, cfg, *globalEnv);
-	t1.disp();
+	bool solverByEAX() {
 
-	deallocGlobalMem();
+		pBest->RoutesCost = DisInf;
 
-	return true;
-}
+		Timer t1(cfg->runTimer);
+		t1.setLenUseSecond(cfg->runTimer);
+		t1.reStart();
 
-bool justLocalSearch(int argc, char* argv[]) {
+		Vec<Solver> pool;
+		pool.reserve(cfg->popSize);
 
-	allocGlobalMem(argc, argv);
+		for (int i = 0; i < cfg->popSize; ++i) {
+			Environment envt = *globalEnv;
+			envt.seed = (globalEnv->seed % Mod) + ((i + 1) * (myRand->pick(10000007))) % Mod;
+			Solver st(*globalInput, envt);
+			st.minimizeRN();
+			//saveSlnFile(input, pBest.output, cfg, env);
+			st.mRLLocalSearch({});
 
-	squIter = 1;
-
-	Timer t1(cfg->runTimer);
-	t1.setLenUseSecond(cfg->runTimer);
-	t1.reStart();
-
-	Solver st(*globalInput, *globalEnv);
-	st.minimizeRN();
-	//st.saveOutAsSintefFile("minR");
-	st.mRLLocalSearch({});
-	//st.saveOutAsSintefFile("minL");
-	//TODO[lyh][0]:
-	Solver pBest = st;
-
-	//updateBestSol(st);
-
-	int ruinNum = 0;
-	int parNum = 0;
-
-	Vec<int> cusOrder(globalInput->custCnt,1);
-	std::iota(cusOrder.begin(), cusOrder.end(),1);
-
-	int avg = globalInput->custCnt / st.rts.cnt;
-	int contiNoDown = 1;
-
-	Vec<Vec<int>> table(3, Vec<int>(50, 0));
-
-	//int kind = myRand->pick(3);
-	int kind = 1;
-	//int rnum = std::min<int>(contiNoDown/10,20) + 1;
-	int rnum = 1;
-
-	std::fill(st.P.begin(), st.P.end(), 1);
-
-	while (pBest.RoutesCost > globalInput->sintefRecRL && !t1.isTimeOut()) {
-
-		st = pBest;
-
-		#if 1
-		if (contiNoDown >= 300) {
-			rnum = (rnum + 3) % 40 + 1;
-			//std::min<int>(rnum + 1, 20);
-			contiNoDown = 1;
+			if (st.RoutesCost < pBest->RoutesCost) {
+				*pBest = st;
+			}
+			pool.push_back(st);
 		}
 
-		bool isRuin = st.ruinLocalSearch(kind, rnum);
-		bool up1 = updateBestSol(pBest, st);
-		if (up1) {
-			//println("cost:", pBest.RoutesCost, " ruinNum:", ruinNum, " parNum:", parNum);
-			println("-cost:", pBest.RoutesCost, " rnum:", rnum);
-			contiNoDown = 1;
-			rnum = 1;
-			//++table[kind][rnum];
-			//println("-----------");
-			//for (auto& i : table) {
-			//	printve(i);
+		LL MAiter = 0;
+
+		Vec<int> solConti(cfg->popSize, 1);
+
+		int contiNotDown = 1;
+
+		while (pBest->RoutesCost > globalInput->sintefRecRL && !t1.isTimeOut()) {
+			++MAiter;
+
+			auto papb = getpairOfPaPb();
+			int paIndex = papb[0];
+			int pbIndex = papb[1];
+			
+			//if (pool[paIndex].RoutesCost < pool[pbIndex].RoutesCost) {
+			//	std::swap(paIndex,pbIndex);
 			//}
-			++ruinNum;
+
+			eaxYearTable[paIndex][pbIndex] = MAiter;
+
+			Solver& pa = pool[paIndex];
+			Solver& pb = pool[pbIndex];
+			println("paIndex:", paIndex);
+			println("pbIndex:", pbIndex);
+			//for (int i = 0; i < 20; ++i) {
+			//	int ruinCusNum = i / 5 + 1;
+			//	bool ruin = pa.ruinLocalSearch(1, ruinCusNum);
+			//	if (ruin) {
+			//		i = 0;
+			//	}
+			//	if (updateBestSol(pa)) {
+			//		contiNotDown = 1;
+			//		println("ruin a update");
+			//		i = 0;
+			//	}
+			//}
+
+			//for (int i = 0; i < 20; ++i) {
+			//	int ruinCusNum = i / 5 + 1;
+			//	bool ruin = pb.ruinLocalSearch(1, ruinCusNum);
+			//	if (ruin) {
+			//		i = 0;
+			//	}
+			//	if (updateBestSol(pb)) {
+			//		contiNotDown = 1;
+			//		println("ruin b update");
+			//		i = 0;
+			//	}
+			//}
+
+			bool isUp = false;
+			++contiNotDown;
+			if (contiNotDown <= 5) {
+				isUp = naEAX(pa, pb, 0);
+			}
+			else if (contiNotDown == 6) {
+				isUp = naEAX(pa, pb, 1);
+			}
+			else {
+
+				Solver& bad = pa.RoutesCost > pb.RoutesCost ? pa : pb;
+				DisType olddis = bad.RoutesCost;
+				auto cuses = bad.patternAdjustment(globalInput->custCnt*0.2);
+				bad.mRLLocalSearch(cuses);
+				if (updateBestSol(bad)) {
+					contiNotDown = 1;
+					println("patternAdjustment bad update");
+				}
+				for (int i = 0; i < 200; ++i) {
+					int ruinCusNum = i / 20 + 1;
+					bool ruin = bad.ruinLocalSearch(1, ruinCusNum);
+					if (ruin) {
+						i = 0;
+					}
+					if (updateBestSol(bad)) {
+						contiNotDown = 1;
+						println("ruin bad update");
+						i = 0;
+					}
+				}
+				println("olddis:", olddis, " newdis:", bad.RoutesCost," rate:", double(bad.RoutesCost-olddis)/ olddis);
+				contiNotDown = 1;
+			}
+
+			if (isUp) {
+				contiNotDown = 1;
+			}
+
 		}
-		else {
-			++contiNoDown;
-			//println("+cost:", pBest.RoutesCost, " rnum:", rnum);
-		}
-		#else
-		Vec<int> cus = st.patternAdjustment(200);
-		st.mRLLocalSearch(cus);
-		bool up2 = updateBestSol(pBest, st);
-		if (up2) {
-			++parNum;
-			println("cost:", pBest.RoutesCost, " ruinNum:", ruinNum, " parNum:", parNum);
-		}
-		#endif // 0
+
+		Output output = pBest->saveToOutPut();
+		output.runTime = t1.getRunTime();
+		saveSlnFile(*globalInput, output, cfg, *globalEnv);
+		t1.disp();
+
+		return true;
 	}
 
-	Output output = pBest.saveToOutPut();
-	output.runTime = t1.getRunTime();
-	saveSlnFile(*globalInput, output, cfg, *globalEnv);
-	t1.disp();
+	bool justLocalSearch() {
 
-	deallocGlobalMem();
+		Timer t1(cfg->runTimer);
+		t1.setLenUseSecond(cfg->runTimer);
+		t1.reStart();
 
-	return true;
-}
+		Solver st(*globalInput, *globalEnv);
+		st.minimizeRN();
+		//st.saveOutAsSintefFile("minR");
+		st.mRLLocalSearch({});
+
+		int ruinNum = 0;
+		int parNum = 0;
+
+		Vec<int> cusOrder(globalInput->custCnt, 1);
+		std::iota(cusOrder.begin(), cusOrder.end(), 1);
+
+		int avg = globalInput->custCnt / st.rts.cnt;
+		int contiNoDown = 1;
+
+		Vec<Vec<int>> table(3, Vec<int>(50, 0));
+
+		int kind = 1;
+		int rnum = 1;
+
+		std::fill(st.P.begin(), st.P.end(), 1);
+
+		*pBest = st;
+
+		while (pBest->RoutesCost > globalInput->sintefRecRL && !t1.isTimeOut()) {
+
+			st = *pBest;
+
+			#if 1
+			if (contiNoDown >= 300) {
+
+				rnum = (rnum + 3) % 40 + 1;
+				//std::min<int>(rnum + 1, 20);
+				contiNoDown = 1;
+			}
+
+			bool isRuin = st.ruinLocalSearch(kind, rnum);
+			bool up1 = updateBestSol(st);
+			if (up1) {
+				//println("cost:", pBest.RoutesCost, " ruinNum:", ruinNum, " parNum:", parNum);
+				println("-cost:", pBest->RoutesCost, " rnum:", rnum);
+				contiNoDown = 1;
+				rnum = 1;
+				//++table[kind][rnum];
+				//println("-----------");
+				//for (auto& i : table) {
+				//	printve(i);
+				//}
+				++ruinNum;
+			}
+			else {
+				++contiNoDown;
+				//println("+cost:", pBest.RoutesCost, " rnum:", rnum);
+			}
+			#else
+			Vec<int> cus = st.patternAdjustment(200);
+			st.mRLLocalSearch(cus);
+			bool up2 = updateBestSol(st);
+			if (up2) {
+				++parNum;
+				println("cost:", pBest.RoutesCost, " ruinNum:", ruinNum, " parNum:", parNum);
+			}
+			#endif // 0
+		}
+
+		Output output = pBest->saveToOutPut();
+		output.runTime = t1.getRunTime();
+		saveSlnFile(*globalInput, output, cfg, *globalEnv);
+		t1.disp();
+
+		return true;
+	}
+
+};
 
 }//namespace hust
 
@@ -397,9 +449,12 @@ int main(int argc, char* argv[])
 		delete hust::myRandX;
 	}
 	return 0;*/
-	hust::solverByEAX(argc, argv);return 0;
-	//hust::justLocalSearch(argc, argv); return 0;
-	//run(argc, argv);
+	//hust::solverByEAX(argc, argv);return 0;
+	hust::allocGlobalMem(argc, argv);
+	hust::Goal goal;
+	//goal.justLocalSearch(); 
+	goal.solverByEAX(); 
+	hust::deallocGlobalMem();
 
 	return 0;
 }

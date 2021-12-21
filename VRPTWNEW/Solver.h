@@ -597,6 +597,7 @@ public:
 	bool initEPr() {
 
 		Route& r = EPr;
+		EPr = rCreateRoute(-1);
 
 		r.head = input.custCnt + 1;
 		r.tail = input.custCnt + 2;
@@ -606,20 +607,6 @@ public:
 
 		customers[r.head].routeID = -1;
 		customers[r.tail].routeID = -1;
-
-		/*customers[r.head].av = customers[r.head].avp
-			= input.datas[r.head].READYTIME;
-		customers[r.head].QX_ = 0;
-		customers[r.head].Q_X = 0;
-		customers[r.head].TWX_ = 0;
-		customers[r.head].TW_X = 0;
-
-		customers[r.tail].zv = customers[r.tail].zvp
-			= input.datas[r.tail].DUEDATE;
-		customers[r.tail].QX_ = 0;
-		customers[r.tail].Q_X = 0;
-		customers[r.tail].TWX_ = 0;
-		customers[r.tail].TW_X = 0;*/
 
 		return true;
 	}
@@ -637,11 +624,11 @@ public:
 	{
 
 		P = Vec<LL>(input.custCnt + 1, 1);
-		customers = Vec<Customer>(input.custCnt *3+3);
+		customers = Vec<Customer>(input.custCnt+1);
 		alpha = 1;
 		beta = 1;
 		gamma = 1;
-		squIter = 0;
+		squIter = 1;
 		penalty = 0;
 		Ptw = 0;
 		PtwNoWei = 0;
@@ -681,7 +668,6 @@ public:
 
 		this->P = s.P;
 		this->customers = s.customers;
-
 		this->rts = s.rts;
 		this->PtwConfRts = s.PtwConfRts;
 		this->PcConfRts = s.PcConfRts;
@@ -705,6 +691,13 @@ public:
 
 		Route r(id);
 		int index = (rts.cnt + 1) * 2 + input.custCnt + 1;
+		
+		while (index + 1 >= customers.size()) {
+			//println("customers.size():", customers.size());
+			//println("customers.begin():", &*customers.begin());
+			//println("customers.capacity():", customers.capacity());
+			customers.push_back(customers[0]);
+		}
 
 		r.head = index;
 		r.tail = index + 1;
@@ -1160,8 +1153,6 @@ public:
 
 		return true;
 	}
-
-
 
 	CircleSector rGetCircleSector(Route& r) {
 
@@ -1674,7 +1665,7 @@ public:
 		return pt;
 	}
 
-	DeltPen estimatevw(int kind, int v, int w, int oneR = 0) {
+	DeltPen estimatevw(int kind, int v, int w, int oneR) {
 
 		DeltPen bestM;
 
@@ -1685,25 +1676,25 @@ public:
 			return _2optOpenvvj(v, w);
 		}
 		else if (kind == 2) {
-			return outrelocatevToww_(v, w, 1);
+			return outrelocatevToww_(v, w, oneR);
 		}
 		else if (kind == 3) {
-			return outrelocatevTowwj(v, w, 1);
+			return outrelocatevTowwj(v, w, oneR);
 		}
 		else if (kind == 4) {
-			return inrelocatevv_(v, w,1);
+			return inrelocatevv_(v, w, oneR);
 		}
 		else if (kind == 5) {
-			return inrelocatevvj(v, w,1);
+			return inrelocatevvj(v, w, oneR);
 		}
 		else if (kind == 6) {
-			return exchangevw_(v, w, 1);
+			return exchangevw_(v, w, oneR);
 		}
 		else if (kind == 7) {
-			return exchangevwj(v, w, 1);
+			return exchangevwj(v, w, oneR);
 		}
 		else if (kind == 8) {
-			return exchangevw(v, w, 1);
+			return exchangevw(v, w, oneR);
 		}
 		else if (kind == 9) {//3换2
 			return exchangevvjvjjwwj(v, w,oneR);
@@ -3488,7 +3479,7 @@ public:
 
 		if (rv.routeID == rw.routeID) {
 
-			if (oneR) {
+			if (oneR == 0) {
 				return bestM;
 			}
 			// exchange vvjvjj and (w)
@@ -7470,7 +7461,7 @@ public:
 							d = estimatevw(kind, v, w, 1);
 						}
 						else {
-							d = estimatevw(kind, v, w);
+							d = estimatevw(kind, v, w, 1);
 						}
 
 						#ifdef ATTRIBUTETABU
@@ -7494,7 +7485,7 @@ public:
 
 		++squIter;
 
-		Vec<int> ret;
+		UnorderedSet<int> cusSet;
 
 		do {
 
@@ -7509,8 +7500,8 @@ public:
 				break;
 			}
 
-			ret.push_back(bestM.v);
-			ret.push_back(bestM.w);
+			cusSet.insert(bestM.v);
+			cusSet.insert(bestM.w);
 
 			updateYearTable(bestM);
 			doMoves(bestM);
@@ -7519,6 +7510,13 @@ public:
 		} while (++iter < I1000 && !t1.isTimeOut());
 		//debug(iter)
 		sumRtsPen();
+
+		Vec<int> ret;
+		ret.reserve(cusSet.size());
+		for (auto c : cusSet) {
+			ret.push_back(c);
+		}
+
 		return ret;
 	}
 
@@ -7553,7 +7551,7 @@ public:
 						d = estimatevw(kind, v, w, 1);
 					}
 					else {
-						d = estimatevw(kind, v, w);
+						d = estimatevw(kind, v, w, 1);
 					}
 
 					#ifdef ATTRIBUTETABU
@@ -8202,8 +8200,13 @@ public:
 		}
 		return bestM;
 	}
+	
+	struct RepairRes {
+		bool isRepair = false;
+		Vec<int> cuses;
+	};
 
-	bool naRepair() {
+	RepairRes naRepair() {
 
 		for (int i = 0; i < rts.cnt; ++i) {
 			rts[i].rWeight = 1;
@@ -8214,6 +8217,8 @@ public:
 
 		gamma = 1;
 
+		UnorderedSet<int> cusSet;
+		
 		squIter += cfg->yearTabuLen + cfg->yearTabuRand;
 
 		auto updateBestM = [&](TwoNodeMove& t, TwoNodeMove& bestM)->bool {
@@ -8240,6 +8245,8 @@ public:
 
 		SolClone sClone(customers, rts, EPr, Pc, Ptw, PtwNoWei, penalty, RoutesCost);
 
+		RepairRes ret;
+
 		while (penalty > 0 && !lyhTimer.isTimeOut()) {
 				
 			if (contiNotDe > cfg->repairExitStep) {
@@ -8257,7 +8264,7 @@ public:
 				++contiNotDe;
 				continue;
 				if (bestM.v == 0 && bestM.w == 0) {
-					return false;
+					break;
 				}
 			}
 
@@ -8277,6 +8284,10 @@ public:
 			//addWeightToRoute(bestM);
 
 			if (penalty < sClone.penalty) {
+
+				cusSet.insert(bestM.v);
+				cusSet.insert(bestM.w);
+
 				sClone = SolClone(customers, rts, EPr, Pc, Ptw, PtwNoWei, penalty, RoutesCost);
 				//lyhCheckTrue(contiNotDe<40);
 				contiNotDe = 1;
@@ -8286,18 +8297,19 @@ public:
 			}
 		}
 
+		setCurSolBy(sClone);
+		ret.cuses = putEleInVec(cusSet);
+
 		if (penalty == 0) {
-			setCurSolBy(sClone);
-			return true;
+			ret.isRepair = true;
 		}
 		else {
-			setCurSolBy(sClone);
-			return false;
+			ret.isRepair = false;
 		}
-		return false;
+		return ret;
 	}
 
-	bool repair() {
+	RepairRes repair() {
 
 		gamma = 1;
 		return naRepair();
@@ -8309,6 +8321,18 @@ public:
 		reCalRtsCostSumCost();
 
 		TwoNodeMove MRLbestM;
+
+		static Vec<int> contribution(15,0);
+
+		static Vec<int> moveKindOrder = { 0,1,2,3,4,5,6,7,8,9,10,11,12,13,14 };
+		sort(moveKindOrder.begin(), moveKindOrder.end(), [&](int a,int b) {
+			return contribution[a] > contribution[b];
+		});
+		//printve(moveKindOrder);
+		auto maxIt = std::max_element(contribution.begin(), contribution.end());
+		if (*maxIt > 10000) {
+			for (auto& i : contribution) { i >>= 2; }
+		}
 
 		auto MRLUpdateM = [&](TwoNodeMove& m) {
 
@@ -8334,6 +8358,45 @@ public:
 		auto getMovesGivenRange = [&](int range) {
 
 			MRLbestM.reSet();
+			//auto wposOrder = myRandX->getMN(range, range);
+			//unsigned shuseed = (env.seed % hust::Mod) + ((hust::myRand->pick(10000007))) % hust::Mod;
+			//std::shuffle(wposOrder.begin(), wposOrder.end(), std::default_random_engine(shuseed));
+
+			for (int v : newCus) {
+				if (customers[v].routeID == -1) {
+					continue;
+				}
+				for (int wpos = 0;wpos<range; ++wpos) {
+
+					int w = input.allCloseOf[v][wpos];
+					//int w = input.sectorClose[v][wpos];
+					if (customers[w].routeID == -1) {
+						continue;
+					}
+					for (int kind: moveKindOrder) {
+
+						TwoNodeMove m;
+						if (kind >= 9) {
+							m = TwoNodeMove(v, w, kind, estimatevw(kind, v, w, 0));
+						}
+						else {
+							m = TwoNodeMove(v, w, kind, estimatevw(kind, v, w, 1));
+						}
+						
+						MRLUpdateM(m);
+
+						if (MRLbestM.deltPen.deltCost < 0) {
+							return MRLbestM;
+						}
+					}
+				}
+			}
+			return MRLbestM;
+		};
+
+		auto getAllRange = [&](int range) {
+
+			MRLbestM.reSet();
 				
 			for (int v : newCus) {
 				if (customers[v].routeID == -1) {
@@ -8346,46 +8409,16 @@ public:
 					if (customers[w].routeID == -1) {
 						continue;
 					}
-					for (int i = 0; i < 15; ++i) {
+					for (int kind : moveKindOrder) {
+
+						TwoNodeMove m;
+						m = TwoNodeMove(v, w, kind, estimatevw(kind, v, w,1));
+						MRLUpdateM(m);
 
 						if (MRLbestM.deltPen.deltCost < 0) {
 							return MRLbestM;
 						}
 
-						TwoNodeMove m;
-						m = TwoNodeMove(v, w, i, estimatevw(i, v, w,0));
-						MRLUpdateM(m);
-					}
-				}
-			}
-			return MRLbestM;
-		};
-
-		auto getAllRange = [&]() {
-
-			MRLbestM.reSet();
-				
-			for (int v = 1;v<=input.custCnt;++v) {
-
-				if (customers[v].routeID == -1) {
-					continue;
-				}
-				for (int wpos = 0; wpos < cfg->mRLLSgetAllRange; ++wpos) {
-
-					int w = input.allCloseOf[v][wpos];
-					//int w = input.sectorClose[v][wpos];
-					if (customers[w].routeID == -1) {
-						continue;
-					}
-					for (int i = 0; i < 15; ++i) {
-
-						if (MRLbestM.deltPen.deltCost < 0) {
-							return MRLbestM;
-						}
-
-						TwoNodeMove m;
-						m = TwoNodeMove(v, w, i, estimatevw(i, v, w,1));
-						MRLUpdateM(m);
 					}
 				}
 			}
@@ -8414,19 +8447,20 @@ public:
 					|| bestM.deltPen.deltCost >= 0
 					) {
 					bestM = getMovesGivenRange(ranges[i]);
+
 				}
 				else {
 					break;
 				}
 			}
 
-			/*if (bestM.deltPen.PtwOnly > 0
-				|| bestM.deltPen.PcOnly > 0
-				|| bestM.deltPen.deltCost >= 0
-				) {
-				bestM = getAllRange();
-			}*/
-				
+			//if (bestM.deltPen.PtwOnly > 0
+			//	|| bestM.deltPen.PcOnly > 0
+			//	|| bestM.deltPen.deltCost >= 0
+			//	) {
+			//	bestM = getAllRange(ranges.back());
+			//}
+
 			if (bestM.deltPen.PtwOnly > 0
 				|| bestM.deltPen.PcOnly > 0
 				|| bestM.deltPen.deltCost >= 0
@@ -8434,6 +8468,7 @@ public:
 				break;
 			}
 				
+			++contribution[bestM.kind];
 #if CHECKING
 			Vec<Vec<int>> oldRoutes;
 			Vec<int> oldrv;
@@ -8479,6 +8514,7 @@ public:
 		}
 		//TODO[lyh][1]:这个更新必须有 因为搜索工程中没有更新每一条路径的routeCost
 		reCalRtsCostSumCost();
+		//outVe(a);
 		return true;
 	}
 
