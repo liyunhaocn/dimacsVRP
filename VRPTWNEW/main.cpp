@@ -273,10 +273,6 @@ struct Goal {
 			int paIndex = papb[0];
 			int pbIndex = papb[1];
 			
-			//if (pool[paIndex].RoutesCost < pool[pbIndex].RoutesCost) {
-			//	std::swap(paIndex,pbIndex);
-			//}
-
 			eaxYearTable[paIndex][pbIndex] = MAiter;
 
 			Solver& pa = pool[paIndex];
