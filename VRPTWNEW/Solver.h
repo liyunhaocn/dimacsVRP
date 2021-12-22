@@ -203,6 +203,7 @@ struct ConfSet {
 	Vec<int> pos;
 	int cnt = 0;
 
+	ConfSet() = delete;
 	ConfSet(int maxSize) {
 		cnt = 0;
 		ve = Vec<int>(maxSize + 1, -1);
@@ -410,51 +411,6 @@ struct NextPermutation {
 
 };
 
-struct SolClone
-{
-	Vec<Customer> customers;
-	RTS rts;
-	DisType Pc = 0;
-	DisType Ptw = 0;
-	DisType PtwNoWei = 0;
-	DisType penalty = 0;
-	DisType RoutesCost = 0;
-	Route EPr;
-
-	SolClone(Vec<Customer>& customers,
-		RTS rts,
-		Route EPr,
-		DisType Pc,
-		DisType Ptw,
-		DisType PtwNoWei,
-		DisType penalty,
-		DisType RoutesCost
-	) :
-		customers(customers),
-		rts(rts),
-		Pc(Pc),
-		Ptw(Ptw),
-		PtwNoWei(PtwNoWei),
-		penalty(penalty),
-		RoutesCost(RoutesCost)
-		, EPr(EPr) {
-	}
-
-	SolClone& operator = (const SolClone& s) {
-
-		this->customers = s.customers;
-		this->rts = s.rts;
-		this->Pc = s.Pc;
-		this->Ptw = s.Ptw;
-		this->PtwNoWei = s.PtwNoWei;
-		this->penalty = s.penalty;
-		this->RoutesCost = s.RoutesCost;
-		this->EPr = s.EPr;
-
-		return *this;
-	}
-};
-
 class Solver
 {
 public:
@@ -636,7 +592,6 @@ public:
 		//minEPSize = inf;
 		RoutesCost = 0;
 		initEPr();
-		//println("Solver construct");
 	}
 
 	Solver(const Solver& s) :
@@ -693,9 +648,6 @@ public:
 		int index = (rts.cnt + 1) * 2 + input.custCnt + 1;
 		
 		while (index + 1 >= customers.size()) {
-			//println("customers.size():", customers.size());
-			//println("customers.begin():", &*customers.begin());
-			//println("customers.capacity():", customers.capacity());
 			customers.push_back(customers[0]);
 		}
 
@@ -809,6 +761,24 @@ public:
 		++r.rCustCnt;
 
 		return true;
+	}
+
+	int getFrontofTwoCus(int v, int w) {
+
+		int ret = -1;
+		if (customers[v].Q_X == customers[w].Q_X) {
+			for (int pt = v; pt != -1; pt = customers[pt].next) {
+				if (pt == w) {
+					ret = v;
+					break;
+				}
+			}
+			if (ret == -1) {
+				ret = w;
+			}
+		}
+		ret = customers[v].Q_X < customers[w].Q_X ? v : w;
+		return ret;
 	}
 
 	bool rRemoveAtPos(Route& r, int a) {
@@ -1227,7 +1197,7 @@ public:
 				
 			if (pos.pen <= qu.top().pen) {
 				qu.push(pos);
-				if (qu.size() < 64) {
+				if (qu.size() < cfg->findBestPosInSolPqSize) {
 					;
 				}
 				else {
@@ -1389,10 +1359,7 @@ public:
 	Position findBestPosInSolForInit(int w) {
 
 		auto cmp = [=](const Position& a, const Position& b) ->bool {
-			if (a.pen == b.pen) {
-				return a.cost < a.cost;
-			}
-			return a.pen < b.pen;
+			return a.cost < b.cost;
 		};
 
 		std::priority_queue<Position,Vec<Position>,decltype(cmp)> qu(cmp);
@@ -1414,31 +1381,27 @@ public:
 
 			while (v != -1 && vj != -1) {
 
-				DisType oldPtw = rts[i].rPtw;
-				DisType oldPc = rts[i].rPc;
+				DisType rtPtw = 0;
+				DisType rtPc = 0;
 
-				DisType Ptw = 0;
-				DisType Pc = 0;
-
-				Ptw += customers[v].TW_X;
-				Ptw += customers[vj].TWX_;
-
+				rtPtw += customers[v].TW_X;
+				rtPtw += customers[vj].TWX_;
 
 				DisType awp = customers[v].av + input.datas[v].SERVICETIME + input.disOf[reCusNo(v)][reCusNo(w)];
-				Ptw +=std::max<DisType>(0, awp - input.datas[w].DUEDATE);
+				rtPtw +=std::max<DisType>(0, awp - input.datas[w].DUEDATE);
 				DisType aw =
 					awp <= input.datas[w].DUEDATE ?std::max<DisType>(input.datas[w].READYTIME, awp) : input.datas[w].DUEDATE;
 
 				DisType avjp = aw + input.datas[w].SERVICETIME + input.disOf[reCusNo(w)][reCusNo(vj)];
-				Ptw +=std::max<DisType>(0, avjp - input.datas[vj].DUEDATE);
+				rtPtw +=std::max<DisType>(0, avjp - input.datas[vj].DUEDATE);
 				DisType avj =
 					avjp <= input.datas[vj].DUEDATE ?std::max<DisType>(input.datas[vj].READYTIME, avjp) : input.datas[vj].DUEDATE;
-				Ptw +=std::max<DisType>(0, avj - customers[vj].zv);
+				rtPtw +=std::max<DisType>(0, avj - customers[vj].zv);
 
-				Pc =std::max<DisType>(0, rt.rQ + input.datas[w].DEMAND - input.Q);
+				rtPc =std::max<DisType>(0, rt.rQ + input.datas[w].DEMAND - input.Q);
 
-				Ptw = Ptw - oldPtw;
-				Pc = Pc - oldPc;
+				rtPtw = rtPtw - rt.rPtw;
+				rtPc = rtPc - rt.rPc;
 
 				DisType cost = input.disOf[reCusNo(w)][reCusNo(v)]
 					+ input.disOf[reCusNo(w)][reCusNo(vj)]
@@ -1446,11 +1409,12 @@ public:
 					
 				Position pt;
 				pt.cost = cost;
-				pt.pen = Ptw + Pc;
+				pt.pen = rtPtw + rtPc;
 				pt.pos = v;
 				pt.rIndex = i;
-
-				quPush(pt);
+				if (pt.pen == 0) {
+					quPush(pt);
+				}
 
 				v = vj;
 				vj = customers[vj].next;
@@ -1459,6 +1423,7 @@ public:
 
 		Position bestPos;
 		int cnt = 0;
+		//debug(qu.size());
 		while (!qu.empty()) {
 			++cnt;
 			if (myRand->pick(cnt) == 0) {
@@ -1471,73 +1436,62 @@ public:
 
 	bool initMaxRoute() {
 
-		Vec<int>que1;
-		que1.reserve(input.custCnt);
+		Vec<int>que1(input.custCnt);
+		std::iota(que1.begin(), que1.end(),1);
 
-		for (int i = 1; i <= input.custCnt; ++i) {
-			que1.push_back(i);
-		}
-		unsigned shuseed = (env.seed % hust::Mod) + ((hust::myRand->pick(10000007))) % hust::Mod;
-		std::shuffle(que1.begin(), que1.end(), std::default_random_engine(shuseed));
+		//TODO[lyh][0]:init 这里可以切换 根据需要优化 先注释掉了
+		//if (myRand->pick(2) == 0) {
+		//	unsigned shuseed = (env.seed % hust::Mod) + ((hust::myRand->pick(10000007))) % hust::Mod;
+		//	std::shuffle(que1.begin(), que1.end(), std::default_random_engine(shuseed));
+		//}
+		//else {
+		//	auto cmp = [&](int x, int y) {
+		//		return input.datas[x].polarAngle < input.datas[y].polarAngle;
+		//	};
+		//	sort(que1.begin(), que1.end(), cmp);
+		//}
 
-		/*auto cmp = [&](int x, int y) {
-			return input.datas[x].DUEDATE < input.datas[y].DUEDATE;
+		auto cmp = [&](int x, int y) {
+			return input.datas[x].polarAngle < input.datas[y].polarAngle;
 		};
-		sort(que1.begin(), que1.end(), cmp);*/
+		sort(que1.begin(), que1.end(), cmp);
 
 		int rid = 0;
+		
+		int indexBeg = myRand->pick(input.custCnt);
+		//int indexBeg = 100;
+		// 方向，+inupt.custCnt-1 相当于反方向转动
+		int deltstep = input.custCnt - 1;
+		if (myRand->pick(2) == 0) {
+			deltstep = 1;
+		}
+		
+		for(int i=0;i < input.custCnt;++i){
+			indexBeg += deltstep;
+			int tp = que1[indexBeg % input.custCnt];
+			Position bestP = findBestPosInSolForInit(tp);
 
-		/*for (int i = 0; i < customers.size(); ++i) {
-			customers[i].id = i;
-		}*/
-
-		do {
-
-			int tp = -1;
-			Position bestP;
-			bool isSucceed = false;
-			int eaIndex = -1;
-
-			for (int i = 0; i < que1.size(); ++i) {
-				int cus = que1[i];
-				Position tPos = findBestPosInSolForInit(cus);
-
-				if (tPos.rIndex != -1 && tPos.pen == 0) {
-					if (tPos.cost < bestP.cost) {
-						isSucceed = true;
-						eaIndex = i;
-						tp = cus;
-						bestP = tPos;
-					}
-				}
-			}
-
-			if (isSucceed) {
-				que1.erase(que1.begin() + eaIndex);
+			if (bestP.rIndex != -1 && bestP.pen == 0) {
 				rInsAtPos(rts[bestP.rIndex], bestP.pos, tp);
-				rUpdateAvfrom(rts[bestP.rIndex], rts[bestP.rIndex].head);
-				rUpdateZvfrom(rts[bestP.rIndex], rts[bestP.rIndex].tail);
-				continue;
+				rUpdateAvfrom(rts[bestP.rIndex], tp);
+				rUpdateZvfrom(rts[bestP.rIndex], tp);
 			}
-
-			Route r1 = rCreateRoute(rid++);
-			rInsAtPosPre(r1, r1.tail, que1[0]);
-			que1.erase(que1.begin());
-			rUpdateAvfrom(r1, r1.head);
-			rUpdateZvfrom(r1, r1.tail);
-			rts.push_back(r1);
-
-		} while (!que1.empty());
+			else {
+				Route r1 = rCreateRoute(rid++);
+				rInsAtPosPre(r1, r1.tail, tp);
+				rUpdateAvfrom(r1, tp);
+				rUpdateZvfrom(r1, tp);
+				rts.push_back(r1);
+			}
+		} 
 
 		for (int i = 0; i < rts.size(); ++i) {
 			Route& r = rts[i];
-
 			rUpdateZvQfrom(r, r.tail);
 			rUpdateAQfrom(r, r.head);
 			rReCalRCost(r);
 		}
 		sumRtsPen();
-		//patternAdjustment();
 		return true;
 	}
 
@@ -1563,20 +1517,7 @@ public:
 
 	bool initSolution() {
 
-		initMaxRoute();
-
-		if (cfg->breakRecord) {
-			ourTarget = input.sintefRecRN - 1;
-		}
-		else {
-			ourTarget = input.sintefRecRN;
-		}
-
-		Log(Log::Level::Info) << "penalty: " << penalty << std::endl;
-		Log(Log::Level::Info) << "ourTarget: " << ourTarget << std::endl;
-		Log(Log::Level::Info) << "rts.size(): " << rts.size() << std::endl;
-
-		return true;
+		return initMaxRoute();
 	}
 
 	bool EPrReset() {
@@ -2381,6 +2322,32 @@ public:
 		return bestM;
 	}
 
+	//开区间(twbegin，twend) twbegin，twend的各项值都是可靠的，开区间中间的点可以变化 twbegin，twend可以是仓库 
+	DisType getaRangeOffPtw(int twbegin,int twend) {
+
+		DisType newwvPtw = customers[twbegin].TW_X;
+		newwvPtw += customers[twend].TWX_;
+
+		DisType lastav = customers[twbegin].av;
+		int ptpre = twbegin;
+		int pt = customers[ptpre].next;
+
+		for (; pt != -1;) {
+			DisType avp = lastav + input.datas[ptpre].SERVICETIME + input.disOf[reCusNo(ptpre)][reCusNo(pt)];
+			newwvPtw += std::max<DisType>(0, avp - input.datas[pt].DUEDATE);
+			lastav = avp > input.datas[pt].DUEDATE ? input.datas[pt].DUEDATE :
+				std::max<DisType>(avp, input.datas[pt].READYTIME);
+			if (pt == twend) {
+				break;
+			}
+			ptpre = pt;
+			pt = customers[pt].next;
+		}
+
+		newwvPtw += std::max<DisType>(0, lastav - customers[twend].zv);
+		return newwvPtw;
+	}
+
 	DeltPen inrelocatevv_(int v, int w,int oneR) { //4
 
 		Route& rv = rts.getRouteByRid(customers[v].routeID);
@@ -2418,19 +2385,32 @@ public:
 			// insert w to v and (v-)
 			if (rw.routeID == rv.routeID) {
 
+				int whoIsFront = getFrontofTwoCus(v,w);
+
+				int twbegin = -1;
+				int twend = -1;
+				//(v-),v 
+				if (whoIsFront == v) {
+					twbegin = v_;
+					twend = wj;
+				}
+				else {
+					twbegin = w_;
+					twend = customers[v].next;
+					// w ..... (v-) v
+				}
+
 				rRemoveAtPos(rw, w);
 				rInsAtPos(rw, v_, w);
-				DisType oldPtwNoWei = rw.rPtw;
-				newwvPtw = rUpdateAvfrom(rw, rw.head);
 
-				bestM.PtwOnly = newwvPtw - oldPtwNoWei;
-				bestM.deltPtw = newwvPtw * rw.rWeight - wPtw;
-				bestM.deltPtw *= alpha;
-					
-				newwvPtw *= rw.rWeight;
+				newwvPtw = getaRangeOffPtw(twbegin, twend);
+
 				rRemoveAtPos(rw, w);
 				rInsAtPos(rw, w_, w);
-				rUpdateAvfrom(rw, rw.head);
+
+				bestM.PtwOnly = newwvPtw - rw.rPtw;
+				bestM.deltPtw = newwvPtw * rw.rWeight - wPtw;
+				bestM.deltPtw *= alpha;
 			}
 			else {
 				newwvPtw += customers[v_].TW_X;
@@ -2531,21 +2511,36 @@ public:
 			DisType neww_wjPtw = 0;
 			DisType newwvPtw = 0;
 
+			//insert w to v vj
 			if (rw.routeID == rv.routeID) {
+				
+				int whoIsFront = getFrontofTwoCus(v, w);
+
+				int twbegin = -1;
+				int twend = -1;
+				//(v-),v 
+				if (whoIsFront == v) {
+
+					twbegin = v;
+					twend = wj;
+				}
+				else {
+					twbegin = w_;
+					twend = vj;
+					// w ..... (v-) v
+				}
 
 				rRemoveAtPos(rw, w);
 				rInsAtPos(rw, v, w);
-				DisType oldPtwNoWei = rw.rPtw;
-				newwvPtw = rUpdateAvfrom(rw, rw.head);
-					
-				bestM.PtwOnly = newwvPtw - oldPtwNoWei;
-				newwvPtw *= rw.rWeight;
-				bestM.deltPtw = newwvPtw - wPtw;
-				bestM.deltPtw *= alpha;
+
+				newwvPtw = getaRangeOffPtw(twbegin, twend);
 
 				rRemoveAtPos(rw, w);
 				rInsAtPos(rw, w_, w);
-				rUpdateAvfrom(rw, rw.head);
+
+				bestM.PtwOnly = newwvPtw - rw.rPtw;
+				bestM.deltPtw = newwvPtw * rw.rWeight - wPtw;
+				bestM.deltPtw *= alpha;
 
 			}
 			else {
@@ -2623,11 +2618,6 @@ public:
 		Route& rv = rts.getRouteByRid(customers[v].routeID);
 		Route& rw = rts.getRouteByRid(customers[w].routeID);
 
-		if (w< 0 || v < 0) {
-			println(w);
-			println(v);
-		}
-
 		int wj = customers[w].next;
 		int v_ = customers[v].pre;
 		int vj = customers[v].next;
@@ -2643,9 +2633,6 @@ public:
 			}
 		}
 
-		if (wj < 0 || v_ < 0 || vj < 0 || w_ < 0) {
-			println(wj < 0);
-		}
 		auto getDeltPtw = [&]()->void {
 
 			DisType newwPtw = 0;
@@ -2662,16 +2649,7 @@ public:
 				if (v_ == w) {
 
 					// (v--)->(v-)->(v)->(v+)
-					if (v_ < 0) {
-						println("v_", v_);
-					}
-
 					int v__ = customers[v_].pre;
-
-					if (v__ < 0) {
-						println("v__",v__);
-						println("v__",v__);
-					}
 
 					DisType av = 0;
 					newvPtw = 0;
@@ -2697,15 +2675,11 @@ public:
 				else if (w_ == v) {
 
 					// (w--)->(w-)->(w)->(w+)
-					if (w_ < 0) {
-						println("w_", w_);
-					}
-
 					int w__ = customers[w_].pre;
-					if (w__ < 0) {
-						println("w__", w__);
-						println("w__", w__);
-					}
+
+					#if CHECKING
+					lyhCheckTrue(w__ >=0)
+					#endif // CHECKING
 
 					DisType aw = 0;
 					newvPtw = 0;
@@ -2730,77 +2704,28 @@ public:
 				}
 				else {
 
+					int fr = getFrontofTwoCus(v, w);
+
 					// exchangevw
-					newvPtw = 0;
-					int front = rv.head;
-					int back = rv.tail;
-					while (front != -1) {
-						if (front == v || front == w) {
-							break;
-						}
-						front = customers[front].next;
+					rRemoveAtPos(rw,w);
+					rRemoveAtPos(rw,v);
+
+					rInsAtPos(rw,v_,w);
+					rInsAtPos(rw,w_,v);
+				
+					if (fr == v) {
+						newwPtw = newvPtw = getaRangeOffPtw(v_, wj);
 					}
-
-					while (back != -1) {
-						if (back == v || back == w) {
-							break;
-						}
-						back = customers[back].pre;
+					else {
+						newwPtw = newvPtw = getaRangeOffPtw(w_, vj);
 					}
+					
+					rRemoveAtPos(rw, w);
+					rRemoveAtPos(rw, v);
 
+					rInsAtPos(rw, w_, w);
+					rInsAtPos(rw, v_, v);
 
-					int fpre = customers[front].pre;
-					DisType lastav = 0;
-					int lastv = 0;
-
-					DisType abkp = customers[fpre].av + input.datas[fpre].SERVICETIME + input.disOf[reCusNo(fpre)][reCusNo(back)];
-
-					newvPtw += std::max<DisType>(0, abkp - input.datas[back].DUEDATE);
-					newvPtw += customers[fpre].TW_X;
-
-					DisType abk = abkp > input.datas[back].DUEDATE ? input.datas[back].DUEDATE :
-						std::max<DisType>(abkp, input.datas[back].READYTIME);
-
-					lastav = abk;
-					lastv = back;
-
-					int pt = customers[front].next;
-
-					while (pt != -1) {
-
-						if (pt == back) {
-							break;
-						}
-
-						DisType avp = lastav + input.datas[lastv].SERVICETIME + input.disOf[reCusNo(lastv)][reCusNo(pt)];
-						newvPtw += std::max<DisType>(0, avp - input.datas[pt].DUEDATE);
-
-						DisType av = avp > input.datas[pt].DUEDATE ? input.datas[pt].DUEDATE :
-							std::max<DisType>(avp, input.datas[pt].READYTIME);
-
-						lastv = pt;
-						lastav = av;
-						pt = customers[pt].next;
-					}
-
-					#if CHECKING
-					lyhCheckTrue(lastv >= 0);
-					lyhCheckTrue(front >= 0);
-					#endif // CHECKING
-
-					DisType afrvp = lastav + input.datas[lastv].SERVICETIME + input.disOf[reCusNo(lastv)][reCusNo(front)];
-					newvPtw += std::max<DisType>(0, afrvp - input.datas[front].DUEDATE);
-
-					DisType afrv = afrvp > input.datas[front].DUEDATE ? input.datas[front].DUEDATE :
-						std::max<DisType>(afrvp, input.datas[front].READYTIME);
-
-					int bkn = customers[back].next;
-
-					DisType abknp = afrv + input.datas[front].SERVICETIME + input.disOf[reCusNo(front)][reCusNo(bkn)];
-					newvPtw += std::max<DisType>(0, abknp - customers[bkn].zv);
-					newvPtw += customers[bkn].TWX_;
-
-					newwPtw = newvPtw;
 				}
 
 				bestM.PtwOnly = newwPtw - rw.rPtw;
@@ -2990,8 +2915,9 @@ public:
 					rInsAtPos(rw, w_, v);
 					rInsAtPos(rw, v, vj);
 					rInsAtPos(rv, vj, w);
+					// exchange vvj and (w)
 
-					newvPtw = newwPtw = rUpdateAvfrom(rv, rv.head);
+					newvPtw = newwPtw = getaRangeOffPtw(w_,vjj);
 
 					rRemoveAtPos(rv, v);
 					rRemoveAtPos(rv, vj);
@@ -3001,7 +2927,6 @@ public:
 					rInsAtPos(rv, w, v);
 					rInsAtPos(rv, v, vj);
 
-					rUpdateAvfrom(rv, rv.head);
 				}
 				else if (w_ == vj) {
 
@@ -3015,7 +2940,8 @@ public:
 					rInsAtPos(rv, w, v);
 					rInsAtPos(rv, v, vj);
 
-					newvPtw = newwPtw = rUpdateAvfrom(rv, rv.head);
+					// exchange vvj and (w)
+					newvPtw = newwPtw = getaRangeOffPtw(v_,wj);
 
 					rRemoveAtPos(rv, v);
 					rRemoveAtPos(rv, vj);
@@ -3024,10 +2950,11 @@ public:
 					rInsAtPos(rv, v_, v);
 					rInsAtPos(rv, v, vj);
 					rInsAtPos(rv, vj, w);
-
-					rUpdateAvfrom(rv, rv.head);
 				}
 				else {
+
+					// exchange vvj and (w)
+					int fr = getFrontofTwoCus(v, w);
 
 					rRemoveAtPos(rv, v);
 					rRemoveAtPos(rv, vj);
@@ -3037,8 +2964,13 @@ public:
 					rInsAtPos(rv, w_, v);
 					rInsAtPos(rv, v, vj);
 
-					newvPtw = newwPtw = rUpdateAvfrom(rv, rv.head);
-
+					if (fr == v) {
+						newvPtw = newwPtw = getaRangeOffPtw(v_, wj);
+					}
+					else {
+						newvPtw = newwPtw = getaRangeOffPtw(w_, vjj);
+					}
+					
 					rRemoveAtPos(rv, v);
 					rRemoveAtPos(rv, vj);
 					rRemoveAtPos(rv, w);
@@ -3046,8 +2978,6 @@ public:
 					rInsAtPos(rv, v_, v);
 					rInsAtPos(rv, v, vj);
 					rInsAtPos(rv, w_, w);
-
-					rUpdateAvfrom(rv, rv.head);
 				}
 				bestM.PtwOnly = newwPtw - rw.rPtw;
 				bestM.deltPtw = newwPtw * rw.rWeight - wPtw;
@@ -3226,7 +3156,7 @@ public:
 			DisType wPtw = rw.rPtw * rw.rWeight;
 
 			if (rv.routeID == rw.routeID) {
-
+				//exchange vvjvjj and (ww + )
 				if (v_ == wj) {
 
 					rRemoveAtPos(rv, v);
@@ -3242,7 +3172,7 @@ public:
 					rInsAtPos(rv, vjj, w);
 					rInsAtPos(rv, w, wj);
 
-					newvPtw = newwPtw = rUpdateAvfrom(rv, rv.head);
+					newvPtw = newwPtw = getaRangeOffPtw(w_,v3j);
 
 					rRemoveAtPos(rv, v);
 					rRemoveAtPos(rv, vj);
@@ -3257,10 +3187,9 @@ public:
 					rInsAtPos(rv, v, vj);
 					rInsAtPos(rv, vj, vjj);
 
-					rUpdateAvfrom(rv, rv.head);
 				}
 				else if (w_ == vjj) {
-
+					//exchange vvjvjj and (ww + )
 					rRemoveAtPos(rv, v);
 					rRemoveAtPos(rv, vj);
 					rRemoveAtPos(rv, vjj);
@@ -3273,7 +3202,7 @@ public:
 					rInsAtPos(rv, v, vj);
 					rInsAtPos(rv, vj, vjj);
 
-					newvPtw = newwPtw = rUpdateAvfrom(rv, rv.head);
+					newvPtw = newwPtw = getaRangeOffPtw(v_, wjj);
 
 					rRemoveAtPos(rv, v);
 					rRemoveAtPos(rv, vj);
@@ -3287,10 +3216,11 @@ public:
 					rInsAtPos(rv, vjj, w);
 					rInsAtPos(rv, w, wj);
 
-					rUpdateAvfrom(rv, rv.head);
-
 				}
 				else {
+
+					//exchange vvjvjj and (ww + )
+					int fr = getFrontofTwoCus(v, w);
 
 					rRemoveAtPos(rv, v);
 					rRemoveAtPos(rv, vj);
@@ -3305,7 +3235,12 @@ public:
 					rInsAtPos(rv, v, vj);
 					rInsAtPos(rv, vj, vjj);
 
-					newvPtw = newwPtw = rUpdateAvfrom(rv, rv.head);
+					if (fr == v) {
+						newvPtw = newwPtw = getaRangeOffPtw(v_,wjj);
+					}
+					else{
+						newvPtw = newwPtw = getaRangeOffPtw(w_, v3j);
+					}
 
 					rRemoveAtPos(rv, v);
 					rRemoveAtPos(rv, vj);
@@ -3319,7 +3254,7 @@ public:
 
 					rInsAtPos(rv, w_, w);
 					rInsAtPos(rv, w, wj);
-					rUpdateAvfrom(rv, rv.head);
+
 				}
 					
 				bestM.PtwOnly = newwPtw - rw.rPtw;
@@ -3510,7 +3445,7 @@ public:
 					rInsAtPos(rw, vj, vjj);
 					rInsAtPos(rv, vjj, w);
 
-					newvPtw = newwPtw = rUpdateAvfrom(rv, rv.head);
+					newvPtw = newwPtw = getaRangeOffPtw(w_,v3j);
 
 					rRemoveAtPos(rv, v);
 					rRemoveAtPos(rv, vj);
@@ -3523,9 +3458,9 @@ public:
 					rInsAtPos(rw, v, vj);
 					rInsAtPos(rw, vj, vjj);
 
-					rUpdateAvfrom(rv, rv.head);
 				}
 				else if (w_ == vjj) {
+
 					rRemoveAtPos(rv, v);
 					rRemoveAtPos(rv, vj);
 					rRemoveAtPos(rv, vjj);
@@ -3536,7 +3471,7 @@ public:
 					rInsAtPos(rv, v, vj);
 					rInsAtPos(rv, vj, vjj);
 
-					newvPtw = newwPtw = rUpdateAvfrom(rv, rv.head);
+					newvPtw = newwPtw = getaRangeOffPtw(v_, wj);
 
 					rRemoveAtPos(rv, v);
 					rRemoveAtPos(rv, vj);
@@ -3549,10 +3484,10 @@ public:
 					rInsAtPos(rv, vj, vjj);
 					rInsAtPos(rv, vjj, w);
 
-					rUpdateAvfrom(rv, rv.head);
-
 				}
 				else {
+
+					int fr = getFrontofTwoCus(v, w);
 
 					rRemoveAtPos(rv, v);
 					rRemoveAtPos(rv, vj);
@@ -3564,8 +3499,13 @@ public:
 					rInsAtPos(rv, v, vj);
 					rInsAtPos(rv, vj, vjj);
 
-					newvPtw = newwPtw = rUpdateAvfrom(rv, rv.head);
-
+					if (fr == v) {
+						newvPtw = newwPtw = getaRangeOffPtw(v_, wj);
+					}
+					else {
+						newvPtw = newwPtw = getaRangeOffPtw(w_, v3j);
+					}
+					
 					rRemoveAtPos(rv, v);
 					rRemoveAtPos(rv, vj);
 					rRemoveAtPos(rv, vjj);
@@ -3575,8 +3515,6 @@ public:
 					rInsAtPos(rv, v, vj);
 					rInsAtPos(rv, vj, vjj);
 					rInsAtPos(rv, w_, w);
-
-					rUpdateAvfrom(rv, rv.head);
 				}
 					
 				bestM.PtwOnly = newwPtw - rw.rPtw;
@@ -3667,7 +3605,7 @@ public:
 			else if (w_ == vjj) {
 
 				//v vj vjj w -> w v vj vjj 
-				//delt -= input.disOf[reCusNo(w)][reCusNo(vjj)];
+				delt -= input.disOf[reCusNo(w)][reCusNo(vjj)];
 				delt -= input.disOf[reCusNo(w)][reCusNo(wj)];
 				delt -= input.disOf[reCusNo(v)][reCusNo(v_)];
 
@@ -3754,21 +3692,27 @@ public:
 				if (v == w || vj == w) {
 					return ;
 				}
+
+				int fr = getFrontofTwoCus(v, w);
+
 				rRemoveAtPos(rv, v);
 				rRemoveAtPos(rv, vj);
 
 				rInsAtPos(rv, w, v);
 				rInsAtPos(rv, v, vj);
 
-				newvPtw = newwPtw = rUpdateAvfrom(rv, rv.head);
-
+				if (fr == v) {
+					newvPtw = newwPtw = getaRangeOffPtw(v_,wj);
+				}
+				else {
+					newvPtw = newwPtw = getaRangeOffPtw(w, vjj);
+				}
+				
 				rRemoveAtPos(rv, v);
 				rRemoveAtPos(rv, vj);
 
 				rInsAtPos(rv, v_, v);
 				rInsAtPos(rv, v, vj);
-
-				rUpdateAvfrom(rv, rv.head);
 
 				bestM.PtwOnly = newwPtw - rw.rPtw;
 				bestM.deltPtw = newwPtw * rw.rWeight - wPtw;
@@ -3901,26 +3845,8 @@ public:
 
 		Route& r = rts.getRouteByRid(customers[v].routeID);
 
-		int front = r.head;
-		int back = r.tail;
-
-		while (front != -1) {
-			if (front == v || front == w) {
-				break;
-			}
-			front = customers[front].next;
-		}
-
-		while (back != -1) {
-			if (back == v || back == w) {
-				break;
-			}
-			back = customers[back].pre;
-		}
-
-		#if CHECKING
-		lyhCheckTrue(back!=-1);
-		#endif // CHECKING
+		int front = getFrontofTwoCus(v, w);
+		int back = (front == v ? w : v);
 
 		int f_ = customers[front].pre;
 		int bj = customers[back].next;
@@ -3962,7 +3888,6 @@ public:
 				if (pt == front) {
 					break;
 				}
-
 				pt = customers[pt].pre;
 			}
 
@@ -5157,10 +5082,15 @@ public:
 			(*yearTable)[v_][v] = squIter + cfg->yearTabuLen + myRand->pick(cfg->yearTabuRand);
 			(*yearTable)[w][wj] = squIter + cfg->yearTabuLen + myRand->pick(cfg->yearTabuRand);
 
+			int fr = getFrontofTwoCus(v,w);
+			if (fr == w) {
+				std::swap(v,w);
+			}
+
 			int pt = v;
 			int ptn = customers[pt].next;
 			while (pt != w) {
-
+				//debug(pt);
 				(*yearTable)[pt][ptn] = squIter + cfg->yearTabuLen + myRand->pick(cfg->yearTabuRand);
 
 				pt = ptn;
@@ -5980,6 +5910,8 @@ public:
 			}
 
 			for (int v : ptwNodes) {
+				
+				int v_ = customers[v].pre;
 
 				_2optEffectively(v);
 				exchangevwEffectively(v);
@@ -6011,7 +5943,6 @@ public:
 						}
 					}
 				}
-
 			}
 		}
 		else {
@@ -6400,19 +6331,16 @@ public:
 
 	bool squeeze() {
 
-		Vec<SolClone> bestPool;
+		Vec<Solver> bestPool;
 		bestPool.reserve(2);
-
-		SolClone sClone(customers, rts, EPr, Pc, Ptw, PtwNoWei, penalty,RoutesCost);
-
-		bestPool.push_back(sClone);
+		bestPool.push_back(*this);
 
 		auto updateBestPool = [&](DisType Pc, DisType PtwNoWei) {
 
 			bool isUpdate = false;
 			bool dominate = false;
 
-			Vec<SolClone> ::iterator it = bestPool.begin();
+			auto it = bestPool.begin();
 			for (it = bestPool.begin(); it != bestPool.end();) {
 
 				if (Pc < (*it).Pc && PtwNoWei < (*it).PtwNoWei
@@ -6433,9 +6361,7 @@ public:
 
 			if (!dominate && bestPool.size() < 50) {
 
-				SolClone s(customers, rts, EPr, Pc, Ptw, PtwNoWei, penalty,RoutesCost);
-
-				bestPool.push_back(s);
+				bestPool.push_back(*this);
 			}
 
 			return isUpdate;
@@ -6622,11 +6548,12 @@ public:
 #if CHECKING
 			DisType penaltyaferup = penalty;
 			sumRtsPen();
+
 			lyhCheckTrue(penaltyaferup==penalty)
 			bool penaltyWeiError = 
-				!DISlfeq(oldpenalty + bestM.deltPen.deltPc + bestM.deltPen.deltPtw, penalty);
+				!(oldpenalty + bestM.deltPen.deltPc + bestM.deltPen.deltPtw== penalty);
 			bool penaltyError =
-				!DISlfeq(oldPcOnly + oldPtwOnly + bestM.deltPen.PcOnly + bestM.deltPen.PtwOnly, PtwNoWei + Pc);
+				!(oldPcOnly + oldPtwOnly + bestM.deltPen.PcOnly + bestM.deltPen.PtwOnly==PtwNoWei + Pc);
 				
 			lyhCheckTrue(!penaltyWeiError);
 			lyhCheckTrue(!penaltyError);
@@ -6649,6 +6576,13 @@ public:
 				debug(bestM.v);
 				debug(bestM.w);
 				debug(bestM.kind);
+				debug(penaltyWeiError);
+				debug(penaltyError);
+
+
+				debug(penaltyaferup);
+				debug(penalty);
+				debug(bestM.deltPen.deltPtw);
 
 				debug(rv.routeID == rw.routeID);
 
@@ -6665,6 +6599,7 @@ public:
 				std::cout << std::endl;
 
 				rNextDisp(rv);
+				rNextDisp(rw);
 				rNextDisp(rw);
 			}
 #endif // CHECKING
@@ -6743,11 +6678,11 @@ public:
 		}
 		else {
 
-			bestPool.push_back(sClone);
+			//bestPool.push_back(sClone);
+			//debug(bestPool.size());
 			int index = getMinPsumSolIndex();
 			//debug(index)
-
-			setCurSolBy(bestPool[index]);
+			*this = bestPool[index];
 				
 #if CHECKING
 			DisType oldp = penalty;
@@ -7104,7 +7039,6 @@ public:
 		Vec<CircleSector> secs(rts.cnt);
 		for (int i = 0; i < rts.cnt; ++i) {
 			secs[i] = rGetCircleSector(rts[i]);
-			// println("secs[i].start: ", secs[i].start, " secs[i].end: ", secs[i].end);
 		}
 		
 		Vec<int> rOrder(rts.cnt,0);
@@ -7121,9 +7055,6 @@ public:
 			for (int j = i + 1; j < rts.cnt; ++j) {
 				rtj = rOrder[j];
 				bool is = CircleSector::overlap(secs[rti],secs[rtj]);
-				//println("i:", i, " j:", j, " over:", is);
-				//println("secs[rti].start: ", secs[rti].start, " secs[rti].end: ", secs[rti].end);
-				//println("secs[rtj].start: ", secs[rtj].start, " secs[rtj].end: ", secs[rtj].end);
 				if (is) {
 					isbreak = true;
 					break;
@@ -7144,10 +7075,7 @@ public:
 
 		for (int i = 0; i < ve.size(); ++i) {
 			int v = ve[i];
-			//debug(input.datas[v].polarAngle);
-			//println("secs[rti].start: ", secs[rti].start, " secs[rti].end: ", secs[rti].end);
-			//println("secs[rtj].start: ", secs[rtj].start, " secs[rtj].end: ", secs[rtj].end);
-
+			
 			if (secs[rti].isEnclosed(input.datas[v].polarAngle)
 				&& secs[rtj].isEnclosed(input.datas[v].polarAngle)) {
 				if (vstart == -1) {
@@ -7178,8 +7106,6 @@ public:
 			for (int wpos = 0; wpos < wposMax; ++wpos) {
 				int w = input.allCloseOf[v][wpos];
 				int wrId = customers[w].routeID;
-				//println("w:",w);
-				//println("wrId:",wrId);
 				if (wrId != -1) {
 					uset.insert(w);
 				}
@@ -7204,17 +7130,17 @@ public:
 		//TODO[lyh][1]:这里可能可以去掉，如果之前每一条路径的cost都维护的话
 		//TODO[lyh][1]:但是接到扰动后面就不太行了
 		reCalRtsCostSumCost();
-		SolClone sClone(customers, rts, EPr, Pc, Ptw, PtwNoWei, penalty, RoutesCost);
+		Solver sClone = *this;
 
 		//int reTime = 3;
 		//int reTime = rts.cnt*2;
 		int reTime = 3;
-		SolClone easilyRepirSol(sClone);
+		Solver easilyRepirSol(sClone);
 
 		Vec<int> cusRet;
 		for (int gen = 0; gen < reTime ; ++gen) {
 
-			setCurSolBy(sClone);
+			*this = sClone;
 			Vec<int> cuses;
 			cuses.reserve(input.custCnt);
 
@@ -7229,8 +7155,6 @@ public:
 				//auto ruinCus = ruinGetRuinCusBySec(ruinCusNum);
 			//}
 				auto ruinCus = ruinGetRuinCusBySting(ruinCusNum);
-			//println(ruinCus.size());
-			//println(ruinCus1.size());
 			std::unordered_set<int> rIds;
 			for (int cus : ruinCus) {
 				Route& r = rts.getRouteByRid(customers[cus].routeID);
@@ -7253,7 +7177,7 @@ public:
 				
 			if (gen == 0) {
 				cusRet = cuses;
-				easilyRepirSol = SolClone(customers, rts, EPr, Pc, Ptw, PtwNoWei, penalty, RoutesCost);
+				easilyRepirSol = *this;
 			}
 			else {
 				if (
@@ -7265,24 +7189,27 @@ public:
 					+ easilyRepirSol.PtwNoWei 
 					+ easilyRepirSol.Pc) {
 					cusRet = cuses;
-					easilyRepirSol = SolClone(customers, rts, EPr, Pc, Ptw, PtwNoWei, penalty, RoutesCost);
+					easilyRepirSol = *this;
 				}
 			}
 		}
 
 		// 局部搜索下一次的邻域
-		ConfSet cs(input.custCnt);
+		UnorderedSet<int> cs;
 		for (int v : cusRet) {
-			cs.ins(v);
+			cs.insert(v);
 			for (int i = 0; i < cfg->ruinLocalSearchNextNeiBroad; ++i) {
-				cs.ins(input.allCloseOf[v][i]);
+				cs.insert(input.allCloseOf[v][i]);
 			}
 		}
-		cusRet = std::move(Vec<int>(cs.ve.begin(), cs.ve.begin() + cs.cnt));
 
-		setCurSolBy(easilyRepirSol);
+		cusRet.clear();
+		for (auto& i : cs) {
+			cusRet.push_back(i);
+		}
+
+		*this = easilyRepirSol;
 		repair();
-		//println("iter:", iter);
 
 		if (penalty == 0) {
 			mRLLocalSearch(cusRet);
@@ -7290,11 +7217,11 @@ public:
 				return true;
 			}
 			else {
-				setCurSolBy(sClone);
+				*this = (sClone);
 			}
 		}
 		else {
-			setCurSolBy(sClone);
+			*this = (sClone);
 		}
 		return false;
 	}
@@ -8104,21 +8031,6 @@ public:
 		return ret;
 	}
 		
-	bool setCurSolBy(SolClone& sClone) {
-
-		customers = sClone.customers;
-		rts = sClone.rts;
-		PtwNoWei = sClone.PtwNoWei;
-		Ptw = sClone.Ptw;
-		Pc = sClone.Pc;
-		penalty = sClone.penalty;
-		EPr = sClone.EPr;
-		RoutesCost = sClone.RoutesCost;
-		resetConfRts();
-
-		return true;
-	}
-		
 	bool resetSol() {
 
 		alpha = 1;
@@ -8144,22 +8056,39 @@ public:
 	void minimizeRN() {
 
 		gamma = 0;
+		Timer t(10);
 		initSolution();
 		bool isSucceed = false;
+		t.disp();
+		if (cfg->breakRecord) {
+			ourTarget = input.sintefRecRN - 1;
+		}
+		else {
+			ourTarget = input.sintefRecRN;
+		}
+
+		reCalRtsCostAndPen();
+
+		Log(Log::Level::Info) << "init penalty: " << penalty;
+		Log(Log::Level::Info) << " rts.size():" << rts.size();
+		Log(Log::Level::Info) << " rtcost:" << RoutesCost;
+		Log(Log::Level::Info) << " ourTarget: " << ourTarget << std::endl;
+
 		lyhTimer.reStart();
 
 		while (!lyhTimer.isTimeOut() && rts.cnt > ourTarget) {
 
-			SolClone sclone(customers, rts, EPr, Pc, Ptw, PtwNoWei, penalty, RoutesCost);
+			Solver sclone = *this;
 			removeOneRouteRandomly();
 
 			fill(P.begin(), P.end(), 1);
 			bool isDelete = ejectLocalSearch();
 			if (isDelete) {
+				debug(rts.size());
 				;
 			}
 			else {
-				setCurSolBy(sclone);
+				*this = sclone;
 				break;
 			}
 		} 
@@ -8243,7 +8172,7 @@ public:
 
 		LL contiNotDe = 0;
 
-		SolClone sClone(customers, rts, EPr, Pc, Ptw, PtwNoWei, penalty, RoutesCost);
+		Solver sClone = *this;
 
 		RepairRes ret;
 
@@ -8288,7 +8217,7 @@ public:
 				cusSet.insert(bestM.v);
 				cusSet.insert(bestM.w);
 
-				sClone = SolClone(customers, rts, EPr, Pc, Ptw, PtwNoWei, penalty, RoutesCost);
+				sClone = *this;
 				//lyhCheckTrue(contiNotDe<40);
 				contiNotDe = 1;
 			}
@@ -8297,7 +8226,7 @@ public:
 			}
 		}
 
-		setCurSolBy(sClone);
+		*this = (sClone);
 		ret.cuses = putEleInVec(cusSet);
 
 		if (penalty == 0) {
@@ -8322,9 +8251,9 @@ public:
 
 		TwoNodeMove MRLbestM;
 
-		static Vec<int> contribution(15,0);
+		static Vec<int> contribution(16,0);
 
-		static Vec<int> moveKindOrder = { 0,1,2,3,4,5,6,7,8,9,10,11,12,13,14 };
+		static Vec<int> moveKindOrder = { 0,1,2,3,4,5,6,7,8,9,10,11,12,13,14 ,15};
 		sort(moveKindOrder.begin(), moveKindOrder.end(), [&](int a,int b) {
 			return contribution[a] > contribution[b];
 		});
@@ -8337,14 +8266,8 @@ public:
 		auto MRLUpdateM = [&](TwoNodeMove& m) {
 
 			if (m.deltPen.deltPc <= 0 && m.deltPen.deltPtw <= 0) {
-				if (m.deltPen.deltCost < 0) {
-					if (m.deltPen.deltCost < MRLbestM.deltPen.deltCost) {
-						MRLbestM = m;
-					}
-				}else{
-					if (getYearOfMove(m) < squIter) {
-						MRLbestM = m;
-					}
+				if (m.deltPen.deltCost < MRLbestM.deltPen.deltCost) {
+					MRLbestM = m;
 				}
 			}
 		};
@@ -8375,13 +8298,13 @@ public:
 					}
 					for (int kind: moveKindOrder) {
 
-						TwoNodeMove m;
-						if (kind >= 9) {
-							m = TwoNodeMove(v, w, kind, estimatevw(kind, v, w, 0));
-						}
-						else {
-							m = TwoNodeMove(v, w, kind, estimatevw(kind, v, w, 1));
-						}
+						TwoNodeMove m = TwoNodeMove(v, w, kind, estimatevw(kind, v, w, 1));
+						//if (kind >= 9) {
+						//	m = TwoNodeMove(v, w, kind, estimatevw(kind, v, w, 0));
+						//}
+						//else {
+						//	m = TwoNodeMove(v, w, kind, estimatevw(kind, v, w, 1));
+						//}
 						
 						MRLUpdateM(m);
 
@@ -8424,9 +8347,6 @@ public:
 			}
 			return MRLbestM;
 		};
-			
-		SolClone bestS(customers, rts, 
-			EPr, Pc, Ptw, PtwNoWei, penalty,RoutesCost);
 			
 		alpha = 1;
 		beta = 1;
@@ -8501,6 +8421,12 @@ public:
 
 			sumRtsPen();
 			reCalRtsCostSumCost();
+			if (!(costafterplus == RoutesCost)) {
+				println("costafterplus:", costafterplus);
+				println("RoutesCost:", RoutesCost);
+				println("RoutesCost:", RoutesCost);
+			}
+
 			lyhCheckTrue(penaltyafterupdatePen==penalty);
 			lyhCheckTrue(costafterplus == RoutesCost);
 
@@ -8509,6 +8435,10 @@ public:
 			lyhCheckTrue(oldRcost + bestM.deltPen.deltCost==RoutesCost);
 			bool ver = verify();
 			lyhCheckTrue(ver>0)
+
+				if (!(oldpenalty + bestM.deltPen.deltPc + bestM.deltPen.deltPtw == penalty)) {
+					debug(1111);
+				}
 #endif // CHECKING
 
 		}

@@ -34,6 +34,8 @@ bool allocGlobalMem(int argc, char* argv[]) {
 	//globalEnv = new Environment("../Instances/Homberger/RC1_8_3.txt");
 	//globalEnv = new Environment("../Instances/Homberger/RC1_8_1.txt");
 	//globalEnv  = new Environment("../Instances/Homberger/C1_4_2.txt");
+	//globalEnv  = new Environment("../Instances/Homberger/C1_6_6.txt");
+	//globalEnv  = new Environment("../Instances/Homberger/C1_8_2.txt");
 	// 
 	//75296223
 	globalEnv = new Environment("../Instances/Homberger/RC2_6_4.txt");
@@ -120,7 +122,7 @@ struct Goal {
 			*pBest = pTemp;
 			//pBest.saveToOutPut();
 			//pBest.saveOutAsSintefFile();
-			hust::println("cost:", pBest->RoutesCost);
+			//hust::println("cost:", pBest->RoutesCost);
 			return true;
 		}
 		else {
@@ -143,14 +145,12 @@ struct Goal {
 		static int naUp = 0;
 		static int prUp = 0;
 		bool isUp = false;
-		int reTime = 3;
-
-		println("kind", kind);
+		int reTime = 10;
 
 		if (kind == 1) {
-
 			reTime = 1;
 		}
+
 		for (int ch = 1; ch <= reTime; ++ch) {
 
 			EAX eax(pa, pb);
@@ -195,7 +195,14 @@ struct Goal {
 			else {
 				++prEaxRepair;
 			}
-			println(" repairNum:", repairNum, " naEaxRepair:", naEaxRepair, " prEaxRepair:", prEaxRepair);
+			// println(" repairNum:", repairNum, " naEaxRepair:", naEaxRepair, " prEaxRepair:", prEaxRepair);
+			
+			EAX eaxGetdiff(pa,pc);
+			//Vec<int> arr =eaxGetdiff.getDiffCusofPb();
+			//println(arr.size());
+			//println(newCus.size());
+			newCus = eaxGetdiff.getDiffCusofPb();
+
 			pc.mRLLocalSearch(newCus);
 			//pc.mRLLocalSearch({});
 			bool up = updateBestSol(pc);
@@ -215,7 +222,7 @@ struct Goal {
 				if (up) {
 					isUp = true;
 					//println("MAiter:", MAiter, " rep:", repairNum, " paUp:", paUpNum, " paNUp:", paNotUpNum, " pa:", paIndex, " pb:", pbIndex, " cost", pBest.RoutesCost, "bSolNUp", bestSolContiNotUp);
-					println("eax ruin local update,ruinCusNum:", ruinCusNum);
+					println("cost: ", pBest->RoutesCost, "eax ruin local update,ruinCusNum:", ruinCusNum);
 					i = 0;
 				}
 			}
@@ -274,33 +281,33 @@ struct Goal {
 
 			Solver& pa = pool[paIndex];
 			Solver& pb = pool[pbIndex];
-			println("paIndex:", paIndex);
-			println("pbIndex:", pbIndex);
-			//for (int i = 0; i < 20; ++i) {
-			//	int ruinCusNum = i / 5 + 1;
-			//	bool ruin = pa.ruinLocalSearch(1, ruinCusNum);
-			//	if (ruin) {
-			//		i = 0;
-			//	}
-			//	if (updateBestSol(pa)) {
-			//		contiNotDown = 1;
-			//		println("ruin a update");
-			//		i = 0;
-			//	}
-			//}
+			//println("paIndex:", paIndex);
+			//println("pbIndex:", pbIndex);
+			for (int i = 0; i < 20; ++i) {
+				int ruinCusNum = i / 5 + 1;
+				bool ruin = pa.ruinLocalSearch(1, ruinCusNum);
+				if (ruin) {
+					i = 0;
+				}
+				if (updateBestSol(pa)) {
+					contiNotDown = 1;
+					println("cost: ", pBest->RoutesCost, "ruin a update");
+					i = 0;
+				}
+			}
 
-			//for (int i = 0; i < 20; ++i) {
-			//	int ruinCusNum = i / 5 + 1;
-			//	bool ruin = pb.ruinLocalSearch(1, ruinCusNum);
-			//	if (ruin) {
-			//		i = 0;
-			//	}
-			//	if (updateBestSol(pb)) {
-			//		contiNotDown = 1;
-			//		println("ruin b update");
-			//		i = 0;
-			//	}
-			//}
+			for (int i = 0; i < 20; ++i) {
+				int ruinCusNum = i / 5 + 1;
+				bool ruin = pb.ruinLocalSearch(1, ruinCusNum);
+				if (ruin) {
+					i = 0;
+				}
+				if (updateBestSol(pb)) {
+					contiNotDown = 1;
+					println("cost: ", pBest->RoutesCost, "ruin b update");
+					i = 0;
+				}
+			}
 
 			bool isUp = false;
 			++contiNotDown;
@@ -313,26 +320,27 @@ struct Goal {
 			else {
 
 				Solver& bad = pa.RoutesCost > pb.RoutesCost ? pa : pb;
+				
 				DisType olddis = bad.RoutesCost;
 				auto cuses = bad.patternAdjustment(globalInput->custCnt*0.2);
+
 				bad.mRLLocalSearch(cuses);
 				if (updateBestSol(bad)) {
 					contiNotDown = 1;
-					println("patternAdjustment bad update");
+					println("cost: ", pBest->RoutesCost, "patternAdjustment bad update");
 				}
 				for (int i = 0; i < 200; ++i) {
-					int ruinCusNum = i / 20 + 1;
+					int ruinCusNum = i / 5 + 1;
 					bool ruin = bad.ruinLocalSearch(1, ruinCusNum);
 					if (ruin) {
 						i = 0;
 					}
 					if (updateBestSol(bad)) {
 						contiNotDown = 1;
-						println("ruin bad update");
+						println("cost: ",pBest->RoutesCost,"ruin bad update");
 						i = 0;
 					}
 				}
-				println("olddis:", olddis, " newdis:", bad.RoutesCost," rate:", double(bad.RoutesCost-olddis)/ olddis);
 				contiNotDown = 1;
 			}
 
@@ -395,7 +403,7 @@ struct Goal {
 			bool up1 = updateBestSol(st);
 			if (up1) {
 				//println("cost:", pBest.RoutesCost, " ruinNum:", ruinNum, " parNum:", parNum);
-				println("-cost:", pBest->RoutesCost, " rnum:", rnum);
+				println("cost: ", pBest->RoutesCost, " rnum:", rnum);
 				contiNoDown = 1;
 				rnum = 1;
 				//++table[kind][rnum];
@@ -427,20 +435,19 @@ struct Goal {
 
 		return true;
 	}
-
 };
 
 }//namespace hust
 
 int main(int argc, char* argv[])
 {
-	hust::println(sizeof(std::mt19937));
-	hust::println(sizeof(hust::Solver));
-	hust::println(sizeof(hust::Timer));
-	hust::println(sizeof(hust::Solver::alpha));
-	hust::println(sizeof(hust::Solver::input));
-	hust::println(sizeof(hust::Solver::env));
-	hust::println(sizeof(hust::Input));
+	//hust::println(sizeof(std::mt19937));
+	//hust::println(sizeof(hust::Solver));
+	//hust::println(sizeof(hust::Timer));
+	//hust::println(sizeof(hust::Solver::alpha));
+	//hust::println(sizeof(hust::Solver::input));
+	//hust::println(sizeof(hust::Solver::env));
+	//hust::println(sizeof(hust::Input));
 
 	/*for (;;) {
 		hust::myRand = new hust::Random(0);

@@ -1173,7 +1173,7 @@ struct Input {
 			for (int j = i + 1; j <= custCnt; ++j) {
 				Data& d1 = datas[i];
 				Data& d2 = datas[j];
-				double dis = sqrtl((d1.XCOORD - d2.XCOORD) * (d1.XCOORD - d2.XCOORD)
+				double dis = sqrt((d1.XCOORD - d2.XCOORD) * (d1.XCOORD - d2.XCOORD)
 					+ (d1.YCOORD - d2.YCOORD) * (d1.YCOORD - d2.YCOORD));
 				//TODO[lyh][000]:dimacs的距离计算不同！！！！
 				disOf[j][i] = disOf[i][j] = dis;

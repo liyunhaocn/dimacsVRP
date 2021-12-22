@@ -46,6 +46,7 @@ struct Configuration {
 	int repairExitStep = 40;
 	int initFindPosPqSize = 5;
 	int findBestPosForRuinPqSize = 10;
+	int findBestPosInSolPqSize = 64;//64
 	int naEaxCh = 10;
 
 	//TODO[lyh][2]: patternAdjustment²ÎÊý

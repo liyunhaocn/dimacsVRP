@@ -247,7 +247,7 @@ public:
 				int cnt = 0;
 				for (int i : adjEdgeTable[curCus]) {
 					RichEdge& re1 = richEdges[i];
-					//println("i:", i);
+
 					if (re1.visited == false) {
 						if (re1.owner == Owner::Pa && re1.e.a == curCus) {
 							++cnt;
@@ -257,14 +257,13 @@ public:
 						}
 					}
 				}
-				//println("cnt:", cnt, "curCus", curCus);
 				paPriEClone.removeVal(reIndex);
 			}
 			else if (lastEdge == Owner::Pa) {
 
 				int cnt = 0;
 				for (int i : adjEdgeTable[curCus]) {
-					//println("i:",i);
+
 					RichEdge& re2 = richEdges[i];
 					if (re2.visited == false) {
 						
@@ -424,10 +423,10 @@ public:
 		//debug(n);
 		for (int i = 0; i < n ; ++i) {
 			int v = ret.ve[i];
-			for (int wpos = 0; wpos < cfg->applyCyclesNextNeiBroad; ++wpos) {
-				int w = pc.input.allCloseOf[v][wpos];
-				ret.ins(w);
-			}
+			//for (int wpos = 0; wpos < cfg->applyCyclesNextNeiBroad; ++wpos) {
+			//	int w = pc.input.allCloseOf[v][wpos];
+			//	ret.ins(w);
+			//}
 		}
 		//debug(ret.cnt);
 		return Vec<int>(ret.ve.begin(), ret.ve.begin() + ret.cnt);
@@ -524,8 +523,8 @@ public:
 		Vec<int> repairOrder(generSolNum, 0);
 		auto cmp = [&](int a, int b) ->bool {
 			if (solScores[a].subcyNum == solScores[b].subcyNum) {
-				return solScores[a].cost + solScores[a].pen <
-					solScores[b].cost + solScores[b].pen;
+				return /*solScores[a].cost + */solScores[a].pen <
+					/*solScores[b].cost + */solScores[b].pen;
 			}
 			else {
 				return solScores[a].subcyNum < solScores[b].subcyNum;
@@ -685,6 +684,24 @@ public:
 
 		return {};
 	}
+
+	Vec<int> getDiffCusofPb() {
+		
+		UnorderedSet<int> s;
+		for (int i = 0; i < pbPriE.cnt; ++i) {
+			int index = pbPriE.ve[i];
+			s.insert(richEdges[index].e.a);
+			s.insert(richEdges[index].e.b);
+		}
+
+		//for (int i = 0; i < paPriE.cnt; ++i) {
+		//	int index = paPriE.ve[i];
+		//	s.insert(richEdges[index].e.a);
+		//}
+		auto ret = putEleInVec(s);
+		return ret;
+	}
+
 
 private:
 

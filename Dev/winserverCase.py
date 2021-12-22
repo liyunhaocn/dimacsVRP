@@ -62,14 +62,19 @@ for t in arr_types:
 minRLhardlist = [
 "C1_4_2",
 "C1_6_6",
+"C1_10_8",
 "C2_4_4",
+"C2_4_8",
 "C2_10_4",
 "R1_6_5",
+"R1_10_9",
 "R1_10_10",
 "R2_6_6",
 "R2_8_10",
+"R2_10_4",
 "RC1_4_5",
 "RC1_8_1",
+"RC1_10_7",
 "RC2_6_4",
 "RC2_10_8",
 ]
@@ -77,7 +82,7 @@ minRLhardlist = [
 cases = minRLhardlist
 print(len(cases))
 # strBase = "start cmd /k \"DLLSMA.exe 1 ../Instances/Homberger/C2_10_2.txt 36000\""
-path = "./hard12_1h.bat"
+path = "./hard17_1h.bat"
 
 part = len(cases)
 part = min(part,len(cases))
