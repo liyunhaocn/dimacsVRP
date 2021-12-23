@@ -725,6 +725,49 @@ public:
 //    }
 //};
 
+struct Union {
+
+    Vec<int> fa;
+    Vec<int> rank;
+    Union(int maxSize) {
+        fa = Vec<int>(maxSize);
+        rank = Vec<int>(maxSize);
+        int n = fa.size();
+        for (int i = 0; i < n; ++i)
+        {
+            fa[i] = i;
+            rank[i] = 1;
+        }
+    }
+
+
+    int find(int x)
+    {
+        return x == fa[x] ? x : (fa[x] = find(fa[x]));
+    }
+
+    inline void merge(int i, int j)
+    {
+        int x = find(i), y = find(j);
+        if (rank[x] <= rank[y])
+            fa[x] = y;
+        else
+            fa[y] = x;
+        if (rank[x] == rank[y] && x != y)
+            rank[y]++;
+    }
+
+    int getMaxElePart() {
+
+        int n = fa.size();
+        Vec<int> numCnt(n, 0);
+        for (int i = 0; i < n; ++i) {
+            ++numCnt[fa[i]];
+        }
+        return std::max_element(numCnt.begin(), numCnt.end()) - numCnt.begin();
+    }
+};
+
 }
 
 

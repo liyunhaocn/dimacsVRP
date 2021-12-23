@@ -266,7 +266,6 @@ public:
 
 					RichEdge& re2 = richEdges[i];
 					if (re2.visited == false) {
-						
 						if (re2.owner == Owner::Pb && re2.e.b == curCus) {
 							++cnt;
 							if (myRand->pick(cnt) == 0) {
@@ -401,35 +400,36 @@ public:
 	}
 
 	/* 对个体应用给定 eSet 集合; */
-	Vec<int> applyCycles(const Vec<int>& cyclesIndexes, Solver& pc) {
+	bool applyCycles(const Vec<int>& cyclesIndexes, Solver& pc) {
 		for (int index : cyclesIndexes) {
 			applyOneCycle(index, pc);
 		}
+		return true;
 
-		ConfSet ret(eaxCusCnt);
-		for (auto& index : cyclesIndexes) {
-			auto& cy = abCycleSet[index];
-			for (auto& reIndex : cy) {
-				auto& re = richEdges[reIndex];
-				if (re.owner == Owner::Pa) {
-					ret.ins(re.e.a);
-				}
-				else {
-					ret.ins(re.e.b);
-				}
-			}
-		}
-		int n = ret.cnt;
-		//debug(n);
-		for (int i = 0; i < n ; ++i) {
-			int v = ret.ve[i];
+		//ConfSet ret(eaxCusCnt);
+		//for (auto& index : cyclesIndexes) {
+		//	auto& cy = abCycleSet[index];
+		//	for (auto& reIndex : cy) {
+		//		auto& re = richEdges[reIndex];
+		//		if (re.owner == Owner::Pa) {
+		//			ret.ins(re.e.a);
+		//		}
+		//		else {
+		//			ret.ins(re.e.b);
+		//		}
+		//	}
+		//}
+		//int n = ret.cnt;
+		////debug(n);
+		//for (int i = 0; i < n ; ++i) {
+			//int v = ret.ve[i];
 			//for (int wpos = 0; wpos < cfg->applyCyclesNextNeiBroad; ++wpos) {
 			//	int w = pc.input.allCloseOf[v][wpos];
 			//	ret.ins(w);
 			//}
-		}
+		//}
 		//debug(ret.cnt);
-		return Vec<int>(ret.ve.begin(), ret.ve.begin() + ret.cnt);
+		//return Vec<int>(ret.ve.begin(), ret.ve.begin() + ret.cnt);
 	}
 
 	int removeSubring(Solver& pc) {
@@ -512,7 +512,6 @@ public:
 	struct SolScore
 	{
 		int deleABCost = 0;
-		Vec<int> newCus;
 		int subcyNum = 0;
 		DisType pen = 0;
 		DisType cost = 0;
@@ -522,90 +521,103 @@ public:
 
 		Vec<int> repairOrder(generSolNum, 0);
 		auto cmp = [&](int a, int b) ->bool {
-			if (solScores[a].subcyNum == solScores[b].subcyNum) {
-				return /*solScores[a].cost + */solScores[a].pen <
-					/*solScores[b].cost + */solScores[b].pen;
-			}
-			else {
-				return solScores[a].subcyNum < solScores[b].subcyNum;
-			}
-			return true;
+			//if (solScores[a].subcyNum == solScores[b].subcyNum) {
+				return solScores[a].cost + solScores[a].pen <
+					solScores[b].cost + solScores[b].pen;
+			//}
+			//else {
+			//	return solScores[a].subcyNum < solScores[b].subcyNum;
+			//}
+			//return true;
 		};
 		std::iota(repairOrder.begin(), repairOrder.end(), 0);
 		std::sort(repairOrder.begin(), repairOrder.end(), cmp);
 		return repairOrder;
 	}
 
-	Vec<int> doNaEAX(Solver& pa, Solver& pb,Solver & pc) {
+	UnorderedSet<int> getCusInOneCycle(int cyIndex) {
+
+		auto& reSet = abCycleSet[cyIndex];
+		UnorderedSet<int> cusInCycle;
+		for (int reIndex : reSet) {
+			auto& re = richEdges[reIndex];
+			if (re.owner == Owner::Pa) {
+				cusInCycle.insert(re.e.a);
+			}
+			else {
+				cusInCycle.insert(re.e.b);
+			}
+		}
+		return cusInCycle;
+	}
+
+	bool isInter(const UnorderedSet<int>& a, const UnorderedSet<int>& b) {
+		const auto& smallSet = a.size() < b.size() ? a : b;
+		const auto& bigSet = a.size() >= b.size() ? a : b;
+		for (auto& i : smallSet) {
+			if (bigSet.count(i) > 0) {
+				return true;
+			}
+		}
+		return false;
+	}
+
+	int getIndexOfabCythatInCenter() {
+
+		int n = abCycleSet.size();
+		Union u(n);
+		Vec<UnorderedSet<int>> setVe(n);
+
+		for (int cyIndex = 0; cyIndex < n; ++cyIndex) {
+			setVe[cyIndex] = getCusInOneCycle(cyIndex);
+		}
+
+		for (int i = 0; i < n; ++i) {
+			for (int j = i+1; j < n; ++j) {
+				if (isInter(setVe[i], setVe[j])) {
+					u.merge(i,j);
+				}
+			}
+		}
+		return u.getMaxElePart();
+	}
+
+ 	bool doNaEAX(Solver& pa, Solver& pb,Solver & pc) {
 		
-		generateCycles();
+		/*generateCycles();*/
 		repairSolNum = 0;
-
 		if (abCycleSet.size() == 0) {
-			//println("abCycleSet.size() == 0");
-			return {};
+			return false;
 		}
 
-		int abcyNum = abCycleSet.size();
-		// 
 		//TODO[lyh][001]:最多放置多少个abcycle[2,(abcyNum+1)/2]
-		generSolNum = std::min<int>(abcyNum, 2);
-		auto& choseCyOrder = myRandX->getMN(abCycleSet.size(), generSolNum);
+		generSolNum = 1;
+		int chooseIndex = myRand->pick(abCycleSet.size());
 
-		Vec<hust::Solver> pool;
-		pool.reserve(generSolNum);
-
-		Vec<Vec<int> > newCuses;
-		newCuses.reserve(generSolNum);
-
-		Vec<SolScore> solScores(generSolNum);
-		for (int i = 0; i < generSolNum; ++i) {
-			pc = pa;
-			Vec<int> eset = { choseCyOrder [i]};
-			solScores[i].newCus = applyCycles(eset, pc);
-			solScores[i].subcyNum = removeSubring(pc);
-			pc.reCalRtsCostAndPen();
-			pool.push_back(pc);
-			solScores[i].pen = pc.penalty;
-			solScores[i].cost = pc.RoutesCost;
-		}
-
-		Vec<int> repairOrder = getRepartOrder(solScores);
+		applyCycles({ chooseIndex }, pc);
+		removeSubring(pc);
+		pc.reCalRtsCostAndPen();
 
 		int retIndex = -1;
 
-		int index = repairOrder.front();
-		auto& soltemp = pool[index];
-		auto repRet = soltemp.repair();
-		if (repRet.isRepair) {
+		if (pc.repair()) {
 			++repairSolNum;
-			retIndex = index;
-			auto& arr = solScores[index].newCus;
-			arr.insert(arr.end(), repRet.cuses.begin(), repRet.cuses.end());
-		}
-
-		if (retIndex >= 0) {
-			pc = pool[retIndex];
-			
-			return solScores[retIndex].newCus;
+			return true;
 		}
 		else {
-			//
-			pc = pa;
-			return {};
+			return false;
 		}
-		return {};
+		return false;
 	}
 
-	Vec<int> doPrEAX(Solver& pa, Solver& pb, Solver& pc) {
+	bool doPrEAX(Solver& pa, Solver& pb, Solver& pc) {
 
-		generateCycles();
+		//generateCycles();
 		repairSolNum = 0;
 
 		Vec<int> ret;
 		if (abCycleSet.size() <=2 ) {
-			//println("abCycleSet.size() <=2");
-			return {};
+			return false;
 		}
 
 		pc = pa;
@@ -613,24 +625,78 @@ public:
 
 		int abcyNum = abCycleSet.size();
 		
-		Vec<std::set<int>> cusInAbcy;
+		//Vec<UnorderedSet<int>> cusInAbcy;
 
 		//TODO[lyh][001]:最多放置多少个abcycle[2,(abcyNum+1)/2]
 		generSolNum = (abcyNum + 1) / 2 - 2 + 1;
 		//generSolNum = std::min<int>(generSolNum,3);
-		auto& choseCyOrder = myRandX->getMN(abCycleSet.size(), generSolNum);
+
+		ConfSet resCycles(abcyNum);
+		for (int i = 0; i < abcyNum; ++i) {
+			resCycles.ins(i);
+		}
+
+		int firstCyIndex = getIndexOfabCythatInCenter();
+		Vec<int> choseCyOrder = { firstCyIndex };
+		resCycles.removeVal(firstCyIndex);
+
+		UnorderedSet <int> alreadyPlaceCusSet;
+		auto cusInFirstcy = getCusInOneCycle(firstCyIndex);
+		for (int cus : cusInFirstcy) {
+			alreadyPlaceCusSet.insert(cus);
+		}
+		Vec< List<int> > adj(abcyNum);
+
+		while (choseCyOrder.size() < generSolNum + 1) {
+			
+			int nextCyIndex = -1;
+			int nextChooseNum = 0;
+			for (int i = 0; i < resCycles.cnt;++i) {
+				int chooseCyIndex = resCycles.ve[i];
+
+				bool isSharedCus = false;
+				auto cusIncy = getCusInOneCycle(chooseCyIndex);
+
+				for (int cus : cusIncy) {
+					if (alreadyPlaceCusSet.count(cus) > 0) {
+						isSharedCus = true;
+						break;
+					}
+				}
+				if (isSharedCus) {
+					++nextChooseNum;
+					if (myRand->pick(nextChooseNum) == 0) {
+						nextCyIndex = chooseCyIndex;
+					}
+				}
+			}
+			if (nextCyIndex == -1) {
+				//debug(generSolNum);
+				//debug(choseCyOrder.size());
+				generSolNum = choseCyOrder.size()-1;
+				break;
+			}
+
+			if (nextCyIndex >= 0) {
+
+				auto cusIncy = getCusInOneCycle(nextCyIndex);
+				for (int cus : cusIncy) {
+					alreadyPlaceCusSet.insert(cus);
+				}
+				choseCyOrder.push_back(nextCyIndex);
+				resCycles.removeVal(nextCyIndex);
+			}
+		} 
 
 		Vec<hust::Solver> pool;
 		pool.reserve(generSolNum);
 		
-		Vec<Vec<int> > newCuses;
-		newCuses.reserve(generSolNum);
-
 		Vec<SolScore> solScores(generSolNum);
+
 		for (int i = 0; i < generSolNum; ++i) {
 			pc = pa;
-			Vec<int> eset = Vec<int>(choseCyOrder.begin(), choseCyOrder.begin()+i+2);
-			solScores[i].newCus = applyCycles(eset , pc);
+			Vec<int> eset = Vec<int>(choseCyOrder.begin(), choseCyOrder.begin() + i + 2);
+			applyCycles(eset , pc);
 			solScores[i].subcyNum = removeSubring(pc);
 			pc.reCalRtsCostAndPen();
 			pool.push_back(pc);
@@ -639,19 +705,19 @@ public:
 		}
 
 		Vec<int> repairOrder = getRepartOrder(solScores);
+		/*Vec<int> repairOrder = myRandX->getMN(generSolNum, generSolNum);
+		unsigned shuseed = (globalEnv->seed % hust::Mod) + ((hust::myRand->pick(10000007))) % hust::Mod;
+		std::shuffle(repairOrder.begin(), repairOrder.end(), std::default_random_engine(shuseed));*/
 
 		int retIndex = -1;
+		int callRepairNum = std::min<int>(2, repairOrder.size());
+		for (int i = 0;i < callRepairNum; ++i) {
 
-		int callRepairNum = std::min<int>(4, repairOrder.size());
-
-		for (int i = 0;i< callRepairNum; ++i) {
 			int index = repairOrder[i];
 			auto& soltemp = pool[index];
 			auto repRet = soltemp.repair();
-			if (repRet.isRepair) {
+			if (repRet) {
 				++repairSolNum;
-				auto& arr = solScores[index].newCus;
-				arr.insert(arr.end(), repRet.cuses.begin(), repRet.cuses.end());
 				if (repairSolNum == 1) {
 					retIndex = index;
 					break;
@@ -673,16 +739,16 @@ public:
 
 		if (retIndex >= 0) {
 			pc = pool[retIndex];
-			return solScores[retIndex].newCus;
+			return true;
 		}
 		else {
 			//
 			pc = pa;
-			return {};
+			return false;
 		}
 		std::cout << "choseCyNum: " << generSolNum << " choseI: " << retIndex << std::endl;
 
-		return {};
+		return false;
 	}
 
 	Vec<int> getDiffCusofPb() {
@@ -690,7 +756,7 @@ public:
 		UnorderedSet<int> s;
 		for (int i = 0; i < pbPriE.cnt; ++i) {
 			int index = pbPriE.ve[i];
-			s.insert(richEdges[index].e.a);
+			//s.insert(richEdges[index].e.a);
 			s.insert(richEdges[index].e.b);
 		}
 

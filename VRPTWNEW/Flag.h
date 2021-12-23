@@ -62,6 +62,9 @@ namespace hust {
 	template<typename V>
 	using Vec = std::vector<V>;
 	
+	template<typename V>
+	using List = std::list<V>;
+	
 	using DisType = LL;
 	DisType DisInf = LLInf;
 

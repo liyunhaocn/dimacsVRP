@@ -1464,13 +1464,7 @@ public:
 		auto cmp1 = [&](int x, int y) {
 			return input.datas[x].polarAngle < input.datas[y].polarAngle;
 		};		
-		auto cmp2 = [&](int x, int y) {
-			return input.disOf[0][x] < input.disOf[0][y];
-		};	
-		auto cmp3 = [&](int x, int y) {
-			return input.datas[x].DUEDATE < input.datas[y].DUEDATE;
-		};
-		sort(que1.begin(), que1.end(), cmp3);
+		sort(que1.begin(), que1.end(), cmp1);
 
 		//unsigned shuseed = (env.seed % hust::Mod) + ((hust::myRand->pick(10000007))) % hust::Mod;
 		//std::shuffle(que1.begin(), que1.end(), std::default_random_engine(shuseed));
@@ -1611,8 +1605,8 @@ public:
 
 	bool initSolution() {
 
-		return initMaxRoute();
-		//return initBySecOrder();
+		//return initMaxRoute();
+		return initBySecOrder();
 	}
 
 	bool EPrReset() {
@@ -6420,8 +6414,7 @@ public:
 
 	bool squeeze() {
 
-		Vec<Solver> bestPool;
-		bestPool.reserve(2);
+		List<Solver> bestPool;
 		bestPool.push_back(*this);
 
 		Solver sclone = *this;
@@ -6472,24 +6465,24 @@ public:
 		//	return index;
 		//};
 
-		auto getMinPsumSolIndex = [&]() {
+		auto getMinPsumSolIter = [&]() -> List<Solver>::iterator {
 
 			int min1 = IntInf;
-			int index = 0;
+			List<Solver>::iterator retIt;
 
-			for (int i = 0; i < bestPool.size(); ++i) {
-				customers = bestPool[i].customers;
-				rts = bestPool[i].rts;
+			for (auto it = bestPool.begin(); it != bestPool.end();++it) {
+				customers = it->customers;
+				rts = it->rts;
 				resetConfRts();
 				sumRtsPen();
 
-				Vec<eOneRNode> ret = ejectFromPatialSol();
+				Vec<eOneRNode> reteNode = ejectFromPatialSol();
 
 				int bestCnt = 1;
 				int sum = 0;
 				//int ejeNum = 0;
 
-				for (eOneRNode& en : ret) {
+				for (eOneRNode& en : reteNode) {
 					sum += en.Psum;
 					//ejeNum += en.ejeVe.size();
 					/*for (int c : en.ejeVe) {
@@ -6497,24 +6490,22 @@ public:
 					}*/
 				}
 
-				//sum *= ejeNum;
-
 				if (sum < min1) {
 					bestCnt = 1;
 					min1 = sum;
-					index = i;
-					ejeNodesAfterSqueeze = ret;
+					retIt = it;
+					ejeNodesAfterSqueeze = reteNode;
 				}
 				else if (sum == min1) {
 					++bestCnt;
 					if (myRand->pick(bestCnt) == 0) {
-						index = i;
-						ejeNodesAfterSqueeze = ret;
+						retIt = it;
+						ejeNodesAfterSqueeze = reteNode;
 					}
 				}
 			}
 
-			return index;
+			return retIt;
 		};
 
 		alpha = 1;
@@ -6765,9 +6756,9 @@ public:
 
 			bestPool.push_back(sclone);
 			//debug(bestPool.size());
-			int index = getMinPsumSolIndex();
+			auto minIter = getMinPsumSolIter();
 			//debug(index)
-			*this = bestPool[index];
+			*this = *minIter;
 				
 #if CHECKING
 			DisType oldp = penalty;
@@ -7424,7 +7415,7 @@ public:
 		return false;
 	}
 
-	Vec<int> patternAdjustment(int Irand = -1) {
+	bool patternAdjustment(int Irand = -1) {
 
 		int I1000 = myRand->pick(cfg->Irand);
 		if (Irand > 0) {
@@ -7497,8 +7488,6 @@ public:
 
 		++squIter;
 
-		UnorderedSet<int> cusSet;
-
 		do {
 
 			TwoNodeMove bestM = getDelt0MoveRandomly();
@@ -7512,9 +7501,6 @@ public:
 				break;
 			}
 
-			cusSet.insert(bestM.v);
-			cusSet.insert(bestM.w);
-
 			updateYearTable(bestM);
 			doMoves(bestM);
 			++squIter;
@@ -7523,13 +7509,7 @@ public:
 		//debug(iter)
 		sumRtsPen();
 
-		Vec<int> ret;
-		ret.reserve(cusSet.size());
-		for (auto c : cusSet) {
-			ret.push_back(c);
-		}
-
-		return ret;
+		return true;
 	}
 
 	bool perturb(Vec<int> cusArr) {
@@ -8217,12 +8197,7 @@ public:
 		return bestM;
 	}
 	
-	struct RepairRes {
-		bool isRepair = false;
-		Vec<int> cuses;
-	};
-
-	RepairRes naRepair() {
+	bool naRepair() {
 
 		for (int i = 0; i < rts.cnt; ++i) {
 			rts[i].rWeight = 1;
@@ -8260,8 +8235,6 @@ public:
 		LL contiNotDe = 0;
 
 		Solver sClone = *this;
-
-		RepairRes ret;
 
 		while (penalty > 0 && !lyhTimer.isTimeOut()) {
 				
@@ -8313,19 +8286,16 @@ public:
 			}
 		}
 
-		*this = (sClone);
-		ret.cuses = putEleInVec(cusSet);
-
 		if (penalty == 0) {
-			ret.isRepair = true;
+			return true;
 		}
 		else {
-			ret.isRepair = false;
+			return false;
 		}
-		return ret;
+		return false;
 	}
 
-	RepairRes repair() {
+	bool repair() {
 
 		gamma = 1;
 		return naRepair();
@@ -8338,9 +8308,9 @@ public:
 
 		TwoNodeMove MRLbestM;
 
-		static Vec<int> contribution(16,0);
+		static Vec<int> contribution(15,0);
 
-		static Vec<int> moveKindOrder = { 0,1,2,3,4,5,6,7,8,9,10,11,12,13,14 ,15};
+		static Vec<int> moveKindOrder = { 0,1,2,3,4,5,6,7,8,9,10,11,12,13,14 /*,15*/};
 		sort(moveKindOrder.begin(), moveKindOrder.end(), [&](int a,int b) {
 			return contribution[a] > contribution[b];
 		});
@@ -8385,14 +8355,14 @@ public:
 					}
 					for (int kind: moveKindOrder) {
 
-						TwoNodeMove m = TwoNodeMove(v, w, kind, estimatevw(kind, v, w, 1));
-						//if (kind >= 9) {
-						//	m = TwoNodeMove(v, w, kind, estimatevw(kind, v, w, 0));
-						//}
-						//else {
-						//	m = TwoNodeMove(v, w, kind, estimatevw(kind, v, w, 1));
-						//}
-						
+						//TwoNodeMove m = TwoNodeMove(v, w, kind, estimatevw(kind, v, w, 1));
+						TwoNodeMove m;
+						if (kind >= 9) {
+							m = TwoNodeMove(v, w, kind, estimatevw(kind, v, w, 0));
+						}
+						else {
+							m = TwoNodeMove(v, w, kind, estimatevw(kind, v, w, 1));
+						}
 						MRLUpdateM(m);
 
 						if (MRLbestM.deltPen.deltCost < 0) {
