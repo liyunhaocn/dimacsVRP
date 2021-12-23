@@ -44,7 +44,7 @@ struct Configuration {
 	//int yearTabuRand = 10;
 	int popSize = 3;
 	int repairExitStep = 40;
-	int initFindPosPqSize = 5;
+	int initFindPosPqSize = 20;
 	int findBestPosForRuinPqSize = 10;
 	int findBestPosInSolPqSize = 64;//64
 	int naEaxCh = 10;

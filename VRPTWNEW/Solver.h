@@ -621,7 +621,7 @@ public:
 
 	Solver& operator = (const Solver& s) {
 
-		this->P = s.P;
+		//this->P = s.P;
 		this->customers = s.customers;
 		this->rts = s.rts;
 		this->PtwConfRts = s.PtwConfRts;
@@ -1403,10 +1403,20 @@ public:
 				rtPtw = rtPtw - rt.rPtw;
 				rtPc = rtPc - rt.rPc;
 
-				DisType cost = input.disOf[reCusNo(w)][reCusNo(v)]
+				DisType cost = 
+
+					input.disOf[reCusNo(w)][reCusNo(v)]
 					+ input.disOf[reCusNo(w)][reCusNo(vj)]
 					- input.disOf[reCusNo(vj)][reCusNo(v)];
-					
+
+					//input.disOf[0][reCusNo(v)] 
+					//+ input.disOf[0][w]
+					//- input.disOf[reCusNo(w)][reCusNo(v)]
+					////(vj,w)
+					//-input.disOf[0][reCusNo(w)]
+					//+ input.disOf[0][reCusNo(vj)]
+					//- input.disOf[reCusNo(vj)][reCusNo(w)];
+
 				Position pt;
 				pt.cost = cost;
 				pt.pen = rtPtw + rtPc;
@@ -1434,7 +1444,7 @@ public:
 		return bestPos;
 	}
 
-	bool initMaxRoute() {
+	bool initBySecOrder() {
 
 		Vec<int>que1(input.custCnt);
 		std::iota(que1.begin(), que1.end(),1);
@@ -1451,10 +1461,19 @@ public:
 		//	sort(que1.begin(), que1.end(), cmp);
 		//}
 
-		auto cmp = [&](int x, int y) {
+		auto cmp1 = [&](int x, int y) {
 			return input.datas[x].polarAngle < input.datas[y].polarAngle;
+		};		
+		auto cmp2 = [&](int x, int y) {
+			return input.disOf[0][x] < input.disOf[0][y];
+		};	
+		auto cmp3 = [&](int x, int y) {
+			return input.datas[x].DUEDATE < input.datas[y].DUEDATE;
 		};
-		sort(que1.begin(), que1.end(), cmp);
+		sort(que1.begin(), que1.end(), cmp3);
+
+		//unsigned shuseed = (env.seed % hust::Mod) + ((hust::myRand->pick(10000007))) % hust::Mod;
+		//std::shuffle(que1.begin(), que1.end(), std::default_random_engine(shuseed));
 
 		int rid = 0;
 		
@@ -1492,6 +1511,81 @@ public:
 			rReCalRCost(r);
 		}
 		sumRtsPen();
+		saveOutAsSintefFile();
+		patternAdjustment(input.custCnt);
+		saveOutAsSintefFile();
+		return true;
+	}
+
+	bool initMaxRoute() {
+
+		Vec<int>que1;
+		que1.reserve(input.custCnt);
+
+		for (int i = 1; i <= input.custCnt; ++i) {
+			que1.push_back(i);
+		}
+		unsigned shuseed = (env.seed % hust::Mod) + ((hust::myRand->pick(10000007))) % hust::Mod;
+		std::shuffle(que1.begin(), que1.end(), std::default_random_engine(shuseed));
+
+		/*auto cmp = [&](int x, int y) {
+			return input.datas[x].DUEDATE < input.datas[y].DUEDATE;
+		};
+		sort(que1.begin(), que1.end(), cmp);*/
+
+		int rid = 0;
+
+		/*for (int i = 0; i < customers.size(); ++i) {
+			customers[i].id = i;
+		}*/
+
+		do {
+
+			int tp = -1;
+			Position bestP;
+			bool isSucceed = false;
+			int eaIndex = -1;
+
+			for (int i = 0; i < que1.size(); ++i) {
+				int cus = que1[i];
+				Position tPos = findBestPosInSolForInit(cus);
+
+				if (tPos.rIndex != -1 && tPos.pen == 0) {
+					if (tPos.cost < bestP.cost) {
+						isSucceed = true;
+						eaIndex = i;
+						tp = cus;
+						bestP = tPos;
+					}
+				}
+			}
+
+			if (isSucceed) {
+				que1.erase(que1.begin() + eaIndex);
+				rInsAtPos(rts[bestP.rIndex], bestP.pos, tp);
+				rUpdateAvfrom(rts[bestP.rIndex], rts[bestP.rIndex].head);
+				rUpdateZvfrom(rts[bestP.rIndex], rts[bestP.rIndex].tail);
+				continue;
+			}
+
+			Route r1 = rCreateRoute(rid++);
+			rInsAtPosPre(r1, r1.tail, que1[0]);
+			que1.erase(que1.begin());
+			rUpdateAvfrom(r1, r1.head);
+			rUpdateZvfrom(r1, r1.tail);
+			rts.push_back(r1);
+
+		} while (!que1.empty());
+
+		for (int i = 0; i < rts.size(); ++i) {
+			Route& r = rts[i];
+
+			rUpdateZvQfrom(r, r.tail);
+			rUpdateAQfrom(r, r.head);
+			rReCalRCost(r);
+		}
+		sumRtsPen();
+		//patternAdjustment();
 		return true;
 	}
 
@@ -1518,6 +1612,7 @@ public:
 	bool initSolution() {
 
 		return initMaxRoute();
+		//return initBySecOrder();
 	}
 
 	bool EPrReset() {
@@ -6183,28 +6278,22 @@ public:
 
 	bool removeOneRouteRandomly(int index = -1) {
 
-		// delete one route randomly
-		/*for (int i = 0; i <= input.custCnt; ++i) {
-			P[i] = 1;
-		}*/
-
-		Vec<CircleSector> angs(rts.cnt);
-		Vec<int> range(rts.cnt);
-		for (int i = 0; i < rts.cnt; ++i) {
-			auto ve = rPutCusInve(rts[i]);
-			angs[i].initialize(input.datas[ve[0]].polarAngle);
-			for (int j = 1; j < ve.size(); ++j) {
-				angs[i].extend(input.datas[ve[j]].polarAngle);
-			}
-			range[i] = CircleSector::positive_mod(angs[i].end - angs[i].start);
-		}
-
-		index = 0;
-		for (int i = 1; i < rts.cnt; ++i) {
-			if (range[i] > range[index]) {
-				index = i;
-			}
-		}
+		//Vec<CircleSector> angs(rts.cnt);
+		//Vec<int> range(rts.cnt);
+		//for (int i = 0; i < rts.cnt; ++i) {
+		//	auto ve = rPutCusInve(rts[i]);
+		//	angs[i].initialize(input.datas[ve[0]].polarAngle);
+		//	for (int j = 1; j < ve.size(); ++j) {
+		//		angs[i].extend(input.datas[ve[j]].polarAngle);
+		//	}
+		//	range[i] = CircleSector::positive_mod(angs[i].end - angs[i].start);
+		//}
+		//index = 0;
+		//for (int i = 1; i < rts.cnt; ++i) {
+		//	if (range[i] > range[index]) {
+		//		index = i;
+		//	}
+		//}
 
 		if (index == -1) {
 			index = myRand->pick(rts.size());
@@ -6334,6 +6423,8 @@ public:
 		Vec<Solver> bestPool;
 		bestPool.reserve(2);
 		bestPool.push_back(*this);
+
+		Solver sclone = *this;
 
 		auto updateBestPool = [&](DisType Pc, DisType PtwNoWei) {
 
@@ -6497,12 +6588,6 @@ public:
 				++contiNotDe;
 				continue;
 			}
-			/*else if (bestM.deltPen.PcOnly + bestM.deltPen.PtwOnly <= 0) {
-				;
-			}
-			else if (bestM.deltPen.PcOnly + bestM.deltPen.PtwOnly > 0) {
-				;
-			}*/
 
 #if CHECKING
 
@@ -6678,7 +6763,7 @@ public:
 		}
 		else {
 
-			//bestPool.push_back(sClone);
+			bestPool.push_back(sclone);
 			//debug(bestPool.size());
 			int index = getMinPsumSolIndex();
 			//debug(index)
@@ -7273,7 +7358,7 @@ public:
 			if (maxOfPval >= 1000) {
 				maxOfPval = 0;
 				for (auto& i : P) {
-					i = i * 0.7 + 1;
+					i = i * 0.4 + 1;
 					maxOfPval = std::max<DisType>(maxOfPval,i);
 				}
 				//cout << "p";
@@ -7388,7 +7473,7 @@ public:
 							d = estimatevw(kind, v, w, 1);
 						}
 						else {
-							d = estimatevw(kind, v, w, 1);
+							d = estimatevw(kind, v, w, 0);
 						}
 
 						#ifdef ATTRIBUTETABU
@@ -7478,7 +7563,7 @@ public:
 						d = estimatevw(kind, v, w, 1);
 					}
 					else {
-						d = estimatevw(kind, v, w, 1);
+						d = estimatevw(kind, v, w, 0);
 					}
 
 					#ifdef ATTRIBUTETABU
@@ -8058,6 +8143,7 @@ public:
 		gamma = 0;
 		Timer t(10);
 		initSolution();
+		//saveOutAsSintefFile();
 		bool isSucceed = false;
 		t.disp();
 		if (cfg->breakRecord) {
@@ -8084,6 +8170,7 @@ public:
 			fill(P.begin(), P.end(), 1);
 			bool isDelete = ejectLocalSearch();
 			if (isDelete) {
+				//saveOutAsSintefFile();
 				debug(rts.size());
 				;
 			}

@@ -34,11 +34,11 @@ bool allocGlobalMem(int argc, char* argv[]) {
 	//globalEnv = new Environment("../Instances/Homberger/RC1_8_3.txt");
 	//globalEnv = new Environment("../Instances/Homberger/RC1_8_1.txt");
 	//globalEnv  = new Environment("../Instances/Homberger/C1_4_2.txt");
-	//globalEnv  = new Environment("../Instances/Homberger/C1_6_6.txt");
+	globalEnv  = new Environment("../Instances/Homberger/C1_6_6.txt");
 	//globalEnv  = new Environment("../Instances/Homberger/C1_8_2.txt");
 	// 
 	//75296223
-	globalEnv = new Environment("../Instances/Homberger/RC2_6_4.txt");
+	//globalEnv = new Environment("../Instances/Homberger/RC2_6_4.txt");
 
 	cfg = new hust::Configuration();
 	//lyh::MyString ms;
@@ -50,6 +50,7 @@ bool allocGlobalMem(int argc, char* argv[]) {
 	}
 
 	globalEnv->seed = 1611589828;
+	//globalEnv->seed = 1611589111;
 	globalEnv->show();
 	cfg->show();
 
@@ -455,8 +456,8 @@ int main(int argc, char* argv[])
 	//hust::solverByEAX(argc, argv);return 0;
 	hust::allocGlobalMem(argc, argv);
 	hust::Goal goal;
-	//goal.justLocalSearch(); 
-	goal.solverByEAX(); 
+	goal.justLocalSearch(); 
+	//goal.solverByEAX(); 
 	hust::deallocGlobalMem();
 
 	return 0;
