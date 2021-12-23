@@ -434,8 +434,8 @@ int main(int argc, char* argv[])
 	//hust::solverByEAX(argc, argv);return 0;
 	hust::allocGlobalMem(argc, argv);
 	hust::Goal goal;
-	//goal.justLocalSearch(); 
-	goal.solverByEAX(); 
+	goal.justLocalSearch(); 
+	//goal.solverByEAX(); 
 	hust::deallocGlobalMem();
 
 	return 0;

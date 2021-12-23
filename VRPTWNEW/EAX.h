@@ -517,6 +517,7 @@ public:
 		DisType cost = 0;
 	};
 
+	//Vec<bool> 
 	Vec<int> getRepartOrder(Vec<SolScore>& solScores) {
 
 		Vec<int> repairOrder(generSolNum, 0);
@@ -592,6 +593,7 @@ public:
 
 		//TODO[lyh][001]:最多放置多少个abcycle[2,(abcyNum+1)/2]
 		generSolNum = 1;
+
 		int chooseIndex = myRand->pick(abCycleSet.size());
 
 		applyCycles({ chooseIndex }, pc);
@@ -620,16 +622,11 @@ public:
 			return false;
 		}
 
-		pc = pa;
-		generSolNum = 0;
+		generSolNum = 1;
 
 		int abcyNum = abCycleSet.size();
-		
-		//Vec<UnorderedSet<int>> cusInAbcy;
-
-		//TODO[lyh][001]:最多放置多少个abcycle[2,(abcyNum+1)/2]
-		generSolNum = (abcyNum + 1) / 2 - 2 + 1;
-		//generSolNum = std::min<int>(generSolNum,3);
+		//TODO[lyh][001]:最多放置多少个abcycle[2,(abcyNum+1)/2],pick 是开区间
+		int numABCyUsed = myRand->pick(2, (abcyNum + 1) / 2 + 1);
 
 		ConfSet resCycles(abcyNum);
 		for (int i = 0; i < abcyNum; ++i) {
@@ -637,7 +634,7 @@ public:
 		}
 
 		int firstCyIndex = getIndexOfabCythatInCenter();
-		Vec<int> choseCyOrder = { firstCyIndex };
+		Vec<int> eset = { firstCyIndex };
 		resCycles.removeVal(firstCyIndex);
 
 		UnorderedSet <int> alreadyPlaceCusSet;
@@ -645,9 +642,8 @@ public:
 		for (int cus : cusInFirstcy) {
 			alreadyPlaceCusSet.insert(cus);
 		}
-		Vec< List<int> > adj(abcyNum);
 
-		while (choseCyOrder.size() < generSolNum + 1) {
+		while (eset.size() < numABCyUsed) {
 			
 			int nextCyIndex = -1;
 			int nextChooseNum = 0;
@@ -673,7 +669,7 @@ public:
 			if (nextCyIndex == -1) {
 				//debug(generSolNum);
 				//debug(choseCyOrder.size());
-				generSolNum = choseCyOrder.size()-1;
+				numABCyUsed = eset.size()-1;
 				break;
 			}
 
@@ -683,71 +679,22 @@ public:
 				for (int cus : cusIncy) {
 					alreadyPlaceCusSet.insert(cus);
 				}
-				choseCyOrder.push_back(nextCyIndex);
+				eset.push_back(nextCyIndex);
 				resCycles.removeVal(nextCyIndex);
 			}
 		} 
 
-		Vec<hust::Solver> pool;
-		pool.reserve(generSolNum);
-		
-		Vec<SolScore> solScores(generSolNum);
+		applyCycles(eset, pc);
+		removeSubring(pc);
+		pc.reCalRtsCostAndPen();
 
-		for (int i = 0; i < generSolNum; ++i) {
-			pc = pa;
-			Vec<int> eset = Vec<int>(choseCyOrder.begin(), choseCyOrder.begin() + i + 2);
-			applyCycles(eset , pc);
-			solScores[i].subcyNum = removeSubring(pc);
-			pc.reCalRtsCostAndPen();
-			pool.push_back(pc);
-			solScores[i].pen = pc.penalty;
-			solScores[i].cost = pc.RoutesCost;
-		}
-
-		Vec<int> repairOrder = getRepartOrder(solScores);
-		/*Vec<int> repairOrder = myRandX->getMN(generSolNum, generSolNum);
-		unsigned shuseed = (globalEnv->seed % hust::Mod) + ((hust::myRand->pick(10000007))) % hust::Mod;
-		std::shuffle(repairOrder.begin(), repairOrder.end(), std::default_random_engine(shuseed));*/
-
-		int retIndex = -1;
-		int callRepairNum = std::min<int>(2, repairOrder.size());
-		for (int i = 0;i < callRepairNum; ++i) {
-
-			int index = repairOrder[i];
-			auto& soltemp = pool[index];
-			auto repRet = soltemp.repair();
-			if (repRet) {
-				++repairSolNum;
-				if (repairSolNum == 1) {
-					retIndex = index;
-					break;
-				}
-				else {
-					if (soltemp.RoutesCost < pool[retIndex].RoutesCost) {
-						retIndex = index;
-					}
-				}
-			}
-			/*Log(Log::Info) 
-				<< " index: "<< index  
-				<< " subcy: "<< solScores[index].subcyNum
-				<< " pc+cost: "<< solScores[index].pen + solScores[index].cost 
-				<< " isrepair: " << isRepair << std::endl;*/
-			
-		}
-		//println("repairSolNum:",repairSolNum);
-
-		if (retIndex >= 0) {
-			pc = pool[retIndex];
+		if (pc.repair()) {
+			++repairSolNum;
 			return true;
 		}
 		else {
-			//
-			pc = pa;
 			return false;
 		}
-		std::cout << "choseCyNum: " << generSolNum << " choseI: " << retIndex << std::endl;
-
 		return false;
 	}
 

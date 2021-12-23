@@ -416,7 +416,7 @@ class Solver
 public:
 
 	Input& input;
-	//Output output;
+
 	Environment env;
 
 	Vec<Customer> customers;
@@ -6001,10 +6001,12 @@ public:
 			for (int v : ptwNodes) {
 				
 				int v_ = customers[v].pre;
-
-				_2optEffectively(v);
-				exchangevwEffectively(v);
-				outrelocateEffectively(v);
+				int vj = customers[v].next;
+				if (customers[v_].TW_X + customers[vj].TWX_ < r.rPtw) {
+					_2optEffectively(v);
+					exchangevwEffectively(v);
+					outrelocateEffectively(v);
+				}
 
 				int w = v;
 				int maxL = std::max<int>(5, r.rCustCnt / 5);

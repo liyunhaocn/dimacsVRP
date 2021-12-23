@@ -1145,6 +1145,8 @@ struct Input {
 
 	Vec<Vec<int>> sectorClose;
 
+	Vec<int> P;
+
 	Input(Environment& env) {
 		initInput(env);
 	}
