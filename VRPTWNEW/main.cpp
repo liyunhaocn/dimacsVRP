@@ -88,7 +88,7 @@ struct Goal {
 	Goal() {
 		eaxYearTable = Vec<Vec<LL>>
 		(cfg->popSize, Vec<LL>(cfg->popSize));
-		pBest = new Solver(*globalInput, *globalEnv);
+		pBest = new Solver(*globalInput);
 		pBest->RoutesCost = DisInf;
 	}
 
@@ -215,9 +215,9 @@ struct Goal {
 		for (int i = 0; i < cfg->popSize; ++i) {
 			Environment envt = *globalEnv;
 			envt.seed = (globalEnv->seed % Mod) + ((i + 1) * (myRand->pick(10000007))) % Mod;
-			Solver st(*globalInput, envt);
+			Solver st(*globalInput);
 			st.minimizeRN();
-			//saveSlnFile(input, pBest.output, cfg, env);
+			//saveSlnFile(input, pBest.output, cfg, globalEnv);
 			st.mRLLocalSearch({});
 
 			if (st.RoutesCost < pBest->RoutesCost) {
@@ -262,7 +262,7 @@ struct Goal {
 			}
 
 			int isUp = doTwoKindEAX(pa, pb, strategy);
-			debug(contiNotDown);
+			//debug(contiNotDown);
 			if (isUp == -1) {
 				Solver& bad = pa.RoutesCost > pb.RoutesCost ? pa : pb;
 				Solver badclone = pa.RoutesCost > pb.RoutesCost ? pa : pb;
@@ -285,7 +285,7 @@ struct Goal {
 			else {
 				++contiNotDown;
 			}
-			if (contiNotDown >= 20) {
+			if (contiNotDown >= 30) {
 				strategy = 1 - strategy;
 				contiNotDown = 1;
 			}
@@ -339,7 +339,7 @@ struct Goal {
 		t1.setLenUseSecond(cfg->runTimer);
 		t1.reStart();
 
-		Solver st(*globalInput, *globalEnv);
+		Solver st(*globalInput);
 		st.minimizeRN();
 		//st.saveOutAsSintefFile("minR");
 		st.mRLLocalSearch({});
@@ -358,7 +358,7 @@ struct Goal {
 		int kind = 1;
 		int rnum = 1;
 
-		std::fill(st.P.begin(), st.P.end(), 1);
+		std::fill(globalInput->P.begin(), globalInput->P.end(), 1);
 
 		*pBest = st;
 
@@ -421,7 +421,7 @@ int main(int argc, char* argv[])
 	//hust::println(sizeof(hust::Timer));
 	//hust::println(sizeof(hust::Solver::alpha));
 	//hust::println(sizeof(hust::Solver::input));
-	//hust::println(sizeof(hust::Solver::env));
+	//hust::println(sizeof(hust::Solver::globalEnv));
 	//hust::println(sizeof(hust::Input));
 
 	/*for (;;) {
@@ -434,8 +434,8 @@ int main(int argc, char* argv[])
 	//hust::solverByEAX(argc, argv);return 0;
 	hust::allocGlobalMem(argc, argv);
 	hust::Goal goal;
-	goal.justLocalSearch(); 
-	//goal.solverByEAX(); 
+	//goal.justLocalSearch(); 
+	goal.solverByEAX(); 
 	hust::deallocGlobalMem();
 
 	return 0;

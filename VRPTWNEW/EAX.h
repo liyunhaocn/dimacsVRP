@@ -86,10 +86,8 @@ public:
 	int eaxRCnt = -1;
 	int subCyNum = 0;
 	int subCyCusNum = 0;
-	//enum EaxStateEnum:int {
-	//	noabcycle = 0,
-	//	cantRepair,
-	//};
+	
+	Vec< Vec<int> > unionArr;
 
 	EAX(Solver& pa,Solver& pb):paPriE(2 * (pa.input.custCnt + pa.rts.cnt)),pbPriE(2 * (pb.input.custCnt + pb.rts.cnt)){
 		
@@ -563,7 +561,7 @@ public:
 		return false;
 	}
 
-	int getIndexOfabCythatInCenter() {
+	void getUnionArr() {
 
 		int n = abCycleSet.size();
 		Union u(n);
@@ -580,7 +578,18 @@ public:
 				}
 			}
 		}
-		return u.getMaxElePart();
+
+		UnorderedMap<int, Vec<int>>mp;
+
+		for (int i = 0; i < n; ++i) {
+			int a = u.find(i);
+			mp[a].push_back(i);
+		}
+
+		unionArr.clear();
+		for (auto it : mp) {
+			unionArr.push_back(it.second);
+		}
 	}
 
  	bool doNaEAX(Solver& pa, Solver& pb,Solver & pc) {
@@ -618,22 +627,43 @@ public:
 		repairSolNum = 0;
 
 		Vec<int> ret;
-		if (abCycleSet.size() <=2 ) {
+		if (abCycleSet.size() <= 3) {
 			return false;
 		}
 
 		generSolNum = 1;
 
 		int abcyNum = abCycleSet.size();
-		//TODO[lyh][001]:最多放置多少个abcycle[2,(abcyNum+1)/2],pick 是开区间
-		int numABCyUsed = myRand->pick(2, (abcyNum + 1) / 2 + 1);
+
 
 		ConfSet resCycles(abcyNum);
 		for (int i = 0; i < abcyNum; ++i) {
 			resCycles.ins(i);
 		}
 
-		int firstCyIndex = getIndexOfabCythatInCenter();
+		getUnionArr();
+
+		std::sort(unionArr.begin(), unionArr.end(), [&](Vec<int>& a, Vec<int>& b) {return a.size() > b.size(); });
+		//for (int i = 0; i < unionArr.size(); ++i) {
+		//	std::cout << unionArr[i].size() << " ";
+		//}
+		//std::cout << std::endl;
+
+		//TODO[lyh][001]:最多放置多少个abcycle[2,(abcyNum)/2],pick 是开区间
+		int numABCyUsed = abcyNum;
+		int firstCyIndex = -1;
+		for (int i = unionArr.size() - 1; i >= 0; --i) {
+			if (unionArr[i].size() >= 2) {
+				firstCyIndex = unionArr[i][0];
+				numABCyUsed = std::min<int>(numABCyUsed, unionArr[i].size());
+				break;
+			}
+		}
+		numABCyUsed = myRand->pick(2,numABCyUsed+1);
+		if (firstCyIndex == -1) {
+			return false;
+		}
+
 		Vec<int> eset = { firstCyIndex };
 		resCycles.removeVal(firstCyIndex);
 

@@ -417,8 +417,6 @@ public:
 
 	Input& input;
 
-	Environment env;
-
 	Vec<Customer> customers;
 
 	int ourTarget = 0;
@@ -436,8 +434,6 @@ public:
 	RTS rts;
 
 	ConfSet PtwConfRts, PcConfRts;
-
-	Vec<LL> P;
 
 	LL EPIter = 1;
 	int minEPcus = IntInf;
@@ -571,15 +567,14 @@ public:
 		return x <= input.custCnt ? x : 0;
 	} 
 
-	Solver(Input& input, Environment& env) :
-		input(input), env(env), 
+	Solver(Input& input) :
+		input(input),
 		lyhTimer(cfg->runTimer),
 		PtwConfRts(input.custCnt), 
 		PcConfRts(input.custCnt), 
 		rts(input.custCnt)
 	{
 
-		P = Vec<LL>(input.custCnt + 1, 1);
 		customers = Vec<Customer>(input.custCnt+1);
 		alpha = 1;
 		beta = 1;
@@ -596,7 +591,6 @@ public:
 
 	Solver(const Solver& s) :
 		input(s.input), 
-		env(s.env),
 		lyhTimer(s.lyhTimer), 
 		PtwConfRts(s.PtwConfRts),
 		PcConfRts(s.PcConfRts) ,
@@ -604,7 +598,6 @@ public:
 	{
 
 		//this->output = s.output;
-		this->P = s.P;
 		this->customers = s.customers;
 		this->penalty = s.penalty;
 		this->Ptw = s.Ptw;
@@ -621,7 +614,6 @@ public:
 
 	Solver& operator = (const Solver& s) {
 
-		//this->P = s.P;
 		this->customers = s.customers;
 		this->rts = s.rts;
 		this->PtwConfRts = s.PtwConfRts;
@@ -1451,7 +1443,7 @@ public:
 
 		//TODO[lyh][0]:init 这里可以切换 根据需要优化 先注释掉了
 		//if (myRand->pick(2) == 0) {
-		//	unsigned shuseed = (env.seed % hust::Mod) + ((hust::myRand->pick(10000007))) % hust::Mod;
+		//	unsigned shuseed = (globalEnv.seed % hust::Mod) + ((hust::myRand->pick(10000007))) % hust::Mod;
 		//	std::shuffle(que1.begin(), que1.end(), std::default_random_engine(shuseed));
 		//}
 		//else {
@@ -1466,7 +1458,7 @@ public:
 		};		
 		sort(que1.begin(), que1.end(), cmp1);
 
-		//unsigned shuseed = (env.seed % hust::Mod) + ((hust::myRand->pick(10000007))) % hust::Mod;
+		//unsigned shuseed = (globalEnv.seed % hust::Mod) + ((hust::myRand->pick(10000007))) % hust::Mod;
 		//std::shuffle(que1.begin(), que1.end(), std::default_random_engine(shuseed));
 
 		int rid = 0;
@@ -1519,7 +1511,7 @@ public:
 		for (int i = 1; i <= input.custCnt; ++i) {
 			que1.push_back(i);
 		}
-		unsigned shuseed = (env.seed % hust::Mod) + ((hust::myRand->pick(10000007))) % hust::Mod;
+		unsigned shuseed = (globalEnv->seed % hust::Mod) + ((hust::myRand->pick(10000007))) % hust::Mod;
 		std::shuffle(que1.begin(), que1.end(), std::default_random_engine(shuseed));
 
 		/*auto cmp = [&](int x, int y) {
@@ -1978,24 +1970,8 @@ public:
 					return;
 				}
 
-				////////////////////////
-				newv_vjPtw = newvwPtw = 0;
-
-				int front = customers[rv.head].next;
-				int back = customers[rv.tail].pre;
-				while (front != -1) {
-					if (front == v || front == w) {
-						break;
-					}
-					front = customers[front].next;
-				}
-
-				while (back != -1) {
-					if (back == v || back == w) {
-						break;
-					}
-					back = customers[back].pre;
-				}
+				int front = getFrontofTwoCus(v,w);
+				int back = (front == v ? w : v);
 
 				DisType lastav = 0;
 				int lastv = 0;
@@ -2095,6 +2071,7 @@ public:
 					newvwPtw += std::max<DisType>(0, avjp - customers[vj].zv);
 					newvwPtw += customers[vj].TWX_;
 				}
+				#if CHECKING
 				else {
 
 					//rNextDisp(rv);
@@ -2102,14 +2079,14 @@ public:
 					debug(back);
 					debug(v);
 					debug(w);
-					debug(env.seed);
+					debug(globalEnv->seed);
 					debug(rv.head);
 					debug(rv.tail);
 					debug("error 333");
 				}
+				#endif // CHECKING
 
 				newv_vjPtw = newvwPtw;
-				///////////////////////////
 
 				bestM.PtwOnly = newvwPtw - rw.rPtw;
 				bestM.deltPtw = (newvwPtw - rw.rPtw) * rw.rWeight * alpha;
@@ -2225,21 +2202,8 @@ public:
 				////////////////////////
 				newv_vjPtw = newvwPtw = 0;
 
-				int front = rv.head;
-				int back = rv.tail;
-				while (front != -1) {
-					if (front == v || front == w) {
-						break;
-					}
-					front = customers[front].next;
-				}
-
-				while (back != -1) {
-					if (back == v || back == w) {
-						break;
-					}
-					back = customers[back].pre;
-				}
+				int front = getFrontofTwoCus(v, w);
+				int back = (front == v ? w : v);
 
 				DisType lastav = 0;
 				int lastv = 0;
@@ -6212,7 +6176,7 @@ public:
 
 				Route& r = rts[bestP.rIndex];
 
-				P[top] += cfg->Pwei0;
+				input.P[top] += cfg->Pwei0;
 				//EP(*yearTable)[top] = EPIter + cfg->EPTabuStep + myRand->pick(cfg->EPTabuRand);
 				EPremoveByVal(top);
 
@@ -6975,7 +6939,7 @@ public:
 		//};
 
 
-		//unsigned shuseed = (env.seed % hust::Mod) + ((hust::myRand->pick(10000007))) % hust::Mod;
+		//unsigned shuseed = (globalEnv.seed % hust::Mod) + ((hust::myRand->pick(10000007))) % hust::Mod;
 		//std::shuffle(EPArr.begin(), EPArr.end(), std::default_random_engine(shuseed));
 		auto cmp1 = [&](int a, int b) {
 
@@ -7121,7 +7085,7 @@ public:
 		
 		Vec<int> rOrder(rts.cnt,0);
 		std::iota(rOrder.begin(), rOrder.end(), 0);
-		unsigned shuseed = (env.seed % hust::Mod) + ((hust::myRand->pick(10000007))) % hust::Mod;
+		unsigned shuseed = (globalEnv->seed % hust::Mod) + ((hust::myRand->pick(10000007))) % hust::Mod;
 		std::shuffle(rOrder.begin(), rOrder.end(), std::default_random_engine(shuseed));
 
 		int rti = 0;
@@ -7145,7 +7109,7 @@ public:
 
 		auto ve = rPutCusInve(rts[rti]);
 
-		//unsigned shuseed = (env.seed % hust::Mod) + ((hust::myRand->pick(10000007))) % hust::Mod;
+		//unsigned shuseed = (globalEnv.seed % hust::Mod) + ((hust::myRand->pick(10000007))) % hust::Mod;
 		//std::shuffle(ve.begin(), ve.end(), std::default_random_engine(shuseed));
 
 		int vstart = -1;
@@ -7345,12 +7309,12 @@ public:
 			Route& r = rts[bestP.rIndex];
 			EPremoveByVal(top);
 
-			P[top] += cfg->Pwei0;
-			maxOfPval = std::max<int>(P[top], maxOfPval);
+			input.P[top] += cfg->Pwei0;
+			maxOfPval = std::max<int>(input.P[top], maxOfPval);
 
 			if (maxOfPval >= 1000) {
 				maxOfPval = 0;
-				for (auto& i : P) {
+				for (auto& i : input.P) {
 					i = i * 0.4 + 1;
 					maxOfPval = std::max<DisType>(maxOfPval,i);
 				}
@@ -7392,8 +7356,8 @@ public:
 							int cnext = customers[c].next > input.custCnt ? 0 : customers[c].next;
 							(*yearTable)[cpre][c] = squIter + cfg->yearTabuLen + myRand->pick(cfg->yearTabuRand);
 							(*yearTable)[c][cnext] = squIter + cfg->yearTabuLen + myRand->pick(cfg->yearTabuRand);*/
-							P[c] += cfg->Pwei1;
-							maxOfPval = std::max<DisType>(P[c], maxOfPval);
+							input.P[c] += cfg->Pwei1;
+							maxOfPval = std::max<DisType>(input.P[c], maxOfPval);
 								
 							//P[c] += std::max<DisType>(log(P[c]), cfg->Pwei1);
 							//debug(std::max<DisType>(log(P[c]), cfg->Pwei1))
@@ -7674,19 +7638,19 @@ public:
 
 		auto cmpMinP = [&](const int& a, const int& b) {
 
-			if (P[a] == P[b]) {
+			if (input.P[a] == input.P[b]) {
 				return input.datas[a].DEMAND > input.datas[b].DEMAND;
 			}
 			else {
-				return P[a] > P[b];
+				return input.P[a] > input.P[b];
 			}
 			return false;
 		};
 
-		auto cmpMinD = [&](const int& a, const int& b) {
+		auto cmpMinD = [&](const int& a, const int& b) -> bool {
 
 			if (input.datas[a].DEMAND == input.datas[b].DEMAND) {
-				return P[a] > P[b];
+				return input.P[a] > input.P[b];
 			}
 			else {
 				return input.datas[a].DEMAND > input.datas[b].DEMAND; 
@@ -7711,7 +7675,7 @@ public:
 			rQ -= input.datas[ctop].DEMAND;
 			rPc = std::max<DisType>(0, rQ - input.Q);
 			noTabuN.ejeVe.push_back(ctop);
-			noTabuN.Psum += P[ctop];
+			noTabuN.Psum += input.P[ctop];
 		}
 
 		return noTabuN;
@@ -7789,7 +7753,7 @@ public:
 
 			rQ -= input.datas[n].DEMAND;
 			etemp.ejeVe.push_back(n);
-			etemp.Psum += P[n];
+			etemp.Psum += input.P[n];
 
 			int next = customers[n].next;
 			customers[next].pre = customers[n].pre;
@@ -7810,7 +7774,7 @@ public:
 
 			rQ += input.datas[n].DEMAND;
 			etemp.ejeVe.pop_back();
-			etemp.Psum -= P[n];
+			etemp.Psum -= input.P[n];
 
 			int next = customers[n].next;
 			customers[next].pre = n;
@@ -7842,7 +7806,7 @@ public:
 
 				rQ -= input.datas[pt].DEMAND;
 				etemp.ejeVe.push_back(pt);
-				etemp.Psum += P[pt];
+				etemp.Psum += input.P[pt];
 
 				if (ptw == 0 && rQ - input.Q <= 0) {
 					updateEje();
@@ -7850,7 +7814,7 @@ public:
 
 				rQ += input.datas[pt].DEMAND;
 				etemp.ejeVe.pop_back();
-				etemp.Psum -= P[pt];
+				etemp.Psum -= input.P[pt];
 
 				pre = pt;
 				pt = next;
@@ -7915,7 +7879,7 @@ public:
 
 				// 考虑相同所有Psum 的方案 >
 				// 不考虑相同所有Psum 的方案 >=
-				while (etemp.Psum + P[delv] > noTabuN.Psum && ve[k] < N) {
+				while (etemp.Psum + input.P[delv] > noTabuN.Psum && ve[k] < N) {
 					++ve[k];
 					delv = ptwArr[ve[k]];
 				}
@@ -8014,15 +7978,15 @@ public:
 		ret.Psum = 0;
 		Vec<int> R = rPutCusInve(r);
 
-		auto cmp = [&](const int& a,const int& b) {
+		auto cmp = [&](const int& a,const int& b) ->bool {
 
-			if (P[a] == P[b]) {
+			if (input.P[a] == input.P[b]) {
 				/*return input.datas[a].DUEDATE - input.datas[a].READYTIME <
 					input.datas[b].DUEDATE - input.datas[b].READYTIME;*/
 					return input.datas[a].DEMAND > input.datas[b].DEMAND;
 			}
 			else {
-				return P[a] > P[b];
+				return input.P[a] > input.P[b];
 			}
 			return false;
 		};
@@ -8059,7 +8023,7 @@ public:
 				rUpdateZvfrom(r, nex);
 				curPtw = ptw;
 				ret.ejeVe.push_back(ctop);
-				ret.Psum += P[ctop];
+				ret.Psum += input.P[ctop];
 
 				for (auto c : noGoodToPtw) {
 					qu.push(c);
@@ -8082,7 +8046,7 @@ public:
 			qu.pop();
 			rRemoveAtPos(r, ctop);
 			ret.ejeVe.push_back(ctop);
-			ret.Psum += P[ctop];
+			ret.Psum += input.P[ctop];
 		}
 
 		//debug(r.rCustCnt)
@@ -8149,7 +8113,7 @@ public:
 			Solver sclone = *this;
 			removeOneRouteRandomly();
 
-			fill(P.begin(), P.end(), 1);
+			std::fill(input.P.begin(), input.P.end(), 1);
 			bool isDelete = ejectLocalSearch();
 			if (isDelete) {
 				//saveOutAsSintefFile();
@@ -8333,7 +8297,7 @@ public:
 			
 		if (newCus.size() == 0) {
 			newCus = myRandX->getMN(input.custCnt+1, input.custCnt+1);
-			unsigned shuseed = (env.seed % hust::Mod) + ((hust::myRand->pick(10000007))) % hust::Mod;
+			unsigned shuseed = (globalEnv->seed % hust::Mod) + ((hust::myRand->pick(10000007))) % hust::Mod;
 			std::shuffle(newCus.begin(), newCus.end(), std::default_random_engine(shuseed));
 		}
 			
@@ -8341,7 +8305,7 @@ public:
 
 			MRLbestM.reSet();
 			//auto wposOrder = myRandX->getMN(range, range);
-			//unsigned shuseed = (env.seed % hust::Mod) + ((hust::myRand->pick(10000007))) % hust::Mod;
+			//unsigned shuseed = (globalEnv.seed % hust::Mod) + ((hust::myRand->pick(10000007))) % hust::Mod;
 			//std::shuffle(wposOrder.begin(), wposOrder.end(), std::default_random_engine(shuseed));
 
 			for (int v : newCus) {
@@ -8573,7 +8537,7 @@ public:
 		reCalRtsCostSumCost();
 
 		std::ofstream rgbData;
-		std::string wrPath = env.outputPath + opt 
+		std::string wrPath = globalEnv->outputPath + opt 
 				+ input.example + "L" + ms.int_str(RoutesCost) + ".txt";
 
 		rgbData.open(wrPath, std::ios::app | std::ios::out);

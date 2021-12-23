@@ -757,15 +757,6 @@ struct Union {
             rank[y]++;
     }
 
-    int getMaxElePart() {
-
-        int n = fa.size();
-        Vec<int> numCnt(n, 0);
-        for (int i = 0; i < n; ++i) {
-            ++numCnt[fa[i]];
-        }
-        return std::max_element(numCnt.begin(), numCnt.end()) - numCnt.begin();
-    }
 };
 
 }

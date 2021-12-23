@@ -1155,6 +1155,7 @@ struct Input {
 
 		readDimacsInstance(env.inputPath);
 
+		P = Vec<int>(custCnt + 1, 1);
 		for (int i = custCnt + 1; i < datas.size(); ++i) {
 			datas[i] = datas[0];
 			datas[i].CUSTNO = i;
