@@ -3,11 +3,6 @@
 #include <iostream>
 #include <functional>
 #include <numeric>
-//#include "./VRPTW/Environment.h"
-//#include "./VRPTW/Utility.h"
-//#include "./VRPTW/Solver.h"
-//#include "./VRPTW/Problem.h"
-//#include "./VRPTW/Configuration.h"
 
 #include "./Environment.h"
 #include "./Utility.h"
@@ -35,7 +30,7 @@ bool allocGlobalMem(int argc, char* argv[]) {
 	//globalEnv = new Environment("../Instances/Homberger/RC1_8_1.txt");
 	//globalEnv  = new Environment("../Instances/Homberger/C1_4_2.txt");
 	//globalEnv  = new Environment("../Instances/Homberger/C1_6_6.txt");
-	//globalEnv  = new Environment("../Instances/Homberger/C1_8_2.txt");
+	//globalEnv  = new Environment("../Instances/Homberger/RC1_8_1.txt");
 	// 
 	//75296223
 	globalEnv = new Environment("../Instances/Homberger/RC2_6_4.txt");
@@ -146,24 +141,24 @@ struct Goal {
 		for (int ch = 1; ch <= Nch; ++ch) {
 
 			Solver pc = pa;
+			int eaxState = 0;
 			if (kind == 0) {
-				eax.doNaEAX(pa, pb, pc);
+				eaxState = eax.doNaEAX(pa, pb, pc);
 			}
 			else {
-				eax.doPrEAX(pa, pb, pc);
+				eaxState = eax.doPrEAX(pa, pb, pc);
 			}
 
+			if (eaxState==-1) {
+				println("eaxState==-1,kind",kind);
+				return -1;
+			}
 			if (eax.abCycleSet.size() <= 1) {
-				println("eax.abCycleSet.size() <= 1");
+				println("eax.abCycleSet.size() <= 1,kind", kind);
 				return -1;
 			}
 
 			if (eax.repairSolNum == 0) {
-				if (eax.abCycleSet.size() == 0) {
-					println("eax.abCycleSet.size() == 0");
-					println("kind:", kind);
-					return -1;
-				}
 				continue;
 			}
 
@@ -178,19 +173,11 @@ struct Goal {
 				println("cost:", pBest->RoutesCost, "eax local update,kind:", kind);
 			}
 
-			for (int i = 0; i < 20; ++i) {
-				int ruinCusNum =  i/5 + 1;
-				//int ruinCusNum = i + 1;
-				bool ruin = pc.ruinLocalSearch(1, ruinCusNum);
-				if (ruin) {
-					i = 0;
-				}
-				bool up = updateBestSol(pc);
-				if (up) {
-					retState = 1;
-					println("cost:", pBest->RoutesCost, "eax ruin local update,kind:", kind);
-					i = 0;
-				}
+			pc.ruinLocalSearch(15);
+			up = updateBestSol(pc);
+			if (up) {
+				retState = 1;
+				println("cost:", pBest->RoutesCost, "eax ruin local update,kind:", kind);
 			}
 
 			if (pc.RoutesCost < paBest.RoutesCost) {
@@ -219,6 +206,7 @@ struct Goal {
 			st.minimizeRN();
 			//saveSlnFile(input, pBest.output, cfg, globalEnv);
 			st.mRLLocalSearch({});
+			st.ruinLocalSearch(1);
 
 			if (st.RoutesCost < pBest->RoutesCost) {
 				*pBest = st;
@@ -245,30 +233,27 @@ struct Goal {
 			Solver& pa = pool[paIndex];
 			Solver& pb = pool[pbIndex];
 
-			//println("paIndex:", paIndex);
-			//println("pbIndex:", pbIndex);
-
-			for (int i = 0; i < 20; ++i) {
-				int ruinCusNum = i / 5 + 1;
-				bool ruina = pa.ruinLocalSearch(1, ruinCusNum);
-				bool ruinb = pb.ruinLocalSearch(1, ruinCusNum);
-				if (ruina || ruinb) {
-					i = 0;
-				}
-				if (updateBestSol(pa)) {
-					println("cost:", pBest->RoutesCost, "ruin a or b update");
-					i = 0;
-				}
+			println("paIndex:", paIndex);
+			println("pbIndex:", pbIndex);
+			bool ruina = pa.ruinLocalSearch();
+			bool ruinb = pb.ruinLocalSearch();
+			if (updateBestSol(pa)) {
+				println("cost:", pBest->RoutesCost, "ruin a update");
+			}
+			if (updateBestSol(pb)) {
+				println("cost:", pBest->RoutesCost, "ruin b update");
 			}
 
 			int isUp = doTwoKindEAX(pa, pb, strategy);
+
 			//debug(contiNotDown);
 			if (isUp == -1) {
 				Solver& bad = pa.RoutesCost > pb.RoutesCost ? pa : pb;
 				Solver badclone = pa.RoutesCost > pb.RoutesCost ? pa : pb;
-
 				DisType olddis = bad.RoutesCost;
-				bad.patternAdjustment(globalInput->custCnt * 0.1);
+				bad.perturbBaseRuin(1,30);
+				//bad.ruinLocalSearch(30);
+
 				EAX eaxt(bad, badclone);
 				auto diffcuses = eaxt.getDiffCusofPb();
 				bad.mRLLocalSearch(diffcuses);
@@ -278,7 +263,6 @@ struct Goal {
 				}
 			}
 
-			
 			if (isUp == 1) {
 				contiNotDown = 1;
 			}
@@ -320,9 +304,6 @@ struct Goal {
 				contiNotDown = 1;
 			}
 			#endif // 0
-
-			
-
 		}
 
 		Output output = pBest->saveToOutPut();
@@ -353,10 +334,7 @@ struct Goal {
 		int avg = globalInput->custCnt / st.rts.cnt;
 		int contiNoDown = 1;
 
-		Vec<Vec<int>> table(3, Vec<int>(50, 0));
-
-		int kind = 1;
-		int rnum = 1;
+		//Vec<Vec<int>> table(3, Vec<int>(50, 0));
 
 		std::fill(globalInput->P.begin(), globalInput->P.end(), 1);
 
@@ -366,41 +344,12 @@ struct Goal {
 
 			st = *pBest;
 
-			#if 1
-			if (contiNoDown >= 300) {
-
-				rnum = (rnum + 3) % 40 + 1;
-				//std::min<int>(rnum + 1, 20);
-				contiNoDown = 1;
-			}
-
-			bool isRuin = st.ruinLocalSearch(kind, rnum);
-			bool up1 = updateBestSol(st);
-			if (up1) {
-				//println("cost:", pBest.RoutesCost, " ruinNum:", ruinNum, " parNum:", parNum);
-				println("cost:", pBest->RoutesCost, " rnum:", rnum);
-				contiNoDown = 1;
-				rnum = 1;
-				//++table[kind][rnum];
-				//println("-----------");
-				//for (auto& i : table) {
-				//	printve(i);
-				//}
-				++ruinNum;
-			}
-			else {
-				++contiNoDown;
-				//println("+cost:", pBest.RoutesCost, " rnum:", rnum);
-			}
-			#else
-			Vec<int> cus = st.patternAdjustment(200);
-			st.mRLLocalSearch(cus);
+			bool  ispertutb =  st.ruinLocalSearch(5);
 			bool up2 = updateBestSol(st);
 			if (up2) {
 				++parNum;
-				println("cost:", pBest.RoutesCost, " ruinNum:", ruinNum, " parNum:", parNum);
+				println("cost:", pBest->RoutesCost, " ruinNum:", ruinNum, " parNum:", parNum);
 			}
-			#endif // 0
 		}
 
 		Output output = pBest->saveToOutPut();
@@ -424,14 +373,6 @@ int main(int argc, char* argv[])
 	//hust::println(sizeof(hust::Solver::globalEnv));
 	//hust::println(sizeof(hust::Input));
 
-	/*for (;;) {
-		hust::myRand = new hust::Random(0);
-		hust::myRandX = new hust::RandomX(0);
-		delete hust::myRand;
-		delete hust::myRandX;
-	}
-	return 0;*/
-	//hust::solverByEAX(argc, argv);return 0;
 	hust::allocGlobalMem(argc, argv);
 	hust::Goal goal;
 	//goal.justLocalSearch(); 

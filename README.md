@@ -55,6 +55,7 @@
     - sqrt vs sqrtl 速度 选择了sqrt
     - sqrt函数有三种形式
     - 邻域动作 选择 if else 改为 switch case
+    - getPtwNodes lastnode 有简便方法
 
 - 玄学：
     - squeeze失败的时候 如果不和初始解一起比较 就算不出来 C1_6_6，神奇

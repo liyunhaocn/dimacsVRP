@@ -10,6 +10,10 @@
 #include <unordered_map>
 #include <unordered_set>
 #include <numeric>
+#include <iostream>
+
+//#include "Environment.h"
+//#include "Solver.h"
 
 #define LINUX 0
 #define ATTRIBUTETABU 1
@@ -35,55 +39,52 @@
 
 namespace hust {
 
-	int IntInf = 0x3f3f3f3f;
-	long long int LLInf = 0x3f3f3f3f3f3f3f3f/4;
-	double LFInf = DBL_MAX;
+template<typename T, typename U>
+using UnorderedMap = std::unordered_map<T, U>;
 
-	double LFINF = 1.79769e+308;
-	double PI = 3.14159265359;
-	double PI_2 = PI / 2;
-	double PI_4 = PI / 4;
-	double PI_8 = PI / 8;
-	double PI_16 = PI / 16;
-	double PI_32 = PI / 32;
+template<typename V>
+using UnorderedSet = std::unordered_set<V>;
 
-	//TODO[lyh][000]:dimacs «10
-	int disMul = 10000;
-	unsigned Mod = 1000000007;
+template<typename V>
+using Vec = std::vector<V>;
 
-	using LL = long long int;
+template<typename V>
+using List = std::list<V>;
 
-	template<typename T, typename U>
-	using UnorderedMap = std::unordered_map<T, U>;
+using LL = long long int;
+using DisType = LL;
 
-	template<typename V>
-	using UnorderedSet = std::unordered_set<V>;
+extern int IntInf;
+extern long long int LLInf;
+extern double LFInf;
+extern DisType DisInf;
 
-	template<typename V>
-	using Vec = std::vector<V>;
-	
-	template<typename V>
-	using List = std::list<V>;
-	
-	using DisType = LL;
-	DisType DisInf = LLInf;
+extern double LFINF;
+extern double PI;
+extern double PI_2;
+extern double PI_4;
+extern double PI_8;
+extern double PI_16;
+extern double PI_32;
 
-	struct Random;
-	struct RandomX;
-	struct Configuration;
-	struct Environment;
-	struct Input;
+extern int disMul;
+extern unsigned Mod;
+extern LL squIter;
 
-	Random* myRand = nullptr;
-	RandomX* myRandX = nullptr;
-	Vec<Vec<LL>> * yearTable = nullptr;
-	Configuration* cfg = nullptr;
-	Environment * globalEnv = nullptr;
-	Input* globalInput = nullptr;
+struct Random;
+struct RandomX;
+struct Configuration;
+struct Environment;
+struct Input;
 
-	LL squIter = 1;
+extern Random* myRand;
+extern RandomX* myRandX;
+extern Vec<Vec<LL>>* yearTable;
+extern Configuration* cfg;
+extern Environment* globalEnv;
+extern Input* globalInput;
+
 }
-
 #endif // !vrptwNew_FLAG_H
 
 

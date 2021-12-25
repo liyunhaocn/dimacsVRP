@@ -592,12 +592,12 @@ public:
 		}
 	}
 
- 	bool doNaEAX(Solver& pa, Solver& pb,Solver & pc) {
+ 	int doNaEAX(Solver& pa, Solver& pb,Solver & pc) {
 		
 		/*generateCycles();*/
 		repairSolNum = 0;
 		if (abCycleSet.size() == 0) {
-			return false;
+			return -1;
 		}
 
 		//TODO[lyh][001]:最多放置多少个abcycle[2,(abcyNum+1)/2]
@@ -613,22 +613,22 @@ public:
 
 		if (pc.repair()) {
 			++repairSolNum;
-			return true;
+			return 1;
 		}
 		else {
-			return false;
+			return 0;
 		}
-		return false;
+		return 0;
 	}
 
-	bool doPrEAX(Solver& pa, Solver& pb, Solver& pc) {
+	int doPrEAX(Solver& pa, Solver& pb, Solver& pc) {
 
 		//generateCycles();
 		repairSolNum = 0;
 
 		Vec<int> ret;
 		if (abCycleSet.size() <= 3) {
-			return false;
+			return -1;
 		}
 
 		generSolNum = 1;
@@ -654,14 +654,14 @@ public:
 		int firstCyIndex = -1;
 		for (int i = unionArr.size() - 1; i >= 0; --i) {
 			if (unionArr[i].size() >= 2) {
-				firstCyIndex = unionArr[i][0];
+				firstCyIndex = unionArr[i][myRand->pick(unionArr[i].size())];
 				numABCyUsed = std::min<int>(numABCyUsed, unionArr[i].size());
 				break;
 			}
 		}
 		numABCyUsed = myRand->pick(2,numABCyUsed+1);
 		if (firstCyIndex == -1) {
-			return false;
+			return -1;
 		}
 
 		Vec<int> eset = { firstCyIndex };
@@ -697,9 +697,9 @@ public:
 				}
 			}
 			if (nextCyIndex == -1) {
-				//debug(generSolNum);
-				//debug(choseCyOrder.size());
-				numABCyUsed = eset.size()-1;
+				debug(numABCyUsed);
+				debug(eset.size());
+				numABCyUsed = eset.size();
 				break;
 			}
 
@@ -720,12 +720,12 @@ public:
 
 		if (pc.repair()) {
 			++repairSolNum;
-			return true;
+			return 1;
 		}
 		else {
-			return false;
+			return 0;
 		}
-		return false;
+		return 0;
 	}
 
 	Vec<int> getDiffCusofPb() {

@@ -225,7 +225,12 @@
     <ClInclude Include="..\..\..\VRPTWNEW\Utility.h" />
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="..\..\..\VRPTWNEW\Configuration.cpp" />
+    <ClCompile Include="..\..\..\VRPTWNEW\Environment.cpp" />
+    <ClCompile Include="..\..\..\VRPTWNEW\Flag.cpp" />
     <ClCompile Include="..\..\..\VRPTWNEW\main.cpp" />
+    <ClCompile Include="..\..\..\VRPTWNEW\Problem.cpp" />
+    <ClCompile Include="..\..\..\VRPTWNEW\Solver.cpp" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

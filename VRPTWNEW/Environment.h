@@ -2,7 +2,7 @@
 #define vrptwNew_ENVIROMENT_H
 
 #include <iostream>
-#include "./Flag.h"
+//#include "./Flag.h"
 #include "./Utility.h"
 
 namespace hust {
@@ -15,20 +15,13 @@ public:
 	std::string inputPath = "";
 	std::string outputPath = "../Results/";
 
-	Environment(const std::string& inputp) {
-		this->inputPath = inputp;
-	};
+	Environment(const std::string& inputp);
 
-	bool setInputPath(std::string& inPath) {
-		this->inputPath = inPath;
-		return true;
-	}
+	bool setInputPath(std::string& inPath);
 
-	void show() {
-		debug(inputPath);
-		debug(seed);
-	}
-	~Environment() {};
+	void show();
+
+	~Environment();
 
 private:
 

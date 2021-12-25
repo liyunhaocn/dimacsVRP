@@ -23,41 +23,21 @@
 #include <ctime>
 #include <cmath>
 #include <sstream>
+
 #include "./Flag.h"
-
-
-#define UTILITY_NOT_IMPLEMENTED  throw "Not implemented yet!";
-
-// [on] use chrono instead of ctime in Timer.
-#define UTILITY_TIMER_CPP_STYLE  1
-
-// [off] use chrono instead of ctime in DateTime.
-#define UTILITY_DATE_TIME_CPP_STYLE  0
 
 namespace hust {
 
-// if there is "#define x  y", VERBATIM_STRINGIFY(x) will get "x".
-#define VERBATIM_STRINGIFY(x)  #x
-// if there is "#define x  y", RESOLVED_STRINGIFY(x) will get "y".
-#define RESOLVED_STRINGIFY(x)  VERBATIM_STRINGIFY(x)
-
-#define VERBATIM_CONCAT(a, b)  a##b
-#define VERBATIM_CONCAT2(a, b, c)  a##b##c
-#define VERBATIM_CONCAT3(a, b, c, d)  a##b##c##d
-#define RESOLVED_CONCAT(a, b)  VERBATIM_CONCAT(a, b)
-#define RESOLVED_CONCAT2(a, b, c)  VERBATIM_CONCAT2(a, b, c)
-#define RESOLVED_CONCAT3(a, b, c, d)  VERBATIM_CONCAT3(a, b, c, d)
-
-void println() { std::cout << std::endl; }
+static void println() { std::cout << std::endl; }
 template<typename T, typename ... Types>
-void println(const T& firstArg, const Types&... args) {
+static void println(const T& firstArg, const Types&... args) {
 
     //cout << "size of args: " << sizeof...(args) << endl;
     std::cout << firstArg << " ";
     println(args...);
 }
 template<typename T>
-void printve(T arr) {
+static void printve(T arr) {
     std::cout << " ";
     for (auto& i : arr) {
         std::cout << i << ",";
@@ -66,7 +46,7 @@ void printve(T arr) {
 }
 
 template<typename T>
-Vec<int> putEleInVec(T arr) {
+static Vec<int> putEleInVec(T arr) {
     Vec<int> ret;
     ret.reserve(arr.size());
     for (const auto& i : arr) {
@@ -74,7 +54,6 @@ Vec<int> putEleInVec(T arr) {
     }
     return ret;
 }
-
 
 struct MyString {
 public:
@@ -199,23 +178,15 @@ public:
     };
     #endif // UTILITY_TIMER_CPP_STYLE
 
-
     static constexpr double MillisecondsPerSecond = 1000;
     static constexpr double ClocksPerSecond = CLOCKS_PER_SEC;
     static constexpr int ClocksPerMillisecond = static_cast<int>(ClocksPerSecond / MillisecondsPerSecond);
 
-
-    #if UTILITY_TIMER_CPP_STYLE
     Timer(const Millisecond &duration, const TimePoint &st = Clock::now(),std::string name="")
         : duration(duration),startTime(st), endTime(startTime + duration),name(name) {}
 
     Timer(LL duration, const TimePoint& st = Clock::now(), std::string name = "")
         : duration(Millisecond(duration * 1000)),startTime(st), endTime(startTime + Millisecond(duration*1000) ), name(name) {}
-
-    #else
-    Timer(const Millisecond &duration, const TimePoint &st = Clock::now())
-        : startTime(st), endTime(startTime + duration * ClocksPerMillisecond) {}
-    #endif // UTILITY_TIMER_CPP_STYLE
 
     static Millisecond durationInMillisecond(const TimePoint &start, const TimePoint &end) {
         #if UTILITY_TIMER_CPP_STYLE
@@ -290,7 +261,7 @@ public:
 
     bool reStart() {
         startTime = Clock::now();
-        endTime = startTime + duration;
+        endTime = startTime + Millisecond(duration * 1000);
         return true;
     }
 
@@ -423,307 +394,6 @@ protected:
     int level;
     std::ostream &os;
 };
-
-
-template<typename ArbitraryId = int, typename ConsecutiveId = int, const ConsecutiveId DefaultIdNumberHint = 1024>
-class ZeroBasedConsecutiveIdMap {
-public:
-    ZeroBasedConsecutiveIdMap(ConsecutiveId idNumberHint = DefaultIdNumberHint) : count(-1) {
-        idList.reserve(static_cast<size_t>(idNumberHint));
-    }
-
-
-    // track a new arbitrary ID or return the sequence of a tracked one.
-    ConsecutiveId toConsecutiveId(ArbitraryId arbitraryId) {
-        auto iter = idMap.find(arbitraryId);
-        if (iter != idMap.end()) { return iter->second; }
-        idList.push_back(arbitraryId);
-        return (idMap[arbitraryId] = (++count));
-    }
-
-    // return the consecutiveId_th tracked arbitrary ID.
-    ArbitraryId toArbitraryId(ConsecutiveId consecutiveId) const { return idList[consecutiveId]; }
-
-    bool isConsecutiveIdExist(ConsecutiveId consecutiveId) const { return (consecutiveId <= count); }
-    bool isArbitraryIdExist(ArbitraryId arbitraryId) const { return (idMap.find(arbitraryId) != idMap.end()); }
-
-
-    // number of tracked IDs.
-    ConsecutiveId count;
-    // idList[consecutiveId] == arbitraryId.
-    std::vector<ArbitraryId> idList;
-    // idMap[arbitraryId] == consecutiveId.
-    std::map<ArbitraryId, ConsecutiveId> idMap;
-};
-
-
-template<typename Unit>
-struct Interval {
-    Interval() {}
-    Interval(Unit intervalBegin, Unit intervalEnd) : begin(intervalBegin), end(intervalEnd) {}
-
-    bool cover(Unit x) const { return ((begin <= x) && (x < end)); }
-    bool cover(const Interval &i) const { return ((begin <= i.begin) && (i.end <= end)); }
-    bool beginBefore(Unit x) const { return (begin < x); }
-    bool beginBefore(const Interval &i) const { return (begin < i.begin); }
-    bool endBefore(Unit x) const { return (end <= x); }
-    bool endBefore(const Interval &i) const { return (end < i.end); }
-    // return true if this is strictly before i (no overlap).
-    bool before(const Interval &i) const { return (end <= i.begin); }
-
-    bool isValid() const { return (begin < end); }
-    static bool isValid(const Interval &i) { return i.isValid(); }
-
-    static bool isOverlapped(const Interval &l, const Interval &r) {
-        return ((l.begin < r.end) && (r.begin < l.end));
-    }
-
-    // vector measurement of the interval span.
-    Unit displacement() const { return (end - begin); }
-    // scalar measurement of the interval span.
-    Unit length() const { return std::abs(end - begin); }
-
-    // return the intersection of l and r if they are overlapped,
-    // or the reversed gap between them if there is no intersection.
-    static Interval overlap(const Interval &l, const Interval &r) {
-        return Interval( (std::max)(l.begin, r.begin), (std::min)(l.end, r.end));
-    }
-
-    // return the length of the blank space between l and r if they are not interseted,
-    // or the opposite number of the minimal distance to make them mutually exclusive.
-    static Unit gap(const Interval &l, const Interval &r) {
-        if (l.begin < r.begin) {
-            if (l.end < r.end) {
-                return r.begin - l.end;
-            } else { // if (l.end >= r.end)
-                return (std::max)(r.begin - l.end, l.begin - r.end);
-            }
-        } else { // if (l.begin >= r.end)
-            if (l.end < r.end) {
-                return (std::max)(r.begin - l.end, l.begin - r.end);
-            } else { // if (l.end >= r.end)
-                return l.begin - r.end;
-            }
-        }
-    }
-
-    Unit begin;
-    Unit end;
-};
-
-class System {
-public:
-    struct Shell {
-        struct Common {
-            static std::string RedirectStdin() { return " 0< "; }
-            static std::string RedirectStdout() { return " 1> "; }
-            static std::string RedirectStderr() { return " 2> "; }
-            static std::string RedirectStdout_app() { return  " 1>> "; }
-            static std::string RedirectStderr_app() { return  " 2>> "; }
-        };
-        struct Win32 : public Common {
-            static std::string Mkdir() { return " mkdir "; }
-            static std::string NullDev() { return " nul "; }
-        };
-        struct Unix : public Common {
-            static std::string Mkdir() { return  " mkdir -p "; }
-            static std::string NullDev() { return  " /dev/null "; }
-
-        };
-    };
-
-    #if _OS_MS_WINDOWS
-    using Cmd = Shell::Win32;
-    #else
-    using Cmd = Shell::Unix;
-    #endif // _OS_MS_WINDOWS
-
-    static int exec(const std::string &cmd) { return system(cmd.c_str()); }
-
-    static std::string quote(const std::string &s) { return ('\"' + s + '\"'); }
-
-    static void makeSureDirExist(const std::string &dir) {
-        exec(Cmd::Mkdir() + quote(dir) + Cmd::RedirectStderr() + Cmd::NullDev());
-    }
-
-    struct MemorySize {
-        using Unit = long long;
-
-        static constexpr Unit Base = 1024;
-
-        friend std::ostream& operator<<(std::ostream &os, const MemorySize &memSize) {
-            auto units = { "B", "KB", "MB", "GB", "TB", "PB" };
-            double size = static_cast<double>(memSize.size);
-            for (auto u = units.begin(); u != units.end(); ++u, size /= Base) {
-                if (size < Base) {
-                    os << std::setprecision(4) << size << *u;
-                    break;
-                }
-            }
-
-            return os;
-        }
-
-        Unit size;
-    };
-
-    struct MemoryUsage {
-        MemorySize physicalMemory;
-        MemorySize virtualMemory;
-    };
-
-    static MemoryUsage memoryUsage();
-    static MemoryUsage peakMemoryUsage();
-};
-
-class Math {
-public:
-    static constexpr double DefaultTolerance = 0.01;
-
-    static bool weakEqual(double l, double r, double tolerance = DefaultTolerance) {
-        return (std::abs(l - r) < tolerance);
-    }
-    static bool weakLess(double l, double r, double tolerance = DefaultTolerance) { // operator<=().
-        return ((l - r) < tolerance);
-    }
-    static bool strongLess(double l, double r, double tolerance = DefaultTolerance) { // operator<().
-        return ((l - r) < -tolerance);
-    }
-
-    static double floor(double d) { return std::floor(d + DefaultTolerance); }
-    static long lfloor(double d) { return static_cast<long>(d + DefaultTolerance); }
-
-    template<typename T>
-    static bool isOdd(T integer) { return ((integer % 2) == 1); }
-    template<typename T>
-    static bool isEven(T integer) { return ((integer % 2) == 0); }
-
-    template<typename T>
-    static T bound(T num, T lb, T ub) {
-        return (std::min)( (std::max) (num, lb), ub);
-    }
-};
-
-//struct MaxMatch {
-
-//    LL MAX = 1024;
-//    LL n; // X 的大小
-//    vector< vector<LL>> weight; // X 到 Y 的映射（权重）
-//    vector<LL> lx; // 标号
-//    vector<LL> ly; // 标号
-//    vector<bool> sx; // 是否被搜索过
-//    vector<bool> sy; // 是否被搜索过
-//    vector<LL> match; // Y(i) 与 X(match [i]) 匹配
-//
-//    MaxMatch(lyh::Solver& a, lyh::Solver& b) {
-//        this->n = a.rts.cnt;
-//        weight = vector< vector<LL>>(n, vector<LL>(n, 0));
-//        lx = vector<LL>(n, 0);
-//        ly = vector<LL>(n, 0);
-//        sx = vector<bool>(n, 0);
-//        sy = vector<bool>(n, 0);
-//        match = vector<LL>(n, 0);
-//
-//        for (LL i = 1; i <= a.input.custCnt; i++) {
-//            LL aIndex = a.rts.posOf[a.customers[i].routeID];
-//            LL bIndex = b.rts.posOf[b.customers[i].routeID];
-//            weight[aIndex][bIndex]++;
-//            //weight[bIndex][aIndex]++;
-//        }
-//    }
-//    LL getMaxMath() {
-//        LL ret = bestmatch(true);
-//
-//        /*for (int i = 0; i < n; i++) {
-//            printf("Y %ld -> X %ld\n", i, match[i]);
-//        }*/
-//        return ret;
-//    }
-//    // 从 X(u) 寻找增广道路，找到则返回 true
-//    bool path(LL u) {
-//        sx[u] = true;
-//        for (LL v = 0; v < n; v++)
-//            if (!sy[v] && lx[u] + ly[v] == weight[u][v])
-//            {
-//                sy[v] = true;
-//                if (match[v] == -1 || path(match[v]))
-//                {
-//                    match[v] = u;
-//                    return true;
-//                }
-//            }
-//        return false;
-//    }
-//
-//    // 参数 maxsum 为 true ，返回最大权匹配，否则最小权匹配
-//    LL bestmatch(bool maxsum) {
-//        LL i, j;
-//        if (!maxsum)
-//        {
-//            for (i = 0; i < n; i++)
-//                for (j = 0; j < n; j++)
-//                    weight[i][j] = -weight[i][j];
-//        }
-//
-//        // 初始化标号
-//        for (i = 0; i < n; i++)
-//        {
-//            lx[i] = -0x1FFFFFFF;
-//            ly[i] = 0;
-//            for (j = 0; j < n; j++)
-//                if (lx[i] < weight[i][j])
-//                    lx[i] = weight[i][j];
-//        }
-//
-//        //memset(match, -1, sizeof(match));
-//        for (LL i = 0; i < match.size(); i++) {
-//            match[i] = -1;
-//        }
-//
-//        for (LL u = 0; u < n; u++)
-//            while (1)
-//            {
-//                //memset(sx, 0, sizeof(sx));
-//                for (LL i = 0; i < sx.size(); i++) {
-//                    sx[i] = 0;
-//                }
-//                //memset(sy, 0, sizeof(sy));
-//                for (LL i = 0; i < sy.size(); i++) {
-//                    sy[i] = 0;
-//                }
-//                if (path(u))    //一直寻找增广路径，直到子图中没有增广路径，我们通过修改label来增加新的点，增加的点必为y
-//                    break;
-//
-//                // 修改标号
-//                LL dx = 0x7FFFFFFF;
-//                for (i = 0; i < n; i++)
-//                    if (sx[i])
-//                        for (j = 0; j < n; j++)
-//                            if (!sy[j])
-//                                dx = min(lx[i] + ly[j] - weight[i][j], dx); //找到松弛变量最小的点
-//                for (i = 0; i < n; i++)
-//                {
-//                    if (sx[i])
-//                        lx[i] -= dx;
-//                    if (sy[i])
-//                        ly[i] += dx;
-//                }
-//            }
-//
-//        LL sum = 0;
-//        for (i = 0; i < n; i++)
-//            sum += weight[match[i]][i];
-//
-//        if (!maxsum)
-//        {
-//            sum = -sum;
-//            for (i = 0; i < n; i++)
-//                for (j = 0; j < n; j++)
-//                    weight[i][j] = -weight[i][j]; // 如果需要保持 weight [ ] [ ] 原来的值，这里需要将其还原
-//        }
-//        return sum;
-//    }
-//};
 
 struct Union {
 
