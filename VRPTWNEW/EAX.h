@@ -606,6 +606,8 @@ public:
 		int chooseIndex = myRand->pick(abCycleSet.size());
 
 		applyCycles({ chooseIndex }, pc);
+
+		pc.reCalRtsCostAndPen();
 		removeSubring(pc);
 		pc.reCalRtsCostAndPen();
 
@@ -643,7 +645,7 @@ public:
 
 		getUnionArr();
 
-		std::sort(unionArr.begin(), unionArr.end(), [&](Vec<int>& a, Vec<int>& b) {return a.size() > b.size(); });
+		std::sort(unionArr.begin(), unionArr.end(), [&](Vec<int>& a, Vec<int>& b) {return a.size() < b.size(); });
 		//for (int i = 0; i < unionArr.size(); ++i) {
 		//	std::cout << unionArr[i].size() << " ";
 		//}
@@ -652,13 +654,14 @@ public:
 		//TODO[lyh][001]:最多放置多少个abcycle[2,(abcyNum)/2],pick 是开区间
 		int numABCyUsed = abcyNum;
 		int firstCyIndex = -1;
-		for (int i = unionArr.size() - 1; i >= 0; --i) {
+		for (int i = 0; i < unionArr.size(); ++i) {
 			if (unionArr[i].size() >= 2) {
 				firstCyIndex = unionArr[i][myRand->pick(unionArr[i].size())];
 				numABCyUsed = std::min<int>(numABCyUsed, unionArr[i].size());
 				break;
 			}
 		}
+
 		numABCyUsed = myRand->pick(2,numABCyUsed+1);
 		if (firstCyIndex == -1) {
 			return -1;
@@ -715,6 +718,7 @@ public:
 		} 
 
 		applyCycles(eset, pc);
+		pc.reCalRtsCostAndPen();
 		removeSubring(pc);
 		pc.reCalRtsCostAndPen();
 
@@ -728,20 +732,29 @@ public:
 		return 0;
 	}
 
-	Vec<int> getDiffCusofPb() {
+
+	static int getabCyNum(Solver& pa, Solver& pb) {
+		UnorderedSet<int> s;
+		EAX et(pa,pb);
+		et.generateCycles();
+		return et.abCycleSet.size();
+	}
+	
+	static Vec<int> getDiffCusofPb(Solver& pa, Solver& pb) {
 		
 		UnorderedSet<int> s;
-		for (int i = 0; i < pbPriE.cnt; ++i) {
-			int index = pbPriE.ve[i];
-			//s.insert(richEdges[index].e.a);
-			s.insert(richEdges[index].e.b);
+		EAX et(pa,pb);
+		
+		for (int i = 0; i < et.pbPriE.cnt; ++i) {
+			int index = et.pbPriE.ve[i];
+			s.insert(et.richEdges[index].e.a);
+			s.insert(et.richEdges[index].e.b);
 		}
 
-		//for (int i = 0; i < paPriE.cnt; ++i) {
-		//	int index = paPriE.ve[i];
-		//	s.insert(richEdges[index].e.a);
-		//}
-		auto ret = putEleInVec(s);
+		Vec<int> ret;
+		for (int c: s) {
+			ret.push_back(c);
+		}
 		return ret;
 	}
 

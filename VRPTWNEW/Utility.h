@@ -26,6 +26,14 @@
 
 #include "./Flag.h"
 
+#define UTILITY_NOT_IMPLEMENTED  throw "Not implemented yet!";
+
+// [on] use chrono instead of ctime in Timer.
+#define UTILITY_TIMER_CPP_STYLE  1
+
+// [off] use chrono instead of ctime in DateTime.
+#define UTILITY_DATE_TIME_CPP_STYLE  0
+
 namespace hust {
 
 static void println() { std::cout << std::endl; }
@@ -178,17 +186,25 @@ public:
     };
     #endif // UTILITY_TIMER_CPP_STYLE
 
+
     static constexpr double MillisecondsPerSecond = 1000;
     static constexpr double ClocksPerSecond = CLOCKS_PER_SEC;
     static constexpr int ClocksPerMillisecond = static_cast<int>(ClocksPerSecond / MillisecondsPerSecond);
 
-    Timer(const Millisecond &duration, const TimePoint &st = Clock::now(),std::string name="")
-        : duration(duration),startTime(st), endTime(startTime + duration),name(name) {}
+
+    #if UTILITY_TIMER_CPP_STYLE
+    Timer(const Millisecond& duration, const TimePoint& st = Clock::now(), std::string name = "")
+        : duration(duration), startTime(st), endTime(startTime + duration), name(name) {}
 
     Timer(LL duration, const TimePoint& st = Clock::now(), std::string name = "")
-        : duration(Millisecond(duration * 1000)),startTime(st), endTime(startTime + Millisecond(duration*1000) ), name(name) {}
+        : duration(Millisecond(duration * 1000)), startTime(st), endTime(startTime + Millisecond(duration * 1000)), name(name) {}
 
-    static Millisecond durationInMillisecond(const TimePoint &start, const TimePoint &end) {
+    #else
+    Timer(const Millisecond& duration, const TimePoint& st = Clock::now())
+        : startTime(st), endTime(startTime + duration * ClocksPerMillisecond) {}
+    #endif // UTILITY_TIMER_CPP_STYLE
+
+    static Millisecond durationInMillisecond(const TimePoint& start, const TimePoint& end) {
         #if UTILITY_TIMER_CPP_STYLE
         return std::chrono::duration_cast<Millisecond>(end - start);
         #else
@@ -196,7 +212,7 @@ public:
         #endif // UTILITY_TIMER_CPP_STYLE
     }
 
-    static double durationInSecond(const TimePoint &start, const TimePoint &end) {
+    static double durationInSecond(const TimePoint& start, const TimePoint& end) {
         #if UTILITY_TIMER_CPP_STYLE
         return std::chrono::duration_cast<Millisecond>(end - start).count() / MillisecondsPerSecond;
         #else
@@ -214,11 +230,11 @@ public:
 
     // there is no need to free the pointer. the format of the format string is 
     // the same as std::strftime() in http://en.cppreference.com/w/cpp/chrono/c/strftime.
-    static const char* getLocalTime(const char *format = "%Y-%m-%d(%a)%H:%M:%S") {
+    static const char* getLocalTime(const char* format = "%Y-%m-%d(%a)%H:%M:%S") {
         static constexpr int DateBufSize = 64;
         static char buf[DateBufSize];
         time_t t = time(NULL);
-        tm *date = localtime(&t);
+        tm* date = localtime(&t);
         strftime(buf, DateBufSize, format, date);
         return buf;
     }
@@ -261,7 +277,7 @@ public:
 
     bool reStart() {
         startTime = Clock::now();
-        endTime = startTime + Millisecond(duration * 1000);
+        endTime = startTime + duration;
         return true;
     }
 

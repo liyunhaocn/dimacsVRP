@@ -136,6 +136,7 @@ struct Input {
 	Vec<Data> datas;
 	int sintefRecRN = 0;
 	DisType dimacsRecRL = 0;
+	DisType dimacsRecRN = 0;
 	DisType sintefRecRL = 0;
 	//  TODO[lyh][0]:提交之前要去掉
 	DisType naRecRL = 0;
@@ -162,6 +163,9 @@ struct Input {
 	bool initInput(Environment env);
 
 	bool readDimacsInstance(std::string& instanciaPath);
+
+	bool readDimacsBKS();
+
 };
 
 struct Output

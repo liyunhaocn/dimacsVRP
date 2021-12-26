@@ -42,7 +42,7 @@ struct Configuration {
 	
 	//int yearTabuLen = 20;
 	//int yearTabuRand = 10;
-	int popSize = 3;
+	int popSize = 2;
 	int repairExitStep = 40;
 	int initFindPosPqSize = 20;
 	int findBestPosForRuinPqSize = 10;
@@ -65,6 +65,11 @@ struct Configuration {
 
 	//applyCycles
 	int applyCyclesNextNeiBroad = 50;
+
+	int ruinSplitRate = 25; // %100 means ruinSplitRate%
+	int ruinLmax = 20;
+	//(ruinLmax+1)/2
+	int ruinC_ = 15;
 
 	void show();
 

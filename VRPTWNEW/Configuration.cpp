@@ -4,6 +4,7 @@ namespace hust{
 
 void Configuration::show() {
 
+	debug(runTimer);
 	debug(breakRecord);
 	debug(Pwei0);
 	debug(Pwei1);

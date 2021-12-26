@@ -4,13 +4,13 @@
 #include <functional>
 #include <numeric>
 
-#include "./Environment.h"
-#include "./Utility.h"
-#include "./Solver.h"
-#include "./Problem.h"
-#include "./Configuration.h"
-#include "./Flag.h"
-#include "./EAX.h"
+#include "Environment.h"
+#include "Utility.h"
+#include "Solver.h"
+#include "Problem.h"
+#include "Configuration.h"
+#include "Flag.h"
+#include "EAX.h"
 
 #include<cstdlib>
 #include<cstring>
@@ -44,7 +44,7 @@ bool allocGlobalMem(int argc, char* argv[]) {
 		globalEnv->seed = std::time(nullptr) + std::clock();
 	}
 
-	globalEnv->seed = 1611589828;
+	//globalEnv->seed = 1611589828;
 	//globalEnv->seed = 1611589111;
 	globalEnv->show();
 	cfg->show();
@@ -78,13 +78,12 @@ bool deallocGlobalMem() {
 struct Goal {
 	
 	Vec<Vec<LL>> eaxYearTable;
-	Solver* pBest = nullptr;
+	DisType lyhRec = DisInf;
 
 	Goal() {
 		eaxYearTable = Vec<Vec<LL>>
 		(cfg->popSize, Vec<LL>(cfg->popSize));
-		pBest = new Solver(*globalInput);
-		pBest->RoutesCost = DisInf;
+		lyhRec = DisInf;
 	}
 
 	Vec<int> getpairOfPaPb() {
@@ -113,9 +112,9 @@ struct Goal {
 		return { paIndex,pbIndex };
 	}
 
-	bool updateBestSol(hust::Solver& pTemp) {
-		if (pTemp.RoutesCost < pBest->RoutesCost) {
-			*pBest = pTemp;
+	bool updateBestSolRec(hust::Solver& pTemp) {
+		if (pTemp.RoutesCost < lyhRec) {
+			lyhRec = pTemp.RoutesCost;
 			//pBest.saveToOutPut();
 			//pBest.saveOutAsSintefFile();
 			//hust::println("cost:", pBest->RoutesCost);
@@ -150,11 +149,11 @@ struct Goal {
 			}
 
 			if (eaxState==-1) {
-				println("eaxState==-1,kind",kind);
+				//println("eaxState==-1,kind",kind);
 				return -1;
 			}
 			if (eax.abCycleSet.size() <= 1) {
-				println("eax.abCycleSet.size() <= 1,kind", kind);
+				//println("eax.abCycleSet.size() <= 1,kind", kind);
 				return -1;
 			}
 
@@ -162,22 +161,25 @@ struct Goal {
 				continue;
 			}
 
-			EAX eaxGetdiff(pa,pc);
-			auto newCus = eaxGetdiff.getDiffCusofPb();
+			auto  newCus = EAX::getDiffCusofPb(pa,pc);
 
 			pc.mRLLocalSearch(newCus);
 			//pc.mRLLocalSearch({});
-			bool up = updateBestSol(pc);
+			bool up = updateBestSolRec(pc);
 			if (up) {
+				ch = 1;
 				retState = 1;
-				println("cost:", pBest->RoutesCost, "eax local update,kind:", kind);
+				println("cost:", lyhRec, "eax local update,kind:", kind);
+			}
+			else {
+				eax.generateCycles();
 			}
 
-			pc.ruinLocalSearch(15);
-			up = updateBestSol(pc);
+			pc.ruinLocalSearch(cfg->ruinC_);
+			up = updateBestSolRec(pc);
 			if (up) {
 				retState = 1;
-				println("cost:", pBest->RoutesCost, "eax ruin local update,kind:", kind);
+				println("cost:", lyhRec, "eax ruin local update,kind:", kind);
 			}
 
 			if (pc.RoutesCost < paBest.RoutesCost) {
@@ -190,7 +192,7 @@ struct Goal {
 
 	bool solverByEAX() {
 
-		pBest->RoutesCost = DisInf;
+		lyhRec = DisInf;
 
 		Timer t1(cfg->runTimer);
 		t1.setLenUseSecond(cfg->runTimer);
@@ -203,14 +205,13 @@ struct Goal {
 			Environment envt = *globalEnv;
 			envt.seed = (globalEnv->seed % Mod) + ((i + 1) * (myRand->pick(10000007))) % Mod;
 			Solver st(*globalInput);
-			st.minimizeRN();
+			st.initSolution(i%2);
+
+			st.adjustRN();
 			//saveSlnFile(input, pBest.output, cfg, globalEnv);
 			st.mRLLocalSearch({});
 			st.ruinLocalSearch(1);
-
-			if (st.RoutesCost < pBest->RoutesCost) {
-				*pBest = st;
-			}
+			updateBestSolRec(st);
 			pool.push_back(st);
 		}
 
@@ -221,7 +222,12 @@ struct Goal {
 		int contiNotDown = 1;
 		int strategy = 0;
 
-		while (pBest->RoutesCost > globalInput->sintefRecRL && !t1.isTimeOut()) {
+		#if DIMACSGO
+		while (lyhRec > globalInput->dimacsRecRL && !t1.isTimeOut()) {
+		#else
+		while (lyhRec > globalInput->sintefRecRL && !t1.isTimeOut()) {
+		#endif // DIMACSGO
+
 			++MAiter;
 
 			auto papb = getpairOfPaPb();
@@ -233,33 +239,66 @@ struct Goal {
 			Solver& pa = pool[paIndex];
 			Solver& pb = pool[pbIndex];
 
-			println("paIndex:", paIndex);
-			println("pbIndex:", pbIndex);
-			bool ruina = pa.ruinLocalSearch();
-			bool ruinb = pb.ruinLocalSearch();
-			if (updateBestSol(pa)) {
-				println("cost:", pBest->RoutesCost, "ruin a update");
-			}
-			if (updateBestSol(pb)) {
-				println("cost:", pBest->RoutesCost, "ruin b update");
-			}
+			//println("paIndex:", paIndex);
+			//println("pbIndex:", pbIndex);
+			//bool ruina = pa.ruinLocalSearch(1);
+			//bool ruinb = pb.ruinLocalSearch(1);
+			//if (updateBestSolRec(pa)) {
+			//	println("cost:", lyhRec, "ruin a update");
+			//}
+			//if (updateBestSolRec(pb)) {
+			//	println("cost:", lyhRec, "ruin b update");
+			//}
 
 			int isUp = doTwoKindEAX(pa, pb, strategy);
 
 			//debug(contiNotDown);
-			if (isUp == -1) {
+			if (isUp == -1 || contiNotDown == 41) {
+				contiNotDown = 1;
+
 				Solver& bad = pa.RoutesCost > pb.RoutesCost ? pa : pb;
-				Solver badclone = pa.RoutesCost > pb.RoutesCost ? pa : pb;
-				DisType olddis = bad.RoutesCost;
-				bad.perturbBaseRuin(1,30);
+
+				Solver badclone = bad;
+
+				bool isabcygreater2 = false;
+
+				for (int i = 0; i < 2; ++i) {
+					bool isper = bad.perturbBaseRuin(3, cfg->ruinC_);
+					if (isper) {
+						int abcyNum = EAX::getabCyNum(bad, badclone);
+						if (abcyNum >= 2) {
+							debug(abcyNum);
+							isabcygreater2 = true;
+							break;
+						}
+					}
+					else {
+						bad = badclone;
+					}
+				}
+
+				if (isabcygreater2 == false) {
+					badclone = bad;
+					for (int i = 0; i < 10; ++i) {
+						bad.patternAdjustment(50);
+						//bad.reCalRtsCostAndPen();
+						int abcyNum = EAX::getabCyNum(bad, badclone);
+						if (abcyNum >= 2) {
+							debug(abcyNum);
+							//debug(bad.RoutesCost);
+							isabcygreater2 = true;
+							break;
+						}
+					}
+				}
 				//bad.ruinLocalSearch(30);
 
-				EAX eaxt(bad, badclone);
-				auto diffcuses = eaxt.getDiffCusofPb();
+				auto diffcuses = EAX::getDiffCusofPb(bad, badclone);
 				bad.mRLLocalSearch(diffcuses);
-				if (updateBestSol(bad)) {
+				bad.ruinLocalSearch(1);
+				if (updateBestSolRec(bad)) {
 					contiNotDown = 1;
-					println("cost:", pBest->RoutesCost, "patternAdjustment bad update");
+					println("cost:", lyhRec, "patternAdjustment bad update");
 				}
 			}
 
@@ -269,44 +308,22 @@ struct Goal {
 			else {
 				++contiNotDown;
 			}
-			if (contiNotDown >= 30) {
+
+			if (contiNotDown == 20) {
 				strategy = 1 - strategy;
-				contiNotDown = 1;
 			}
 
-			#if 0
-			if(contiNotDown==29) {
-
-				Solver& bad = pa.RoutesCost > pb.RoutesCost ? pa : pb;
-				Solver badclone = pa.RoutesCost > pb.RoutesCost ? pa : pb;
-
-				DisType olddis = bad.RoutesCost;
-				bad.patternAdjustment(globalInput->custCnt*0.1);
-				EAX eaxt(bad, badclone);
-				auto diffcuses = eaxt.getDiffCusofPb();
-				bad.mRLLocalSearch(diffcuses);
-				if (updateBestSol(bad)) {
-					contiNotDown = 1;
-					println("cost:", pBest->RoutesCost, "patternAdjustment bad update");
-				}
-				//for (int i = 0; i < 200; ++i) {
-				//	int ruinCusNum = i / 5 + 1;
-				//	bool ruin = bad.ruinLocalSearch(1, ruinCusNum);
-				//	if (ruin) {
-				//		i = 0;
-				//	}
-				//	if (updateBestSol(bad)) {
-				//		contiNotDown = 1;
-				//		println("cost:",pBest->RoutesCost,"ruin bad update");
-				//		i = 0;
-				//	}
-				//}
-				contiNotDown = 1;
-			}
-			#endif // 0
 		}
 
-		Output output = pBest->saveToOutPut();
+		//TODO[0][bestsSol]:要保证种群中最有解不会被扰动
+		int minRli = 0;
+		for (int i = 1; i < pool.size();++i) {
+			if (pool[i].RoutesCost < pool[minRli].RoutesCost) {
+				minRli = i;
+			}
+		}
+
+		Output output = pool[minRli].saveToOutPut();
 		output.runTime = t1.getRunTime();
 		saveSlnFile(*globalInput, output, cfg, *globalEnv);
 		t1.disp();
@@ -321,38 +338,40 @@ struct Goal {
 		t1.reStart();
 
 		Solver st(*globalInput);
-		st.minimizeRN();
+		st.initSolution(myRand->pick(2));
+
+		st.adjustRN();
 		//st.saveOutAsSintefFile("minR");
 		st.mRLLocalSearch({});
 
-		int ruinNum = 0;
-		int parNum = 0;
+		//std::fill(globalInput->P.begin(), globalInput->P.end(), 1);
+		auto pBest = st;
 
-		Vec<int> cusOrder(globalInput->custCnt, 1);
-		std::iota(cusOrder.begin(), cusOrder.end(), 1);
+		int contiNotDown = 1;
 
-		int avg = globalInput->custCnt / st.rts.cnt;
-		int contiNoDown = 1;
+		#if DIMACSGO
+		while (lyhRec > globalInput->dimacsRecRL && !t1.isTimeOut()) {
+		#else
+		while (lyhRec > globalInput->sintefRecRL && !t1.isTimeOut()) {
+		#endif // DIMACSGO
 
-		//Vec<Vec<int>> table(3, Vec<int>(50, 0));
-
-		std::fill(globalInput->P.begin(), globalInput->P.end(), 1);
-
-		*pBest = st;
-
-		while (pBest->RoutesCost > globalInput->sintefRecRL && !t1.isTimeOut()) {
-
-			st = *pBest;
-
-			bool  ispertutb =  st.ruinLocalSearch(5);
-			bool up2 = updateBestSol(st);
+			st = pBest;
+			int c_ = std::min<int>(cfg->ruinC_,contiNotDown);
+			st.ruinLocalSearch(c_);
+			bool up2 = updateBestSolRec(st);
 			if (up2) {
-				++parNum;
-				println("cost:", pBest->RoutesCost, " ruinNum:", ruinNum, " parNum:", parNum);
+				println("cost:", lyhRec);
+			}
+			if (st.RoutesCost < pBest.RoutesCost) {
+				pBest = st;
+				contiNotDown = 1;
+			}
+			else {
+				++contiNotDown;
 			}
 		}
 
-		Output output = pBest->saveToOutPut();
+		Output output = pBest.saveToOutPut();
 		output.runTime = t1.getRunTime();
 		saveSlnFile(*globalInput, output, cfg, *globalEnv);
 		t1.disp();

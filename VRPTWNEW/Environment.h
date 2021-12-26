@@ -11,7 +11,7 @@ class Environment
 {
 public:
 
-	unsigned seed = 0;
+	unsigned seed = -1;
 	std::string inputPath = "";
 	std::string outputPath = "../Results/";
 

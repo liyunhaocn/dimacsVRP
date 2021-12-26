@@ -56,6 +56,8 @@
     - sqrt函数有三种形式
     - 邻域动作 选择 if else 改为 switch case
     - getPtwNodes lastnode 有简便方法
-
+    - ruin localsearch 在找不到合法路径的时候需要加一条路径
+    可以将不同路径的解分开存储，保存两个更新时间较远的解进行交叉
+    
 - 玄学：
     - squeeze失败的时候 如果不和初始解一起比较 就算不出来 C1_6_6，神奇

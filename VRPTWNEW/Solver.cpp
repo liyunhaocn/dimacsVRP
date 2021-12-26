@@ -213,21 +213,20 @@ bool Solver::rInsAtPosPre(Route& r, int pos, int node) {
 }
 
 int Solver::getFrontofTwoCus(int v, int w) {
-
-	int ret = -1;
-	if (customers[v].Q_X == customers[w].Q_X) {
-		for (int pt = v; pt != -1; pt = customers[pt].next) {
-			if (pt == w) {
-				ret = v;
-				break;
-			}
-		}
-		if (ret == -1) {
-			ret = w;
-		}
-	}
-	ret = customers[v].Q_X < customers[w].Q_X ? v : w;
-	return ret;
+	return customers[v].av < customers[w].av ? v : w;
+	//if (customers[v].Q_X == customers[w].Q_X) {
+	//	for (int pt = v; pt != -1; pt = customers[pt].next) {
+	//		if (pt == w) {
+	//			ret = v;
+	//			break;
+	//		}
+	//	}
+	//	if (ret == -1) {
+	//		ret = w;
+	//	}
+	//}
+	//int ret = -1;
+	//return ret;
 }
 
 bool Solver::rRemoveAtPos(Route& r, int a) {
@@ -837,10 +836,17 @@ Solver::Position Solver::findBestPosInSolForInit(int w) {
 		int v = rt.head;
 		int vj = customers[v].next;
 
+		DisType rtPc = std::max<DisType>(0, rt.rQ + input.datas[w].DEMAND - input.Q);
+		rtPc = rtPc - rt.rPc;
+
+		if (rtPc > 0) {
+			continue;
+		}
+
 		while (v != -1 && vj != -1) {
 
 			DisType rtPtw = 0;
-			DisType rtPc = 0;
+			
 
 			rtPtw += customers[v].TW_X;
 			rtPtw += customers[vj].TWX_;
@@ -856,10 +862,7 @@ Solver::Position Solver::findBestPosInSolForInit(int w) {
 				avjp <= input.datas[vj].DUEDATE ? std::max<DisType>(input.datas[vj].READYTIME, avjp) : input.datas[vj].DUEDATE;
 			rtPtw += std::max<DisType>(0, avj - customers[vj].zv);
 
-			rtPc = std::max<DisType>(0, rt.rQ + input.datas[w].DEMAND - input.Q);
-
 			rtPtw = rtPtw - rt.rPtw;
-			rtPc = rtPc - rt.rPc;
 
 			DisType cost =
 
@@ -964,7 +967,7 @@ bool Solver::initBySecOrder() {
 	}
 	sumRtsPen();
 	//saveOutAsSintefFile();
-	patternAdjustment(input.custCnt);
+	//patternAdjustment(input.custCnt);
 	//saveOutAsSintefFile();
 	return true;
 }
@@ -1063,7 +1066,6 @@ bool Solver::initByArr2(Vec < Vec<int>> arr2) {
 
 bool Solver::initSolution(int kind) {
 
-	//return initMaxRoute();
 	if (kind == 0) {
 		return initBySecOrder();
 	}
@@ -5046,7 +5048,8 @@ LL Solver::getYearOfMove(TwoNodeMove& t) {
 	return sumYear;
 }
 
-Solver::TwoNodeMove Solver::getMovesRandomly(std::function<bool(Solver::TwoNodeMove& t, Solver::TwoNodeMove& bestM)>updateBestM) {
+Solver::TwoNodeMove Solver::getMovesRandomly
+(std::function<bool(Solver::TwoNodeMove& t, Solver::TwoNodeMove& bestM)>updateBestM) {
 
 	TwoNodeMove bestM;
 
@@ -5408,7 +5411,9 @@ Solver::TwoNodeMove Solver::getMovesRandomly(std::function<bool(Solver::TwoNodeM
 			if (customers[v_].TW_X + customers[vj].TWX_ == r.rPtw) {
 				//lastIgnoreIndex = i;
 				int wbegin = v;
-				for (int i = 0; i < maxL / 2; ++i) {
+				int preStep = myRand->pick(1, maxL + 1);
+				int res = maxL;
+				for (int i = 0; i < preStep; ++i) {
 					wbegin = customers[wbegin].pre;
 					if (wbegin > input.custCnt) {
 						break;
@@ -5424,53 +5429,27 @@ Solver::TwoNodeMove Solver::getMovesRandomly(std::function<bool(Solver::TwoNodeM
 					}
 					if (wbegin != v) {
 
-						//TwoNodeMove m2(v, wbegin, 2, outrelocatevToww_(v, wbegin, 1));
-						//updateBestM(m2, bestM);
-
-						//TwoNodeMove m3(v, wbegin, 3, outrelocatevTowwj(v, wbegin, 1));
-						//updateBestM(m3, bestM);
-
 						TwoNodeMove m4(v, wbegin, 4, inrelocatevv_(v, wbegin, 1));
 						updateBestM(m4, bestM);
-
-						//TwoNodeMove m5(v, wbegin, 5, inrelocatevvj(v, wbegin, 1));
-						//updateBestM(m5, bestM);
-
 
 						TwoNodeMove m8(v, wbegin, 8, exchangevw(v, wbegin, 1));
 						updateBestM(m8, bestM);
 
-						//TwoNodeMove m9(v, wbegin, 9, exchangevvjvjjwwj(v, wbegin, 1));
-						//updateBestM(m9, bestM);
-
-						//TwoNodeMove m10(v, wbegin, 10, exchangevvjvjjw(v, wbegin, 1));
-						//updateBestM(m10, bestM);
-
-						//TwoNodeMove m11(v, wbegin, 11, exchangevvjw(v, wbegin, 1));
-						//updateBestM(m11, bestM);
-
-						//TwoNodeMove m12(v, wbegin, 12, exchangevwwj(v, wbegin, 1));
-						//updateBestM(m12, bestM);
-
 						TwoNodeMove m13(v, wbegin, 13, outrelocatevvjTowwj(v, wbegin, 1));
 						updateBestM(m13, bestM);
 
-						//TwoNodeMove m14(v, wbegin, 14, outrelocatevv_Toww_(v, wbegin, 1));
-						//updateBestM(m14, bestM);
-
 						TwoNodeMove m15(v, wbegin, 15, reversevw(v, wbegin));
 						updateBestM(m15, bestM);
-
 
 					}
 				}
 			}
 			else {
-				_2optEffectively(v);
-				exchangevwEffectively(v);
-				outrelocateEffectively(v);
 				// TODO[3][getMoveRand] 这个maxL 以及ptNode.back() 后面的部分还可以优化
 			}
+			_2optEffectively(v);
+			exchangevwEffectively(v);
+			outrelocateEffectively(v);
 		}
 	}
 	else {
@@ -6228,8 +6207,11 @@ Solver::Position Solver::findBestPosForRuin(int w) {
 		}
 	};
 
-	for (int i = 0; i < rts.cnt; ++i) {
-		//debug(i)
+	auto& rtsIndexOrder = myRandX->getMN(rts.cnt, rts.cnt);
+
+	//printve(rtsIndexOrder);
+	for (int i : rtsIndexOrder) {
+	
 		Route& rt = rts[i];
 
 		int v = rt.head;
@@ -6238,6 +6220,10 @@ Solver::Position Solver::findBestPosForRuin(int w) {
 		DisType oldrPc = rts[i].rPc;
 		DisType rPc = std::max<DisType>(0, rt.rQ + input.datas[w].DEMAND - input.Q);
 		rPc = rPc - oldrPc;
+
+		if (rPc > ret.pen) {
+			continue;
+		}
 
 		while (v != -1 && vj != -1) {
 
@@ -6282,32 +6268,57 @@ Solver::Position Solver::findBestPosForRuin(int w) {
 	return ret;
 }
 
-void Solver::ruinClearEP() {
+void Solver::ruinClearEP(int kind) {
 
 	// 保存放入节点的路径，放入结束之后只更新这些路径的cost值
 	std::unordered_set<int> insRts;
 	Vec<int> EPArr = rPutCusInve(EPr);
 
-	//auto cmp = [&](int a, int b) {
-	//	return P[a] < P[b];
-	//};
-
-	//unsigned shuseed = (globalEnv->seed % hust::Mod) + ((hust::myRand->pick(10000007))) % hust::Mod;
-	//std::shuffle(EPArr.begin(), EPArr.end(), std::default_random_engine(shuseed));
-	//auto cmp1 = [&](int a, int b) {
-	//	//if (input.datas[a].DEMAND == input.datas[b].DEMAND) {
-	//	//	return input.disOf[a][0] > input.disOf[b][0];
-	//	//}
-	//	return input.datas[a].DEMAND > input.datas[b].DEMAND;
-	//};
-	//auto cmp2 = [&](int a, int b) {
-	//	return input.datas[a].DUEDATE-input.datas[a].READYTIME
-	//			 < input.datas[b].DUEDATE - input.datas[b].READYTIME;
-	//};
+	auto cmp1 = [&](int a, int b) {
+		return input.datas[a].DEMAND > input.datas[b].DEMAND;
+	};
+	auto cmp2 = [&](int a, int b) {
+		return input.datas[a].DUEDATE - input.datas[a].READYTIME
+			< input.datas[b].DUEDATE - input.datas[b].READYTIME;
+	};
 
 	auto cmp3 = [&](int a, int b) {
 		return input.disOf[a][0] < input.disOf[b][0];
 	};
+	
+	auto cmp4 = [&](int a, int b) {
+		return input.datas[a].READYTIME > input.datas[b].READYTIME;
+	};
+	
+	auto cmp5 = [&](int a, int b) {
+		return input.datas[a].DUEDATE < input.datas[b].DUEDATE;
+	};
+
+	unsigned shuseed = (globalEnv->seed % hust::Mod) + ((hust::myRand->pick(10000007))) % hust::Mod;
+
+	switch (kind) {
+	case 0:
+		std::shuffle(EPArr.begin(), EPArr.end(), std::default_random_engine(shuseed));
+		break;
+	case 1:
+		std::sort(EPArr.begin(), EPArr.end(), cmp1);
+		break;
+	case 2:
+		std::sort(EPArr.begin(), EPArr.end(), cmp2);
+		break;
+	case 3:
+		std::sort(EPArr.begin(), EPArr.end(), cmp3);
+		break;
+	case 4:
+		std::sort(EPArr.begin(), EPArr.end(), cmp4);
+		break;
+	case 5:
+		std::sort(EPArr.begin(), EPArr.end(), cmp5);
+		break;
+	default:
+		break;
+	}
+
 	std::sort(EPArr.begin(), EPArr.end(), cmp3);
 
 	for (int i = 0; i < EPArr.size(); ++i) {
@@ -6333,9 +6344,34 @@ void Solver::ruinClearEP() {
 	//sumRtsPen();
 }
 
-Vec<int> Solver::ruinGetRuinCusBySting(int ruinK, int ruinL) {
+int Solver::ruinGetSplitDepth(int maxDept) {
+
+	if (maxDept < 1) {
+		return -1;
+	}
+
+	static Vec<int> a = { 10000 };
+	static Vec<int> s = { 10000 };
+	if (maxDept >= a.size()) {
+		int oldS = a.size();
+		a.resize(maxDept + 2);
+		s.resize(maxDept + 2);
+		for (int i = oldS; i <= maxDept; ++i) {
+			a[i] = a[i - 1] - a[i - 1] / 64;
+			s[i] = s[i - 1] + a[i];
+		}
+	}
+	int rd = myRand->pick(1, 1000001);
+	auto index = lower_bound(s.begin(), s.begin() + maxDept - 1, rd) - s.begin();
+	return index + 1;
+}
+
+Vec<int> Solver::ruinGetRuinCusBySting(int ruinKmax, int ruinLmax) {
 
 	std::unordered_set<int> uset;
+
+	int ruinK = myRand->pick(1, ruinKmax + 1);
+	
 
 	int v = myRand->pick(1, input.custCnt + 1);
 	UnorderedSet<int> rIdSet;
@@ -6355,57 +6391,88 @@ Vec<int> Solver::ruinGetRuinCusBySting(int ruinK, int ruinL) {
 	}
 
 	//Vec<int> arr;
-
-	for (int beg : begCusSet) {
+	auto splitAndmiddle = [&](int beg) {
 
 		Route& r = rts.getRouteByRid(customers[beg].routeID);
-		if (r.rCustCnt == 1) {
-			continue;
+
+		int ruinL = myRand->pick(1, ruinLmax + 1);
+
+		int ruinCusNumInRoute = std::min<int>(r.rCustCnt, ruinL);
+		
+		int mputBack = 0;
+		if (myRand->pick(100) < cfg->ruinSplitRate) {
+			int maxMCusPutBack = r.rCustCnt - ruinCusNumInRoute;
+			if (maxMCusPutBack > 0) {
+				mputBack = ruinGetSplitDepth(maxMCusPutBack);
+			}
 		}
 
-		int ruinCusNumInRoute = std::min<int>(r.rCustCnt - 1, ruinL);
-		//ruinCusNumInRoute = std::min<int>(runCusNum, ruinCusNumInRoute);
-		//int vIndex = myRand->pick(r.rCustCnt - ruinCusNumInRoute + 1);
-		//int avg = runCusNum / (ruinCusNumInRoute)+1;
+		if (mputBack != 0) {
+			ruinCusNumInRoute += mputBack;
+		}
+		int cusNumAfterbeg = 0;
+		int pbeg = beg;
+		for (; pbeg <= input.custCnt; pbeg = customers[pbeg].next) {
+			++cusNumAfterbeg;
+		}
+		cusNumAfterbeg -= 1;
+		// 在beg的位置最多向前走ruinCusNumInRoute-1 步数
+		//// 在beg的位置至少向前走ruinCusNumInRoute - (cusNumAfterbeg + 1) 步数
+		int minStepFward = ruinCusNumInRoute - (cusNumAfterbeg + 1);
+		
+		int cusNumbegorebeg = r.rCustCnt - cusNumAfterbeg - 1;
+		minStepFward =std::max<int>(0, minStepFward);
 
-		int nextRuinNum = 0;
+		int preStep = myRand->pick(minStepFward, cusNumbegorebeg + 1);
+		
 		int pt = beg;
-		for (int i = 0; i < ruinCusNumInRoute / 2; ++i) {
+		for (int i = 0; i < preStep; ++i) {
 			//int wposMax = myRand->pick(1, avg * 2 + 1);
 			if (pt > input.custCnt) {
 				break;
 			}
-			++nextRuinNum;
-			uset.insert(pt);
 			//arr.push_back(pt);
+			pt = customers[pt].pre;
+		}
+
+		if (pt > input.custCnt) {
 			pt = customers[pt].next;
 		}
 
-		pt = beg;
-		int resNum = ruinCusNumInRoute - nextRuinNum;
-		for (int i = 0; i < resNum; ++i) {
+		// 第一段长度是(ruinCusNumInRoute - mputBack) / 2
+		int firstPartMax = (ruinCusNumInRoute - mputBack) / 2;
+		int firstPart = 0;
+		for (int i = 0; i < firstPartMax; ++i) {
 			//int wposMax = myRand->pick(1, avg * 2 + 1);
 			if (pt > input.custCnt) {
 				break;
 			}
-			//arr.push_back(pt);
+			++firstPart;
 			uset.insert(pt);
-			pt = customers[pt].pre;
+			pt = customers[pt].next;
 		}
-	}
 
-	//for (int i : rIdSet) {
-	//	debug(i);
-	//}
-	//debug(rIdSet.size());
-	//debug(begCusSet.size());
-	//debug(ruinK);
-	//debug(ruinL);
-	//debug(arr.size());
-	//debug(uset.size());
-	//printve(arr);
-	//printve(uset);
-	//debug(uset.size());
+		//跳过mputBack个
+		for (int i = 0; i < mputBack; ++i) {
+			pt = customers[pt].next;
+		}
+
+		int secPart = ruinCusNumInRoute - mputBack - firstPart;
+
+		for (int i = 0; i < secPart; ++i) {
+			if (pt > input.custCnt) {
+				break;
+			}
+			uset.insert(pt);
+			pt = customers[pt].next;
+		}
+
+	};
+
+	for (int beg : begCusSet) {
+		int stringkind = myRand->pick(3);
+		splitAndmiddle(beg);
+	}
 
 	Vec<int> runCus;
 	runCus.reserve(uset.size());
@@ -6472,7 +6539,6 @@ Vec<int> Solver::ruinGetRuinCusBySec(int ruinCusNum) {
 
 	Vec<int> cusArr;
 	for (int v : vei) {
-
 		int vAngle = input.datas[v].polarAngle;
 		if (cusArr.size() < ruinCusNum && secs[rti].isEnclosed(vAngle)
 			&& secs[rtj].isEnclosed(vAngle)) {
@@ -6507,15 +6573,12 @@ bool Solver::ruinLocalSearch(int ruinCusNum) {
 		
 		bool  ispertutb = perturbBaseRuin(kind, ruinCusNum);
 		if (ispertutb) {
-			EAX et(pBest, *this);
-			auto cuses = et.getDiffCusofPb();
-			//debug(cuses.size());
+			auto cuses = EAX::getDiffCusofPb(pBest, *this);
 			mRLLocalSearch(cuses);
 		}
 
 		if (RoutesCost < pBest.RoutesCost) {
 			i = 0;
-			//println("cost:", pBest.RoutesCost);
 			pBest = *this;
 		}
 	}
@@ -6532,35 +6595,40 @@ bool Solver::perturbBaseRuin(int kind, int ruinCusNum) {
 
 	Solver pClone = *this;
 
+	int avgLen = input.custCnt / rts.cnt;
+	//int Lmax = std::min<int>(20, avgLen);
+	//cfg->Lmax = 30;
+	int Lmax = std::min<int>(cfg->ruinLmax, avgLen);
+
+	if (kind ==2 && ruinCusNum * 2 < (1 + Lmax)) {
+		//println("too few node for ruin");
+		kind = myRand->pick(2);
+	}
+
 	Vec<int> ruinCus;
 	if (kind == 0) {
 		ruinCus = ruinGetRuinCusByRound(ruinCusNum);
 	}
 	else if (kind == 1) {
-
-		int avgLen = input.custCnt / rts.cnt;
-		//int Lmax = std::min<int>(20, avgLen);
-		int Lmax = std::min<int>(20, avgLen);
-
-		int ruinKmax = 4 * ruinCusNum / (1 + Lmax) - 1;
-		ruinKmax = std::max<int>(ruinKmax, 1);
-		ruinKmax = std::min<int>(rts.cnt, ruinKmax);
-
-		int ruinK = myRand->pick(1, ruinKmax + 1);
-		int ruinL = myRand->pick(1, Lmax + 1);
-
-		ruinCus = ruinGetRuinCusBySting(ruinK, ruinL);
+		ruinCus = ruinGetRuinCusBySec(ruinCusNum);
 	}
 	else {
-		ruinCus = ruinGetRuinCusBySec(ruinCusNum);
+
+		int ruinKmax = 4 * ruinCusNum / (1 + Lmax) - 1;
+		ruinKmax = std::min<int>(rts.cnt, ruinKmax);
+		ruinKmax = std::max<int>(1, ruinKmax);
+		ruinCus = ruinGetRuinCusBySting(ruinKmax, Lmax);
+		//debug(ruinCus.size());
 	}
 
 	std::unordered_set<int> rIds;
 	for (int cus : ruinCus) {
 		Route& r = rts.getRouteByRid(customers[cus].routeID);
 		rIds.insert(r.routeID);
-		rRemoveAtPos(r, cus);
-		EPpush_back(cus);
+		if (r.rCustCnt > 2) {
+			rRemoveAtPos(r, cus);
+			EPpush_back(cus);
+		}
 	}
 
 	for (auto rid : rIds) {
@@ -6572,9 +6640,12 @@ bool Solver::perturbBaseRuin(int kind, int ruinCusNum) {
 
 	sumRtsCost();
 	sumRtsPen();
-	ruinClearEP();
+	static Vec<int> clearSortContri(6);
+	int sortKind = myRand->pick(6);
+	ruinClearEP(sortKind);
 
 	if (penalty == 0) {
+		
 		if (RoutesCost == pClone.RoutesCost) {
 			return false;
 		}
@@ -6585,10 +6656,15 @@ bool Solver::perturbBaseRuin(int kind, int ruinCusNum) {
 	else {
 		//return false;
 		if (repair()) {
+
+			//++clearSortContri[sortKind];
+			//printve(clearSortContri);
+
 			return true;
 		}
 		else {
 			*this = pClone;
+			return false;
 		}
 	}
 	return false;
@@ -6802,6 +6878,11 @@ bool Solver::patternAdjustment(int Irand) {
 	//debug(iter)
 	sumRtsPen();
 
+	return true;
+}
+
+
+bool cvb2RuinLocalSearch() {
 	return true;
 }
 
@@ -7349,18 +7430,10 @@ void Solver::minimizeRN() {
 
 	gamma = 0;
 	Timer t(10);
-	initSolution();
+	//myRand->pick(2)
 	//saveOutAsSintefFile();
 	bool isSucceed = false;
 	t.disp();
-
-	//ourTarget = input.sintefRecRN;
-	if (cfg->breakRecord) {
-		ourTarget = input.sintefRecRN - 1;
-	}
-	else {
-		ourTarget = input.sintefRecRN;
-	}
 
 	reCalRtsCostAndPen();
 
@@ -7389,6 +7462,63 @@ void Solver::minimizeRN() {
 		}
 	}
 	Log(Log::Level::Warning) << "minRN,rts.size(): " << rts.size() << std::endl;
+}
+
+bool Solver::adjustRN() {
+
+	#if DIMACSGO
+	ourTarget = input.dimacsRecRN;
+	#else
+	if (cfg->breakRecord) {
+	ourTarget = input.sintefRecRN - 1;
+	}
+	else {
+		ourTarget = input.sintefRecRN;
+	}
+	#endif // DIMACSGO
+
+	if (rts.cnt > ourTarget) {
+		minimizeRN();
+	}
+	else if (rts.cnt < ourTarget) {
+		
+		while (rts.cnt < ourTarget) {
+
+			int rId = -1;
+			for (int i = 0; i < rts.posOf.size(); ++i) {
+				if (rts.posOf[i] == -1) {
+					rId = i;
+					break;
+				}
+			}
+
+			Route r1 = rCreateRoute(rId);
+			int rIdChose = -1;
+			for (int i = 0; i < rts.cnt; ++i) {
+				if (rts[i].rCustCnt >= 2) {
+					rIdChose = i;
+					break;
+				}
+			}
+			
+			Route& r = rts[rIdChose];
+
+			auto arr = rPutCusInve(r);
+			for (int i = 0; i < arr.size(); ++i) {
+				if (i % 2 == 0) {
+					rRemoveAtPos(r, arr[i]);
+					rInsAtPosPre(r1, r1.tail, arr[i]);
+				}
+			}
+			rUpdateAvQfrom(r1, r1.head);
+			rUpdateZvQfrom(r1, r1.tail);
+			rUpdateAvQfrom(r, r.head);
+			rUpdateZvQfrom(r, r.tail);
+			rts.push_back(r1);
+			sumRtsPen();
+		}
+	}
+	return true;
 }
 
 Solver::TwoNodeMove Solver::naRepairGetMoves(std::function<bool(TwoNodeMove& t, TwoNodeMove& bestM)>updateBestM) {
@@ -7547,15 +7677,15 @@ bool Solver::mRLLocalSearch(Vec<int> newCus) {
 
 	TwoNodeMove MRLbestM;
 
-	static Vec<int> contribution(15, 0);
+	static Vec<int> contribution(16, 0);
 
-	static Vec<int> moveKindOrder = { 0,1,2,3,4,5,6,7,8,9,10,11,12,13,14 /*,15*/ };
+	static Vec<int> moveKindOrder = { 0,1,2,3,4,5,6,7, 8/*,9,10*,/11,12,/*13,14 */,15};
 	sort(moveKindOrder.begin(), moveKindOrder.end(), [&](int a, int b) {
 		return contribution[a] > contribution[b];
-		});
+	});
 	//printve(moveKindOrder);
 	auto maxIt = std::max_element(contribution.begin(), contribution.end());
-	if (*maxIt > 10000) {
+	if (*maxIt > 1000) {
 		for (auto& i : contribution) { i >>= 2; }
 	}
 
@@ -7685,6 +7815,7 @@ bool Solver::mRLLocalSearch(Vec<int> newCus) {
 		}
 
 		++contribution[bestM.kind];
+
 		#if CHECKING
 		Vec<Vec<int>> oldRoutes;
 		Vec<int> oldrv;

@@ -1,10 +1,6 @@
 #ifndef vrptwNew_FLAG_H
 #define vrptwNew_FLAG_H
 
-//#if LINUX
-//#include <libgen.h>
-//#include <unistd.h>
-//#endif // LINUX
 #include <float.h>
 #include <vector>
 #include <unordered_map>
@@ -12,10 +8,7 @@
 #include <numeric>
 #include <iostream>
 
-//#include "Environment.h"
-//#include "Solver.h"
-
-#define LINUX 0
+#define DIMACSGO 1
 #define ATTRIBUTETABU 1
 #define LOGINFO 1
 
@@ -52,7 +45,12 @@ template<typename V>
 using List = std::list<V>;
 
 using LL = long long int;
+
+#if DIMACSGO
+using DisType = int;
+#else
 using DisType = LL;
+#endif // DIMACSGO
 
 extern int IntInf;
 extern long long int LLInf;

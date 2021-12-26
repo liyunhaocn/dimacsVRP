@@ -1,5 +1,8 @@
 #include "./Problem.h"
 
+#include <string>
+#include <istream>
+
 namespace hust {
 
 static InsData getInsData(std::string& ins) {
@@ -1108,6 +1111,7 @@ Input::Input(Environment& env) {
 bool Input::initInput(Environment env) {
 
 	readDimacsInstance(env.inputPath);
+	readDimacsBKS();
 
 	P = Vec<int>(custCnt + 1, 1);
 	for (int i = custCnt + 1; i < datas.size(); ++i) {
@@ -1133,8 +1137,13 @@ bool Input::initInput(Environment env) {
 			double dis = sqrt((d1.XCOORD - d2.XCOORD) * (d1.XCOORD - d2.XCOORD)
 				+ (d1.YCOORD - d2.YCOORD) * (d1.YCOORD - d2.YCOORD));
 			//TODO[lyh][000]:dimacs的距离计算不同！！！！
-			disOf[j][i] = disOf[i][j] = dis;
+			//disOf[j][i] = disOf[i][j] = dis;
+			#if DIMACSGO
+			disOf[j][i] = disOf[i][j] = round(dis);
+			#else
+			disOf[j][i] = disOf[i][j] = round(dis);
 			//disOf[j][i] = disOf[i][j] = ceil(dis);
+			#endif // DIMACSGO
 		}
 	}
 
@@ -1293,7 +1302,7 @@ bool Input::initInput(Environment env) {
 
 	auto info = getInsData(example);
 	sintefRecRN = info.minRN;
-	dimacsRecRL = info.minRL * disMul;
+	//dimacsRecRL = info.minRL * disMul;
 	sintefRecRL = getSintefRL(example) * disMul;
 	naRecRL = getNagataRL(example) * disMul;
 	isOptRL = info.isOpt;
@@ -1301,6 +1310,7 @@ bool Input::initInput(Environment env) {
 	Log(Log::Level::Warning) << "sintefRecRN: " << sintefRecRN << std::endl;
 	Log(Log::Level::Warning) << "sintefRecRL: " << sintefRecRL << std::endl;
 	Log(Log::Level::Warning) << "naRecRL: " << naRecRL << std::endl;
+	Log(Log::Level::Warning) << "dimacsRecRN: " << dimacsRecRN << std::endl;
 	Log(Log::Level::Warning) << "dimacsRecRL: " << dimacsRecRL << std::endl;
 	Log(Log::Level::Warning) << "isOptRL: " << isOptRL << std::endl;
 	Log(Log::Level::Warning) << "Q: " << Q << std::endl;
@@ -1310,54 +1320,81 @@ bool Input::initInput(Environment env) {
 
 bool Input::readDimacsInstance(std::string& instanciaPath) {
 
-		//debug(instanciaPath.c_str());
-		FILE* file = fopen(instanciaPath.c_str(), "r");
+	//debug(instanciaPath.c_str());
+	FILE* file = fopen(instanciaPath.c_str(), "r");
 
-		if (!file) {
-			std::cout << instanciaPath << "ERROR: Instance path wrong." << std::endl;
-			exit(EXIT_FAILURE);
-		}
-
-		char name[64];
-		this->datas = Vec<Data>(1000 * 3 + 3);
-
-		fscanf(file, "%s\n", name);
-		this->example = std::string(name);
-		fscanf(file, "%*[^\n]\n");
-		fscanf(file, "%*[^\n]\n");
-		fscanf(file, "%d %lld\n", &this->vehicleCnt, &this->Q);
-		fscanf(file, "%*[^\n]\n");
-		fscanf(file, "%*[^\n]\n");
-
-		this->Q *= disMul;
-		std::string line = "";
-		size_t len = 0;
-		long read = 0;
-
-		int index = 0;
-		int id = -1, coordx = -1, coordy = -1, demand = -1;
-		int ready_time = -1, due_date = -1, service_time = -1;
-		int readArgNum = 0;
-		while ((readArgNum = fscanf(file, "%d %d %d %d %d %d %d\n", &id, &coordx, &coordy, &demand, &ready_time, &due_date, &service_time)) == 7) {
-
-			this->datas[index].CUSTNO = id;
-			this->datas[index].XCOORD = coordx * disMul;
-			this->datas[index].YCOORD = coordy * disMul;
-			this->datas[index].DEMAND = demand * disMul;
-			this->datas[index].READYTIME = ready_time * disMul;
-			this->datas[index].DUEDATE = due_date * disMul;
-			this->datas[index].SERVICETIME = service_time * disMul;
-
-			if (index > 0) {
-				auto& dt = datas[index];
-				dt.polarAngle = CircleSector::positive_mod
-				(32768. * atan2(dt.YCOORD - datas[0].YCOORD, dt.XCOORD - datas[0].XCOORD) / PI);
-			}
-			++index;
-		}
-		custCnt = index - 1;
-		fclose(file);
-		return true;
+	if (!file) {
+		std::cout << instanciaPath << "ERROR: Instance path wrong." << std::endl;
+		exit(EXIT_FAILURE);
 	}
+
+	char name[64];
+	this->datas = Vec<Data>(1000 * 3 + 3);
+
+	fscanf(file, "%s\n", name);
+	this->example = std::string(name);
+	fscanf(file, "%*[^\n]\n");
+	fscanf(file, "%*[^\n]\n");
+	fscanf(file, "%d %lld\n", &this->vehicleCnt, &this->Q);
+	fscanf(file, "%*[^\n]\n");
+	fscanf(file, "%*[^\n]\n");
+
+	this->Q *= disMul;
+	std::string line = "";
+	size_t len = 0;
+	long read = 0;
+
+	int index = 0;
+	int id = -1, coordx = -1, coordy = -1, demand = -1;
+	int ready_time = -1, due_date = -1, service_time = -1;
+	int readArgNum = 0;
+	while ((readArgNum = fscanf(file, "%d %d %d %d %d %d %d\n", &id, &coordx, &coordy, &demand, &ready_time, &due_date, &service_time)) == 7) {
+
+		this->datas[index].CUSTNO = id;
+		this->datas[index].XCOORD = coordx * disMul;
+		this->datas[index].YCOORD = coordy * disMul;
+		this->datas[index].DEMAND = demand * disMul;
+		this->datas[index].READYTIME = ready_time * disMul;
+		this->datas[index].DUEDATE = due_date * disMul;
+		this->datas[index].SERVICETIME = service_time * disMul;
+
+		if (index > 0) {
+			auto& dt = datas[index];
+			dt.polarAngle = CircleSector::positive_mod
+			(32768. * atan2(dt.YCOORD - datas[0].YCOORD, dt.XCOORD - datas[0].XCOORD) / PI);
+		}
+		++index;
+	}
+	custCnt = index - 1;
+	fclose(file);
+	return true;
+}
+
+bool Input::readDimacsBKS() {
+
+	std::string bksPath = "../Data/DimacsBks/Homberger/" + example + ".sol";
+	
+	std::ifstream myfile(bksPath);
+	if (!myfile.is_open()){
+		println("未成功打开文件");
+	}
+
+	std::string t;
+	int rn = 0;
+	while (std::getline(myfile, t)){
+		if (t.find("Route #") != std::string::npos) {
+			++rn;
+		}
+		else if (t.find("Cost ") != std::string::npos) {
+			t = t.substr(5);
+			dimacsRecRL = std::stof(t)*10;
+		}
+	}
+	dimacsRecRN = rn;
+	myfile.close();
+	return true;
+
+}
+
 
 }

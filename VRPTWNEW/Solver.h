@@ -157,18 +157,6 @@ struct RTS {
 		return true;
 	}
 
-	bool removeRouteId(int rid) {
-
-#if CHECKING
-		lyhCheckTrue(rid >=0);
-		lyhCheckTrue(rid < posOf.size());
-		lyhCheckTrue(posOf[rid] >=0 );
-#endif // CHECKING
-
-		removeIndex(posOf[rid]);
-		return true;
-	}
-
 	Route& getRouteByRid(int rid) {
 
 #if CHECKING
@@ -569,8 +557,6 @@ public:
 
 	bool rInsAtPosPre(Route& r, int pos, int node);
 
-	int getFrontofTwoCus(int v, int w);
-
 	bool rRemoveAtPos(Route& r, int a);
 
 	void rPreDisp(Route& r);
@@ -621,7 +607,7 @@ public:
 
 	bool initByArr2(Vec < Vec<int>> arr2);
 
-	bool initSolution(int kind = 0);
+	bool initSolution(int kind);
 
 	bool EPrReset();
 
@@ -653,6 +639,7 @@ public:
 
 	DeltPen outrelocatevTowwj(int v, int w, int oneR);
 
+	int getFrontofTwoCus(int v, int w);
 	//开区间(twbegin，twend) twbegin，twend的各项值都是可靠的，开区间中间的点可以变化 twbegin，twend可以是仓库 
 	DisType getaRangeOffPtw(int twbegin, int twend);
 
@@ -728,7 +715,9 @@ public:
 
 	static Vec<int>ClearEPOrderContribute;
 
-	void ruinClearEP();
+	void ruinClearEP(int kind);
+
+	int ruinGetSplitDepth(int maxDept);
 
 	Vec<int> ruinGetRuinCusBySting(int ruinK, int ruinL);
 
@@ -756,6 +745,8 @@ public:
 	bool resetSol();
 
 	void minimizeRN();
+
+	bool adjustRN();
 
 	TwoNodeMove naRepairGetMoves(std::function<bool(TwoNodeMove& t, TwoNodeMove& bestM)>updateBestM);
 	
