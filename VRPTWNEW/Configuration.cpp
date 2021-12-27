@@ -1,4 +1,7 @@
-#include "./Configuration.h"
+
+
+#include <algorithm>
+#include "Configuration.h"
 
 namespace hust{
 

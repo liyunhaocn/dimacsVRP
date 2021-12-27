@@ -1,7 +1,7 @@
 #ifndef vrptwNew_CONFIGURATION_H
 #define vrptwNew_CONFIGURATION_H
 
-#include "./Flag.h"
+#include "Flag.h"
 
 // $(SolutionDir)$(Platform)\$(Configuration)
 // $(SolutionDir)\dimacsVRP
@@ -69,6 +69,9 @@ struct Configuration {
 	int ruinLmax = 20;
 	//(ruinLmax+1)/2
 	int ruinC_ = 15;
+
+	int ruinWinkacRate = 95; // 100
+	int abcyWinkacRate = 100; // 100
 
 	void show();
 

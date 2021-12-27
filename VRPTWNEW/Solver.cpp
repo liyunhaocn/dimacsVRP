@@ -6203,7 +6203,7 @@ Solver::Position Solver::findBestPosForRuin(int w) {
 		}
 		else if (pos.cost < ret.cost) {
 			// TODO[8]:眨眼率可以调 5%合适？
-			if (myRand->pick(100) < 99) {
+			if (myRand->pick(100) < cfg->ruinWinkacRate) {
 				ret = pos;
 			}
 		}
@@ -6487,6 +6487,7 @@ Vec<int> Solver::ruinGetRuinCusBySting(int ruinKmax, int ruinLmax) {
 
 Vec<int> Solver::ruinGetRuinCusByRound(int ruinCusNum) {
 
+	ruinCusNum = myRand->pick(1, ruinCusNum * 2 + 1);
 	int v = myRand->pick(input.custCnt) + 1;
 
 	Vec<int> runCus;
@@ -6506,7 +6507,8 @@ Vec<int> Solver::ruinGetRuinCusByRound(int ruinCusNum) {
 Vec<int> Solver::ruinGetRuinCusBySec(int ruinCusNum) {
 
 	int v = myRand->pick(input.custCnt) + 1;
-	//int v = 0;
+
+	ruinCusNum = myRand->pick(1, ruinCusNum * 2 + 1);
 
 	Vec<CircleSector> secs(rts.cnt);
 	for (int i = 0; i < rts.cnt; ++i) {

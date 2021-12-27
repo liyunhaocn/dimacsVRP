@@ -1376,7 +1376,7 @@ bool Input::readDimacsBKS() {
 	
 	std::ifstream myfile(bksPath);
 	if (!myfile.is_open()){
-		println("未成功打开文件");
+		println("fail to open dimacs bks");
 	}
 
 	std::string t;

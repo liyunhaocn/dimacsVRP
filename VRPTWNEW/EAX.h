@@ -115,11 +115,6 @@ public:
 		return e;
 	}
 
-	/* 准备交叉算符所需的数据结构, 并使上一次交叉的结果无效 */
-	void prepareDataStructures() {
-	
-	}
-
 	/* 双亲边集分类 */
 	bool classifyEdges(Solver& pa, Solver& pb) {
 
@@ -404,31 +399,9 @@ public:
 		}
 		return true;
 
-		//ConfSet ret(eaxCusCnt);
-		//for (auto& index : cyclesIndexes) {
-		//	auto& cy = abCycleSet[index];
-		//	for (auto& reIndex : cy) {
-		//		auto& re = richEdges[reIndex];
-		//		if (re.owner == Owner::Pa) {
-		//			ret.ins(re.e.a);
-		//		}
-		//		else {
-		//			ret.ins(re.e.b);
-		//		}
-		//	}
-		//}
-		//int n = ret.cnt;
-		////debug(n);
-		//for (int i = 0; i < n ; ++i) {
-			//int v = ret.ve[i];
-			//for (int wpos = 0; wpos < cfg->applyCyclesNextNeiBroad; ++wpos) {
-			//	int w = pc.input.allCloseOf[v][wpos];
-			//	ret.ins(w);
-			//}
-		//}
-		//debug(ret.cnt);
-		//return Vec<int>(ret.ve.begin(), ret.ve.begin() + ret.cnt);
 	}
+
+	//int sameCnt = 0;
 
 	Solver::Position findBestPosRemoveSubtour(Solver& pc,int w,int wj,DisType deInSub) {
 
@@ -487,19 +460,22 @@ public:
 				//posTemp.year = year;
 				//posTemp.secDis = abs(input.datas[w].polarAngle - input.datas[v].polarAngle);
 
+				
 				if (posTemp.pen < ret.pen) {
 					ret = posTemp;
 				}
 				else if (posTemp.cost < ret.cost) {
-					//if (myRand->pick(100) < 99) {
-					ret = posTemp;
-					//}
+					//++sameCnt;
+					if (myRand->pick(100) < cfg->abcyWinkacRate) {
+						ret = posTemp;
+					}
 				}
 
 				v = vj;
 				vj = pc.customers[vj].next;
 			}
 		}
+
 		return ret;
 	}
 
@@ -546,6 +522,7 @@ public:
 			w = subbegin;
 			int retW = -1;
 
+			//sameCnt = 0;
 			do {
 
 				int wj = pc.customers[w].next;
@@ -557,15 +534,16 @@ public:
 					retW = w;
 				}
 				else if(posT.cost<posInsert.cost){
-					//debug(posT.pen);
-					//debug(posT.cost);
-					posInsert = posT;
-					retW = w;
+					if (myRand->pick(100) < cfg->abcyWinkacRate) {
+						posInsert = posT;
+						retW = w;
+					}
 				}
 
 				w = wj;
 			} while (w != subbegin);
 
+			//debug(sameCnt);
 			//debug(posInsert.pen);
 			//debug(posInsert.cost);
 			int v = posInsert.pos;
@@ -763,6 +741,8 @@ public:
 				if (myRand->pick(cnt) == 0) {
 					unionIndex = i;
 				}
+				// TODO[0]:这里决定是否优先选择小的union
+				//break;
 			}
 		}
 		
@@ -843,7 +823,6 @@ public:
 		}
 		return 0;
 	}
-
 
 	static int getabCyNum(Solver& pa, Solver& pb) {
 		UnorderedSet<int> s;

@@ -46,6 +46,7 @@ bool allocGlobalMem(int argc, char* argv[]) {
 
 	//globalEnv->seed = 1611589828;
 	//globalEnv->seed = 1611589111;
+	//globalEnv->seed = 1640620823;
 	globalEnv->show();
 	cfg->show();
 
@@ -86,6 +87,7 @@ struct Goal {
 		lyhRec = DisInf;
 	}
 
+	#if 0
 	Vec<int> getpairOfPaPb() {
 
 		int paIndex = myRand->pick(cfg->popSize);
@@ -111,6 +113,7 @@ struct Goal {
 		pbIndex = retPbIndex;
 		return { paIndex,pbIndex };
 	}
+	#endif // 0
 
 	bool updateBestSolRec(hust::Solver& pTemp) {
 		if (pTemp.RoutesCost < lyhRec) {
@@ -232,12 +235,6 @@ struct Goal {
 		while (lyhRec > globalInput->sintefRecRL && !t1.isTimeOut()) {
 		#endif // DIMACSGO
 
-			//++MAiter;
-			//auto papb = getpairOfPaPb();
-			//int paIndex = papb[0];
-			//int pbIndex = papb[1];
-			//eaxYearTable[paIndex][pbIndex] = MAiter;
-
 			if (contiNotDown >= 50) {
 
 				//debug(contiNotDown);
@@ -250,21 +247,35 @@ struct Goal {
 
 			if (strategy == 2) {
 
-				for (int i = 0; i < pool.size(); ++i) {
-					auto& pa = pool[i];
-					for (int i = 0; i < 100; ++i) {
-						bool ruina = pa.ruinLocalSearch(3);
+				auto pertuOrder = Vec<int>(pool.size(), 0);
+				std::iota(pertuOrder.begin(), pertuOrder.end(),0);
+				sort(pertuOrder.begin(), pertuOrder.end(), [&](int x,int y) {
+					return pool[x].RoutesCost < pool[y].RoutesCost;
+				});
 
-						if (updateBestSolRec(pa)) {
-							i = 0;
-							contiNotDown = 1;
-							println("cost:", lyhRec, "ruin a or b update");
+				for (int peri = 0; peri < pool.size(); ++peri) {
+					int pi = pertuOrder[peri];
+					auto& sol = pool[pi];
+					auto before = sol.RoutesCost;
+					Solver sclone = sol;
+					
+					for (int i = 0; i < 10; ++i) {
+						int kind = myRand->pick(3);
+						sclone.perturbBaseRuin(kind, cfg->ruinC_);
+						if (sclone.RoutesCost * 100 >= sol.RoutesCost * 105
+							&& sclone.RoutesCost * 100 <= sol.RoutesCost * 110) {
+							sol = sclone;
+							break;
 						}
 						else {
-							++contiNotDown;
+							sclone = sol;
 						}
 					}
+						
+					auto after = sol.RoutesCost;
+					println("before:",before, "after:", after);
 				}
+				contiNotDown = 100;
 				continue;
 			}
 
