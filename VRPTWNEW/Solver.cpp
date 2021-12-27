@@ -532,7 +532,7 @@ bool Solver::rtsCheck() {
 	return true;
 }
 
-bool Solver::rReCalCusNum(Route& r) {
+bool Solver::rReCalCusNumAndSetCusrIdWithHeadrId(Route& r) {
 
 	int pt = r.head;
 	r.rCustCnt = 0;
@@ -557,7 +557,7 @@ bool Solver::reCalRtsCostAndPen() {
 
 	for (int i = 0; i < rts.cnt; ++i) {
 		Route& r = rts[i];
-		rReCalCusNum(r);
+		rReCalCusNumAndSetCusrIdWithHeadrId(r);
 		rUpdateAvQfrom(r, r.head);
 		rUpdateZvQfrom(r, r.tail);
 		rReCalRCost(r);
@@ -943,6 +943,7 @@ bool Solver::initBySecOrder() {
 	for (int i = 0; i < input.custCnt; ++i) {
 		indexBeg += deltstep;
 		int tp = que1[indexBeg % input.custCnt];
+		//Position bestP = findBestPosInSolForInit(tp);
 		Position bestP = findBestPosInSolForInit(tp);
 
 		if (bestP.rIndex != -1 && bestP.pen == 0) {
@@ -6201,6 +6202,7 @@ Solver::Position Solver::findBestPosForRuin(int w) {
 			ret = pos;
 		}
 		else if (pos.cost < ret.cost) {
+			// TODO[8]:眨眼率可以调 5%合适？
 			if (myRand->pick(100) < 99) {
 				ret = pos;
 			}
@@ -7589,18 +7591,13 @@ bool Solver::repair() {
 		return true;
 	};
 
-	LL contiNotDe = 0;
-
-	Solver sClone = *this;
+	int contiNotDe = 0;
 
 	//static Vec<int> moveContribute(16,0);
 
-	auto ptw = PtwNoWei;
-	auto pc = Pc;
-
 	auto iter = 0;
 
-	auto oldrc = RoutesCost;
+	auto penBest = penalty;
 
 	while (penalty > 0 && !lyhTimer.isTimeOut()) {
 		++iter;
@@ -7616,13 +7613,18 @@ bool Solver::repair() {
 
 		if (bestM.deltPen.PcOnly + bestM.deltPen.PtwOnly > 0) {
 			//if (bestM.deltPen.deltPc + bestM.deltPen.deltPtw > 0) {
-			break;
-			//++contiNotDe;
+			//break;
+			++contiNotDe;
+			if (contiNotDe > cfg->repairExitStep) {
+				break;
+			}
 			//maxCon = std::max<int>(maxCon,contiNotDe);
-			//continue;
-			//if (bestM.v == 0 && bestM.w == 0) {
-			//	break;
-			//}
+			if (bestM.v == 0 && bestM.w == 0) {
+				break;
+			}
+			else {
+				continue;
+			}
 		}
 
 		//update(*yearTable)(bestM);
@@ -7643,10 +7645,8 @@ bool Solver::repair() {
 		resetConfRtsByOneMove({ rvId,rwId });
 		//addWeightToRoute(bestM);
 
-		if (penalty < sClone.penalty) {
-
-			sClone = *this;
-			//lyhCheckTrue(contiNotDe<40);
+		if (penalty < penBest) {
+			penBest = penalty;
 			contiNotDe = 1;
 		}
 		else {

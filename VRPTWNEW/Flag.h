@@ -8,7 +8,7 @@
 #include <numeric>
 #include <iostream>
 
-#define DIMACSGO 1
+#define DIMACSGO 0
 #define ATTRIBUTETABU 1
 #define LOGINFO 1
 

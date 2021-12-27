@@ -1104,13 +1104,13 @@ bool saveSlnFile(Input& input, Output& output, Configuration* cfg, Environment& 
 	return true;
 }
 
-Input::Input(Environment& env) {
-	initInput(env);
+Input::Input() {
+	initInput();
 }
 
-bool Input::initInput(Environment env) {
+bool Input::initInput() {
 
-	readDimacsInstance(env.inputPath);
+	readDimacsInstance(globalEnv->inputPath);
 	readDimacsBKS();
 
 	P = Vec<int>(custCnt + 1, 1);

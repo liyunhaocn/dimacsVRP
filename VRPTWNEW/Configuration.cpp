@@ -33,8 +33,6 @@ void Configuration::repairByCusCnt(int cusCnt) {
 		//ruinLocalSearch
 		ruinLocalSearchNextNeiBroad = std::min<int>(cusCnt, ruinLocalSearchNextNeiBroad);
 
-		//applyCycles
-		applyCyclesNextNeiBroad = std::min<int>(cusCnt, applyCyclesNextNeiBroad);
 	}
 
 }

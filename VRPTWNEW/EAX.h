@@ -430,6 +430,79 @@ public:
 		//return Vec<int>(ret.ve.begin(), ret.ve.begin() + ret.cnt);
 	}
 
+	Solver::Position findBestPosRemoveSubtour(Solver& pc,int w,int wj,DisType deInSub) {
+
+		auto& rtsIndexOrder = myRandX->getMN(pc.rts.cnt, pc.rts.cnt);
+
+		Solver::Position ret;
+
+		for (int i : rtsIndexOrder) {
+
+			Route& rt = pc.rts[i];
+
+			int v = rt.head;
+			int vj = pc.customers[v].next;
+
+			DisType oldrPc = pc.rts[i].rPc;
+			DisType rPc = std::max<DisType>(0, rt.rQ + deInSub - pc.input.Q);
+			rPc = rPc - oldrPc;
+
+			if (rPc > ret.pen) {
+				continue;
+			}
+
+			while (v != -1 && vj != -1) {
+
+				DisType oldrPtw = pc.rts[i].rPtw;
+				
+				pc.customers[v].next = wj;
+				pc.customers[wj].pre = v;
+
+				pc.customers[w].next = vj;
+				pc.customers[vj].pre = w;
+
+				DisType rPtw = pc.getaRangeOffPtw(v, vj);
+
+				rPtw = rPtw - oldrPtw;
+
+				pc.customers[v].next = vj;
+				pc.customers[vj].pre = v;
+
+				pc.customers[w].next = wj;
+				pc.customers[wj].pre = w;
+
+				DisType cost = 
+					pc.input.disOf[pc.reCusNo(v)][pc.reCusNo(wj)]
+					+ pc.input.disOf[pc.reCusNo(w)][pc.reCusNo(vj)]
+					- pc.input.disOf[pc.reCusNo(v)][pc.reCusNo(vj)];
+					-pc.input.disOf[pc.reCusNo(w)][pc.reCusNo(wj)];
+				//LL year = (*yearTable)[reCusNo(w)][reCusNo(v)] + (*yearTable)[reCusNo(w)][reCusNo(vj)];
+				//year >>= 1;
+
+				Solver::Position posTemp;
+				posTemp.rIndex = i;
+				posTemp.cost = cost;
+				posTemp.pen = rPtw + rPc;
+				posTemp.pos = v;
+				//posTemp.year = year;
+				//posTemp.secDis = abs(input.datas[w].polarAngle - input.datas[v].polarAngle);
+
+				if (posTemp.pen < ret.pen) {
+					ret = posTemp;
+				}
+				else if (posTemp.cost < ret.cost) {
+					//if (myRand->pick(100) < 99) {
+					ret = posTemp;
+					//}
+				}
+
+				v = vj;
+				vj = pc.customers[vj].next;
+			}
+		}
+		return ret;
+	}
+
 	int removeSubring(Solver& pc) {
 
 		ConfSet subCyCus(eaxCusCnt +1);
@@ -446,11 +519,7 @@ public:
 				cusSet.ins(c);
 			}
 		}
-
-		for (int i = 0; i < subCyCus.cnt; ++i) {
-			pc.customers[subCyCus.ve[i]].routeID = -1;
-		}
-
+		
 		subCyNum = 0;
 		subCyCusNum = 0;
 		if (subCyCus.cnt == 0) {
@@ -459,41 +528,72 @@ public:
 
 		while (subCyCus.cnt > 0) {
 			++subCyNum;
-			int w = subCyCus.ve[0];
+			int subbegin = subCyCus.ve[0];
 			
-			auto& close =  pc.input.allCloseOf[w];
-			int v = -1;
-			
-			for (int vpos = 0; vpos < pc.input.custCnt; ++vpos) {
-				v = close[vpos];
-				if (pc.customers[v].routeID != -1) {
-					break;
-				}
-			}
+			int w = subbegin;
+			DisType demandInSub = 0;
 
-			int pt = w;
-			Vec<int> onesubcyle;
-			onesubcyle.reserve(eaxCusCnt);
-			
+			Solver::Position posInsert;
 			do {
-				subCyCus.removeVal(pt);
-				onesubcyle.push_back(pt);
-				pt = pc.customers[pt].next;
+				subCyCus.removeVal(w);
+				demandInSub += pc.input.datas[w].DEMAND;
+
+				int wj = pc.customers[w].next;
+				w = wj;
 				++subCyCusNum;
-			} while (pt!=w);
+			} while (w!= subbegin);
 
-			/*Route& rv = pc.rts.getRouteByRid(pc.customers[v].routeID);
-			for (auto pt: onesubcyle) {
-				pc.rInsAtPos(rv, v, pt);
-				v = pt;
-			}*/
+			w = subbegin;
+			int retW = -1;
 
-			for (auto pt : onesubcyle) {
-				//auto bestFitPos = pc.findBestPosInSol(pt);
-				auto bestFitPos = pc.findBestPosForRuin(pt);
-				pc.rInsAtPos(pc.rts[bestFitPos.rIndex], bestFitPos.pos, pt);
-			}
+			do {
 
+				int wj = pc.customers[w].next;
+				auto posT = findBestPosRemoveSubtour(pc, w, wj, demandInSub);
+				if (posT.pen < posInsert.pen) {
+					//debug(posT.pen);
+					//debug(posT.cost);
+					posInsert = posT;
+					retW = w;
+				}
+				else if(posT.cost<posInsert.cost){
+					//debug(posT.pen);
+					//debug(posT.cost);
+					posInsert = posT;
+					retW = w;
+				}
+
+				w = wj;
+			} while (w != subbegin);
+
+			//debug(posInsert.pen);
+			//debug(posInsert.cost);
+			int v = posInsert.pos;
+			int vj = pc.customers[v].next;
+			w = retW;
+			int wj = pc.customers[w].next;
+
+			Route& r = pc.rts.getRouteByRid(pc.customers[v].routeID);
+			pc.customers[v].next = wj;
+			pc.customers[wj].pre = v;
+
+			pc.customers[w].next = vj;
+			pc.customers[vj].pre = w;
+
+			//pc.rUpdateAvQfrom(r,v);
+			//pc.rUpdateZvQfrom(r,vj);
+			
+			//auto oldptw = r.rPtw;
+			//auto oldpc = r.rPc;
+			//auto oldcost = r.routeCost;
+			//pc.rUpdateAvQfrom(r,r.head);
+			//debug(oldptw + oldpc + posInsert.pen == r.rPtw + r.rPc);
+			//debug(oldcost + posInsert.cost == r.routeCost);
+
+			pc.rReCalCusNumAndSetCusrIdWithHeadrId(r);
+			pc.reCalRtsCostAndPen();
+
+			
 		}
 		
 		return subCyNum;
@@ -605,15 +705,18 @@ public:
 
 		int chooseIndex = myRand->pick(abCycleSet.size());
 
+		//debug(abCycleSet[chooseIndex].size());
 		applyCycles({ chooseIndex }, pc);
 
 		pc.reCalRtsCostAndPen();
 		removeSubring(pc);
 		pc.reCalRtsCostAndPen();
 
-		int retIndex = -1;
-
 		if (pc.repair()) {
+			if (pc.RoutesCost == pa.RoutesCost) {
+				//debug("same after repair");
+				return 0;
+			}
 			++repairSolNum;
 			return 1;
 		}
@@ -637,7 +740,6 @@ public:
 
 		int abcyNum = abCycleSet.size();
 
-
 		ConfSet resCycles(abcyNum);
 		for (int i = 0; i < abcyNum; ++i) {
 			resCycles.ins(i);
@@ -652,20 +754,26 @@ public:
 		//std::cout << std::endl;
 
 		//TODO[lyh][001]:最多放置多少个abcycle[2,(abcyNum)/2],pick 是开区间
-		int numABCyUsed = abcyNum;
-		int firstCyIndex = -1;
+		
+		int cnt = 0;
+		int unionIndex = -1;
 		for (int i = 0; i < unionArr.size(); ++i) {
 			if (unionArr[i].size() >= 2) {
-				firstCyIndex = unionArr[i][myRand->pick(unionArr[i].size())];
-				numABCyUsed = std::min<int>(numABCyUsed, unionArr[i].size());
-				break;
+				++cnt;
+				if (myRand->pick(cnt) == 0) {
+					unionIndex = i;
+				}
 			}
 		}
-
-		numABCyUsed = myRand->pick(2,numABCyUsed+1);
-		if (firstCyIndex == -1) {
+		
+		if (unionIndex == -1) {
 			return -1;
 		}
+
+		int firstCyIndex = unionArr[unionIndex][myRand->pick(unionArr[unionIndex].size())];
+		
+		int numABCyUsed = unionArr[unionIndex].size();
+		numABCyUsed = myRand->pick(2,numABCyUsed+1);
 
 		Vec<int> eset = { firstCyIndex };
 		resCycles.removeVal(firstCyIndex);
@@ -723,6 +831,10 @@ public:
 		pc.reCalRtsCostAndPen();
 
 		if (pc.repair()) {
+			if (pc.RoutesCost == pa.RoutesCost) {
+				//debug("same after repair");
+				return 0;
+			}
 			++repairSolNum;
 			return 1;
 		}

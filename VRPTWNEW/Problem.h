@@ -158,9 +158,9 @@ struct Input {
 
 	Vec<int> P;
 
-	Input(Environment& env);
+	Input();
 
-	bool initInput(Environment env);
+	bool initInput();
 
 	bool readDimacsInstance(std::string& instanciaPath);
 

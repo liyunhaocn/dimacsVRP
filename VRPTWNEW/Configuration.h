@@ -16,6 +16,7 @@ struct Configuration {
 	int squIterStepUp = 10;
 
 	int outNeiSize = 100;
+	//int outNeiSize = 50;
 	double broaden = 1.2;
 	int broadenWhenPos_0 = 50;
 
@@ -42,8 +43,9 @@ struct Configuration {
 	
 	//int yearTabuLen = 20;
 	//int yearTabuRand = 10;
-	int popSize = 2;
-	int repairExitStep = 40;
+
+	int popSize = 5;
+	int repairExitStep = 50;
 	int initFindPosPqSize = 20;
 	int findBestPosForRuinPqSize = 10;
 	int findBestPosInSolPqSize = 64;//64
@@ -62,9 +64,6 @@ struct Configuration {
 
 	//ruinLocalSearch
 	int ruinLocalSearchNextNeiBroad = 5;
-
-	//applyCycles
-	int applyCyclesNextNeiBroad = 50;
 
 	int ruinSplitRate = 25; // %100 means ruinSplitRate%
 	int ruinLmax = 20;

@@ -583,7 +583,7 @@ public:
 
 	bool rtsCheck();
 
-	bool rReCalCusNum(Route& r);
+	bool rReCalCusNumAndSetCusrIdWithHeadrId(Route& r);
 
 	bool reCalRtsCostAndPen();
 
