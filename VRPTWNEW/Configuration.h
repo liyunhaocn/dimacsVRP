@@ -66,7 +66,7 @@ struct Configuration {
 	int ruinLocalSearchNextNeiBroad = 5;
 
 	int ruinSplitRate = 25; // %100 means ruinSplitRate%
-	int ruinLmax = 20;
+	int ruinLmax = 100;
 	//(ruinLmax+1)/2
 	int ruinC_ = 15;
 

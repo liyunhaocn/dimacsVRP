@@ -1,7 +1,8 @@
-#include "./Problem.h"
 
 #include <string>
 #include <istream>
+
+#include "Problem.h"
 
 namespace hust {
 
@@ -1003,29 +1004,29 @@ static double getNagataRL(std::string ins) {
 	return 0.0;
 }
 
-bool solveCommandLine(int argc, char* argv[], Configuration* cfg, Environment* env) {
+bool solveCommandLine(int argc, char* argv[]) {
 
 	MyString ms;
 	if (argc >= 2) {
-		cfg->breakRecord = ms.str_int(argv[1]);
+		globalCfg->breakRecord = ms.str_int(argv[1]);
 	}
 
 	if (argc >= 3) {
 		std::string inpath = argv[2];
-		env->setInputPath(inpath);
+		globalEnv->setInputPath(inpath);
 	}
 
 	if (argc >= 4) {
-		cfg->runTimer = ms.str_int(argv[3]);
+		globalCfg->runTimer = ms.str_int(argv[3]);
 	}
 
 	if (argc >= 5) {
-		env->seed = ms.str_int(argv[4]);
+		globalEnv->seed = ms.str_int(argv[4]);
 	}
 	return true;
 }
 
-bool saveSlnFile(Input& input, Output& output, Configuration* cfg, Environment& env) {
+bool saveSlnFile(Input& input, Output& output) {
 
 	DateTime d(time(0));
 	MyString ms;
@@ -1040,15 +1041,15 @@ bool saveSlnFile(Input& input, Output& output, Configuration* cfg, Environment& 
 		}
 	}
 
-	std::string pwe0 = ms.int_str(cfg->Pwei0);
-	std::string pwe1 = ms.int_str(cfg->Pwei1);
-	std::string minKmax = ms.int_str(cfg->minKmax);
-	std::string maxKmax = ms.int_str(cfg->maxKmax);
+	std::string pwe0 = ms.int_str(globalCfg->Pwei0);
+	std::string pwe1 = ms.int_str(globalCfg->Pwei1);
+	std::string minKmax = ms.int_str(globalCfg->minKmax);
+	std::string maxKmax = ms.int_str(globalCfg->maxKmax);
 
 	//std::string type = output.rts.size() < input.sintefRecRN ? "br" : "Ej";
 
 	std::ofstream rgbData;
-	std::string wrPath = env.outputPath + "_" + path + ".csv";
+	std::string wrPath = globalEnv->outputPath + "_" + path + ".csv";
 
 	bool isGood = false;
 	{
@@ -1096,7 +1097,7 @@ bool saveSlnFile(Input& input, Output& output, Configuration* cfg, Environment& 
 	}
 
 	rgbData << ",";
-	rgbData << env.seed;
+	rgbData << globalEnv->seed;
 
 	rgbData << std::endl;
 	rgbData.close();
@@ -1178,7 +1179,7 @@ bool Input::initInput() {
 			return abs(datas[a].polarAngle - datas[v].polarAngle)
 				< abs(datas[b].polarAngle - datas[v].polarAngle);
 		};
-		sort(nums.begin(), nums.end(), cmp);
+		std::sort(nums.begin(), nums.end(), cmp);
 		sectorClose[v] = std::move(nums);
 	}
 
@@ -1211,7 +1212,7 @@ bool Input::initInput() {
 			//return false;
 		};
 
-		sort(nums.begin(), nums.end(), cmp);
+		std::sort(nums.begin(), nums.end(), cmp);
 
 		allCloseOf[v] = std::move(nums);
 	}
@@ -1232,7 +1233,7 @@ bool Input::initInput() {
 
 	iInNeicloseOfUnionNeiCloseOfI = Vec< Vec<int> >(custCnt + 1);
 
-	int deNeiSize = cfg->outNeiSize;
+	int deNeiSize = globalCfg->outNeiSize;
 	deNeiSize = std::min(custCnt - 1, deNeiSize);
 
 	iInNeicloseOf = Vec< Vec<int> >
@@ -1287,7 +1288,7 @@ bool Input::initInput() {
 			}
 
 		};
-		sort(addSTclose[v].begin(), addSTclose[v].end(), cmp);
+		std::sort(addSTclose[v].begin(), addSTclose[v].end(), cmp);
 	}
 
 	addSTJIsxthcloseOf = Vec< Vec<int>>
@@ -1307,6 +1308,9 @@ bool Input::initInput() {
 	naRecRL = getNagataRL(example) * disMul;
 	isOptRL = info.isOpt;
 
+	#if 0
+
+
 	Log(Log::Level::Warning) << "sintefRecRN: " << sintefRecRN << std::endl;
 	Log(Log::Level::Warning) << "sintefRecRL: " << sintefRecRL << std::endl;
 	Log(Log::Level::Warning) << "naRecRL: " << naRecRL << std::endl;
@@ -1314,6 +1318,8 @@ bool Input::initInput() {
 	Log(Log::Level::Warning) << "dimacsRecRL: " << dimacsRecRL << std::endl;
 	Log(Log::Level::Warning) << "isOptRL: " << isOptRL << std::endl;
 	Log(Log::Level::Warning) << "Q: " << Q << std::endl;
+
+	#endif // 0
 
 	return true;
 }

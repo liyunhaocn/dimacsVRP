@@ -125,7 +125,7 @@ static double getSintefRL(std::string& ins);
 
 static double getNagataRL(std::string ins);
 
-bool solveCommandLine(int argc, char* argv[], Configuration* cfg, Environment* env);
+bool solveCommandLine(int argc, char* argv[]);
 
 struct Input {
 
@@ -180,7 +180,7 @@ struct Output
 
 };
 
-bool saveSlnFile(Input& input, Output& output, Configuration* cfg, Environment& env);
+bool saveSlnFile(Input& input, Output& output);
 
 }
 

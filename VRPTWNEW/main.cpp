@@ -29,16 +29,16 @@ bool allocGlobalMem(int argc, char* argv[]) {
 	//globalEnv = new Environment("../Instances/Homberger/RC1_8_3.txt");
 	//globalEnv = new Environment("../Instances/Homberger/RC1_8_1.txt");
 	//globalEnv  = new Environment("../Instances/Homberger/C1_4_2.txt");
-	//globalEnv  = new Environment("../Instances/Homberger/C1_6_6.txt");
+	//globalEnv  = new Environment("../Instances/Homberger/C2_10_6.txt");
 	//globalEnv  = new Environment("../Instances/Homberger/RC1_8_1.txt");
 	// 
 	//75296223
 	globalEnv = new Environment("../Instances/Homberger/RC2_6_4.txt");
 
-	cfg = new hust::Configuration();
+	globalCfg = new hust::Configuration();
 	//lyh::MyString ms;
 
-	solveCommandLine(argc, argv, cfg, globalEnv);
+	solveCommandLine(argc, argv);
 
 	if (globalEnv->seed == -1) {
 		globalEnv->seed = std::time(nullptr) + std::clock();
@@ -47,16 +47,18 @@ bool allocGlobalMem(int argc, char* argv[]) {
 	//globalEnv->seed = 1611589828;
 	//globalEnv->seed = 1611589111;
 	//globalEnv->seed = 1640620823;
+	globalEnv->seed = 1640660545;//RC2_6_4
+
 	globalEnv->show();
-	cfg->show();
+	globalCfg->show();
 
 	myRand = new Random(globalEnv->seed);
 	myRandX = new RandomX(globalEnv->seed);
 
 	globalInput = new Input();
 
-	// TODO[lyh][0]:一定要记得cfg用cusCnt合法化一下
-	cfg->repairByCusCnt(globalInput->custCnt);
+	// TODO[lyh][0]:一定要记得globalCfg用cusCnt合法化一下
+	globalCfg->repairByCusCnt(globalInput->custCnt);
 
 	yearTable = new Vec<Vec<LL> >
 		(globalInput->custCnt + 1, Vec<LL>(globalInput->custCnt + 1, 0));
@@ -69,7 +71,7 @@ bool deallocGlobalMem() {
 	delete myRand;
 	delete myRandX;
 	delete yearTable;
-	delete cfg;
+	delete globalCfg;
 	delete globalEnv;
 	delete globalInput;
 
@@ -80,22 +82,25 @@ struct Goal {
 	
 	Vec<Vec<LL>> eaxYearTable;
 	DisType lyhRec = DisInf;
+	DisType lyhBestOneTurn = DisInf;
+	Vec<Solver> pool;
 
 	Goal() {
 		eaxYearTable = Vec<Vec<LL>>
-		(cfg->popSize, Vec<LL>(cfg->popSize));
+		(globalCfg->popSize, Vec<LL>(globalCfg->popSize));
 		lyhRec = DisInf;
+		lyhBestOneTurn = DisInf;
 	}
 
 	#if 0
 	Vec<int> getpairOfPaPb() {
 
-		int paIndex = myRand->pick(cfg->popSize);
-		int pbIndex = (paIndex + 1) % cfg->popSize;
+		int paIndex = myRand->pick(globalCfg->popSize);
+		int pbIndex = (paIndex + 1) % globalCfg->popSize;
 		int sameNum = 1;
 		int retPbIndex = pbIndex;
-		for (int i = 1; i + 1 < cfg->popSize; ++i) {
-			int newPbIndex = (pbIndex + i) % cfg->popSize;
+		for (int i = 1; i + 1 < globalCfg->popSize; ++i) {
+			int newPbIndex = (pbIndex + i) % globalCfg->popSize;
 
 			if (eaxYearTable[paIndex][newPbIndex]
 				< eaxYearTable[paIndex][pbIndex]) {
@@ -116,11 +121,15 @@ struct Goal {
 	#endif // 0
 
 	bool updateBestSolRec(hust::Solver& pTemp) {
-		if (pTemp.RoutesCost < lyhRec) {
-			lyhRec = pTemp.RoutesCost;
+
+		lyhRec = std::min<DisType>(lyhRec, pTemp.RoutesCost);
+
+		if (pTemp.RoutesCost < lyhBestOneTurn){
+
+			lyhBestOneTurn = pTemp.RoutesCost;
 			//pBest.saveToOutPut();
 			//pBest.saveOutAsSintefFile();
-			//hust::println("cost:", pBest->RoutesCost);
+			//hust::println("cost:", lyhRec);
 			return true;
 		}
 		else {
@@ -135,13 +144,19 @@ struct Goal {
 		
 		EAX eax(pa, pb);
 		eax.generateCycles();
-		Solver paBest = pa;
-		//debug(pa.RoutesCost);
-		//debug(pb.RoutesCost);
 
-		static int genSol = 0;
-		static int repSol = 0;
-		for (int ch = 1; ch <= cfg->naEaxCh; ++ch) {
+		if (eax.abCycleSet.size() == 0) {
+			return -1;
+		}
+
+		Solver paBest = pa;
+
+		//static int genSol = 0;
+		//static int repSol = 0;
+
+		int contiNotRepair = 1;
+
+		for (int ch = 1; ch <= globalCfg->naEaxCh; ++ch) {
 
 			Solver pc = pa;
 			int eaxState = 0;
@@ -153,70 +168,134 @@ struct Goal {
 			}
 
 			if (eaxState==-1) {
-				//println("eaxState==-1,kind",kind);
-				return -1;
-			}
-			if (eax.abCycleSet.size() <= 1) {
-				//println("eax.abCycleSet.size() <= 1,kind", kind);
-				return -1;
-			}
-
-			++genSol;
-			if (eax.repairSolNum == 0) {	
 				eax.generateCycles();
 				continue;
 			}
-			++repSol;
 
+			//++genSol;
+			if (eax.repairSolNum == 0) {	
+				++contiNotRepair;
+				if (contiNotRepair >= 3) {
+					eax.generateCycles();
+				}
+				continue;
+			}
+			else {
+				contiNotRepair = 1;
+			}
+
+			//++repSol;
 			auto newCus = EAX::getDiffCusofPb(pa,pc);
-			double rate = 100 * (pc.RoutesCost - pa.RoutesCost) / pa.RoutesCost;
+			//double rate = 100 * (pc.RoutesCost - pa.RoutesCost) / pa.RoutesCost;
 			//println("kind:", kind,
 			//	"eax.subCyNum:", eax.subCyNum, 
 			//	"eax.subCyCusNum:", eax.subCyCusNum,
 			//	"newSize:",newCus.size(),
 			//	"rate:", rate
 			//);
+
+			//bool
 			if (newCus.size() > 0) {
-				pc.mRLLocalSearch(newCus);
+				pc.mRLLocalSearch(1,newCus);
+				auto cus1 = EAX::getDiffCusofPb(pa, pc);
+				if (cus1.size() == 0) {
+					//debug("pa is same as pa");
+				}
+			}
+			else {
+				//debug("pa is same as pa");
 			}
 			
-			bool up = updateBestSolRec(pc);
-			if (up) {
-				ch = 1;
-				retState = 1;
-				println("cost:", lyhRec, "eax local update,kind:", kind);
-			}
-
 			if (pc.RoutesCost < paBest.RoutesCost) {
 				paBest = pc;
-				//retState = 2;
+				bool up = updateBestSolRec(pc);
+				if (up) {
+					ch = 1;
+					retState = 1;
+				}
+
+				if (pc.RoutesCost == lyhRec) {
+					println("cost:", lyhRec, "bestTurn:", lyhBestOneTurn, "eax local update, kind:", kind, "choosecyIndex:", eax.choosecyIndex, "chooseuId:", eax.unionIndex);
+				}
 			}
+
 		}
-		//println("genSol:", genSol,"repSol:", repSol);
-		pa = paBest;
+
+		if (paBest.RoutesCost < pa.RoutesCost) {
+			pa = paBest;
+		}
 		return retState;
+	}
+
+	bool perturbThePop() {
+
+		auto pertuOrder = Vec<int>(pool.size(), 0);
+		std::iota(pertuOrder.begin(), pertuOrder.end(), 0);
+		std::sort(pertuOrder.begin(), pertuOrder.end(), [&](int x, int y) {
+			return pool[x].RoutesCost < pool[y].RoutesCost;
+		});
+
+		int best = pool[pertuOrder[0]].RoutesCost;
+		if (best != lyhRec) {
+			println("best sol not in pool");
+		}
+
+		for (int peri = 1; peri < pool.size(); ++peri) {
+			int pi = pertuOrder[peri];
+			auto& sol = pool[pi];
+			auto before = sol.RoutesCost;
+			Solver sclone = sol;
+
+			#if 0
+			sclone.resetSol();
+			sclone.initSolution(myRand->pick(5));
+			sclone.adjustRN();
+			sclone.mRLLocalSearch(0, {});
+			sol = sclone;
+			#else		
+			//sclone.saveOutAsSintefFile();
+			for (int i = 0; i < 10; ++i) {
+				//int kind = myRand->pick(3);
+				sclone.perturbBaseRuin(3, 2*globalCfg->ruinC_);
+
+				if (sclone.RoutesCost * 100 >= sol.RoutesCost * 110
+					&& sclone.RoutesCost * 100 <= sol.RoutesCost * 120) {
+					sol = sclone;
+					//sclone.saveOutAsSintefFile("p");
+					break;
+				}
+				else {
+					sclone = sol;
+				}
+			}
+			#endif // 0
+
+			auto after = sol.RoutesCost;
+			println("before:", before, "after:", after);
+		}
+		return true;
 	}
 
 	bool solverByEAX() {
 
 		lyhRec = DisInf;
+		lyhBestOneTurn = DisInf;
 
-		Timer t1(cfg->runTimer);
-		t1.setLenUseSecond(cfg->runTimer);
+		Timer t1(globalCfg->runTimer);
+		t1.setLenUseSecond(globalCfg->runTimer);
 		t1.reStart();
 
-		Vec<Solver> pool;
-		pool.reserve(cfg->popSize);
+		pool.reserve(globalCfg->popSize);
 
-		for (int i = 0; i < cfg->popSize; ++i) {
-			Environment envt = *globalEnv;
-			envt.seed = (globalEnv->seed % Mod) + ((i + 1) * (myRand->pick(10000007))) % Mod;
+		for (int i = 0; i < globalCfg->popSize; ++i) {
+
 			Solver st(*globalInput);
-			st.initSolution(0);
+			int initKind = myRand->pick(5);
+			st.initSolution(initKind);
 
 			st.adjustRN();
-			//saveSlnFile(input, pBest.output, cfg, globalEnv);
-			st.mRLLocalSearch({});
+			//saveSlnFile(input, pBest.output, globalCfg, globalEnv);
+			st.mRLLocalSearch(0,{});
 			st.ruinLocalSearch(2);
 			updateBestSolRec(st);
 			pool.push_back(st);
@@ -224,7 +303,7 @@ struct Goal {
 
 		//LL MAiter = 0;
 
-		Vec<int> solConti(cfg->popSize, 1);
+		Vec<int> solConti(globalCfg->popSize, 1);
 
 		int contiNotDown = 1;
 		int strategy = 0;
@@ -246,40 +325,16 @@ struct Goal {
 			}
 
 			if (strategy == 2) {
+				
+				lyhBestOneTurn = DisInf;
 
-				auto pertuOrder = Vec<int>(pool.size(), 0);
-				std::iota(pertuOrder.begin(), pertuOrder.end(),0);
-				sort(pertuOrder.begin(), pertuOrder.end(), [&](int x,int y) {
-					return pool[x].RoutesCost < pool[y].RoutesCost;
-				});
+				perturbThePop();
 
-				for (int peri = 0; peri < pool.size(); ++peri) {
-					int pi = pertuOrder[peri];
-					auto& sol = pool[pi];
-					auto before = sol.RoutesCost;
-					Solver sclone = sol;
-					
-					for (int i = 0; i < 10; ++i) {
-						int kind = myRand->pick(3);
-						sclone.perturbBaseRuin(kind, cfg->ruinC_);
-						if (sclone.RoutesCost * 100 >= sol.RoutesCost * 105
-							&& sclone.RoutesCost * 100 <= sol.RoutesCost * 110) {
-							sol = sclone;
-							break;
-						}
-						else {
-							sclone = sol;
-						}
-					}
-						
-					auto after = sol.RoutesCost;
-					println("before:",before, "after:", after);
-				}
 				contiNotDown = 100;
 				continue;
 			}
 
-			int popSize = cfg->popSize;
+			int popSize = globalCfg->popSize;
 
 			auto& papbOrder = myRandX->getMN(popSize, popSize);
 			unsigned shuseed = (globalEnv->seed % hust::Mod) + ((hust::myRand->pick(10000007))) % hust::Mod;
@@ -292,54 +347,15 @@ struct Goal {
 				Solver& pa = pool[paIndex];
 				Solver& pb = pool[pbIndex];
 
-				//println("paIndex:", paIndex);
-				//println("pbIndex:", pbIndex);
-				//bool ruina = pa.ruinLocalSearch(1);
-				//bool ruinb = pb.ruinLocalSearch(1);
-				//if (updateBestSolRec(pa)) {
-				//	println("cost:", lyhRec, "ruin a update");
-				//}
-				//if (updateBestSolRec(pb)) {
-				//	println("cost:", lyhRec, "ruin b update");
-				//}
-
 				int isabState = doTwoKindEAX(pa, pb, strategy);
 				//println("isabState:", isabState);
 				if (isabState == 1) {
 					contiNotDown = 1;
 				}
-				else if(isabState == 0){
-					++contiNotDown;
-				}
-				else if (isabState == 2) {
-					++contiNotDown;
-					//debug(isabState);
-				}
-				else if(isabState==-1){
+				else {// 0 -1
 					++contiNotDown;
 				}
 				
-				#if 1
-				if (isabState == -1) {
-					Solver& bad = pa.RoutesCost > pb.RoutesCost ? pa : pb;
-					Solver badclone = bad;
-
-					bad.patternAdjustment(30);
-					//bad.reCalRtsCostAndPen();
-					int abcyNum = EAX::getabCyNum(bad, badclone);
-					//if (abcyNum >= 2) {
-					//	debug(abcyNum);
-					//}
-
-					auto diffcuses = EAX::getDiffCusofPb(bad, badclone);
-					bad.mRLLocalSearch(diffcuses);
-					bad.ruinLocalSearch(1);
-					if (updateBestSolRec(bad)) {
-						contiNotDown = 1;
-						println("cost:", lyhRec, "patternAdjustment bad update");
-					}
-				}
-				#endif // 1
 			}
 
 		}
@@ -354,7 +370,7 @@ struct Goal {
 
 		Output output = pool[minRli].saveToOutPut();
 		output.runTime = t1.getRunTime();
-		saveSlnFile(*globalInput, output, cfg, *globalEnv);
+		saveSlnFile(*globalInput, output);
 		t1.disp();
 
 		return true;
@@ -362,8 +378,8 @@ struct Goal {
 
 	bool justLocalSearch() {
 
-		Timer t1(cfg->runTimer);
-		t1.setLenUseSecond(cfg->runTimer);
+		Timer t1(globalCfg->runTimer);
+		t1.setLenUseSecond(globalCfg->runTimer);
 		t1.reStart();
 
 		Solver st(*globalInput);
@@ -372,7 +388,7 @@ struct Goal {
 
 		st.adjustRN();
 		//st.saveOutAsSintefFile("minR");
-		st.mRLLocalSearch({});
+		st.mRLLocalSearch(0,{});
 
 		//std::fill(globalInput->P.begin(), globalInput->P.end(), 1);
 		auto pBest = st;
@@ -386,22 +402,19 @@ struct Goal {
 		#endif // DIMACSGO
 
 			st = pBest;
-			int c_ = std::min<int>(cfg->ruinC_,contiNotDown);
+			int c_ = std::min<int>(globalCfg->ruinC_,contiNotDown);
 
 			if (contiNotDown % 100 == 0) {
 				st.patternAdjustment(30);
-				st.mRLLocalSearch({});
+				st.mRLLocalSearch(0,{});
 			}
 			else {
 				st.ruinLocalSearch(c_);
 			}
 			
 			bool up2 = updateBestSolRec(st);
-
-			
-
 			if (up2) {
-				println("cost:", lyhRec);
+				println("cost:", lyhRec, "bestTurn:", lyhBestOneTurn);
 			}
 			if (st.RoutesCost < pBest.RoutesCost) {
 				pBest = st;
@@ -416,7 +429,7 @@ struct Goal {
 
 		Output output = pBest.saveToOutPut();
 		output.runTime = t1.getRunTime();
-		saveSlnFile(*globalInput, output, cfg, *globalEnv);
+		saveSlnFile(*globalInput, output);
 		t1.disp();
 
 		return true;
@@ -437,6 +450,7 @@ int main(int argc, char* argv[])
 
 	hust::allocGlobalMem(argc, argv);
 	hust::Goal goal;
+
 	//goal.justLocalSearch(); 
 	goal.solverByEAX(); 
 	hust::deallocGlobalMem();

@@ -3,7 +3,7 @@
 
 #include <iostream>
 //#include "./Flag.h"
-#include "./Utility.h"
+#include "Utility.h"
 
 namespace hust {
 

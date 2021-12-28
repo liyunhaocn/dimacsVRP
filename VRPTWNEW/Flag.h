@@ -1,12 +1,12 @@
 #ifndef vrptwNew_FLAG_H
 #define vrptwNew_FLAG_H
 
-#include <float.h>
 #include <vector>
 #include <unordered_map>
 #include <unordered_set>
 #include <numeric>
 #include <iostream>
+#include <list>
 
 #define DIMACSGO 0
 #define ATTRIBUTETABU 1
@@ -78,7 +78,7 @@ struct Input;
 extern Random* myRand;
 extern RandomX* myRandX;
 extern Vec<Vec<LL>>* yearTable;
-extern Configuration* cfg;
+extern Configuration* globalCfg;
 extern Environment* globalEnv;
 extern Input* globalInput;
 

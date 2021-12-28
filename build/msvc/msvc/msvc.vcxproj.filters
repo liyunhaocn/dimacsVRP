@@ -48,5 +48,8 @@
     <ClCompile Include="..\..\..\VRPTWNEW\Environment.cpp">
       <Filter>src</Filter>
     </ClCompile>
+    <ClCompile Include="..\..\..\VRPTWNEW\EAX.cpp">
+      <Filter>src</Filter>
+    </ClCompile>
   </ItemGroup>
 </Project>

@@ -1,5 +1,6 @@
-#include "./Solver.h"
-#include "./EAX.h"
+
+#include "Solver.h"
+#include "EAX.h"
 
 namespace hust{
 
@@ -20,13 +21,13 @@ bool Solver::initEPr() {
 	return true;
 }
 
-inline int Solver::reCusNo(int x) {
+int Solver::reCusNo(int x) {
 	return x <= input.custCnt ? x : 0;
 }
 
 Solver::Solver(Input& input) :
 	input(input),
-	lyhTimer(cfg->runTimer),
+	lyhTimer(globalCfg->runTimer),
 	PtwConfRts(input.custCnt),
 	PcConfRts(input.custCnt),
 	rts(input.custCnt)
@@ -654,7 +655,7 @@ Solver::Position Solver::findBestPosInSol(int w) {
 
 		if (pos.pen <= qu.top().pen) {
 			qu.push(pos);
-			if (qu.size() < cfg->findBestPosInSolPqSize) {
+			if (qu.size() < globalCfg->findBestPosInSolPqSize) {
 				;
 			}
 			else {
@@ -820,7 +821,7 @@ Solver::Position Solver::findBestPosInSolForInit(int w) {
 	};
 
 	std::priority_queue<Position, Vec<Position>, decltype(cmp)> qu(cmp);
-	int quMax = cfg->initFindPosPqSize;
+	int quMax = globalCfg->initFindPosPqSize;
 
 	auto quPush = [&qu, &quMax](Position& p) {
 		qu.push(p);
@@ -846,8 +847,6 @@ Solver::Position Solver::findBestPosInSolForInit(int w) {
 		while (v != -1 && vj != -1) {
 
 			DisType rtPtw = 0;
-			
-
 			rtPtw += customers[v].TW_X;
 			rtPtw += customers[vj].TWX_;
 
@@ -870,6 +869,7 @@ Solver::Position Solver::findBestPosInSolForInit(int w) {
 				+ input.disOf[reCusNo(w)][reCusNo(vj)]
 				- input.disOf[reCusNo(vj)][reCusNo(v)];
 
+			//println("w:",w,"cost:",cost,"rtPtw:",rtPtw,"rtPc:",rtPc);
 			//input.disOf[0][reCusNo(v)] 
 			//+ input.disOf[0][w]
 			//- input.disOf[reCusNo(w)][reCusNo(v)]
@@ -905,7 +905,7 @@ Solver::Position Solver::findBestPosInSolForInit(int w) {
 	return bestPos;
 }
 
-bool Solver::initBySecOrder() {
+bool Solver::initBySecOrder(int kind) {
 
 	Vec<int>que1(input.custCnt);
 	std::iota(que1.begin(), que1.end(), 1);
@@ -919,13 +919,38 @@ bool Solver::initBySecOrder() {
 	//	auto cmp = [&](int x, int y) {
 	//		return input.datas[x].polarAngle < input.datas[y].polarAngle;
 	//	};
-	//	sort(que1.begin(), que1.end(), cmp);
+	//	std::sort(que1.begin(), que1.end(), cmp);
 	//}
 
-	auto cmp1 = [&](int x, int y) {
+	auto cmp0 = [&](int x, int y) {
 		return input.datas[x].polarAngle < input.datas[y].polarAngle;
 	};
-	sort(que1.begin(), que1.end(), cmp1);
+	
+	auto cmp1 = [&](int x, int y) {
+		return input.datas[x].DEMAND > input.datas[y].DEMAND;
+	};
+
+	auto cmp2 = [&](int x, int y) {
+		return input.datas[x].READYTIME > input.datas[y].READYTIME;
+	};
+	
+	auto cmp3 = [&](int x, int y) {
+		return input.datas[x].DUEDATE < input.datas[y].DUEDATE;
+	};
+	
+	
+	if (kind == 0) {
+		std::sort(que1.begin(), que1.end(), cmp0);
+	}
+	else if (kind == 1) {
+		std::sort(que1.begin(), que1.end(), cmp1);
+	}
+	else if (kind == 2) {
+		std::sort(que1.begin(), que1.end(), cmp2);
+	}
+	else if (kind == 3) {
+		std::sort(que1.begin(), que1.end(), cmp3);
+	}
 
 	//unsigned shuseed = (globalEnv.seed % hust::Mod) + ((hust::myRand->pick(10000007))) % hust::Mod;
 	//std::shuffle(que1.begin(), que1.end(), std::default_random_engine(shuseed));
@@ -943,7 +968,7 @@ bool Solver::initBySecOrder() {
 	for (int i = 0; i < input.custCnt; ++i) {
 		indexBeg += deltstep;
 		int tp = que1[indexBeg % input.custCnt];
-		//Position bestP = findBestPosInSolForInit(tp);
+		
 		Position bestP = findBestPosInSolForInit(tp);
 
 		if (bestP.rIndex != -1 && bestP.pen == 0) {
@@ -967,9 +992,7 @@ bool Solver::initBySecOrder() {
 		rReCalRCost(r);
 	}
 	sumRtsPen();
-	//saveOutAsSintefFile();
-	//patternAdjustment(input.custCnt);
-	//saveOutAsSintefFile();
+
 	return true;
 }
 
@@ -987,7 +1010,7 @@ bool Solver::initMaxRoute() {
 	/*auto cmp = [&](int x, int y) {
 		return input.datas[x].DUEDATE < input.datas[y].DUEDATE;
 	};
-	sort(que1.begin(), que1.end(), cmp);*/
+	std::sort(que1.begin(), que1.end(), cmp);*/
 
 	int rid = 0;
 
@@ -1067,13 +1090,13 @@ bool Solver::initByArr2(Vec < Vec<int>> arr2) {
 
 bool Solver::initSolution(int kind) {
 
-	if (kind == 0) {
-		return initBySecOrder();
+	if (kind <= 3) {
+		return initBySecOrder(kind);
 	}
-	else if (kind == 1) {
+	else{
 		return initMaxRoute();
 	}
-	return false;
+	return true;
 }
 
 bool Solver::EPrReset() {
@@ -4283,8 +4306,8 @@ bool Solver::updateYearTable(TwoNodeMove& t) {
 		int wj = customers[w].next > input.custCnt ? 0 : customers[w].next;
 		int v_ = customers[v].pre > input.custCnt ? 0 : customers[v].pre;
 
-		(*yearTable)[v_][v] = squIter + cfg->yearTabuLen + myRand->pick(cfg->yearTabuRand);
-		(*yearTable)[w][wj] = squIter + cfg->yearTabuLen + myRand->pick(cfg->yearTabuRand);
+		(*yearTable)[v_][v] = squIter + globalCfg->yearTabuLen + myRand->pick(globalCfg->yearTabuRand);
+		(*yearTable)[w][wj] = squIter + globalCfg->yearTabuLen + myRand->pick(globalCfg->yearTabuRand);
 
 	}
 	else if (t.kind == 1) {
@@ -4292,8 +4315,8 @@ bool Solver::updateYearTable(TwoNodeMove& t) {
 		int w_ = customers[w].pre > input.custCnt ? 0 : customers[w].pre;
 		int vj = customers[v].next > input.custCnt ? 0 : customers[v].next;
 
-		(*yearTable)[v][vj] = squIter + cfg->yearTabuLen + myRand->pick(cfg->yearTabuRand);
-		(*yearTable)[w_][w] = squIter + cfg->yearTabuLen + myRand->pick(cfg->yearTabuRand);
+		(*yearTable)[v][vj] = squIter + globalCfg->yearTabuLen + myRand->pick(globalCfg->yearTabuRand);
+		(*yearTable)[w_][w] = squIter + globalCfg->yearTabuLen + myRand->pick(globalCfg->yearTabuRand);
 
 	}
 	else if (t.kind == 2) {
@@ -4302,9 +4325,9 @@ bool Solver::updateYearTable(TwoNodeMove& t) {
 		int v_ = customers[v].pre > input.custCnt ? 0 : customers[v].pre;
 		int vj = customers[v].next > input.custCnt ? 0 : customers[v].next;
 
-		(*yearTable)[v][vj] = squIter + cfg->yearTabuLen + myRand->pick(cfg->yearTabuRand);
-		(*yearTable)[v_][v] = squIter + cfg->yearTabuLen + myRand->pick(cfg->yearTabuRand);
-		(*yearTable)[w_][w] = squIter + cfg->yearTabuLen + myRand->pick(cfg->yearTabuRand);
+		(*yearTable)[v][vj] = squIter + globalCfg->yearTabuLen + myRand->pick(globalCfg->yearTabuRand);
+		(*yearTable)[v_][v] = squIter + globalCfg->yearTabuLen + myRand->pick(globalCfg->yearTabuRand);
+		(*yearTable)[w_][w] = squIter + globalCfg->yearTabuLen + myRand->pick(globalCfg->yearTabuRand);
 
 	}
 	else if (t.kind == 3) {
@@ -4313,9 +4336,9 @@ bool Solver::updateYearTable(TwoNodeMove& t) {
 		int v_ = customers[v].pre > input.custCnt ? 0 : customers[v].pre;
 		int vj = customers[v].next > input.custCnt ? 0 : customers[v].next;
 
-		(*yearTable)[v][vj] = squIter + cfg->yearTabuLen + myRand->pick(cfg->yearTabuRand);
-		(*yearTable)[v_][v] = squIter + cfg->yearTabuLen + myRand->pick(cfg->yearTabuRand);
-		(*yearTable)[w][wj] = squIter + cfg->yearTabuLen + myRand->pick(cfg->yearTabuRand);
+		(*yearTable)[v][vj] = squIter + globalCfg->yearTabuLen + myRand->pick(globalCfg->yearTabuRand);
+		(*yearTable)[v_][v] = squIter + globalCfg->yearTabuLen + myRand->pick(globalCfg->yearTabuRand);
+		(*yearTable)[w][wj] = squIter + globalCfg->yearTabuLen + myRand->pick(globalCfg->yearTabuRand);
 
 	}
 	else if (t.kind == 4) {
@@ -4325,9 +4348,9 @@ bool Solver::updateYearTable(TwoNodeMove& t) {
 		int wj = customers[w].next > input.custCnt ? 0 : customers[w].next;
 		int v_ = customers[v].pre > input.custCnt ? 0 : customers[v].pre;
 
-		(*yearTable)[w][wj] = squIter + cfg->yearTabuLen + myRand->pick(cfg->yearTabuRand);
-		(*yearTable)[w_][w] = squIter + cfg->yearTabuLen + myRand->pick(cfg->yearTabuRand);
-		(*yearTable)[v_][v] = squIter + cfg->yearTabuLen + myRand->pick(cfg->yearTabuRand);
+		(*yearTable)[w][wj] = squIter + globalCfg->yearTabuLen + myRand->pick(globalCfg->yearTabuRand);
+		(*yearTable)[w_][w] = squIter + globalCfg->yearTabuLen + myRand->pick(globalCfg->yearTabuRand);
+		(*yearTable)[v_][v] = squIter + globalCfg->yearTabuLen + myRand->pick(globalCfg->yearTabuRand);
 
 	}
 	else if (t.kind == 5) {
@@ -4337,9 +4360,9 @@ bool Solver::updateYearTable(TwoNodeMove& t) {
 		int wj = customers[w].next > input.custCnt ? 0 : customers[w].next;
 		int vj = customers[v].next > input.custCnt ? 0 : customers[v].next;
 
-		(*yearTable)[v][vj] = squIter + cfg->yearTabuLen + myRand->pick(cfg->yearTabuRand);
-		(*yearTable)[w_][w] = squIter + cfg->yearTabuLen + myRand->pick(cfg->yearTabuRand);
-		(*yearTable)[w][wj] = squIter + cfg->yearTabuLen + myRand->pick(cfg->yearTabuRand);
+		(*yearTable)[v][vj] = squIter + globalCfg->yearTabuLen + myRand->pick(globalCfg->yearTabuRand);
+		(*yearTable)[w_][w] = squIter + globalCfg->yearTabuLen + myRand->pick(globalCfg->yearTabuRand);
+		(*yearTable)[w][wj] = squIter + globalCfg->yearTabuLen + myRand->pick(globalCfg->yearTabuRand);
 
 	}
 	else if (t.kind == 6) {
@@ -4357,27 +4380,27 @@ bool Solver::updateYearTable(TwoNodeMove& t) {
 
 			if (v == w__) {
 
-				(*yearTable)[v_][v] = squIter + cfg->yearTabuLen + myRand->pick(cfg->yearTabuRand);
-				(*yearTable)[v][vj] = squIter + cfg->yearTabuLen + myRand->pick(cfg->yearTabuRand);
-				(*yearTable)[w_][w] = squIter + cfg->yearTabuLen + myRand->pick(cfg->yearTabuRand);
+				(*yearTable)[v_][v] = squIter + globalCfg->yearTabuLen + myRand->pick(globalCfg->yearTabuRand);
+				(*yearTable)[v][vj] = squIter + globalCfg->yearTabuLen + myRand->pick(globalCfg->yearTabuRand);
+				(*yearTable)[w_][w] = squIter + globalCfg->yearTabuLen + myRand->pick(globalCfg->yearTabuRand);
 
 			}
 			else {
 
-				(*yearTable)[v_][v] = squIter + cfg->yearTabuLen + myRand->pick(cfg->yearTabuRand);
-				(*yearTable)[v][vj] = squIter + cfg->yearTabuLen + myRand->pick(cfg->yearTabuRand);
-				(*yearTable)[w__][w_] = squIter + cfg->yearTabuLen + myRand->pick(cfg->yearTabuRand);
-				(*yearTable)[w_][w] = squIter + cfg->yearTabuLen + myRand->pick(cfg->yearTabuRand);
+				(*yearTable)[v_][v] = squIter + globalCfg->yearTabuLen + myRand->pick(globalCfg->yearTabuRand);
+				(*yearTable)[v][vj] = squIter + globalCfg->yearTabuLen + myRand->pick(globalCfg->yearTabuRand);
+				(*yearTable)[w__][w_] = squIter + globalCfg->yearTabuLen + myRand->pick(globalCfg->yearTabuRand);
+				(*yearTable)[w_][w] = squIter + globalCfg->yearTabuLen + myRand->pick(globalCfg->yearTabuRand);
 
 			}
 
 		}
 		else {
 
-			(*yearTable)[v_][v] = squIter + cfg->yearTabuLen + myRand->pick(cfg->yearTabuRand);
-			(*yearTable)[v][vj] = squIter + cfg->yearTabuLen + myRand->pick(cfg->yearTabuRand);
-			(*yearTable)[w__][w_] = squIter + cfg->yearTabuLen + myRand->pick(cfg->yearTabuRand);
-			(*yearTable)[w_][w] = squIter + cfg->yearTabuLen + myRand->pick(cfg->yearTabuRand);
+			(*yearTable)[v_][v] = squIter + globalCfg->yearTabuLen + myRand->pick(globalCfg->yearTabuRand);
+			(*yearTable)[v][vj] = squIter + globalCfg->yearTabuLen + myRand->pick(globalCfg->yearTabuRand);
+			(*yearTable)[w__][w_] = squIter + globalCfg->yearTabuLen + myRand->pick(globalCfg->yearTabuRand);
+			(*yearTable)[w_][w] = squIter + globalCfg->yearTabuLen + myRand->pick(globalCfg->yearTabuRand);
 
 		}
 
@@ -4400,27 +4423,27 @@ bool Solver::updateYearTable(TwoNodeMove& t) {
 			}
 			else if (v == wjj) {
 
-				(*yearTable)[v_][v] = squIter + cfg->yearTabuLen + myRand->pick(cfg->yearTabuRand);
-				(*yearTable)[v][vj] = squIter + cfg->yearTabuLen + myRand->pick(cfg->yearTabuRand);
-				(*yearTable)[w][wj] = squIter + cfg->yearTabuLen + myRand->pick(cfg->yearTabuRand);
+				(*yearTable)[v_][v] = squIter + globalCfg->yearTabuLen + myRand->pick(globalCfg->yearTabuRand);
+				(*yearTable)[v][vj] = squIter + globalCfg->yearTabuLen + myRand->pick(globalCfg->yearTabuRand);
+				(*yearTable)[w][wj] = squIter + globalCfg->yearTabuLen + myRand->pick(globalCfg->yearTabuRand);
 
 			}
 			else {
 
-				(*yearTable)[v_][v] = squIter + cfg->yearTabuLen + myRand->pick(cfg->yearTabuRand);
-				(*yearTable)[v][vj] = squIter + cfg->yearTabuLen + myRand->pick(cfg->yearTabuRand);
-				(*yearTable)[w][wj] = squIter + cfg->yearTabuLen + myRand->pick(cfg->yearTabuRand);
-				(*yearTable)[wj][wjj] = squIter + cfg->yearTabuLen + myRand->pick(cfg->yearTabuRand);
+				(*yearTable)[v_][v] = squIter + globalCfg->yearTabuLen + myRand->pick(globalCfg->yearTabuRand);
+				(*yearTable)[v][vj] = squIter + globalCfg->yearTabuLen + myRand->pick(globalCfg->yearTabuRand);
+				(*yearTable)[w][wj] = squIter + globalCfg->yearTabuLen + myRand->pick(globalCfg->yearTabuRand);
+				(*yearTable)[wj][wjj] = squIter + globalCfg->yearTabuLen + myRand->pick(globalCfg->yearTabuRand);
 
 			}
 
 		}
 		else {
 
-			(*yearTable)[v_][v] = squIter + cfg->yearTabuLen + myRand->pick(cfg->yearTabuRand);
-			(*yearTable)[v][vj] = squIter + cfg->yearTabuLen + myRand->pick(cfg->yearTabuRand);
-			(*yearTable)[w][wj] = squIter + cfg->yearTabuLen + myRand->pick(cfg->yearTabuRand);
-			(*yearTable)[wj][wjj] = squIter + cfg->yearTabuLen + myRand->pick(cfg->yearTabuRand);
+			(*yearTable)[v_][v] = squIter + globalCfg->yearTabuLen + myRand->pick(globalCfg->yearTabuRand);
+			(*yearTable)[v][vj] = squIter + globalCfg->yearTabuLen + myRand->pick(globalCfg->yearTabuRand);
+			(*yearTable)[w][wj] = squIter + globalCfg->yearTabuLen + myRand->pick(globalCfg->yearTabuRand);
+			(*yearTable)[wj][wjj] = squIter + globalCfg->yearTabuLen + myRand->pick(globalCfg->yearTabuRand);
 
 		}
 
@@ -4440,34 +4463,34 @@ bool Solver::updateYearTable(TwoNodeMove& t) {
 
 			if (v_ == w) {
 
-				(*yearTable)[v_][v] = squIter + cfg->yearTabuLen + myRand->pick(cfg->yearTabuRand);
-				(*yearTable)[v][vj] = squIter + cfg->yearTabuLen + myRand->pick(cfg->yearTabuRand);
-				(*yearTable)[w_][w] = squIter + cfg->yearTabuLen + myRand->pick(cfg->yearTabuRand);
+				(*yearTable)[v_][v] = squIter + globalCfg->yearTabuLen + myRand->pick(globalCfg->yearTabuRand);
+				(*yearTable)[v][vj] = squIter + globalCfg->yearTabuLen + myRand->pick(globalCfg->yearTabuRand);
+				(*yearTable)[w_][w] = squIter + globalCfg->yearTabuLen + myRand->pick(globalCfg->yearTabuRand);
 
 			}
 			else if (w_ == v) {
 
-				(*yearTable)[v_][v] = squIter + cfg->yearTabuLen + myRand->pick(cfg->yearTabuRand);
-				(*yearTable)[w_][w] = squIter + cfg->yearTabuLen + myRand->pick(cfg->yearTabuRand);
-				(*yearTable)[w][wj] = squIter + cfg->yearTabuLen + myRand->pick(cfg->yearTabuRand);
+				(*yearTable)[v_][v] = squIter + globalCfg->yearTabuLen + myRand->pick(globalCfg->yearTabuRand);
+				(*yearTable)[w_][w] = squIter + globalCfg->yearTabuLen + myRand->pick(globalCfg->yearTabuRand);
+				(*yearTable)[w][wj] = squIter + globalCfg->yearTabuLen + myRand->pick(globalCfg->yearTabuRand);
 
 			}
 			else {
 
-				(*yearTable)[v_][v] = squIter + cfg->yearTabuLen + myRand->pick(cfg->yearTabuRand);
-				(*yearTable)[v][vj] = squIter + cfg->yearTabuLen + myRand->pick(cfg->yearTabuRand);
-				(*yearTable)[w_][w] = squIter + cfg->yearTabuLen + myRand->pick(cfg->yearTabuRand);
-				(*yearTable)[w][wj] = squIter + cfg->yearTabuLen + myRand->pick(cfg->yearTabuRand);
+				(*yearTable)[v_][v] = squIter + globalCfg->yearTabuLen + myRand->pick(globalCfg->yearTabuRand);
+				(*yearTable)[v][vj] = squIter + globalCfg->yearTabuLen + myRand->pick(globalCfg->yearTabuRand);
+				(*yearTable)[w_][w] = squIter + globalCfg->yearTabuLen + myRand->pick(globalCfg->yearTabuRand);
+				(*yearTable)[w][wj] = squIter + globalCfg->yearTabuLen + myRand->pick(globalCfg->yearTabuRand);
 
 			}
 
 		}
 		else {
 
-			(*yearTable)[v_][v] = squIter + cfg->yearTabuLen + myRand->pick(cfg->yearTabuRand);
-			(*yearTable)[v][vj] = squIter + cfg->yearTabuLen + myRand->pick(cfg->yearTabuRand);
-			(*yearTable)[w_][w] = squIter + cfg->yearTabuLen + myRand->pick(cfg->yearTabuRand);
-			(*yearTable)[w][wj] = squIter + cfg->yearTabuLen + myRand->pick(cfg->yearTabuRand);
+			(*yearTable)[v_][v] = squIter + globalCfg->yearTabuLen + myRand->pick(globalCfg->yearTabuRand);
+			(*yearTable)[v][vj] = squIter + globalCfg->yearTabuLen + myRand->pick(globalCfg->yearTabuRand);
+			(*yearTable)[w_][w] = squIter + globalCfg->yearTabuLen + myRand->pick(globalCfg->yearTabuRand);
+			(*yearTable)[w][wj] = squIter + globalCfg->yearTabuLen + myRand->pick(globalCfg->yearTabuRand);
 
 		}
 
@@ -4485,10 +4508,10 @@ bool Solver::updateYearTable(TwoNodeMove& t) {
 		int wj = customers[w].next > input.custCnt ? 0 : customers[w].next;
 		int wjj = customers[wj].next > input.custCnt ? 0 : customers[wj].next;
 
-		(*yearTable)[v_][v] = squIter + cfg->yearTabuLen + myRand->pick(cfg->yearTabuRand);
-		(*yearTable)[vjj][v3j] = squIter + cfg->yearTabuLen + myRand->pick(cfg->yearTabuRand);
-		(*yearTable)[w_][w] = squIter + cfg->yearTabuLen + myRand->pick(cfg->yearTabuRand);
-		(*yearTable)[wj][wjj] = squIter + cfg->yearTabuLen + myRand->pick(cfg->yearTabuRand);
+		(*yearTable)[v_][v] = squIter + globalCfg->yearTabuLen + myRand->pick(globalCfg->yearTabuRand);
+		(*yearTable)[vjj][v3j] = squIter + globalCfg->yearTabuLen + myRand->pick(globalCfg->yearTabuRand);
+		(*yearTable)[w_][w] = squIter + globalCfg->yearTabuLen + myRand->pick(globalCfg->yearTabuRand);
+		(*yearTable)[wj][wjj] = squIter + globalCfg->yearTabuLen + myRand->pick(globalCfg->yearTabuRand);
 
 
 	}
@@ -4504,10 +4527,10 @@ bool Solver::updateYearTable(TwoNodeMove& t) {
 		int w_ = customers[w].pre > input.custCnt ? 0 : customers[w].pre;
 		int wj = customers[w].next > input.custCnt ? 0 : customers[w].next;
 
-		(*yearTable)[v_][v] = squIter + cfg->yearTabuLen + myRand->pick(cfg->yearTabuRand);
-		(*yearTable)[vjj][v3j] = squIter + cfg->yearTabuLen + myRand->pick(cfg->yearTabuRand);
-		(*yearTable)[w_][w] = squIter + cfg->yearTabuLen + myRand->pick(cfg->yearTabuRand);
-		(*yearTable)[w][wj] = squIter + cfg->yearTabuLen + myRand->pick(cfg->yearTabuRand);
+		(*yearTable)[v_][v] = squIter + globalCfg->yearTabuLen + myRand->pick(globalCfg->yearTabuRand);
+		(*yearTable)[vjj][v3j] = squIter + globalCfg->yearTabuLen + myRand->pick(globalCfg->yearTabuRand);
+		(*yearTable)[w_][w] = squIter + globalCfg->yearTabuLen + myRand->pick(globalCfg->yearTabuRand);
+		(*yearTable)[w][wj] = squIter + globalCfg->yearTabuLen + myRand->pick(globalCfg->yearTabuRand);
 
 	}
 	else if (t.kind == 11) {
@@ -4519,10 +4542,10 @@ bool Solver::updateYearTable(TwoNodeMove& t) {
 		int w_ = customers[w].pre > input.custCnt ? 0 : customers[w].pre;
 		int wj = customers[w].next > input.custCnt ? 0 : customers[w].next;
 
-		(*yearTable)[v_][v] = squIter + cfg->yearTabuLen + myRand->pick(cfg->yearTabuRand);
-		(*yearTable)[vj][vjj] = squIter + cfg->yearTabuLen + myRand->pick(cfg->yearTabuRand);
-		(*yearTable)[w_][w] = squIter + cfg->yearTabuLen + myRand->pick(cfg->yearTabuRand);
-		(*yearTable)[w][wj] = squIter + cfg->yearTabuLen + myRand->pick(cfg->yearTabuRand);
+		(*yearTable)[v_][v] = squIter + globalCfg->yearTabuLen + myRand->pick(globalCfg->yearTabuRand);
+		(*yearTable)[vj][vjj] = squIter + globalCfg->yearTabuLen + myRand->pick(globalCfg->yearTabuRand);
+		(*yearTable)[w_][w] = squIter + globalCfg->yearTabuLen + myRand->pick(globalCfg->yearTabuRand);
+		(*yearTable)[w][wj] = squIter + globalCfg->yearTabuLen + myRand->pick(globalCfg->yearTabuRand);
 
 	}
 	else if (t.kind == 12) {
@@ -4536,10 +4559,10 @@ bool Solver::updateYearTable(TwoNodeMove& t) {
 		int wj = customers[w].next > input.custCnt ? 0 : customers[w].next;
 		int wjj = customers[wj].next > input.custCnt ? 0 : customers[wj].next;
 
-		(*yearTable)[v_][v] = squIter + cfg->yearTabuLen + myRand->pick(cfg->yearTabuRand);
-		(*yearTable)[v][vj] = squIter + cfg->yearTabuLen + myRand->pick(cfg->yearTabuRand);
-		(*yearTable)[w_][w] = squIter + cfg->yearTabuLen + myRand->pick(cfg->yearTabuRand);
-		(*yearTable)[wj][wjj] = squIter + cfg->yearTabuLen + myRand->pick(cfg->yearTabuRand);
+		(*yearTable)[v_][v] = squIter + globalCfg->yearTabuLen + myRand->pick(globalCfg->yearTabuRand);
+		(*yearTable)[v][vj] = squIter + globalCfg->yearTabuLen + myRand->pick(globalCfg->yearTabuRand);
+		(*yearTable)[w_][w] = squIter + globalCfg->yearTabuLen + myRand->pick(globalCfg->yearTabuRand);
+		(*yearTable)[wj][wjj] = squIter + globalCfg->yearTabuLen + myRand->pick(globalCfg->yearTabuRand);
 
 	}
 	else if (t.kind == 13) {
@@ -4553,9 +4576,9 @@ bool Solver::updateYearTable(TwoNodeMove& t) {
 		int wj = customers[w].next > input.custCnt ? 0 : customers[w].next;
 		//int wjj = customers[wj].next > input.custCnt ? 0 : customers[wj].next;
 
-		(*yearTable)[v_][v] = squIter + cfg->yearTabuLen + myRand->pick(cfg->yearTabuRand);
-		(*yearTable)[vj][vjj] = squIter + cfg->yearTabuLen + myRand->pick(cfg->yearTabuRand);
-		(*yearTable)[w][wj] = squIter + cfg->yearTabuLen + myRand->pick(cfg->yearTabuRand);
+		(*yearTable)[v_][v] = squIter + globalCfg->yearTabuLen + myRand->pick(globalCfg->yearTabuRand);
+		(*yearTable)[vj][vjj] = squIter + globalCfg->yearTabuLen + myRand->pick(globalCfg->yearTabuRand);
+		(*yearTable)[w][wj] = squIter + globalCfg->yearTabuLen + myRand->pick(globalCfg->yearTabuRand);
 
 	}
 	else if (t.kind == 14) {
@@ -4567,9 +4590,9 @@ bool Solver::updateYearTable(TwoNodeMove& t) {
 		int vj = customers[v].next > input.custCnt ? 0 : customers[v].next;
 		int w_ = customers[w].pre > input.custCnt ? 0 : customers[w].pre;
 
-		(*yearTable)[v__][v_] = squIter + cfg->yearTabuLen + myRand->pick(cfg->yearTabuRand);
-		(*yearTable)[v][vj] = squIter + cfg->yearTabuLen + myRand->pick(cfg->yearTabuRand);
-		(*yearTable)[w_][w] = squIter + cfg->yearTabuLen + myRand->pick(cfg->yearTabuRand);
+		(*yearTable)[v__][v_] = squIter + globalCfg->yearTabuLen + myRand->pick(globalCfg->yearTabuRand);
+		(*yearTable)[v][vj] = squIter + globalCfg->yearTabuLen + myRand->pick(globalCfg->yearTabuRand);
+		(*yearTable)[w_][w] = squIter + globalCfg->yearTabuLen + myRand->pick(globalCfg->yearTabuRand);
 
 	}
 	else if (t.kind == 15) {
@@ -4579,8 +4602,8 @@ bool Solver::updateYearTable(TwoNodeMove& t) {
 		int wj = customers[w].next > input.custCnt ? 0 : customers[w].next;
 
 
-		(*yearTable)[v_][v] = squIter + cfg->yearTabuLen + myRand->pick(cfg->yearTabuRand);
-		(*yearTable)[w][wj] = squIter + cfg->yearTabuLen + myRand->pick(cfg->yearTabuRand);
+		(*yearTable)[v_][v] = squIter + globalCfg->yearTabuLen + myRand->pick(globalCfg->yearTabuRand);
+		(*yearTable)[w][wj] = squIter + globalCfg->yearTabuLen + myRand->pick(globalCfg->yearTabuRand);
 
 		int fr = getFrontofTwoCus(v, w);
 		if (fr == w) {
@@ -4591,7 +4614,7 @@ bool Solver::updateYearTable(TwoNodeMove& t) {
 		int ptn = customers[pt].next;
 		while (pt != w) {
 			//debug(pt);
-			(*yearTable)[pt][ptn] = squIter + cfg->yearTabuLen + myRand->pick(cfg->yearTabuRand);
+			(*yearTable)[pt][ptn] = squIter + globalCfg->yearTabuLen + myRand->pick(globalCfg->yearTabuRand);
 
 			pt = ptn;
 			ptn = customers[ptn].next;
@@ -5063,12 +5086,12 @@ Solver::TwoNodeMove Solver::getMovesRandomly
 			v_ = 0;
 		}
 
-		double broaden = cfg->broaden;
+		double broaden = globalCfg->broaden;
 
 		int v_pos = input.addSTJIsxthcloseOf[v][v_];
 		//int v_pos = input.jIsxthcloseOf[v][v_];
 		if (v_pos == 0) {
-			v_pos += cfg->broadenWhenPos_0;
+			v_pos += globalCfg->broadenWhenPos_0;
 		}
 		else {
 			v_pos *= broaden;
@@ -5100,7 +5123,7 @@ Solver::TwoNodeMove Solver::getMovesRandomly
 		int vjpos = input.addSTJIsxthcloseOf[v][vj];
 		//int vjpos = input.jIsxthcloseOf[v][vj];
 		if (vjpos == 0) {
-			vjpos += cfg->broadenWhenPos_0;
+			vjpos += globalCfg->broadenWhenPos_0;
 		}
 		else {
 			vjpos *= broaden;
@@ -5135,12 +5158,12 @@ Solver::TwoNodeMove Solver::getMovesRandomly
 
 		int vpos1 = input.addSTJIsxthcloseOf[vpre][v];
 
-		double broaden = cfg->broaden;
+		double broaden = globalCfg->broaden;
 
 		int devided = 7;
 
 		if (vpos1 == 0) {
-			vpos1 += cfg->broadenWhenPos_0;
+			vpos1 += globalCfg->broadenWhenPos_0;
 		}
 		else {
 			vpos1 *= broaden;
@@ -5187,7 +5210,7 @@ Solver::TwoNodeMove Solver::getMovesRandomly
 		int vpos2 = input.addSTJIsxthcloseOf[vnext][v];
 
 		if (vpos2 == 0) {
-			vpos2 += cfg->broadenWhenPos_0;
+			vpos2 += globalCfg->broadenWhenPos_0;
 		}
 		else {
 			vpos2 *= broaden;
@@ -5268,7 +5291,7 @@ Solver::TwoNodeMove Solver::getMovesRandomly
 	#if _3optEffectively
 	auto _3optEffectively = [&](int v) {
 
-		double broaden = cfg->broaden[cfg->broadIndex];
+		double broaden = globalCfg->broaden[globalCfg->broadIndex];
 
 		int vj = customers[v].next > input.custCnt ? 0 : customers[v].next;
 		int vjpos = input.jIsxthcloseOf[v][vj];
@@ -5632,8 +5655,8 @@ bool Solver::EPNodesCanEasilyPut() {
 
 			Route& r = rts[bestP.rIndex];
 
-			input.P[top] += cfg->Pwei0;
-			//EP(*yearTable)[top] = EPIter + cfg->EPTabuStep + myRand->pick(cfg->EPTabuRand);
+			input.P[top] += globalCfg->Pwei0;
+			//EP(*yearTable)[top] = EPIter + globalCfg->EPTabuStep + myRand->pick(globalCfg->EPTabuRand);
 			EPremoveByVal(top);
 
 			rInsAtPos(r, bestP.pos, top);
@@ -5817,12 +5840,12 @@ bool Solver::addWeightToRoute(TwoNodeMove& bestM) {
 			//		/*debug(c)
 			//		debug(d.PtwOnly)
 			//		debug(d.PcOnly)*/
-			//		(*yearTable)[c][cnext] = squIter + cfg->yearTabuLen;
-			//		(*yearTable)[cpre][c] = squIter + cfg->yearTabuLen;
+			//		(*yearTable)[c][cnext] = squIter + globalCfg->yearTabuLen;
+			//		(*yearTable)[cpre][c] = squIter + globalCfg->yearTabuLen;
 			//	}
 			//}
 
-			r.rWeight += cfg->weightUpStep;
+			r.rWeight += globalCfg->weightUpStep;
 			Ptw += r.rPtw;
 		}
 		penalty = alpha * Ptw + beta * Pc;
@@ -5942,9 +5965,9 @@ bool Solver::squeeze() {
 	//int deTimeOneTurn = 0;
 	//int contiTurnNoDe = 0;
 
-	squIter += cfg->yearTabuLen + cfg->yearTabuRand;
+	squIter += globalCfg->yearTabuLen + globalCfg->yearTabuRand;
 
-	cfg->squContiIter = cfg->squMinContiIter;
+	globalCfg->squContiIter = globalCfg->squMinContiIter;
 	DisType pBestThisTurn = DisInf;
 	int contiNotDe = 0;
 
@@ -6143,11 +6166,11 @@ bool Solver::squeeze() {
 			//sumRtsPen();
 		//}
 
-		if (contiNotDe == cfg->squContiIter) {
+		if (contiNotDe == globalCfg->squContiIter) {
 
-			if (penalty < 1.1 * pBestThisTurn && cfg->squContiIter < cfg->squMaxContiIter) {
-				cfg->squContiIter += cfg->squIterStepUp;
-				cfg->squContiIter = std::min<int>(cfg->squMaxContiIter, cfg->squContiIter);
+			if (penalty < 1.1 * pBestThisTurn && globalCfg->squContiIter < globalCfg->squMaxContiIter) {
+				globalCfg->squContiIter += globalCfg->squIterStepUp;
+				globalCfg->squContiIter = std::min<int>(globalCfg->squMaxContiIter, globalCfg->squContiIter);
 			}
 			else {
 				break;
@@ -6203,7 +6226,7 @@ Solver::Position Solver::findBestPosForRuin(int w) {
 		}
 		else if (pos.cost < ret.cost) {
 			// TODO[8]:眨眼率可以调 5%合适？
-			if (myRand->pick(100) < cfg->ruinWinkacRate) {
+			if (myRand->pick(100) < globalCfg->ruinWinkacRate) {
 				ret = pos;
 			}
 		}
@@ -6402,7 +6425,7 @@ Vec<int> Solver::ruinGetRuinCusBySting(int ruinKmax, int ruinLmax) {
 		int ruinCusNumInRoute = std::min<int>(r.rCustCnt, ruinL);
 		
 		int mputBack = 0;
-		if (myRand->pick(100) < cfg->ruinSplitRate) {
+		if (myRand->pick(100) < globalCfg->ruinSplitRate) {
 			int maxMCusPutBack = r.rCustCnt - ruinCusNumInRoute;
 			if (maxMCusPutBack > 0) {
 				mputBack = ruinGetSplitDepth(maxMCusPutBack);
@@ -6561,35 +6584,6 @@ Vec<int> Solver::ruinGetRuinCusBySec(int ruinCusNum) {
 	return cusArr;
 }
 
-bool Solver::ruinLocalSearch(int ruinCusNum) {
-
-	gamma = 1;
-	//TODO[4][1]:这里可能可以去掉，如果之前每一条路径的cost都维护的话
-	//TODO[4][2]:但是接到扰动后面就不太行了
-	reCalRtsCostSumCost();
-
-	Solver pBest = *this;
-
-	for (int i = 0; i < 10; ++i) {
-
-		int kind = myRand->pick(3);
-		//int kind = 0;
-		
-		bool  ispertutb = perturbBaseRuin(kind, ruinCusNum);
-		if (ispertutb) {
-			auto cuses = EAX::getDiffCusofPb(pBest, *this);
-			mRLLocalSearch(cuses);
-		}
-
-		if (RoutesCost < pBest.RoutesCost) {
-			i = 0;
-			pBest = *this;
-		}
-	}
-	*this = pBest;
-	return true;
-}
-
 bool Solver::perturbBaseRuin(int kind, int ruinCusNum) {
 
 	gamma = 1;
@@ -6601,10 +6595,11 @@ bool Solver::perturbBaseRuin(int kind, int ruinCusNum) {
 
 	int avgLen = input.custCnt / rts.cnt;
 	//int Lmax = std::min<int>(20, avgLen);
-	//cfg->Lmax = 30;
-	int Lmax = std::min<int>(cfg->ruinLmax, avgLen);
+	//globalCfg->Lmax = 30;
 
-	if (kind ==2 && ruinCusNum * 2 < (1 + Lmax)) {
+	int Lmax = std::min<int>(globalCfg->ruinLmax, avgLen);
+
+	if (kind == 2 && ruinCusNum * 2 < (1 + Lmax)) {
 		//println("too few node for ruin");
 		kind = myRand->pick(2);
 	}
@@ -6649,7 +6644,7 @@ bool Solver::perturbBaseRuin(int kind, int ruinCusNum) {
 	ruinClearEP(sortKind);
 
 	if (penalty == 0) {
-		
+
 		if (RoutesCost == pClone.RoutesCost) {
 			return false;
 		}
@@ -6674,10 +6669,41 @@ bool Solver::perturbBaseRuin(int kind, int ruinCusNum) {
 	return false;
 }
 
+bool Solver::ruinLocalSearch(int ruinCusNum) {
+
+	gamma = 1;
+	//TODO[4][1]:这里可能可以去掉，如果之前每一条路径的cost都维护的话
+	//TODO[4][2]:但是接到扰动后面就不太行了
+	reCalRtsCostSumCost();
+
+	Solver pBest = *this;
+
+	for (int i = 0; i < 10; ++i) {
+
+		int kind = myRand->pick(3);
+		//int kind = 0;
+		
+		bool  ispertutb = perturbBaseRuin(kind, ruinCusNum);
+		if (ispertutb) {
+			auto cuses = EAX::getDiffCusofPb(pBest, *this);
+			if (cuses.size() > 0) {
+				mRLLocalSearch(1,cuses);
+			}
+		}
+
+		if (RoutesCost < pBest.RoutesCost) {
+			i = 0;
+			pBest = *this;
+		}
+	}
+	*this = pBest;
+	return true;
+}
+
 bool Solver::ejectLocalSearch() {
 
 	minEPcus = IntInf;
-	squIter += cfg->yearTabuLen + cfg->yearTabuRand;
+	squIter += globalCfg->yearTabuLen + globalCfg->yearTabuRand;
 	LL maxOfPval = -1;
 	gamma = 0;
 
@@ -6698,10 +6724,10 @@ bool Solver::ejectLocalSearch() {
 			++EpCusNoDown;
 			if (EpCusNoDown % 10000 == 0) {
 
-				//cfg->minKmax = 1;
+				//globalCfg->minKmax = 1;
 				// 调整 minKmax 在1 2 之间切换
-				cfg->minKmax = 3 - cfg->minKmax;
-				debug(cfg->minKmax);
+				globalCfg->minKmax = 3 - globalCfg->minKmax;
+				debug(globalCfg->minKmax);
 			}
 		}
 
@@ -6716,7 +6742,7 @@ bool Solver::ejectLocalSearch() {
 		Route& r = rts[bestP.rIndex];
 		EPremoveByVal(top);
 
-		input.P[top] += cfg->Pwei0;
+		input.P[top] += globalCfg->Pwei0;
 		maxOfPval = std::max<int>(input.P[top], maxOfPval);
 
 		if (maxOfPval >= 1000) {
@@ -6761,13 +6787,13 @@ bool Solver::ejectLocalSearch() {
 					for (int c : en.ejeVe) {
 						/*int cpre = customers[c].pre > input.custCnt ? 0 : customers[c].pre;
 						int cnext = customers[c].next > input.custCnt ? 0 : customers[c].next;
-						(*yearTable)[cpre][c] = squIter + cfg->yearTabuLen + myRand->pick(cfg->yearTabuRand);
-						(*yearTable)[c][cnext] = squIter + cfg->yearTabuLen + myRand->pick(cfg->yearTabuRand);*/
-						input.P[c] += cfg->Pwei1;
+						(*yearTable)[cpre][c] = squIter + globalCfg->yearTabuLen + myRand->pick(globalCfg->yearTabuRand);
+						(*yearTable)[c][cnext] = squIter + globalCfg->yearTabuLen + myRand->pick(globalCfg->yearTabuRand);*/
+						input.P[c] += globalCfg->Pwei1;
 						maxOfPval = std::max<DisType>(input.P[c], maxOfPval);
 
-						//P[c] += std::max<DisType>(log(P[c]), cfg->Pwei1);
-						//debug(std::max<DisType>(log(P[c]), cfg->Pwei1))
+						//P[c] += std::max<DisType>(log(P[c]), globalCfg->Pwei1);
+						//debug(std::max<DisType>(log(P[c]), globalCfg->Pwei1))
 					}
 				}
 
@@ -6790,29 +6816,26 @@ bool Solver::ejectLocalSearch() {
 
 bool Solver::patternAdjustment(int Irand) {
 
-	int I1000 = myRand->pick(cfg->Irand);
+	int I1000 = myRand->pick(globalCfg->Irand);
 	if (Irand > 0) {
 		I1000 = Irand;
 	}
 
-	LL iter = 0;
+	int iter = 0;
 	gamma = 0;
-
-	Timer t1(1);
 
 	Vec<int> kindSet = { 0,1,6,7,/*8,9,10,2,3,4,5*/ };
 
-	int N = cfg->patternAdjustmentNnei;
-	int m = std::min<int>(cfg->patternAdjustmentGetM, N);
+	int N = globalCfg->patternAdjustmentNnei;
+	int m = std::min<int>(globalCfg->patternAdjustmentGetM, N);
 
 	auto getDelt0MoveRandomly = [&]() {
 
 		TwoNodeMove ret;
 
-		while (!t1.isTimeOut()) {
+		for (int iter = 0; ++iter < 100;++iter) {
 
 			int v = myRand->pick(input.custCnt) + 1;
-
 			if (customers[v].routeID == -1) {
 				continue;
 			}
@@ -6840,7 +6863,7 @@ bool Solver::patternAdjustment(int Irand) {
 						d = estimatevw(kind, v, w, 0);
 					}
 
-					#ifdef ATTRIBUTETABU
+					#if ATTRIBUTETABU
 					if (d.deltPc + d.deltPtw == 0) {
 						TwoNodeMove m(v, w, kind, d);
 						ret = m;
@@ -6855,21 +6878,15 @@ bool Solver::patternAdjustment(int Irand) {
 				}
 			}
 		}
-
 		return ret;
 	};
 
-	++squIter;
+	squIter += globalCfg->yearTabuLen + globalCfg->yearTabuRand;
 
 	do {
 
 		TwoNodeMove bestM = getDelt0MoveRandomly();
-		//if (myRand->pick(3) != 0) {
-
-		/*while (bestM.deltPen.deltPc + bestM.deltPen.deltPtw > 0 && !t1.isTimeOut()) {
-			bestM = getDelt0MoveRandomly();
-		}*/
-
+		
 		if (bestM.deltPen.deltPc + bestM.deltPen.deltPtw > 0) {
 			break;
 		}
@@ -6878,13 +6895,12 @@ bool Solver::patternAdjustment(int Irand) {
 		doMoves(bestM);
 		++squIter;
 
-	} while (++iter < I1000 && !t1.isTimeOut());
-	//debug(iter)
+	} while (++iter < I1000);
+
 	sumRtsPen();
 
 	return true;
 }
-
 
 bool cvb2RuinLocalSearch() {
 	return true;
@@ -6909,10 +6925,10 @@ Vec<Solver::eOneRNode> Solver::ejectFromPatialSol() {
 		Route& r = rts.getRouteByRid(id);
 
 		eOneRNode retNode;
-		int tKmax = cfg->minKmax;
-		//tKmax = cfg->maxKmax;
+		int tKmax = globalCfg->minKmax;
+		//tKmax = globalCfg->maxKmax;
 
-		while (tKmax <= cfg->maxKmax) {
+		while (tKmax <= globalCfg->maxKmax) {
 
 			auto en = ejectOneRouteOnlyP(r, 2, tKmax);
 
@@ -6943,7 +6959,7 @@ Vec<Solver::eOneRNode> Solver::ejectFromPatialSol() {
 		}
 
 		//debug(retNode.ejeVe.size())
-		//eOneRNode retNode = ejectOneRouteOnlyP(r, 2, cfg->maxKmax);
+		//eOneRNode retNode = ejectOneRouteOnlyP(r, 2, globalCfg->maxKmax);
 		//auto en = ejectOneRouteMinPsumGreedy(r);
 
 		if (retNode.ejeVe.size() == 0) {
@@ -6954,7 +6970,7 @@ Vec<Solver::eOneRNode> Solver::ejectFromPatialSol() {
 
 		//	if (en.Psum < retNode.Psum) {
 		//		//bool satisfy2 = en.ejeVe.size() * en.Psum < retNode.Psum* retNode.ejeVe.size();
-		//		bool satisfy2 = en.ejeVe.size() > cfg->maxKmax;
+		//		bool satisfy2 = en.ejeVe.size() > globalCfg->maxKmax;
 		//		//bool satisfy2 = true;
 		//		if (satisfy2) {
 		//			deOut(en.Psum)debug(en.ejeVe.size())
@@ -7433,11 +7449,7 @@ bool Solver::resetSol() {
 void Solver::minimizeRN() {
 
 	gamma = 0;
-	Timer t(10);
-	//myRand->pick(2)
-	//saveOutAsSintefFile();
 	bool isSucceed = false;
-	t.disp();
 
 	reCalRtsCostAndPen();
 
@@ -7473,7 +7485,7 @@ bool Solver::adjustRN() {
 	#if DIMACSGO
 	ourTarget = input.dimacsRecRN;
 	#else
-	if (cfg->breakRecord) {
+	if (globalCfg->breakRecord) {
 	ourTarget = input.sintefRecRN - 1;
 	}
 	else {
@@ -7542,7 +7554,7 @@ Solver::TwoNodeMove Solver::naRepairGetMoves(std::function<bool(TwoNodeMove& t, 
 			if (customers[v].routeID == -1) {
 				continue;
 			}
-			for (int wpos = 0; wpos < cfg->naRepairGetMovesNei; ++wpos) {
+			for (int wpos = 0; wpos < globalCfg->naRepairGetMovesNei; ++wpos) {
 
 				int w = input.allCloseOf[v][wpos];
 				if (customers[w].routeID == -1) {
@@ -7571,7 +7583,7 @@ bool Solver::repair() {
 
 	gamma = 1;
 
-	squIter += cfg->yearTabuLen + cfg->yearTabuRand;
+	squIter += globalCfg->yearTabuLen + globalCfg->yearTabuRand;
 
 	auto updateBestM = [&](TwoNodeMove& t, TwoNodeMove& bestM)->bool {
 
@@ -7603,7 +7615,7 @@ bool Solver::repair() {
 
 	while (penalty > 0 && !lyhTimer.isTimeOut()) {
 		++iter;
-		if (contiNotDe > cfg->repairExitStep) {
+		if (contiNotDe > globalCfg->repairExitStep) {
 			break;
 		}
 		//TODO[2][repair]:这里修复的邻域动作究竟怎么选
@@ -7617,7 +7629,7 @@ bool Solver::repair() {
 			//if (bestM.deltPen.deltPc + bestM.deltPen.deltPtw > 0) {
 			//break;
 			++contiNotDe;
-			if (contiNotDe > cfg->repairExitStep) {
+			if (contiNotDe > globalCfg->repairExitStep) {
 				break;
 			}
 			//maxCon = std::max<int>(maxCon,contiNotDe);
@@ -7672,7 +7684,7 @@ bool Solver::repair() {
 	return false;
 }
 
-bool Solver::mRLLocalSearch(Vec<int> newCus) {
+bool Solver::mRLLocalSearch(int hasRange,Vec<int> newCus) {
 
 	gamma = 1;
 	reCalRtsCostSumCost();
@@ -7682,7 +7694,7 @@ bool Solver::mRLLocalSearch(Vec<int> newCus) {
 	static Vec<int> contribution(16, 0);
 
 	static Vec<int> moveKindOrder = { 0,1,2,3,4,5,6,7, 8/*,9,10*,/11,12,/*13,14 */,15};
-	sort(moveKindOrder.begin(), moveKindOrder.end(), [&](int a, int b) {
+	std::sort(moveKindOrder.begin(), moveKindOrder.end(), [&](int a, int b) {
 		return contribution[a] > contribution[b];
 	});
 	//printve(moveKindOrder);
@@ -7699,8 +7711,18 @@ bool Solver::mRLLocalSearch(Vec<int> newCus) {
 			}
 		}
 	};
+	
+	#if CHECKING
+	if (hasRange == 0 && newCus.size() > 0) {
+		println("hasRange == 0 && newCus.size() > 0");
+	}
 
-	if (newCus.size() == 0) {
+	if (hasRange == 1 && newCus.size() == 0) {
+		println("hasRange == 1 && newCus.size() == 0");
+	}
+	#endif // CHECKING
+
+	if (hasRange == 0) {
 		newCus = myRandX->getMN(input.custCnt + 1, input.custCnt + 1);
 		unsigned shuseed = (globalEnv->seed % hust::Mod) + ((hust::myRand->pick(10000007))) % hust::Mod;
 		std::shuffle(newCus.begin(), newCus.end(), std::default_random_engine(shuseed));
@@ -7781,9 +7803,9 @@ bool Solver::mRLLocalSearch(Vec<int> newCus) {
 	for (int i = 0; i < rts.cnt; ++i) {
 		rts[i].rWeight = 1;
 	}
-	squIter += cfg->yearTabuLen + cfg->yearTabuRand;
+	squIter += globalCfg->yearTabuLen + globalCfg->yearTabuRand;
 
-	Vec<int>& ranges = cfg->mRLLocalSearchRange;
+	Vec<int>& ranges = globalCfg->mRLLocalSearchRange;
 
 	while (!lyhTimer.isTimeOut()) {
 

@@ -226,6 +226,7 @@
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\..\..\VRPTWNEW\Configuration.cpp" />
+    <ClCompile Include="..\..\..\VRPTWNEW\EAX.cpp" />
     <ClCompile Include="..\..\..\VRPTWNEW\Environment.cpp" />
     <ClCompile Include="..\..\..\VRPTWNEW\Flag.cpp" />
     <ClCompile Include="..\..\..\VRPTWNEW\main.cpp" />

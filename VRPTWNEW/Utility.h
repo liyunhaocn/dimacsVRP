@@ -24,7 +24,7 @@
 #include <cmath>
 #include <sstream>
 
-#include "./Flag.h"
+#include "Flag.h"
 
 #define UTILITY_NOT_IMPLEMENTED  throw "Not implemented yet!";
 
@@ -106,7 +106,6 @@ public:
 
     Random(unsigned seed) : rgen(seed) {}
     Random() : rgen(generateSeed()) {}
-
 
     static int generateSeed() {
         return static_cast<int>(std::time(nullptr) + std::clock());

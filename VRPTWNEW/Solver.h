@@ -6,10 +6,10 @@
 #include <set>
 #include <limits.h>
 
-#include "./Environment.h"
-#include "./Utility.h"
-#include "./Problem.h"
-#include "./Flag.h"
+#include "Environment.h"
+#include "Utility.h"
+#include "Problem.h"
+#include "Flag.h"
 
 namespace hust {
 
@@ -536,7 +536,7 @@ public:
 
 	bool initEPr();
 
-	inline int reCusNo(int x);
+	int reCusNo(int x);
 
 	Solver(Input& input);
 
@@ -601,7 +601,7 @@ public:
 
 	Position findBestPosInSolForInit(int w);
 
-	bool initBySecOrder();
+	bool initBySecOrder(int kind);
 
 	bool initMaxRoute();
 
@@ -752,7 +752,7 @@ public:
 	
 	bool repair();
 
-	bool mRLLocalSearch(Vec<int> newCus);
+	bool mRLLocalSearch(int hasRange,Vec<int> newCus);
 
 	Output saveToOutPut();
 

@@ -79,7 +79,7 @@
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <TargetExt />
     <TargetName>DLLSMA</TargetName>
-    <RemoteDeployDir>$(RemoteRootDir)</RemoteDeployDir>
+    <RemoteDeployDir>$(RemoteProjectDir)</RemoteDeployDir>
     <OutDir>$(SolutionDir)..\..\Dev</OutDir>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
@@ -119,7 +119,13 @@
     <OutDir>$(SolutionDir)..\..\Dev</OutDir>
   </PropertyGroup>
   <ItemGroup>
+    <ClCompile Include="..\..\..\VRPTWNEW\Configuration.cpp" />
+    <ClCompile Include="..\..\..\VRPTWNEW\EAX.cpp" />
+    <ClCompile Include="..\..\..\VRPTWNEW\Environment.cpp" />
+    <ClCompile Include="..\..\..\VRPTWNEW\Flag.cpp" />
     <ClCompile Include="..\..\..\VRPTWNEW\main.cpp" />
+    <ClCompile Include="..\..\..\VRPTWNEW\Problem.cpp" />
+    <ClCompile Include="..\..\..\VRPTWNEW\Solver.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\..\..\VRPTWNEW\Configuration.h" />
