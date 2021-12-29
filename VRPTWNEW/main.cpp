@@ -380,9 +380,9 @@ struct Goal {
 			int upState = 0;
 			if (whichAlg == 0) {
 
-				int index = myRand->pick(pool.size());
-				auto& sol = pool[index];
-				sol.ruinLocalSearch(1);
+				//int index = myRand->pick(pool.size());
+				auto& sol = bestSolFound;
+				sol.ruinLocalSearch(5);
 				if (sol.RoutesCost < bestSolFound.RoutesCost) {
 					bestSolFound = sol;
 					upState = 1;

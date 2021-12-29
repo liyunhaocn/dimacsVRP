@@ -1,4 +1,5 @@
 
+#include <climits>
 #include "Flag.h"
 #include "Environment.h"
 #include "Configuration.h"
