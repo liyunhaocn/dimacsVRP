@@ -57,7 +57,6 @@ extern long long int LLInf;
 extern double LFInf;
 extern DisType DisInf;
 
-extern double LFINF;
 extern double PI;
 extern double PI_2;
 extern double PI_4;

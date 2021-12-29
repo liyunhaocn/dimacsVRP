@@ -45,6 +45,7 @@ struct Configuration {
 	//int yearTabuRand = 10;
 
 	int popSize = 5;
+	//int repairExitStep = 50;
 	int repairExitStep = 50;
 	int initFindPosPqSize = 20;
 	int findBestPosForRuinPqSize = 10;
@@ -66,7 +67,9 @@ struct Configuration {
 	int ruinLocalSearchNextNeiBroad = 5;
 
 	int ruinSplitRate = 25; // %100 means ruinSplitRate%
-	int ruinLmax = 100;
+	
+	int ruinLmax = 20;
+	
 	//(ruinLmax+1)/2
 	int ruinC_ = 15;
 

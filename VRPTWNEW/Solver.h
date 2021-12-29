@@ -538,7 +538,7 @@ public:
 
 	int reCusNo(int x);
 
-	Solver(Input& input);
+	Solver();
 
 	Solver(const Solver& s);
 
@@ -725,9 +725,9 @@ public:
 		
 	Vec<int> ruinGetRuinCusBySec(int ruinCusNum);
 
-	bool ruinLocalSearch(int ruinCusNum=1);
+	int ruinLocalSearch(int ruinCusNum=1);
 		
-	bool perturbBaseRuin(int kind, int ruinCusNum);
+	bool perturbBaseRuin(int perturbkind, int ruinCusNum, int clearEPKind);
 
 	bool ejectLocalSearch();
 

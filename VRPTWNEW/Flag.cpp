@@ -5,11 +5,11 @@
 
 namespace hust {
 
-extern int IntInf = 0x3f3f3f3f;
+extern int IntInf = INT_MAX/2;
 extern long long int LLInf = 0x3f3f3f3f3f3f3f3f / 4;
 //extern double LFInf = DBL_MAX;
+//extern double LFINF = 1.79769e+308;
 
-extern double LFINF = 1.79769e+308;
 extern double PI = 3.14159265359;
 extern double PI_2 = PI / 2;
 extern double PI_4 = PI / 4;

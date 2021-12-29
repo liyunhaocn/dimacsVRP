@@ -444,6 +444,43 @@ struct Union {
 
 };
 
+struct ProbControl {
+
+    Vec<int> data;
+    Vec<int> sum;
+
+    ProbControl(int maxSize) {
+        data.resize(maxSize, 1);
+        sum.resize(maxSize, 0);
+    }
+
+    bool resetData() {
+        std::fill(data.begin(), data.end(), 1);
+    }
+
+    int getIndexBasedData() {
+
+        auto maxEleIter = std::max_element(data.begin(), data.end());
+
+        if ((*maxEleIter) * data.size() >= 10000) {
+            for (auto& i : data) {
+                i = (i >> 8) + 1;
+            }
+        }
+
+        int n = data.size();
+        sum[0] = data[0];
+        for (int i = 1; i < n; ++i) {
+            sum[i] = sum[i - 1] + data[i];
+        }
+
+        int allSum = sum.back();
+        int rd = myRand->pick(1, allSum + 1);
+        auto index = std::lower_bound(sum.begin(), sum.end(), rd) - sum.begin();
+        return index;
+    }
+};
+
 }
 
 

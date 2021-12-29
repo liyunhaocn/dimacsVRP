@@ -194,7 +194,7 @@ namespace hust {
 
 			#if CHECKING
 			else {
-				println("lastEdge:", enum_int(lastEdge));
+				println("lastEdge: is not pa pb");
 			}
 			#endif // CHECKING
 
@@ -217,7 +217,7 @@ namespace hust {
 
 			#if CHECKING
 			else {
-				Log(Log::Level::Error) << "re.owner: " << enum_int(re.owner) << std::endl;
+				println("re.owner lastEdge: is not pa pb");
 			}
 			#endif // CHECKING
 
@@ -664,7 +664,7 @@ namespace hust {
 		repairSolNum = 0;
 
 		Vec<int> ret;
-		if (abCycleSet.size() <= 3) {
+		if (abCycleSet.size() < 4) {
 			return -1;
 		}
 
@@ -688,7 +688,7 @@ namespace hust {
 		for (int i = 0; i < unionArr.size(); ++i) {
 			if (unionArr[i].size() >= 2) {
 				++cnt;
-				if (myRand->pick(cnt) == 0 && tabuUnionIds.count(i)==0) {
+				if (myRand->pick(cnt) == 0) {
 					unionIndex = i;
 				}
 				// TODO[0]:这里决定是否优先选择小的union
@@ -701,18 +701,28 @@ namespace hust {
 			return -1;
 		}
 
-		//static int all = 0;
-		//static int repeat = 0;
-		//++all;
-		//if (tabuUnionIds.count(unionIndex) > 0) {
-		//	++repeat;
-		//}
-		//println("all:",all,"reprat:",repeat);
-
 		int firstCyIndex = unionArr[unionIndex][myRand->pick(unionArr[unionIndex].size())];
 
 		int numABCyUsed = unionArr[unionIndex].size();
-		numABCyUsed = myRand->pick(2, numABCyUsed + 1);
+		
+		//numABCyUsed = std::min<int>(4, numABCyUsed);
+		numABCyUsed = std::min<int>(abcyNum / 2, numABCyUsed);
+		
+		if (unionArr[unionIndex].size() >= 4) {
+			numABCyUsed = std::min<int>(numABCyUsed,unionArr[unionIndex].size() / 2);
+		}
+		
+		int putMax = numABCyUsed;
+		numABCyUsed = 2;
+		for (int i = 3; i <= putMax; ++i) {
+			if (myRand->pick(100) < 80) {
+				numABCyUsed = i;
+			}
+			else {
+				break;
+			}
+		}
+		//println("putMax:",putMax,"numABCyUsed:", numABCyUsed);
 
 		Vec<int> eset = { firstCyIndex };
 		resCycles.removeVal(firstCyIndex);
@@ -769,12 +779,18 @@ namespace hust {
 		removeSubring(pc);
 		pc.reCalRtsCostAndPen();
 
+		//static int all = 0;
+		//static int repair = 0;
+		//++all;
+		
 		if (pc.repair()) {
+			//++repair;
+			//println("all:", all, "repair:", repair,"abcyNum / 2:", abcyNum / 2,"numABCyUsed:", numABCyUsed);
 
-			//TODO[0]:如果设置修复自回路使用眨眼的话，禁忌要在没有自回路的情况下禁忌
-			if (numABCyUsed == unionArr[unionIndex].size()) {
-				tabuUnionIds.insert(unionIndex);
-			}
+			////TODO[0]:如果设置修复自回路使用眨眼的话，禁忌要在没有自回路的情况下禁忌
+			//if (numABCyUsed == unionArr[unionIndex].size()) {
+			//	tabuUnionIds.insert(unionIndex);
+			//}
 
 			if (pc.RoutesCost == pa.RoutesCost) {
 				//debug("same after repair");

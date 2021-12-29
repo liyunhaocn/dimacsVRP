@@ -1032,7 +1032,14 @@ bool saveSlnFile(Input& input, Output& output) {
 	MyString ms;
 	// 输出 tm 结构的各个组成部分
 	//std::string day = /*ms.LL_str(d.year) + */ms.LL_str(d.month) + ms.LL_str(d.day);
-	std::string path = __DATE__;
+	
+	#if DIMACSGO
+	std::string type = "[dim]";
+	#else
+	std::string type = "[sin]";
+	#endif // DIMACSGO
+
+	std::string path = type + __DATE__;
 	path += std::string(1, '_') + __TIME__;
 
 	for (auto& c : path) {
@@ -1064,12 +1071,13 @@ bool saveSlnFile(Input& input, Output& output) {
 		return false;
 	}
 	if (!isGood) {
-		rgbData << "ins,lyhrn,sinrn,lyhrl,dimRL,rate, sinRL,rate,naRL,rate,time,epsize,minep,ptw,pc,rts,seed" << std::endl;
+		rgbData << "ins,lyhrn,sinrn,dimrn,lyhrl,dimRL,rate, sinRL,rate,naRL,rate,time,epsize,minep,ptw,pc,rts,seed" << std::endl;
 	}
 
 	rgbData << input.example << ",";
 	rgbData << output.rts.size() << ",";
 	rgbData << input.sintefRecRN << ",";
+	rgbData << input.dimacsRecRN << ",";
 
 	rgbData << output.state << ",";
 

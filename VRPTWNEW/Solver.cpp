@@ -25,8 +25,8 @@ int Solver::reCusNo(int x) {
 	return x <= input.custCnt ? x : 0;
 }
 
-Solver::Solver(Input& input) :
-	input(input),
+Solver::Solver() :
+	input(*globalInput),
 	lyhTimer(globalCfg->runTimer),
 	PtwConfRts(input.custCnt),
 	PcConfRts(input.custCnt),
@@ -969,7 +969,8 @@ bool Solver::initBySecOrder(int kind) {
 		indexBeg += deltstep;
 		int tp = que1[indexBeg % input.custCnt];
 		
-		Position bestP = findBestPosInSolForInit(tp);
+		//Position bestP = findBestPosInSolForInit(tp);
+		Position bestP = findBestPosForRuin(tp);
 
 		if (bestP.rIndex != -1 && bestP.pen == 0) {
 			rInsAtPos(rts[bestP.rIndex], bestP.pos, tp);
@@ -1088,7 +1089,7 @@ bool Solver::initByArr2(Vec < Vec<int>> arr2) {
 	return true;
 }
 
-bool Solver::initSolution(int kind) {
+bool Solver::initSolution(int kind) {//5种
 
 	if (kind <= 3) {
 		return initBySecOrder(kind);
@@ -5108,9 +5109,9 @@ Solver::TwoNodeMove Solver::getMovesRandomly
 				continue;
 			}
 
-			if (customers[w].av + input.datas[w].SERVICETIME + input.disOf[reCusNo(v)][reCusNo(w)] >= customers[v].avp) {
-				continue;
-			}
+			//if (customers[w].av + input.datas[w].SERVICETIME + input.disOf[reCusNo(v)][reCusNo(w)] >= customers[v].avp) {
+			//	continue;
+			//}
 
 			TwoNodeMove m0(v, w, 0, _2optOpenvv_(v, w));
 			updateBestM(m0, bestM);
@@ -5140,9 +5141,9 @@ Solver::TwoNodeMove Solver::getMovesRandomly
 				continue;
 			}
 
-			if (customers[w].zv - input.disOf[reCusNo(v)][reCusNo(w)] - input.datas[v].SERVICETIME <= customers[v].zvp) {
-				continue;
-			}
+			//if (customers[w].zv - input.disOf[reCusNo(v)][reCusNo(w)] - input.datas[v].SERVICETIME <= customers[v].zvp) {
+			//	continue;
+			//}
 
 			TwoNodeMove m1(v, w, 1, _2optOpenvvj(v, w));
 			updateBestM(m1, bestM);
@@ -5160,7 +5161,8 @@ Solver::TwoNodeMove Solver::getMovesRandomly
 
 		double broaden = globalCfg->broaden;
 
-		int devided = 7;
+		//int devided = 7;
+		int devided = 4;
 
 		if (vpos1 == 0) {
 			vpos1 += globalCfg->broadenWhenPos_0;
@@ -5258,7 +5260,7 @@ Solver::TwoNodeMove Solver::getMovesRandomly
 
 	auto outrelocateEffectively = [&](int v) {
 
-		int devided = 10;
+		int devided = 5;
 		Vec<int>& relatedToV = input.iInNeicloseOfUnionNeiCloseOfI[v];
 
 		int N = relatedToV.size();
@@ -5288,86 +5290,6 @@ Solver::TwoNodeMove Solver::getMovesRandomly
 		}
 	};
 
-	#if _3optEffectively
-	auto _3optEffectively = [&](int v) {
-
-		double broaden = globalCfg->broaden[globalCfg->broadIndex];
-
-		int vj = customers[v].next > input.custCnt ? 0 : customers[v].next;
-		int vjpos = input.jIsxthcloseOf[v][vj];
-
-		if (vjpos < 0) {
-			debug(vj)
-
-		}
-		if (vjpos == 0) {
-			vjpos += 50;
-		}
-		else {
-			vjpos *= broaden;
-		}
-
-		vjpos = std::min<int>(vjpos, input.custCnt);
-		int vrId = customers[v].routeID;
-
-		int N = vjpos;
-		int m = std::max<DisType>(1, sqrt(N));
-
-		myRandX->getMN(N, m);
-		Vec<int>& ve = myRandX.mpLLArr[N];
-		for (int i = 0; i < m; ++i) {
-			int wpos = ve[i];
-
-			int w = input.allCloseOf[v][wpos];
-			int wrId = customers[w].routeID;
-
-			if (wrId == -1 || wrId == vrId) {
-				continue;
-			}
-
-			int w_ = customers[w].pre > input.custCnt ? 0 : customers[w].pre;
-			int wIsw_pos = input.jIsxthcloseOf[w_][w];
-
-			if (wIsw_pos == 0) {
-				wIsw_pos += 50;
-			}
-			else {
-				wIsw_pos *= broaden;
-			}
-
-			wIsw_pos = std::min<int>(wIsw_pos, input.custCnt);
-
-			int mpos = myRand->pick(wIsw_pos);
-			int m = input.allCloseOf[w_][mpos];
-			int mrId = customers[m].routeID;
-
-			int cnt = mpos;
-			while (mrId == -1 || mrId == vrId || mrId == wrId) {
-				m = input.allCloseOf[w_][mpos];
-				mrId = customers[m].routeID;
-				if (--cnt < 0) {
-					break;
-				}
-			}
-
-			if (cnt < 0) {
-				continue;
-			}
-
-			int m_ = customers[m].pre > input.custCnt ? 0 : customers[m].pre;
-			if (v + w == 0 || w_ + m == 0 || m_ + vj == 0) {
-				continue;
-			}
-
-			Vec<int>ve = { v,vj,w_,w,m_,m };
-			TwoNodeMove m16(ve, 16, _Nopt(ve));
-			updateBestM(m16, bestM);
-		}
-
-	};
-
-	#endif // _3optEffectively
-
 	bestM.reSet();
 
 	int rId = -1;
@@ -5393,24 +5315,6 @@ Solver::TwoNodeMove Solver::getMovesRandomly
 
 	if (r.rPtw > 0) {
 
-		//auto allcus = rPutCusInve(r);
-		//auto ptwNodes = getPtwNodes(r, 1);
-
-		/*println("ptwNodes.size():",ptwNodes.size(),"all:",allcus.size());*/
-		//int zhong = 0;
-		//int zong = 0;
-		//for (int i = 0; i < allcus.size(); ++i) {
-		//	int v = allcus[i];
-		//	int v_ = customers[v].pre;
-		//	int vj = customers[v].next;
-		//	++zong;
-		//	if (customers[v_].TW_X + customers[vj].TWX_ == r.rPtw) {
-		//		++zhong;
-		//	}
-		//}
-		//println("zong:", zong, "zhong:", zhong);
-		//auto allcus = rPutCusInve(r);
-
 		int pt = r.tail;
 		int endNode = pt;
 		while (pt != -1) {
@@ -5427,53 +5331,53 @@ Solver::TwoNodeMove Solver::getMovesRandomly
 
 		for (int v = customers[r.head].next; v != endNode; v = customers[v].next) {
 
-			int maxL = std::max<int>(5, r.rCustCnt / 5);
-
 			int v_ = customers[v].pre;
 			int vj = customers[v].next;
+			int maxL = std::max<int>(5, r.rCustCnt / 5);
 
 			if (customers[v_].TW_X + customers[vj].TWX_ == r.rPtw) {
-				//lastIgnoreIndex = i;
-				int wbegin = v;
-				int preStep = myRand->pick(1, maxL + 1);
-				int res = maxL;
-				for (int i = 0; i < preStep; ++i) {
-					wbegin = customers[wbegin].pre;
-					if (wbegin > input.custCnt) {
-						break;
-					}
-				}
-
-				wbegin = customers[wbegin].next;
-
-				for (int i = 0; i < maxL; ++i) {
-					wbegin = customers[wbegin].next;
-					if (wbegin > input.custCnt) {
-						break;
-					}
-					if (wbegin != v) {
-
-						TwoNodeMove m4(v, wbegin, 4, inrelocatevv_(v, wbegin, 1));
-						updateBestM(m4, bestM);
-
-						TwoNodeMove m8(v, wbegin, 8, exchangevw(v, wbegin, 1));
-						updateBestM(m8, bestM);
-
-						TwoNodeMove m13(v, wbegin, 13, outrelocatevvjTowwj(v, wbegin, 1));
-						updateBestM(m13, bestM);
-
-						TwoNodeMove m15(v, wbegin, 15, reversevw(v, wbegin));
-						updateBestM(m15, bestM);
-
-					}
-				}
+				maxL = std::max<int>(10, r.rCustCnt / 5);
 			}
 			else {
 				// TODO[3][getMoveRand] 这个maxL 以及ptNode.back() 后面的部分还可以优化
+				_2optEffectively(v);
+				exchangevwEffectively(v);
+				outrelocateEffectively(v);
 			}
-			_2optEffectively(v);
-			exchangevwEffectively(v);
-			outrelocateEffectively(v);
+
+			int wbegin = v;
+			int preStep = myRand->pick(1, maxL + 1);
+			int res = maxL;
+			for (int i = 0; i < preStep; ++i) {
+				wbegin = customers[wbegin].pre;
+				if (wbegin > input.custCnt) {
+					break;
+				}
+			}
+
+			wbegin = customers[wbegin].next;
+
+			for (int i = 0; i < maxL; ++i) {
+				wbegin = customers[wbegin].next;
+				if (wbegin > input.custCnt) {
+					break;
+				}
+				if (wbegin != v) {
+
+					TwoNodeMove m4(v, wbegin, 4, inrelocatevv_(v, wbegin, 1));
+					updateBestM(m4, bestM);
+
+					TwoNodeMove m8(v, wbegin, 8, exchangevw(v, wbegin, 1));
+					updateBestM(m8, bestM);
+
+					TwoNodeMove m13(v, wbegin, 13, outrelocatevvjTowwj(v, wbegin, 1));
+					updateBestM(m13, bestM);
+
+					TwoNodeMove m15(v, wbegin, 15, reversevw(v, wbegin));
+					updateBestM(m15, bestM);
+				}
+			}
+
 		}
 	}
 	else {
@@ -6344,7 +6248,7 @@ void Solver::ruinClearEP(int kind) {
 		break;
 	}
 
-	std::sort(EPArr.begin(), EPArr.end(), cmp3);
+	//std::sort(EPArr.begin(), EPArr.end(), cmp3);
 
 	for (int i = 0; i < EPArr.size(); ++i) {
 		//for (int i = EPArr.size() - 1;i>=0;--i) {
@@ -6495,7 +6399,6 @@ Vec<int> Solver::ruinGetRuinCusBySting(int ruinKmax, int ruinLmax) {
 	};
 
 	for (int beg : begCusSet) {
-		int stringkind = myRand->pick(3);
 		splitAndmiddle(beg);
 	}
 
@@ -6504,7 +6407,7 @@ Vec<int> Solver::ruinGetRuinCusBySting(int ruinKmax, int ruinLmax) {
 	for (int c : uset) {
 		runCus.push_back(c);
 	}
-	//println("runCusNum:", runCusNum,"runCus.size():",runCus.size());
+
 	return runCus;
 }
 
@@ -6584,7 +6487,7 @@ Vec<int> Solver::ruinGetRuinCusBySec(int ruinCusNum) {
 	return cusArr;
 }
 
-bool Solver::perturbBaseRuin(int kind, int ruinCusNum) {
+bool Solver::perturbBaseRuin(int perturbkind, int ruinCusNum,int clearEPKind) {
 
 	gamma = 1;
 	//TODO[4][1]:这里可能可以去掉，如果之前每一条路径的cost都维护的话
@@ -6594,21 +6497,24 @@ bool Solver::perturbBaseRuin(int kind, int ruinCusNum) {
 	Solver pClone = *this;
 
 	int avgLen = input.custCnt / rts.cnt;
+
 	//int Lmax = std::min<int>(20, avgLen);
 	//globalCfg->Lmax = 30;
 
 	int Lmax = std::min<int>(globalCfg->ruinLmax, avgLen);
 
-	if (kind == 2 && ruinCusNum * 2 < (1 + Lmax)) {
+	// TODO[0]:这个检查就不要了，小于(1 + Lmax) / 2，也让他进行string ruin 至少一条路径
+	//if (perturbkind == 2 && ruinCusNum * 2 < (1 + Lmax)) {
+		//ruinCusNum = (1 + Lmax) / 2;
 		//println("too few node for ruin");
-		kind = myRand->pick(2);
-	}
+		//kind = myRand->pick(2);
+	//}
 
 	Vec<int> ruinCus;
-	if (kind == 0) {
+	if (perturbkind == 0) {
 		ruinCus = ruinGetRuinCusByRound(ruinCusNum);
 	}
-	else if (kind == 1) {
+	else if (perturbkind == 1) {
 		ruinCus = ruinGetRuinCusBySec(ruinCusNum);
 	}
 	else {
@@ -6639,9 +6545,8 @@ bool Solver::perturbBaseRuin(int kind, int ruinCusNum) {
 
 	sumRtsCost();
 	sumRtsPen();
-	static Vec<int> clearSortContri(6);
-	int sortKind = myRand->pick(6);
-	ruinClearEP(sortKind);
+
+	ruinClearEP(clearEPKind);
 
 	if (penalty == 0) {
 
@@ -6653,15 +6558,14 @@ bool Solver::perturbBaseRuin(int kind, int ruinCusNum) {
 		}
 	}
 	else {
-		//return false;
+
+		*this = pClone;
+		return false;
 		if (repair()) {
-
-			//++clearSortContri[sortKind];
-			//printve(clearSortContri);
-
 			return true;
 		}
 		else {
+			
 			*this = pClone;
 			return false;
 		}
@@ -6669,35 +6573,56 @@ bool Solver::perturbBaseRuin(int kind, int ruinCusNum) {
 	return false;
 }
 
-bool Solver::ruinLocalSearch(int ruinCusNum) {
+int Solver::ruinLocalSearch(int ruinCusNum) {
 
 	gamma = 1;
 	//TODO[4][1]:这里可能可以去掉，如果之前每一条路径的cost都维护的话
 	//TODO[4][2]:但是接到扰动后面就不太行了
 	reCalRtsCostSumCost();
 
-	Solver pBest = *this;
+	auto pBest = *this;
 
-	for (int i = 0; i < 10; ++i) {
+	static ProbControl pcRuinkind(3);
+	static ProbControl pcClEPkind(6);
+	
+	int retState = 0;
 
-		int kind = myRand->pick(3);
-		//int kind = 0;
+	for (int conti = 1; conti<10;++conti) {
+
+		int kind = pcRuinkind.getIndexBasedData();
+		int kindclep = pcClEPkind.getIndexBasedData();
+
+		bool ispertutb = false;
 		
-		bool  ispertutb = perturbBaseRuin(kind, ruinCusNum);
+		for (int j = 0; j < 100; ++j) {
+			ispertutb = perturbBaseRuin(kind, ruinCusNum, kindclep);
+			if (ispertutb) {
+				break;
+			}
+		}
+
 		if (ispertutb) {
 			auto cuses = EAX::getDiffCusofPb(pBest, *this);
 			if (cuses.size() > 0) {
 				mRLLocalSearch(1,cuses);
 			}
 		}
+		else {
+			break;
+		}
 
 		if (RoutesCost < pBest.RoutesCost) {
-			i = 0;
 			pBest = *this;
+			++pcRuinkind.data[kind];
+			++pcClEPkind.data[kindclep];
+			retState = 1;
+		}
+		else {
+			conti = 1;
 		}
 	}
 	*this = pBest;
-	return true;
+	return retState;
 }
 
 bool Solver::ejectLocalSearch() {
@@ -6899,10 +6824,6 @@ bool Solver::patternAdjustment(int Irand) {
 
 	sumRtsPen();
 
-	return true;
-}
-
-bool cvb2RuinLocalSearch() {
 	return true;
 }
 
@@ -7534,6 +7455,12 @@ bool Solver::adjustRN() {
 			sumRtsPen();
 		}
 	}
+	
+	globalCfg->ruinLmax = 0;
+	for (int i = 0; i < rts.cnt; ++i) {
+		globalCfg->ruinLmax = std::max<int>(globalCfg->ruinLmax,rts[i].rCustCnt);
+	}
+	globalCfg->ruinC_ = (globalCfg->ruinLmax + 1)/2;
 	return true;
 }
 
@@ -7686,7 +7613,10 @@ bool Solver::repair() {
 
 bool Solver::mRLLocalSearch(int hasRange,Vec<int> newCus) {
 
+	alpha = 1;
+	beta = 1;
 	gamma = 1;
+
 	reCalRtsCostSumCost();
 
 	TwoNodeMove MRLbestM;
@@ -7729,6 +7659,9 @@ bool Solver::mRLLocalSearch(int hasRange,Vec<int> newCus) {
 	}
 
 	auto getMovesGivenRange = [&](int range) {
+
+		unsigned shuseed = (globalEnv->seed % hust::Mod) + ((hust::myRand->pick(10000007))) % hust::Mod;
+		std::shuffle(newCus.begin(), newCus.end(), std::default_random_engine(shuseed));
 
 		MRLbestM.reSet();
 		//auto wposOrder = myRandX->getMN(range, range);
@@ -7798,8 +7731,6 @@ bool Solver::mRLLocalSearch(int hasRange,Vec<int> newCus) {
 		return MRLbestM;
 	};
 
-	alpha = 1;
-	beta = 1;
 	for (int i = 0; i < rts.cnt; ++i) {
 		rts[i].rWeight = 1;
 	}
