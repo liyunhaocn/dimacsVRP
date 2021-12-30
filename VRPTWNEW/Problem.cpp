@@ -1026,8 +1026,10 @@ bool solveCommandLine(int argc, char* argv[]) {
 	return true;
 }
 
-bool saveSlnFile(Input& input, Output& output) {
-
+bool saveSlnFile(Output& output) {
+	
+	Input& input = *globalInput;
+	
 	DateTime d(time(0));
 	MyString ms;
 	// 输出 tm 结构的各个组成部分
@@ -1317,8 +1319,6 @@ bool Input::initInput() {
 	isOptRL = info.isOpt;
 
 	#if 0
-
-
 	Log(Log::Level::Warning) << "sintefRecRN: " << sintefRecRN << std::endl;
 	Log(Log::Level::Warning) << "sintefRecRL: " << sintefRecRL << std::endl;
 	Log(Log::Level::Warning) << "naRecRL: " << naRecRL << std::endl;
@@ -1326,7 +1326,6 @@ bool Input::initInput() {
 	Log(Log::Level::Warning) << "dimacsRecRL: " << dimacsRecRL << std::endl;
 	Log(Log::Level::Warning) << "isOptRL: " << isOptRL << std::endl;
 	Log(Log::Level::Warning) << "Q: " << Q << std::endl;
-
 	#endif // 0
 
 	return true;

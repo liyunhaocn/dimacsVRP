@@ -727,6 +727,8 @@ public:
 
 	int ruinLocalSearch(int ruinCusNum=1);
 		
+	bool doOneTimeRuinPer(int perturbkind, int ruinCusNum,int clearEPKind);
+	
 	bool perturbBaseRuin(int perturbkind, int ruinCusNum, int clearEPKind);
 
 	bool ejectLocalSearch();

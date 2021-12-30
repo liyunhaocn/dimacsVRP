@@ -450,12 +450,12 @@ struct ProbControl {
     Vec<int> sum;
 
     ProbControl(int maxSize) {
-        data.resize(maxSize, 1);
+        data.resize(maxSize, 10);
         sum.resize(maxSize, 0);
     }
 
     bool resetData() {
-        std::fill(data.begin(), data.end(), 1);
+        std::fill(data.begin(), data.end(), 10);
     }
 
     int getIndexBasedData() {

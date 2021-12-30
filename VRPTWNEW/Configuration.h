@@ -44,13 +44,13 @@ struct Configuration {
 	//int yearTabuLen = 20;
 	//int yearTabuRand = 10;
 
-	int popSize = 5;
+	int popSize = 2;
 	//int repairExitStep = 50;
 	int repairExitStep = 50;
 	int initFindPosPqSize = 20;
 	int findBestPosForRuinPqSize = 10;
 	int findBestPosInSolPqSize = 64;//64
-	int naEaxCh = 10;
+	int naEaxCh = 20;
 
 	//TODO[lyh][2]: patternAdjustment²ÎÊý
 	int patternAdjustmentNnei = 60;
@@ -73,7 +73,7 @@ struct Configuration {
 	//(ruinLmax+1)/2
 	int ruinC_ = 15;
 
-	int ruinWinkacRate = 95; // 100
+	int ruinWinkacRate = 98; // 100
 	int abcyWinkacRate = 100; // 100
 
 	void show();

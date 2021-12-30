@@ -180,7 +180,7 @@ struct Output
 
 };
 
-bool saveSlnFile(Input& input, Output& output);
+bool saveSlnFile(Output& output);
 
 }
 

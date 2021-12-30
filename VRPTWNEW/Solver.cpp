@@ -911,23 +911,13 @@ bool Solver::initBySecOrder(int kind) {
 	std::iota(que1.begin(), que1.end(), 1);
 
 	//TODO[0]:init 这里可以切换 根据需要优化 先注释掉了
-	//if (myRand->pick(2) == 0) {
-	//	unsigned shuseed = (globalEnv.seed % hust::Mod) + ((hust::myRand->pick(10000007))) % hust::Mod;
-	//	std::shuffle(que1.begin(), que1.end(), std::default_random_engine(shuseed));
-	//}
-	//else {
-	//	auto cmp = [&](int x, int y) {
-	//		return input.datas[x].polarAngle < input.datas[y].polarAngle;
-	//	};
-	//	std::sort(que1.begin(), que1.end(), cmp);
-	//}
 
 	auto cmp0 = [&](int x, int y) {
 		return input.datas[x].polarAngle < input.datas[y].polarAngle;
 	};
 	
 	auto cmp1 = [&](int x, int y) {
-		return input.datas[x].DEMAND > input.datas[y].DEMAND;
+		return input.disOf[0][x] > input.disOf[0][y];
 	};
 
 	auto cmp2 = [&](int x, int y) {
@@ -1008,16 +998,12 @@ bool Solver::initMaxRoute() {
 	unsigned shuseed = (globalEnv->seed % hust::Mod) + ((hust::myRand->pick(10000007))) % hust::Mod;
 	std::shuffle(que1.begin(), que1.end(), std::default_random_engine(shuseed));
 
-	/*auto cmp = [&](int x, int y) {
-		return input.datas[x].DUEDATE < input.datas[y].DUEDATE;
+	auto cmp = [&](int x, int y) {
+		return input.datas[x].polarAngle < input.datas[y].polarAngle;
 	};
-	std::sort(que1.begin(), que1.end(), cmp);*/
+	std::sort(que1.begin(), que1.end(), cmp);
 
 	int rid = 0;
-
-	/*for (int i = 0; i < customers.size(); ++i) {
-		customers[i].id = i;
-	}*/
 
 	do {
 
@@ -1028,7 +1014,8 @@ bool Solver::initMaxRoute() {
 
 		for (int i = 0; i < que1.size(); ++i) {
 			int cus = que1[i];
-			Position tPos = findBestPosInSolForInit(cus);
+			Position tPos = findBestPosForRuin(cus);
+			//Position tPos = findBestPosInSolForInit(cus);
 
 			if (tPos.rIndex != -1 && tPos.pen == 0) {
 				if (tPos.cost < bestP.cost) {
@@ -6136,8 +6123,10 @@ Solver::Position Solver::findBestPosForRuin(int w) {
 		}
 	};
 
-	auto& rtsIndexOrder = myRandX->getMN(rts.cnt, rts.cnt);
-
+	auto rtsIndexOrder = myRandX->getMN(rts.cnt, rts.cnt);
+	sort(rtsIndexOrder.begin(), rtsIndexOrder.end(), [&](int x,int y) {
+		return rts[x].rQ < rts[y].rQ;
+	});
 	//printve(rtsIndexOrder);
 	for (int i : rtsIndexOrder) {
 	
@@ -6487,28 +6476,16 @@ Vec<int> Solver::ruinGetRuinCusBySec(int ruinCusNum) {
 	return cusArr;
 }
 
-bool Solver::perturbBaseRuin(int perturbkind, int ruinCusNum,int clearEPKind) {
+bool Solver::doOneTimeRuinPer(int perturbkind,int ruinCusNum,int clearEPKind) {
 
-	gamma = 1;
-	//TODO[4][1]:这里可能可以去掉，如果之前每一条路径的cost都维护的话
-	//TODO[4][2]:但是接到扰动后面就不太行了
-	reCalRtsCostSumCost();
-
-	Solver pClone = *this;
 
 	int avgLen = input.custCnt / rts.cnt;
-
-	//int Lmax = std::min<int>(20, avgLen);
-	//globalCfg->Lmax = 30;
-
 	int Lmax = std::min<int>(globalCfg->ruinLmax, avgLen);
+	int ruinKmax = 4 * ruinCusNum / (1 + Lmax) - 1;
+	ruinKmax = std::min<int>(rts.cnt, ruinKmax);
+	ruinKmax = std::max<int>(1, ruinKmax);
 
-	// TODO[0]:这个检查就不要了，小于(1 + Lmax) / 2，也让他进行string ruin 至少一条路径
-	//if (perturbkind == 2 && ruinCusNum * 2 < (1 + Lmax)) {
-		//ruinCusNum = (1 + Lmax) / 2;
-		//println("too few node for ruin");
-		//kind = myRand->pick(2);
-	//}
+	DisType routesCostBefore = RoutesCost;
 
 	Vec<int> ruinCus;
 	if (perturbkind == 0) {
@@ -6518,12 +6495,7 @@ bool Solver::perturbBaseRuin(int perturbkind, int ruinCusNum,int clearEPKind) {
 		ruinCus = ruinGetRuinCusBySec(ruinCusNum);
 	}
 	else {
-
-		int ruinKmax = 4 * ruinCusNum / (1 + Lmax) - 1;
-		ruinKmax = std::min<int>(rts.cnt, ruinKmax);
-		ruinKmax = std::max<int>(1, ruinKmax);
 		ruinCus = ruinGetRuinCusBySting(ruinKmax, Lmax);
-		//debug(ruinCus.size());
 	}
 
 	std::unordered_set<int> rIds;
@@ -6542,34 +6514,89 @@ bool Solver::perturbBaseRuin(int perturbkind, int ruinCusNum,int clearEPKind) {
 		rUpdateZvQfrom(r, r.tail);
 		rReCalRCost(r);
 	}
-
 	sumRtsCost();
 	sumRtsPen();
-
 	ruinClearEP(clearEPKind);
-
 	if (penalty == 0) {
+		return true;
+	}
+	else {
+		return false;
+	}
+	return false;
+}
 
-		if (RoutesCost == pClone.RoutesCost) {
-			return false;
+bool Solver::perturbBaseRuin(int perturbkind, int ruinCusNum,int clearEPKind) {
+
+	gamma = 1;
+	//TODO[4][1]:这里可能可以去掉，如果之前每一条路径的cost都维护的话
+	//TODO[4][2]:但是接到扰动后面就不太行了
+	reCalRtsCostSumCost();
+
+	Solver pClone = *this;
+	Solver penMinSol;
+	penMinSol.penalty = DisInf;
+
+	int i = 0;
+
+	bool perSuc = false;
+	bool hasPenMinSol = false;
+
+	for (i = 0 ;i < 5;++i) {
+		bool noPen = doOneTimeRuinPer(perturbkind,ruinCusNum,clearEPKind);
+		if (noPen) {
+			if (RoutesCost != pClone.RoutesCost) {
+				perSuc = true;
+				break;
+			}
+			else {
+				;
+			}
 		}
-		else {
-			return true;
+		else { // has pen
+			if (this->penalty < penMinSol.penalty) {
+				hasPenMinSol = true;
+				penMinSol = *this;
+			}
+			*this = pClone;
 		}
+	}
+	
+	static int all = 0;
+	static int sam = 0;
+	static int suc = 0;
+	static int pen = 0;
+	static int rep = 0;
+	static int nre = 0;
+
+	++all;
+	//println("i:",i,"all:", all, "sam : ", sam, "suc : ", suc, "pen : ", pen, "rep : ", rep, "nre : ", nre,"ruinCusNum : ", ruinCusNum);
+	
+	if (perSuc) {
+		++suc;
+		return true;
 	}
 	else {
 
-		*this = pClone;
-		return false;
-		if (repair()) {
-			return true;
+		if (hasPenMinSol) { //生成了有惩罚的解
+			++pen;
+			if (penMinSol.repair()) {
+				++rep;
+				*this = penMinSol;
+				return true;
+			}
+			else {
+				++nre;
+				*this = pClone;
+				return false;
+			}
+
 		}
-		else {
-			
-			*this = pClone;
+		else {// 生成了10个相同的解
+			++sam;
 			return false;
 		}
-	}
+	} 
 	return false;
 }
 
@@ -6587,20 +6614,13 @@ int Solver::ruinLocalSearch(int ruinCusNum) {
 	
 	int retState = 0;
 
-	for (int conti = 1; conti<10;++conti) {
+	for (int conti = 1; conti < 20;++conti) {
 
 		int kind = pcRuinkind.getIndexBasedData();
 		int kindclep = pcClEPkind.getIndexBasedData();
 
-		bool ispertutb = false;
-		
-		for (int j = 0; j < 100; ++j) {
-			ispertutb = perturbBaseRuin(kind, ruinCusNum, kindclep);
-			if (ispertutb) {
-				break;
-			}
-		}
-
+		bool ispertutb = perturbBaseRuin(kind, ruinCusNum, kindclep);
+		//debug(conti);
 		if (ispertutb) {
 			auto cuses = EAX::getDiffCusofPb(pBest, *this);
 			if (cuses.size() > 0) {
@@ -6608,7 +6628,8 @@ int Solver::ruinLocalSearch(int ruinCusNum) {
 			}
 		}
 		else {
-			break;
+			*this = pBest;
+			continue;
 		}
 
 		if (RoutesCost < pBest.RoutesCost) {
@@ -6616,10 +6637,12 @@ int Solver::ruinLocalSearch(int ruinCusNum) {
 			++pcRuinkind.data[kind];
 			++pcClEPkind.data[kindclep];
 			retState = 1;
-		}
-		else {
 			conti = 1;
 		}
+		else {
+			*this = pBest;
+		}
+		
 	}
 	*this = pBest;
 	return retState;
@@ -7390,8 +7413,7 @@ void Solver::minimizeRN() {
 		bool isDelete = ejectLocalSearch();
 		if (isDelete) {
 			//saveOutAsSintefFile();
-			debug(rts.size());
-			;
+			//debug(rts.size());
 		}
 		else {
 			*this = sclone;
@@ -7456,11 +7478,14 @@ bool Solver::adjustRN() {
 		}
 	}
 	
+	//TODO[0]:Lmax和ruinLmax的定义
 	globalCfg->ruinLmax = 0;
 	for (int i = 0; i < rts.cnt; ++i) {
 		globalCfg->ruinLmax = std::max<int>(globalCfg->ruinLmax,rts[i].rCustCnt);
 	}
-	globalCfg->ruinC_ = (globalCfg->ruinLmax + 1)/2;
+	globalCfg->ruinLmax /= 2;
+	//globalCfg->ruinC_ = (globalCfg->ruinLmax + 1)/2 ;
+	globalCfg->ruinC_ = (globalCfg->ruinLmax + 1);
 	return true;
 }
 
