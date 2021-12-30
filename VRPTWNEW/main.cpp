@@ -30,8 +30,8 @@ bool allocGlobalMem(int argc, char* argv[]) {
 	//globalEnv = new Environment("../Instances/Homberger/RC1_8_1.txt");
 	//globalEnv  = new Environment("../Instances/Homberger/C1_4_2.txt");
 	//globalEnv  = new Environment("../Instances/Homberger/C2_10_6.txt");
-	//globalEnv  = new Environment("../Instances/Homberger/RC1_8_5.txt");
-	globalEnv = new Environment("../Instances/Homberger/RC2_6_4.txt");
+	globalEnv  = new Environment("../Instances/Homberger/RC1_8_5.txt");
+	//globalEnv = new Environment("../Instances/Homberger/RC2_6_4.txt");
 
 	globalCfg = new hust::Configuration();
 	//lyh::MyString ms;
@@ -80,13 +80,12 @@ bool deallocGlobalMem() {
 struct Goal {
 	
 	Vec<Vec<LL>> eaxYearTable;
-	Solver bestSolFound;
+	
 	Vec<Solver> pool;
 
 	Goal() {
 		eaxYearTable = Vec<Vec<LL>>
 		(globalCfg->popSize, Vec<LL>(globalCfg->popSize));
-		bestSolFound.RoutesCost = DisInf;
 	}
 
 	#if 0
@@ -179,11 +178,11 @@ struct Goal {
 			
 			if (pc.RoutesCost < paBest.RoutesCost) {
 				paBest = pc;
-				if (pc.RoutesCost < bestSolFound.RoutesCost) {
-					bestSolFound = pc;
+				bool isup = BKS::updateBKS(pc, "eax local update, kind:" + std::to_string(kind));
+				if (isup) {
 					ch = 1;
 					retState = 1;
-					println("bestSolFound cost:", bestSolFound.RoutesCost, "eax local update, kind:", kind, "choosecyIndex:", eax.choosecyIndex, "chooseuId:", eax.unionIndex);
+					//println("bestSolFound cost:", bestSolFound.RoutesCost, ", kind, "choosecyIndex:", eax.choosecyIndex, "chooseuId:", eax.unionIndex);
 				}
 			}
 
@@ -249,15 +248,14 @@ struct Goal {
 					int clearEPkind = myRand->pick(6);
 					sclone.perturbBaseRuin(kind, 4*globalCfg->ruinC_, clearEPkind);
 				}
-				else {					
-					int step = myRand->pick(sclone.input.custCnt * 0.2, sclone.input.custCnt * 0.4);
+				else {
+
+					int step = myRand->pick(sclone.input.custCnt * 0.2, sclone.input.custCnt * 0.5);
 					sclone.patternAdjustment(step);
 				}
 				
 				auto diff = EAX::getDiffCusofPb(sol, sclone);
 				if (diff.size() > sol.input.custCnt*0.2) {
-					//debug(diff.size());
-					println("perturbkind", kind);
 					sclone.mRLLocalSearch(1, diff);
 					sol = sclone;
 					break;
@@ -266,15 +264,6 @@ struct Goal {
 					sclone = sol;
 				}
 
-				//if (sclone.RoutesCost * 100 >= sol.RoutesCost * 101
-				//	&& sclone.RoutesCost * 100 <= sol.RoutesCost * 120) {
-				//	sol = sclone;
-				//	//sclone.saveOutAsSintefFile("p");
-				//	break;
-				//}
-				//else {
-				//	sclone = sol;
-				//}
 			}
 		}
 		#endif // 0
@@ -324,8 +313,8 @@ struct Goal {
 
 		pool.reserve(globalCfg->popSize);
 
-		Vec<int> kset = { 1,4 };
-		//Vec<int> kset = { 0,1,2,3,4,5 };
+		//Vec<int> kset = { 1,4 };
+		Vec<int> kset = { 0,1,2,3,4,5 };
 
 		for (int i = 0; i < globalCfg->popSize; ++i) {
 
@@ -343,18 +332,13 @@ struct Goal {
 			
 			st.mRLLocalSearch(0, {});
 			st.ruinLocalSearch(globalCfg->ruinC_);
-			if (st.RoutesCost < bestSolFound.RoutesCost) {
-				bestSolFound = st;
-				println("cost:", bestSolFound.RoutesCost);
-			}
+			BKS::updateBKS(st);
 			pool.push_back(st);
 		}
 		return true;
 	}
 
 	bool TwoAlgCombine() {
-
-		bestSolFound.RoutesCost = DisInf;
 
 		initPopulation();
 		Timer t1(globalCfg->runTimer);
@@ -366,9 +350,9 @@ struct Goal {
 		int popSize = globalCfg->popSize;
 
 		#if DIMACSGO
-		while (bestSolFound.RoutesCost > globalInput->dimacsRecRL && !t1.isTimeOut()) {
+		while (BKS::getVal() > globalInput->dimacsRecRL && !t1.isTimeOut()) {
 		#else
-		while (bestSolFound.RoutesCost > globalInput->sintefRecRL && !t1.isTimeOut()) {
+		while (BKS::getVal() > globalInput->sintefRecRL && !t1.isTimeOut()) {
 		#endif // DIMACSGO
 
 			int paIndex = myRand->pick(popSize);
@@ -378,15 +362,23 @@ struct Goal {
 
 			int upState = 0;
 
-			//bestSolFound.saveOutAsSintefFile();
-			
 			if (whichAlg == 0) {
+
+				auto bestClone = BKS::getBKSRef();
+				if (myRand->pick(3) == 0) {
+					int step = myRand->pick(globalInput->custCnt * 0.2, globalInput->custCnt* 0.4);
+					bestClone.patternAdjustment(step);
+				}
+
+				bestClone.LSBasedRuinAndRuin();
+				if (BKS::updateBKS(bestClone,"ruin bestSolFound")) {
+					upState = 1;
+				}
+
 				for (auto& better:pool) {
-					better.ruinLocalSearch(globalCfg->ruinC_);
-					if (better.RoutesCost < bestSolFound.RoutesCost) {
-						bestSolFound = better;
+					better.LSBasedRuinAndRuin();
+					if (BKS::updateBKS(better, "ruin localSearch")) {
 						upState = 1;
-						println("bestSolFound cost:", bestSolFound.RoutesCost, "ruin localSearch");
 					}
 				}
 			}
@@ -409,7 +401,7 @@ struct Goal {
 				++contiNotDown;
 			}
 
-			if (contiNotDown % 2 == 0) {
+			if (contiNotDown % 4 == 0) {
 				++whichAlg;
 				whichAlg %= 2;
 			}
@@ -423,7 +415,7 @@ struct Goal {
 			}
 		}
 
-		Output output = bestSolFound.saveToOutPut();
+		Output output = BKS::getBKSRef().saveToOutPut();
 		output.runTime = t1.getRunTime();
 		saveSlnFile(output);
 		t1.disp();
@@ -450,34 +442,49 @@ struct Goal {
 
 		int contiNotDown = 1;
 
-		ProbControl pc(2*globalCfg->ruinC_);
+		Vec<int> runSize = { 1,globalCfg->ruinC_,2*globalCfg->ruinC_};
+		int index = 0;
+
+		//ProbControl pc(2*globalCfg->ruinC_);
 		#if DIMACSGO
-		while (bestSolFound.RoutesCost > globalInput->dimacsRecRL && !t1.isTimeOut()) {
+		while (BKS::getVal() > globalInput->dimacsRecRL && !t1.isTimeOut()) {
 		#else
-		while (bestSolFound.RoutesCost > globalInput->sintefRecRL && !t1.isTimeOut()) {
+		while (BKS::getVal() > globalInput->sintefRecRL && !t1.isTimeOut()) {
 		#endif // DIMACSGO
 
-			st = pBest;
-			int c_ = pc.getIndexBasedData();
-
 			//st.ruinLocalSearch(c_ + 1);
-			st.ruinLocalSearch(globalCfg->ruinC_);
-			//st.ruinLocalSearch(1);
+			//st.ruinLocalSearch(globalCfg->ruinC_);
+			st.ruinLocalSearch(runSize[index]);
 			
-			if (st.RoutesCost < bestSolFound.RoutesCost) {
-				bestSolFound = st;
-				println("cost:", bestSolFound.RoutesCost);
-			}
+			BKS::updateBKS(st);
 
 			if (st.RoutesCost < pBest.RoutesCost) {
-				++pc.data[c_];
+				//++pc.data[c_];
 				pBest = st;
 				contiNotDown = 1;
+				index = 0;
 			}
 			else {
+				st = pBest;
 				++contiNotDown;
 			}
 
+			if (contiNotDown > 50) {
+				++index;
+				debug(index);
+				if (index == runSize.size()) {
+					st = pBest;
+					if (myRand->pick(3) == 0) {
+						int step = myRand->pick(st.input.custCnt*0.2, st.input.custCnt * 0.4);
+						st.patternAdjustment(st.input.custCnt);
+						int abcyNum = EAX::getabCyNum(st,pBest);
+						println("st.patternAdjustment,cyNum",abcyNum);
+					}
+					
+				}
+				index %= runSize.size();
+				contiNotDown = 1;
+			}
 		}
 
 		Output output = pBest.saveToOutPut();

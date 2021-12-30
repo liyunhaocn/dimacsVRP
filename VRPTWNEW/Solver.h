@@ -13,6 +13,8 @@
 
 namespace hust {
 
+struct BSK;
+
 struct Route {
 
 public:
@@ -727,6 +729,8 @@ public:
 
 	int ruinLocalSearch(int ruinCusNum=1);
 		
+	int LSBasedRuinAndRuin();
+
 	bool doOneTimeRuinPer(int perturbkind, int ruinCusNum,int clearEPKind);
 	
 	bool perturbBaseRuin(int perturbkind, int ruinCusNum, int clearEPKind);
@@ -766,6 +770,44 @@ public:
 
 public:
 	Timer lyhTimer;
+};
+
+struct BKS {
+
+	static DisType lastRec;
+	static Solver bestSolFound;
+	
+	BKS() {
+		bestSolFound.penalty = DisInf;
+		bestSolFound.RoutesCost = DisInf;
+	}
+
+	void reSet() {
+		lastRec = DisInf;
+		bestSolFound.penalty = DisInf;
+		bestSolFound.RoutesCost = DisInf;
+	}
+
+	static bool updateBKS(Solver& newSol, std::string opt = "") {
+		if (newSol.RoutesCost < bestSolFound.RoutesCost) {
+			lastRec = bestSolFound.RoutesCost;
+			bestSolFound = newSol;
+			//bestSolFound.printDimacs();
+			println("new bks found cost:", bestSolFound.RoutesCost,
+				"up:", lastRec - bestSolFound.RoutesCost, opt);
+
+			return true;
+		}
+		return false;
+	}
+
+	static DisType getVal() {
+		return bestSolFound.RoutesCost;
+	}
+
+	static Solver& getBKSRef() {
+		return bestSolFound;
+	}
 };
 
 };

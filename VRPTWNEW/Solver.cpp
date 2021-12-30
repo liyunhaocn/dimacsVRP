@@ -6648,6 +6648,43 @@ int Solver::ruinLocalSearch(int ruinCusNum) {
 	return retState;
 }
 
+int Solver::LSBasedRuinAndRuin() {
+
+	auto pBest = *this;
+	int contiNotDown = 1;
+	Vec<int> runSize = { 1,globalCfg->ruinC_,2 * globalCfg->ruinC_ };
+	int index = 0;
+	
+	for(;;){
+		//st.ruinLocalSearch(c_ + 1);
+		//st.ruinLocalSearch(globalCfg->ruinC_);
+		ruinLocalSearch(runSize[index]);
+
+		BKS::updateBKS(*this);
+
+		if (RoutesCost < pBest.RoutesCost) {
+			//++pc.data[c_];
+			pBest = *this;
+			contiNotDown = 1;
+			index = 0;
+		}
+		else {
+			*this = pBest;
+			++contiNotDown;
+		}
+
+		if (contiNotDown > 50) {
+			++index;
+			debug(index);
+			if (index == runSize.size()) {
+				break;
+			}
+			index %= runSize.size();
+			contiNotDown = 1;
+		}
+	}
+}
+
 bool Solver::ejectLocalSearch() {
 
 	minEPcus = IntInf;
@@ -7940,5 +7977,7 @@ bool Solver::saveOutAsSintefFile(std::string opt) {
 }
 
 Solver::~Solver() {};
+
+DisType BKS::lastRec = DisInf;
 
 }
