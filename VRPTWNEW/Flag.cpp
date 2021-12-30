@@ -37,7 +37,7 @@ extern Vec<Vec<LL>>* yearTable = nullptr;
 extern Configuration* globalCfg = nullptr;
 extern Environment* globalEnv = nullptr;
 extern Input* globalInput = nullptr;
-
+extern BKS* bks = nullptr;
 extern LL squIter = 1;
 
 }

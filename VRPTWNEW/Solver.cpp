@@ -942,7 +942,7 @@ bool Solver::initBySecOrder(int kind) {
 		std::sort(que1.begin(), que1.end(), cmp3);
 	}
 
-	//unsigned shuseed = (globalEnv.seed % hust::Mod) + ((hust::myRand->pick(10000007))) % hust::Mod;
+	//unsigned shuseed = myRand->pickRandSeed();
 	//std::shuffle(que1.begin(), que1.end(), std::default_random_engine(shuseed));
 
 	int rid = 0;
@@ -995,8 +995,7 @@ bool Solver::initMaxRoute() {
 	for (int i = 1; i <= input.custCnt; ++i) {
 		que1.push_back(i);
 	}
-	unsigned shuseed = (globalEnv->seed % hust::Mod) + ((hust::myRand->pick(10000007))) % hust::Mod;
-	std::shuffle(que1.begin(), que1.end(), std::default_random_engine(shuseed));
+	myRand->shuffleVec(que1);
 
 	auto cmp = [&](int x, int y) {
 		return input.datas[x].polarAngle < input.datas[y].polarAngle;
@@ -6212,11 +6211,10 @@ void Solver::ruinClearEP(int kind) {
 		return input.datas[a].DUEDATE < input.datas[b].DUEDATE;
 	};
 
-	unsigned shuseed = (globalEnv->seed % hust::Mod) + ((hust::myRand->pick(10000007))) % hust::Mod;
 
 	switch (kind) {
 	case 0:
-		std::shuffle(EPArr.begin(), EPArr.end(), std::default_random_engine(shuseed));
+		myRand->shuffleVec(EPArr);
 		break;
 	case 1:
 		std::sort(EPArr.begin(), EPArr.end(), cmp1);
@@ -6432,8 +6430,7 @@ Vec<int> Solver::ruinGetRuinCusBySec(int ruinCusNum) {
 
 	Vec<int> rOrder(rts.cnt, 0);
 	std::iota(rOrder.begin(), rOrder.end(), 0);
-	unsigned shuseed = (globalEnv->seed % hust::Mod) + ((hust::myRand->pick(10000007))) % hust::Mod;
-	std::shuffle(rOrder.begin(), rOrder.end(), std::default_random_engine(shuseed));
+	myRand->shuffleVec(rOrder);
 
 	int rti = 0;
 	int rtj = 0;
@@ -6660,7 +6657,7 @@ int Solver::LSBasedRuinAndRuin() {
 		//st.ruinLocalSearch(globalCfg->ruinC_);
 		ruinLocalSearch(runSize[index]);
 
-		BKS::updateBKS(*this);
+		bks->updateBKS(*this);
 
 		if (RoutesCost < pBest.RoutesCost) {
 			//++pc.data[c_];
@@ -7716,18 +7713,16 @@ bool Solver::mRLLocalSearch(int hasRange,Vec<int> newCus) {
 
 	if (hasRange == 0) {
 		newCus = myRandX->getMN(input.custCnt + 1, input.custCnt + 1);
-		unsigned shuseed = (globalEnv->seed % hust::Mod) + ((hust::myRand->pick(10000007))) % hust::Mod;
-		std::shuffle(newCus.begin(), newCus.end(), std::default_random_engine(shuseed));
+		myRand->shuffleVec(newCus);
 	}
 
 	auto getMovesGivenRange = [&](int range) {
 
-		unsigned shuseed = (globalEnv->seed % hust::Mod) + ((hust::myRand->pick(10000007))) % hust::Mod;
-		std::shuffle(newCus.begin(), newCus.end(), std::default_random_engine(shuseed));
+		myRand->shuffleVec(newCus);
 
 		MRLbestM.reSet();
 		//auto wposOrder = myRandX->getMN(range, range);
-		//unsigned shuseed = (globalEnv.seed % hust::Mod) + ((hust::myRand->pick(10000007))) % hust::Mod;
+		//unsigned shuseed = myRand->pickRandSeed();
 		//std::shuffle(wposOrder.begin(), wposOrder.end(), std::default_random_engine(shuseed));
 
 		for (int v : newCus) {
@@ -7978,6 +7973,29 @@ bool Solver::saveOutAsSintefFile(std::string opt) {
 
 Solver::~Solver() {};
 
-DisType BKS::lastRec = DisInf;
+BKS::BKS() {
+	bestSolFound.penalty = DisInf;
+	bestSolFound.RoutesCost = DisInf;
+}
+
+void BKS::reSet() {
+	lastRec = DisInf;
+	bestSolFound.penalty = DisInf;
+	bestSolFound.RoutesCost = DisInf;
+}
+
+bool BKS::updateBKS(Solver& newSol, std::string opt) {
+	if (newSol.RoutesCost < bestSolFound.RoutesCost) {
+		lastRec = bestSolFound.RoutesCost;
+		bestSolFound = newSol;
+		//bestSolFound.printDimacs();
+		println("new bks found cost:", bestSolFound.RoutesCost,
+			"up:", lastRec - bestSolFound.RoutesCost, opt);
+
+		return true;
+	}
+	return false;
+}
+
 
 }

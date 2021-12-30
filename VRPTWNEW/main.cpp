@@ -30,8 +30,8 @@ bool allocGlobalMem(int argc, char* argv[]) {
 	//globalEnv = new Environment("../Instances/Homberger/RC1_8_1.txt");
 	//globalEnv  = new Environment("../Instances/Homberger/C1_4_2.txt");
 	//globalEnv  = new Environment("../Instances/Homberger/C2_10_6.txt");
-	globalEnv  = new Environment("../Instances/Homberger/RC1_8_5.txt");
-	//globalEnv = new Environment("../Instances/Homberger/RC2_6_4.txt");
+	//globalEnv  = new Environment("../Instances/Homberger/RC1_8_5.txt");
+	globalEnv = new Environment("../Instances/Homberger/RC2_6_4.txt");
 
 	globalCfg = new hust::Configuration();
 	//lyh::MyString ms;
@@ -46,7 +46,7 @@ bool allocGlobalMem(int argc, char* argv[]) {
 	//globalEnv->seed = 1611589111;
 	//globalEnv->seed = 1640620823;
 	//globalEnv->seed = 1640660545;//RC2_6_4
-	globalEnv->seed = 1640858824;//RC2_6_4
+	//globalEnv->seed = 1640858824;//RC2_6_4
 
 	globalEnv->show();
 	globalCfg->show();
@@ -61,6 +61,8 @@ bool allocGlobalMem(int argc, char* argv[]) {
 
 	yearTable = new Vec<Vec<LL> >
 		(globalInput->custCnt + 1, Vec<LL>(globalInput->custCnt + 1, 0));
+
+	bks = new BKS();
 	//TODO[lyh][0]:
 	return true;
 }
@@ -73,7 +75,7 @@ bool deallocGlobalMem() {
 	delete globalCfg;
 	delete globalEnv;
 	delete globalInput;
-
+	delete bks;
 	return true;
 }
 
@@ -178,7 +180,7 @@ struct Goal {
 			
 			if (pc.RoutesCost < paBest.RoutesCost) {
 				paBest = pc;
-				bool isup = BKS::updateBKS(pc, "eax local update, kind:" + std::to_string(kind));
+				bool isup = bks->updateBKS(pc, "eax local update, kind:" + std::to_string(kind));
 				if (isup) {
 					ch = 1;
 					retState = 1;
@@ -214,7 +216,7 @@ struct Goal {
 		std::sort(pertuOrder.begin(), pertuOrder.end(), [&](int x, int y) {return
 			pool[x].RoutesCost < pool[y].RoutesCost;
 		});
-		//unsigned shuseed = (globalEnv->seed % hust::Mod) + ((hust::myRand->pick(10000007))) % hust::Mod;
+		//unsigned shuseed = myRand->pickRandSeed();
 		//std::shuffle(pertuOrder.begin(), pertuOrder.end(), std::default_random_engine(shuseed));
 
 		#if 0
@@ -300,22 +302,22 @@ struct Goal {
 
 	bool initPopulation() {
 
-		for (int initKind = 0; initKind < 5; ++initKind) {
-		
-			Solver st;
-			st.initSolution(initKind);
-			println("initKind:", initKind);
-
-			char a[20];
-			snprintf(a, 20, "k%d", initKind);
-			st.saveOutAsSintefFile(a);
-		}
+		//for (int initKind = 0; initKind < 5; ++initKind) {
+		//
+		//	Solver st;
+		//	st.initSolution(initKind);
+		//	println("initKind:", initKind);
+		//	char a[20];
+		//	snprintf(a, 20, "k%d", initKind);
+		//	st.saveOutAsSintefFile(a);
+		//}
 
 		pool.reserve(globalCfg->popSize);
 
 		//Vec<int> kset = { 1,4 };
 		Vec<int> kset = { 0,1,2,3,4,5 };
-
+		myRand->shuffleVec(kset);
+		
 		for (int i = 0; i < globalCfg->popSize; ++i) {
 
 			Solver st;
@@ -332,7 +334,7 @@ struct Goal {
 			
 			st.mRLLocalSearch(0, {});
 			st.ruinLocalSearch(globalCfg->ruinC_);
-			BKS::updateBKS(st);
+			bks->updateBKS(st);
 			pool.push_back(st);
 		}
 		return true;
@@ -350,9 +352,9 @@ struct Goal {
 		int popSize = globalCfg->popSize;
 
 		#if DIMACSGO
-		while (BKS::getVal() > globalInput->dimacsRecRL && !t1.isTimeOut()) {
+		while (bks->bestSolFound.RoutesCost > globalInput->dimacsRecRL && !t1.isTimeOut()) {
 		#else
-		while (BKS::getVal() > globalInput->sintefRecRL && !t1.isTimeOut()) {
+		while (bks->bestSolFound.RoutesCost > globalInput->sintefRecRL && !t1.isTimeOut()) {
 		#endif // DIMACSGO
 
 			int paIndex = myRand->pick(popSize);
@@ -364,23 +366,35 @@ struct Goal {
 
 			if (whichAlg == 0) {
 
-				auto bestClone = BKS::getBKSRef();
-				if (myRand->pick(3) == 0) {
-					int step = myRand->pick(globalInput->custCnt * 0.2, globalInput->custCnt* 0.4);
-					bestClone.patternAdjustment(step);
-				}
+				auto bestClone = bks->bestSolFound;
+				//if (myRand->pick(10) == 0) {
+				//	int step = myRand->pick(globalInput->custCnt * 0.2, globalInput->custCnt* 0.4);
+				//	println("bestClone.patternAdjustment");
+				//	bestClone.patternAdjustment(step);
+				//}
 
-				bestClone.LSBasedRuinAndRuin();
-				if (BKS::updateBKS(bestClone,"ruin bestSolFound")) {
+				bestClone.ruinLocalSearch();
+				if (bks->updateBKS(bestClone,"ruin bestSolFound")) {
 					upState = 1;
 				}
-
 				for (auto& better:pool) {
-					better.LSBasedRuinAndRuin();
-					if (BKS::updateBKS(better, "ruin localSearch")) {
+					better.ruinLocalSearch();
+					if (bks->updateBKS(better, "ruin localSearch")) {
 						upState = 1;
 					}
 				}
+
+				//bestClone.LSBasedRuinAndRuin();
+				//if (bks->updateBKS(bestClone,"ruin bestSolFound")) {
+				//	upState = 1;
+				//}
+				//for (auto& better:pool) {
+				//	better.LSBasedRuinAndRuin();
+				//	if (bks->updateBKS(better, "ruin localSearch")) {
+				//		upState = 1;
+				//	}
+				//}
+
 			}
 			else {
 				
@@ -415,7 +429,7 @@ struct Goal {
 			}
 		}
 
-		Output output = BKS::getBKSRef().saveToOutPut();
+		Output output = bks->bestSolFound.saveToOutPut();
 		output.runTime = t1.getRunTime();
 		saveSlnFile(output);
 		t1.disp();
@@ -447,16 +461,16 @@ struct Goal {
 
 		//ProbControl pc(2*globalCfg->ruinC_);
 		#if DIMACSGO
-		while (BKS::getVal() > globalInput->dimacsRecRL && !t1.isTimeOut()) {
+		while (bks->bestSolFound.RoutesCost > globalInput->dimacsRecRL && !t1.isTimeOut()) {
 		#else
-		while (BKS::getVal() > globalInput->sintefRecRL && !t1.isTimeOut()) {
+		while (bks->bestSolFound.RoutesCost > globalInput->sintefRecRL && !t1.isTimeOut()) {
 		#endif // DIMACSGO
 
 			//st.ruinLocalSearch(c_ + 1);
 			//st.ruinLocalSearch(globalCfg->ruinC_);
 			st.ruinLocalSearch(runSize[index]);
 			
-			BKS::updateBKS(st);
+			bks->updateBKS(st);
 
 			if (st.RoutesCost < pBest.RoutesCost) {
 				//++pc.data[c_];

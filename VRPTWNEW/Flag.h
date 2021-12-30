@@ -73,6 +73,7 @@ struct RandomX;
 struct Configuration;
 struct Environment;
 struct Input;
+struct BKS;
 
 extern Random* myRand;
 extern RandomX* myRandX;
@@ -80,6 +81,7 @@ extern Vec<Vec<LL>>* yearTable;
 extern Configuration* globalCfg;
 extern Environment* globalEnv;
 extern Input* globalInput;
+extern BKS* bks;
 
 }
 #endif // !vrptwNew_FLAG_H

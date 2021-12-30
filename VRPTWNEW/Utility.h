@@ -103,8 +103,8 @@ public:
 class Random {
 public:
     using Generator = std::mt19937;
-
-    Random(unsigned seed) : rgen(seed) {}
+    unsigned seed = -1;
+    Random(unsigned seed) : rgen(seed),seed(seed) {}
     Random() : rgen(generateSeed()) {}
 
     static int generateSeed() {
@@ -125,6 +125,11 @@ public:
     // pick from [0, max).
     int pick(int max) {
         return (rgen() % max);
+    }
+
+    void shuffleVec(Vec<int>& v) {
+        unsigned shuseed = (seed % hust::Mod) + ((pick(10000007))) % hust::Mod;
+        std::shuffle(v.begin(), v.end(), std::default_random_engine(shuseed));
     }
 
     Generator rgen;

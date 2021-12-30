@@ -774,40 +774,15 @@ public:
 
 struct BKS {
 
-	static DisType lastRec;
-	static Solver bestSolFound;
+	DisType lastRec = DisInf;
+	Solver bestSolFound;
 	
-	BKS() {
-		bestSolFound.penalty = DisInf;
-		bestSolFound.RoutesCost = DisInf;
-	}
+	BKS();
 
-	void reSet() {
-		lastRec = DisInf;
-		bestSolFound.penalty = DisInf;
-		bestSolFound.RoutesCost = DisInf;
-	}
+	void reSet();
 
-	static bool updateBKS(Solver& newSol, std::string opt = "") {
-		if (newSol.RoutesCost < bestSolFound.RoutesCost) {
-			lastRec = bestSolFound.RoutesCost;
-			bestSolFound = newSol;
-			//bestSolFound.printDimacs();
-			println("new bks found cost:", bestSolFound.RoutesCost,
-				"up:", lastRec - bestSolFound.RoutesCost, opt);
-
-			return true;
-		}
-		return false;
-	}
-
-	static DisType getVal() {
-		return bestSolFound.RoutesCost;
-	}
-
-	static Solver& getBKSRef() {
-		return bestSolFound;
-	}
+	bool updateBKS(Solver& newSol, std::string opt = "");
+	
 };
 
 };
