@@ -1,15 +1,12 @@
 
 #include <climits>
 #include "Flag.h"
-#include "Environment.h"
-#include "Configuration.h"
+#include "Utility.h"
 
 namespace hust {
 
 extern int IntInf = INT_MAX/2;
 extern long long int LLInf = 0x3f3f3f3f3f3f3f3f / 4;
-//extern double LFInf = DBL_MAX;
-//extern double LFINF = 1.79769e+308;
 
 extern double PI = 3.14159265359;
 extern double PI_2 = PI / 2;
@@ -20,8 +17,8 @@ extern double PI_32 = PI / 32;
 
 #if DIMACSGO
 //TODO[lyh][000]:dimacs «10
-extern int disMul = 10;
-extern DisType DisInf = IntInf;
+extern int disMul = 100;
+extern DisType DisInf = LLInf;
 #else
 //TODO[lyh][000]:dimacs «10
 extern int disMul = 10000;
@@ -35,7 +32,6 @@ extern Random* myRand = nullptr;
 extern RandomX* myRandX = nullptr;
 extern Vec<Vec<LL>>* yearTable = nullptr;
 extern Configuration* globalCfg = nullptr;
-extern Environment* globalEnv = nullptr;
 extern Input* globalInput = nullptr;
 extern BKS* bks = nullptr;
 extern LL squIter = 1;

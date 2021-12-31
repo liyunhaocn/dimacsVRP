@@ -1,10 +1,8 @@
 #ifndef LYH_EAX_H
 #define LYH_EAX_H
 
-#include <unordered_map>
-//#include <numeric>
-#include "Flag.h"
 #include "Solver.h"
+#include "Flag.h"
 
 namespace hust {
 

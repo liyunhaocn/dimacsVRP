@@ -8,7 +8,7 @@
 #include <iostream>
 #include <list>
 
-#define DIMACSGO 0
+#define DIMACSGO 1
 #define ATTRIBUTETABU 1
 #define LOGINFO 1
 
@@ -46,8 +46,9 @@ using List = std::list<V>;
 
 using LL = long long int;
 
+//TODO[0] 都用LL了 为了找10倍DIMACSGO的bug
 #if DIMACSGO
-using DisType = int;
+using DisType = LL;
 #else
 using DisType = LL;
 #endif // DIMACSGO
@@ -71,7 +72,6 @@ extern LL squIter;
 struct Random;
 struct RandomX;
 struct Configuration;
-struct Environment;
 struct Input;
 struct BKS;
 
@@ -79,7 +79,6 @@ extern Random* myRand;
 extern RandomX* myRandX;
 extern Vec<Vec<LL>>* yearTable;
 extern Configuration* globalCfg;
-extern Environment* globalEnv;
 extern Input* globalInput;
 extern BKS* bks;
 

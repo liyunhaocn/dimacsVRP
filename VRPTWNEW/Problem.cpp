@@ -3,6 +3,7 @@
 #include <istream>
 
 #include "Problem.h"
+#include "Utility.h"
 
 namespace hust {
 
@@ -1004,28 +1005,6 @@ static double getNagataRL(std::string ins) {
 	return 0.0;
 }
 
-bool solveCommandLine(int argc, char* argv[]) {
-
-	MyString ms;
-	if (argc >= 2) {
-		globalCfg->breakRecord = ms.str_int(argv[1]);
-	}
-
-	if (argc >= 3) {
-		std::string inpath = argv[2];
-		globalEnv->setInputPath(inpath);
-	}
-
-	if (argc >= 4) {
-		globalCfg->runTimer = ms.str_int(argv[3]);
-	}
-
-	if (argc >= 5) {
-		globalEnv->seed = ms.str_int(argv[4]);
-	}
-	return true;
-}
-
 bool saveSlnFile(Output& output) {
 	
 	Input& input = *globalInput;
@@ -1058,7 +1037,7 @@ bool saveSlnFile(Output& output) {
 	//std::string type = output.rts.size() < input.sintefRecRN ? "br" : "Ej";
 
 	std::ofstream rgbData;
-	std::string wrPath = globalEnv->outputPath + "_" + path + ".csv";
+	std::string wrPath = globalCfg->outputPath + "_" + path + ".csv";
 
 	bool isGood = false;
 	{
@@ -1107,7 +1086,7 @@ bool saveSlnFile(Output& output) {
 	}
 
 	rgbData << ",";
-	rgbData << globalEnv->seed;
+	rgbData << globalCfg->seed;
 
 	rgbData << std::endl;
 	rgbData.close();
@@ -1121,7 +1100,7 @@ Input::Input() {
 
 bool Input::initInput() {
 
-	readDimacsInstance(globalEnv->inputPath);
+	readDimacsInstance(globalCfg->inputPath);
 	readDimacsBKS();
 
 	P = Vec<int>(custCnt + 1, 1);
@@ -1194,7 +1173,6 @@ bool Input::initInput() {
 	}
 
 	allCloseOf = Vec< Vec<int>>(custCnt + 1, Vec<int>(0));
-
 
 	for (int v = 0; v <= custCnt; ++v) {
 
@@ -1313,12 +1291,11 @@ bool Input::initInput() {
 
 	auto info = getInsData(example);
 	sintefRecRN = info.minRN;
-	//dimacsRecRL = info.minRL * disMul;
 	sintefRecRL = getSintefRL(example) * disMul;
 	naRecRL = getNagataRL(example) * disMul;
 	isOptRL = info.isOpt;
 
-	#if 0
+	#if 1
 	Log(Log::Level::Warning) << "sintefRecRN: " << sintefRecRN << std::endl;
 	Log(Log::Level::Warning) << "sintefRecRL: " << sintefRecRL << std::endl;
 	Log(Log::Level::Warning) << "naRecRL: " << naRecRL << std::endl;
@@ -1400,7 +1377,7 @@ bool Input::readDimacsBKS() {
 		}
 		else if (t.find("Cost ") != std::string::npos) {
 			t = t.substr(5);
-			dimacsRecRL = std::stof(t)*10;
+			dimacsRecRL = std::stof(t)*disMul;
 		}
 	}
 	dimacsRecRN = rn;

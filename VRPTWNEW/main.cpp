@@ -1,29 +1,26 @@
 ﻿// dimacsVRP.cpp : 此文件包含 "main" 函数。程序执行将在此处开始并结束。
 
-#include <iostream>
-#include <functional>
 #include <numeric>
 
-#include "Environment.h"
-#include "Utility.h"
-#include "Solver.h"
-#include "Problem.h"
-#include "Configuration.h"
-#include "Flag.h"
-#include "EAX.h"
-
-#include<cstdlib>
 #include<cstring>
 #include<cmath>
 #include<iostream>
-#include<algorithm>
-#include<queue>
 #include<vector>
-#include<map>
+
+//#include "Utility.h"
+#include "Solver.h"
+//#include "Problem.h"
+//#include "Configuration.h"
+//#include "Flag.h"
+#include "EAX.h"
 
 namespace hust {
 
 bool allocGlobalMem(int argc, char* argv[]) {
+
+
+	globalCfg = new hust::Configuration();
+	globalCfg->inputPath = "../Instances/Homberger/C2_8_7.txt";
 
 	//globalEnv = new Environment("../Instances/Solomon/C101.txt");
 	//globalEnv = new Environment("../Instances/Homberger/RC1_8_3.txt");
@@ -31,15 +28,12 @@ bool allocGlobalMem(int argc, char* argv[]) {
 	//globalEnv  = new Environment("../Instances/Homberger/C1_4_2.txt");
 	//globalEnv  = new Environment("../Instances/Homberger/C2_10_6.txt");
 	//globalEnv  = new Environment("../Instances/Homberger/RC1_8_5.txt");
-	globalEnv = new Environment("../Instances/Homberger/RC2_6_4.txt");
+	//globalEnv = new Environment("../Instances/Homberger/C2_8_7.txt");
 
-	globalCfg = new hust::Configuration();
-	//lyh::MyString ms;
+	globalCfg->solveCommandLine(argc, argv);
 
-	solveCommandLine(argc, argv);
-
-	if (globalEnv->seed == -1) {
-		globalEnv->seed = std::time(nullptr) + std::clock();
+	if (globalCfg->seed == -1) {
+		globalCfg->seed = std::time(nullptr) + std::clock();
 	}
 
 	//globalEnv->seed = 1611589828;
@@ -47,12 +41,11 @@ bool allocGlobalMem(int argc, char* argv[]) {
 	//globalEnv->seed = 1640620823;
 	//globalEnv->seed = 1640660545;//RC2_6_4
 	//globalEnv->seed = 1640858824;//RC2_6_4
+	//globalEnv->seed = 1640880535;
 
-	globalEnv->show();
 	globalCfg->show();
-
-	myRand = new Random(globalEnv->seed);
-	myRandX = new RandomX(globalEnv->seed);
+	myRand = new Random(globalCfg->seed);
+	myRandX = new RandomX(globalCfg->seed);
 
 	globalInput = new Input();
 
@@ -73,7 +66,6 @@ bool deallocGlobalMem() {
 	delete myRandX;
 	delete yearTable;
 	delete globalCfg;
-	delete globalEnv;
 	delete globalInput;
 	delete bks;
 	return true;
@@ -252,7 +244,7 @@ struct Goal {
 				}
 				else {
 
-					int step = myRand->pick(sclone.input.custCnt * 0.2, sclone.input.custCnt * 0.5);
+					int step = myRand->pick(sclone.input.custCnt * 0.2, sclone.input.custCnt);
 					sclone.patternAdjustment(step);
 				}
 				
@@ -315,27 +307,57 @@ struct Goal {
 		pool.reserve(globalCfg->popSize);
 
 		//Vec<int> kset = { 1,4 };
-		Vec<int> kset = { 0,1,2,3,4,5 };
+		Vec<int> kset = { 0,1,2,3,4};
 		myRand->shuffleVec(kset);
 		
-		for (int i = 0; i < globalCfg->popSize; ++i) {
+		int ourTarget = 0;
 
+		#if DIMACSGO
+		ourTarget = globalInput->dimacsRecRN;
+		#else
+		if (globalCfg->breakRecord) {
+			ourTarget = globalInput->sintefRecRN - 1;
+		}
+		else {
+			ourTarget = globalInput->sintefRecRN;
+		}
+		#endif // DIMACSGO
+
+		Solver s0;
+		s0.initSolution(kset[0]);
+		s0.adjustRN(ourTarget);
+		ourTarget = s0.rts.cnt;
+		s0.mRLLocalSearch(0, {});
+		s0.ruinLocalSearch(globalCfg->ruinC_);
+		bks->updateBKS(s0);
+		pool.push_back(s0);
+		println("s0 inint kind:", kset[0]);
+
+		int produceNum = globalCfg->popSize * 2;
+		int i = 1;
+		while (++i <= produceNum && pool.size() < globalCfg->popSize) {
 			Solver st;
-			int initKind = myRand->pick(5);
-			//st.initSolution(initKind);
-			st.initSolution(kset[i]);
-			println("initKind:", initKind);
-			
-			//st.saveOutAsSintefFile(a);
+			st.initSolution(kset[i% kset.size()]);
+			st.adjustRN(ourTarget);
+			if (st.rts.cnt == ourTarget) {
+				st.mRLLocalSearch(0, {});
+				st.ruinLocalSearch(globalCfg->ruinC_);
+				bks->updateBKS(st);
+				println("s inint kind:", kset[i % kset.size()]);
+				pool.push_back(st);
+			}
+		}
 
-			//saveSlnFile(pBest.output);
-
-			st.adjustRN();
-			
-			st.mRLLocalSearch(0, {});
-			st.ruinLocalSearch(globalCfg->ruinC_);
-			bks->updateBKS(st);
-			pool.push_back(st);
+		if (pool.size() < globalCfg->popSize) {
+			println("dont get enough population");
+			int poolCurSize = pool.size();
+			int i = 0;
+			while (pool.size() < globalCfg->popSize) {
+				Solver sclone = pool[i++];
+				sclone.patternAdjustment(globalInput->custCnt);
+				sclone.reCalRtsCostAndPen();
+				pool.push_back(sclone);
+			}
 		}
 		return true;
 	}
@@ -348,6 +370,7 @@ struct Goal {
 		t1.reStart();
 
 		int contiNotDown = 1;
+		//TODO[0]:先使用哪个
 		int whichAlg = 0; // 0代表局部搜搜 1 代表交叉
 		int popSize = globalCfg->popSize;
 
@@ -447,7 +470,7 @@ struct Goal {
 		//st.initSolution(myRand->pick(2));
 		st.initSolution(0);
 
-		st.adjustRN();
+		st.adjustRN(globalInput->dimacsRecRN);
 		//st.saveOutAsSintefFile("minR");
 		st.mRLLocalSearch(0,{});
 
@@ -519,7 +542,7 @@ int main(int argc, char* argv[])
 	//hust::println(sizeof(hust::Timer));
 	//hust::println(sizeof(hust::Solver::alpha));
 	//hust::println(sizeof(hust::Solver::input));
-	//hust::println(sizeof(hust::Solver::globalEnv));
+	//hust::println(sizeof(hust::Solver::globalCfg));
 	//hust::println(sizeof(hust::Input));
 
 	hust::allocGlobalMem(argc, argv);

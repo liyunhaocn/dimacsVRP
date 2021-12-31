@@ -6,10 +6,9 @@
 #include <set>
 #include <limits.h>
 
-#include "Environment.h"
+#include "Flag.h"
 #include "Utility.h"
 #include "Problem.h"
-#include "Flag.h"
 
 namespace hust {
 
@@ -409,7 +408,6 @@ public:
 
 	Vec<Customer> customers;
 
-	int ourTarget = 0;
 	DisType penalty = 0;
 	DisType Ptw = 0;
 	DisType PtwNoWei = 0;
@@ -750,9 +748,9 @@ public:
 		
 	bool resetSol();
 
-	void minimizeRN();
+	void minimizeRN(int ourTarget);
 
-	bool adjustRN();
+	bool adjustRN(int ourTarget);
 
 	TwoNodeMove naRepairGetMoves(std::function<bool(TwoNodeMove& t, TwoNodeMove& bestM)>updateBestM);
 	

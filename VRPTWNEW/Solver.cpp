@@ -1,6 +1,7 @@
 
 #include "Solver.h"
 #include "EAX.h"
+#include "Flag.h"
 
 namespace hust{
 
@@ -65,8 +66,6 @@ Solver::Solver(const Solver& s) :
 	this->beta = s.beta;
 	this->gamma = s.gamma;
 	this->EPr = s.EPr;
-	//this->EPIter = s.EPIter;
-	this->ourTarget = s.ourTarget;
 	this->RoutesCost = s.RoutesCost;
 }
 
@@ -85,8 +84,6 @@ Solver& Solver::operator = (const Solver& s) {
 	this->Pc = s.Pc;
 	this->RoutesCost = s.RoutesCost;
 	this->EPr = s.EPr;
-	//this->EPIter = s.EPIter;
-	this->ourTarget = s.ourTarget;
 
 	return *this;
 }
@@ -942,9 +939,6 @@ bool Solver::initBySecOrder(int kind) {
 		std::sort(que1.begin(), que1.end(), cmp3);
 	}
 
-	//unsigned shuseed = myRand->pickRandSeed();
-	//std::shuffle(que1.begin(), que1.end(), std::default_random_engine(shuseed));
-
 	int rid = 0;
 
 	int indexBeg = myRand->pick(input.custCnt);
@@ -1078,11 +1072,17 @@ bool Solver::initByArr2(Vec < Vec<int>> arr2) {
 bool Solver::initSolution(int kind) {//5ÖÖ
 
 	if (kind <= 3) {
-		return initBySecOrder(kind);
+		initBySecOrder(kind);
 	}
 	else{
-		return initMaxRoute();
+		initMaxRoute();
 	}
+
+	reCalRtsCostAndPen();
+	Log(Log::Level::Info) << "init penalty: " << penalty;
+	Log(Log::Level::Info) << " rts.size():" << rts.size();
+	Log(Log::Level::Info) << " rtcost:" << RoutesCost << std::endl;
+
 	return true;
 }
 
@@ -1532,7 +1532,7 @@ Solver::DeltPen Solver::outrelocatevToww_(int v, int w, int oneR) { //2
 				debug(back);
 				debug(v);
 				debug(w);
-				debug(globalEnv->seed);
+				debug(globalCfg->seed);
 				debug(rv.head);
 				debug(rv.tail);
 				debug("error 333");
@@ -6680,6 +6680,7 @@ int Solver::LSBasedRuinAndRuin() {
 			contiNotDown = 1;
 		}
 	}
+	return 1;
 }
 
 bool Solver::ejectLocalSearch() {
@@ -6691,9 +6692,12 @@ bool Solver::ejectLocalSearch() {
 
 	LL EpCusNoDown = 1;
 
-	while (!lyhTimer.isTimeOut()) {
+	int iter = 1;
 
-		//++EPIter;
+	while (iter < globalCfg->ejectLSMaxIter) {
+	//while (1) {
+
+		++iter;
 
 		EPNodesCanEasilyPut();
 
@@ -6715,7 +6719,8 @@ bool Solver::ejectLocalSearch() {
 
 		minEPcus = std::min<int>(minEPcus, EPr.rCustCnt);
 		if (EPsize() == 0 && penalty == 0) {
-			return true;
+			//debug(iter);
+			break;
 		}
 
 		Vec<int> EPrVe = rPutCusInve(EPr);
@@ -6793,7 +6798,11 @@ bool Solver::ejectLocalSearch() {
 			}
 		}
 	}
-	return false;
+
+	//debug(iter);
+	
+
+	return (EPsize() == 0 && penalty == 0);
 }
 
 bool Solver::patternAdjustment(int Irand) {
@@ -7424,21 +7433,14 @@ bool Solver::resetSol() {
 	return true;
 }
 
-void Solver::minimizeRN() {
+void Solver::minimizeRN(int ourTarget) {
 
 	gamma = 0;
 	bool isSucceed = false;
 
-	reCalRtsCostAndPen();
-
-	Log(Log::Level::Info) << "init penalty: " << penalty;
-	Log(Log::Level::Info) << " rts.size():" << rts.size();
-	Log(Log::Level::Info) << " rtcost:" << RoutesCost;
-	Log(Log::Level::Info) << " ourTarget: " << ourTarget << std::endl;
-
 	lyhTimer.reStart();
-
-	while (!lyhTimer.isTimeOut() && rts.cnt > ourTarget) {
+	globalCfg;
+	while (rts.cnt > ourTarget) {
 
 		Solver sclone = *this;
 		removeOneRouteRandomly();
@@ -7457,21 +7459,10 @@ void Solver::minimizeRN() {
 	Log(Log::Level::Warning) << "minRN,rts.size(): " << rts.size() << std::endl;
 }
 
-bool Solver::adjustRN() {
-
-	#if DIMACSGO
-	ourTarget = input.dimacsRecRN;
-	#else
-	if (globalCfg->breakRecord) {
-	ourTarget = input.sintefRecRN - 1;
-	}
-	else {
-		ourTarget = input.sintefRecRN;
-	}
-	#endif // DIMACSGO
+bool Solver::adjustRN(int ourTarget) {
 
 	if (rts.cnt > ourTarget) {
-		minimizeRN();
+		minimizeRN(ourTarget);
 	}
 	else if (rts.cnt < ourTarget) {
 		
@@ -7953,7 +7944,7 @@ bool Solver::saveOutAsSintefFile(std::string opt) {
 	reCalRtsCostSumCost();
 
 	std::ofstream rgbData;
-	std::string wrPath = globalEnv->outputPath + opt
+	std::string wrPath = globalCfg->outputPath + opt
 		+ input.example + "L" + ms.int_str(RoutesCost) + ".txt";
 
 	rgbData.open(wrPath, std::ios::app | std::ios::out);

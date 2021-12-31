@@ -10,6 +10,13 @@ namespace hust {
 
 struct Configuration {
 
+
+	unsigned seed = -1;
+	std::string inputPath = "";
+	std::string outputPath = "../Results/";
+	DisType cmdDimacsRL = -1;
+	int cmdIsopt = -1;
+
 	int squContiIter = 100;
 	int squMinContiIter = 100;
 	int squMaxContiIter = 199;
@@ -36,15 +43,22 @@ struct Configuration {
 	int minKmax = 2;
 	int maxKmax = 4;
 
-	bool breakRecord = 0;
+	//bool breakRecord = 0;
 
 	int yearTabuLen = 5;
 	int yearTabuRand = 5;
-	
+
+	// TODO[0]:看需不需要频繁构造 1000stepC_8_7 需要20s C1_6_6 需要6s
+	#if DIMACSGO
+	int ejectLSMaxIter = 200;
+	#else
+	int ejectLSMaxIter = 20000;
+	#endif // DIMACSGO
+
 	//int yearTabuLen = 20;
 	//int yearTabuRand = 10;
 
-	int popSize = 2;
+	int popSize = 5;
 	//int repairExitStep = 50;
 	int repairExitStep = 50;
 	int initFindPosPqSize = 20;
@@ -79,6 +93,8 @@ struct Configuration {
 	void show();
 
 	void repairByCusCnt(int cusCnt);
+
+	void solveCommandLine(int argc, char* argv[]);
 };
 
 }

@@ -10,9 +10,6 @@
     <ClCompile Include="..\..\..\VRPTWNEW\EAX.cpp">
       <Filter>src</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\..\VRPTWNEW\Environment.cpp">
-      <Filter>src</Filter>
-    </ClCompile>
     <ClCompile Include="..\..\..\VRPTWNEW\Flag.cpp">
       <Filter>src</Filter>
     </ClCompile>
@@ -33,9 +30,6 @@
       <Filter>src</Filter>
     </ClInclude>
     <ClInclude Include="..\..\..\VRPTWNEW\EAX.h">
-      <Filter>src</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\..\VRPTWNEW\Environment.h">
       <Filter>src</Filter>
     </ClInclude>
     <ClInclude Include="..\..\..\VRPTWNEW\Flag.h">

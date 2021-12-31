@@ -121,7 +121,6 @@
   <ItemGroup>
     <ClCompile Include="..\..\..\VRPTWNEW\Configuration.cpp" />
     <ClCompile Include="..\..\..\VRPTWNEW\EAX.cpp" />
-    <ClCompile Include="..\..\..\VRPTWNEW\Environment.cpp" />
     <ClCompile Include="..\..\..\VRPTWNEW\Flag.cpp" />
     <ClCompile Include="..\..\..\VRPTWNEW\main.cpp" />
     <ClCompile Include="..\..\..\VRPTWNEW\Problem.cpp" />
@@ -130,7 +129,6 @@
   <ItemGroup>
     <ClInclude Include="..\..\..\VRPTWNEW\Configuration.h" />
     <ClInclude Include="..\..\..\VRPTWNEW\EAX.h" />
-    <ClInclude Include="..\..\..\VRPTWNEW\Environment.h" />
     <ClInclude Include="..\..\..\VRPTWNEW\Flag.h" />
     <ClInclude Include="..\..\..\VRPTWNEW\Problem.h" />
     <ClInclude Include="..\..\..\VRPTWNEW\Solver.h" />

@@ -8,7 +8,6 @@
 #include <cstdio>
 
 #include "Configuration.h"
-#include "Environment.h"
 #include "Flag.h"
 
 namespace hust {
@@ -124,8 +123,6 @@ static InsData getInsData(std::string& ins);
 static double getSintefRL(std::string& ins);
 
 static double getNagataRL(std::string ins);
-
-bool solveCommandLine(int argc, char* argv[]);
 
 struct Input {
 

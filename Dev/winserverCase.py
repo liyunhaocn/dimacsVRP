@@ -79,25 +79,17 @@ minRLhardlist = [
 "RC2_10_8",
 ]
  
-cases = minRLhardlist
+cases = all300Cases
 print(len(cases))
-# strBase = "start cmd /k \"DLLSMA.exe 1 ../Instances/Homberger/C2_10_2.txt 36000\""
-path = "./hard17_1h.bat"
+# strBase = "start cmd /k \"DLLSMA.exe ../Instances/Homberger/C2_10_2.txt 36000\""
+path = "./all300_1h.bat"
 
-part = len(cases)
+# part = len(cases)
+part = 40
 part = min(part,len(cases))
 runTime = "3600"
 # runTime = "86400"
 isBreak = "0"
-
-if len(sys.argv) > 1:
-	isBreak = sys.argv[1]
-
-if len(sys.argv) > 2:
-	part = int(sys.argv[2])
-
-if len(sys.argv) > 3:
-	runTime = sys.argv[3]
 
 print(part)
 print(runTime)
@@ -109,8 +101,9 @@ print( ret )
 for i in range(0,len(cases),part):
 	for j in range(0,part,1):
 		if i+j < len(cases):
-			print("DLLSMA.exe " + isBreak + " ../Instances/Homberger/" + cases[i+j] + ".txt " + runTime + "&&")
-			ret[j] += "DLLSMA.exe " + isBreak + " ../Instances/Homberger/" + cases[i+j] + ".txt " + runTime + "&&"
+			ex = "DLLSMA.exe " + " ../Instances/Homberger/" + cases[i+j] + ".txt " +  runTime + " > out_"+ cases[i+j] + ".txt"+ "&&"
+			print(ex)
+			ret[j] += ex
 	print('\n')
 
 file_write_obj = open(path, 'w')
@@ -123,5 +116,3 @@ for i in range(len(ret)):
 	file_write_obj.writelines(str+"\n")
 	file_write_obj.writelines("timeout /t 3"+"\n")
 
-# for line in open(path,"r"): #设置文件对象并读取每一行文件
-#     print(line)               #将每一行文件加入到list中
