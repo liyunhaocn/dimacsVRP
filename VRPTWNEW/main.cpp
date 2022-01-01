@@ -21,7 +21,9 @@ bool allocGlobalMem(int argc, char* argv[]) {
 
 
 	globalCfg = new hust::Configuration();
-	globalCfg->inputPath = "../Instances/Homberger/C2_8_7.txt";
+	//globalCfg->inputPath = "../Instances/Homberger/C2_8_7.txt";
+	//globalCfg->inputPath = "../Instances/Homberger/RC2_6_4.txt";
+	globalCfg->inputPath = "../Instances/Homberger/R2_2_4.txt";
 
 	//globalEnv = new Environment("../Instances/Solomon/C101.txt");
 	//globalEnv = new Environment("../Instances/Homberger/RC1_8_3.txt");
@@ -89,6 +91,7 @@ int main(int argc, char* argv[])
 
 	//goal.justLocalSearch(); 
 	goal.TwoAlgCombine();
+	//goal.test();
 	hust::deallocGlobalMem();
 
 	return 0;

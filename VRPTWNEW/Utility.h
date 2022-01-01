@@ -374,7 +374,6 @@ class Log {
 public:
     using Manipulator = std::ostream& (*)(std::ostream&);
 
-
     enum Level {
         On,
         Off, // the default state if not specified.

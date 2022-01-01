@@ -902,27 +902,6 @@ Solver::Position Solver::findBestPosInSolForInit(int w) {
 	return bestPos;
 }
 
-//Vec<Vec<int>> readDimacsBKS(std::string& example) {
-//
-//	std::string bksPath = "../Data/DimacsBks/Homberger/" + example + ".sol";
-//	std::ifstream myfile(bksPath);
-//	if (!myfile.is_open()){
-//		println("fail to open dimacs bks");
-//	}
-//
-//	std::string t;
-//	int rn = 0;
-//	while (std::getline(myfile, t)){
-//		if (t.find("Route #") != std::string::npos) {
-//			++rn;
-//		}
-//		else if (t.find("Cost ") != std::string::npos) {
-//			t = t.substr(5);
-//		}
-//	}
-//	myfile.close();
-//	return {};
-//}
 
 bool Solver::initBySecOrder(int kind) {
 
@@ -1087,8 +1066,57 @@ bool Solver::initByArr2(Vec < Vec<int>> arr2) {
 		rUpdateZvQfrom(r, r.tail);
 		rts.push_back(r);
 	}
-	sumRtsPen();
+	reCalRtsCostAndPen();
+	//sumRtsPen();
 	return true;
+}
+
+bool Solver::initByDimacsBKS() {
+
+	std::string bksPath = "../Data/DimacsBks/Homberger/" + globalInput->example + ".sol";
+	std::ifstream myfile(bksPath);
+	if (!myfile.is_open()) {
+		println("fail to open dimacs bks");
+	}
+
+	std::string t;
+	int rn = 0;
+	
+	double cost = 0.0;
+
+	Vec<Vec<int>> rArr2;
+
+	while (std::getline(myfile, t)) {
+		if (t.find("Route #") != std::string::npos) {
+			int mao = t.find(":");
+			t = t.substr(mao+2);
+			
+			std::stringstream ss;
+			ss << t;
+			
+			std::string st;
+
+			Vec<int> rArr;
+			while (std::getline(ss,st,' ')){
+				//debug(st);
+				int c = std::stoi(st);
+				rArr.push_back(c);
+			}
+			rArr2.push_back(rArr);
+			//println("t:",t);
+			++rn;
+		}
+		else if (t.find("Cost ") != std::string::npos) {
+			t = t.substr(5);
+			cost = atof(t.c_str());
+		}
+	}
+
+	initByArr2(rArr2);
+	//debug(RoutesCost);
+	//debug(cost);
+	myfile.close();
+	return {};
 }
 
 bool Solver::initSolution(int kind) {//5ÖÖ
@@ -1096,8 +1124,11 @@ bool Solver::initSolution(int kind) {//5ÖÖ
 	if (kind <= 3) {
 		initBySecOrder(kind);
 	}
-	else{
+	else if(kind==4){
 		initMaxRoute();
+	}
+	else if (kind == 5) {
+		initByDimacsBKS();
 	}
 
 	reCalRtsCostAndPen();

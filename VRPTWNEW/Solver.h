@@ -607,6 +607,8 @@ public:
 
 	bool initByArr2(Vec < Vec<int>> arr2);
 
+	bool initByDimacsBKS();
+
 	bool initSolution(int kind);
 
 	bool EPrReset();

@@ -42,7 +42,8 @@ bool Input::initInput() {
 			//TODO[lyh][000]:dimacs的距离计算不同！！！！
 			//disOf[j][i] = disOf[i][j] = dis;
 			#if DIMACSGO
-			disOf[j][i] = disOf[i][j] = round(dis);
+			//disOf[j][i] = disOf[i][j] = round(dis);
+			disOf[j][i] = disOf[i][j] = dis;
 			#else
 			disOf[j][i] = disOf[i][j] = round(dis);
 			//disOf[j][i] = disOf[i][j] = ceil(dis);

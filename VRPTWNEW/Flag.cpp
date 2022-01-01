@@ -17,7 +17,7 @@ extern double PI_32 = PI / 32;
 
 #if DIMACSGO
 //TODO[lyh][000]:dimacs «10
-extern int disMul = 100;
+extern int disMul = 10;
 extern DisType DisInf = LLInf;
 #else
 //TODO[lyh][000]:dimacs «10

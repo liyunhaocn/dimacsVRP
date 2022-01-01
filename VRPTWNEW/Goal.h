@@ -33,6 +33,8 @@ struct Goal {
 	bool justLocalSearch();
 
 	bool saveSlnFile();
+
+	bool test();
 };
 
 

@@ -1012,13 +1012,17 @@ Goal::Goal() {
 	sintefRecRL = getSintefRL(globalInput->example) * disMul;
 	naRecRL = getNagataRL(globalInput->example) * disMul;
 
-	#if 1
-	Log(Log::Level::Warning) << "sintefRecRN: " << sintefRecRN << std::endl;
-	Log(Log::Level::Warning) << "sintefRecRL: " << sintefRecRL << std::endl;
-	Log(Log::Level::Warning) << "naRecRL: " << naRecRL << std::endl;
-	Log(Log::Level::Warning) << "dimacsRecRN: " << dimacsRecRN << std::endl;
-	Log(Log::Level::Warning) << "dimacsRecRL: " << dimacsRecRL << std::endl;
-	#endif // 0
+	Solver dimBKS;
+	dimBKS.initSolution(5);
+
+	dimacsRecRN = dimBKS.rts.cnt;
+	dimacsRecRL = dimBKS.RoutesCost;
+
+	println("sintefRecRN:", sintefRecRN);
+	println("sintefRecRL:", sintefRecRL);
+	println("naRecRL:", naRecRL);
+	println("dimacsRecRN:", dimacsRecRN);
+	println("dimacsRecRL:", dimacsRecRL);
 
 }
 
@@ -1556,6 +1560,15 @@ bool Goal::saveSlnFile() {
 
 	rgbData << std::endl;
 	rgbData.close();
+
+	return true;
+}
+
+bool Goal::test() {
+
+	Solver st;
+	//st.initSolution(myRand->pick(2));
+	st.initSolution(5);
 
 	return true;
 }
