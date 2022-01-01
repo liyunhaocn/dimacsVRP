@@ -370,49 +370,49 @@ public:
     int second; // seconds in minute.
 };
 
-class Log {
-public:
-    using Manipulator = std::ostream& (*)(std::ostream&);
-
-    enum Level {
-        On,
-        Off, // the default state if not specified.
-
-        Fatal = On,
-        Error = On,
-        Warning = On,
-        Debug = On,
-        Info = On, // = Off.
-    };
-
-#define SZX_DEBUG 1
-
-    #if SZX_DEBUG
-    static bool isTurnedOn(int level) { return (level == On); }
-    static bool isTurnedOff(int level) { return !isTurnedOn(level); }
-    #else
-    static bool isTurnedOn(int level) { return false; }
-    static bool isTurnedOff(int level) { return true; }
-    #endif // SZX_DEBUG
-
-
-    Log(int logLevel, std::ostream &logFile) : level(logLevel), os(logFile) {}
-    Log(int logLevel) : Log(logLevel, std::cerr) {}
-
-    template<typename T>
-    Log& operator<<(const T &obj) {
-        if (isTurnedOn(level)) { os << obj; }
-        return *this;
-    }
-    Log& operator<<(Manipulator manip) {
-        if (isTurnedOn(level)) { os << manip; }
-        return *this;
-    }
-
-protected:
-    int level;
-    std::ostream &os;
-};
+//class Log {
+//public:
+//    using Manipulator = std::ostream& (*)(std::ostream&);
+//
+//    enum Level {
+//        On,
+//        Off, // the default state if not specified.
+//
+//        Fatal = On,
+//        Error = On,
+//        Warning = On,
+//        Debug = On,
+//        Info = On, // = Off.
+//    };
+//
+//#define SZX_DEBUG 1
+//
+//    #if SZX_DEBUG
+//    static bool isTurnedOn(int level) { return (level == On); }
+//    static bool isTurnedOff(int level) { return !isTurnedOn(level); }
+//    #else
+//    static bool isTurnedOn(int level) { return false; }
+//    static bool isTurnedOff(int level) { return true; }
+//    #endif // SZX_DEBUG
+//
+//
+//    Log(int logLevel, std::ostream &logFile) : level(logLevel), os(logFile) {}
+//    Log(int logLevel) : Log(logLevel, std::cerr) {}
+//
+//    template<typename T>
+//    Log& operator<<(const T &obj) {
+//        if (isTurnedOn(level)) { os << obj; }
+//        return *this;
+//    }
+//    Log& operator<<(Manipulator manip) {
+//        if (isTurnedOn(level)) { os << manip; }
+//        return *this;
+//    }
+//
+//protected:
+//    int level;
+//    std::ostream &os;
+//};
 
 struct Union {
 

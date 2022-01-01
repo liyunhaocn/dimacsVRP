@@ -1002,10 +1002,10 @@ static double getNagataRL(std::string ins) {
 	return 0.0;
 }
 
-Goal::Goal() {
+Goal::Goal():gloalTimer(0){
+
 	eaxYearTable = Vec<Vec<LL>>
 		(globalCfg->popSize, Vec<LL>(globalCfg->popSize));
-
 
 	auto info = getInsData(globalInput->example);
 	sintefRecRN = info.minRN;
@@ -1116,7 +1116,8 @@ int Goal::doTwoKindEAX(Solver& pa, Solver& pb, int kind) {
 
 		if (pc.RoutesCost < paBest.RoutesCost) {
 			paBest = pc;
-			bool isup = bks->updateBKS(pc, "eax local update, kind:" + std::to_string(kind));
+			
+			bool isup = bks->updateBKS(pc, "time:" + std::to_string(gloalTimer.getRunTime()) + " eax ls, kind:" + std::to_string(kind));
 			if (isup) {
 				ch = 1;
 				retState = 1;
@@ -1134,7 +1135,7 @@ int Goal::doTwoKindEAX(Solver& pa, Solver& pb, int kind) {
 				pa = paBest;
 			}
 			else {
-				println("replace with pb,kind:", kind);
+				//println("replace with pb,kind:", kind);
 				pb = paBest;
 			}
 		}
@@ -1184,7 +1185,8 @@ bool Goal::perturbThePop() {
 			int kind = myRand->pick(4);
 			if (kind < 3) {
 				int clearEPkind = myRand->pick(6);
-				sclone.perturbBaseRuin(kind, 4 * globalCfg->ruinC_, clearEPkind);
+				int ruinCusNum = std::min<int>(globalInput->custCnt/2, 4 * globalCfg->ruinC_);
+				sclone.perturbBaseRuin(kind, ruinCusNum, clearEPkind);
 			}
 			else {
 
@@ -1309,9 +1311,8 @@ bool Goal::initPopulation() {
 bool Goal::TwoAlgCombine() {
 
 	initPopulation();
-	Timer t1(globalCfg->runTimer);
-	t1.setLenUseSecond(globalCfg->runTimer);
-	t1.reStart();
+	gloalTimer.setLenUseSecond(globalCfg->runTimer);
+	gloalTimer.reStart();
 
 	int contiNotDown = 1;
 	//TODO[0]:先使用哪个
@@ -1319,10 +1320,16 @@ bool Goal::TwoAlgCombine() {
 	int popSize = globalCfg->popSize;
 
 	#if DIMACSGO
-	while (bks->bestSolFound.RoutesCost > dimacsRecRL && !t1.isTimeOut()) {
-		#else
-	while (bks->bestSolFound.RoutesCost > sintefRecRL && !t1.isTimeOut()) {
-		#endif // DIMACSGO
+	while (!gloalTimer.isTimeOut()) {
+	#else
+	while (bks->bestSolFound.RoutesCost > sintefRecRL && !gloalTimer.isTimeOut()) {
+	#endif // DIMACSGO
+
+		if (globalCfg->cmdIsopt == 1) {
+			if (bks->bestSolFound.RoutesCost == dimacsRecRL) {
+				break;
+			}
+		}
 
 		int paIndex = myRand->pick(popSize);
 		int pbIndex = (paIndex + 1) % popSize;
@@ -1341,12 +1348,13 @@ bool Goal::TwoAlgCombine() {
 			//}
 
 			bestClone.ruinLocalSearch();
-			if (bks->updateBKS(bestClone, "ruin bestSolFound")) {
+			
+			if (bks->updateBKS(bestClone, "time:" + std::to_string(gloalTimer.getRunTime())+" ruin ls")) {
 				upState = 1;
 			}
 			for (auto& better : pool) {
 				better.ruinLocalSearch();
-				if (bks->updateBKS(better, "ruin localSearch")) {
+				if (bks->updateBKS(bestClone, "time:" + std::to_string(gloalTimer.getRunTime()) + " ruin ls")) {
 					upState = 1;
 				}
 			}
@@ -1369,7 +1377,7 @@ bool Goal::TwoAlgCombine() {
 			if (before <= 1) {
 				perturbThePop();
 				int after = EAX::getabCyNum(pa, pb);
-				println("before:", before, "after:", after, "abCyNum <= 1");
+				//println("before:", before, "after:", after, "abCyNum <= 1");
 			}
 
 			upState = naMA(pa, pb);
@@ -1391,22 +1399,21 @@ bool Goal::TwoAlgCombine() {
 			int before = EAX::getabCyNum(pa, pb);
 			perturbThePop();
 			int after = EAX::getabCyNum(pa, pb);
-			println("before:", before, "after:", after, "contiNotDown:", contiNotDown);
+			//println("before:", before, "after:", after, "contiNotDown:", contiNotDown);
 			contiNotDown = 1;
 		}
 	}
 
 	saveSlnFile();
-	t1.disp();
+	gloalTimer.disp();
 
 	return true;
 }
 
 bool Goal::justLocalSearch() {
 
-	Timer t1(globalCfg->runTimer);
-	t1.setLenUseSecond(globalCfg->runTimer);
-	t1.reStart();
+	gloalTimer.setLenUseSecond(globalCfg->runTimer);
+	gloalTimer.reStart();
 
 	Solver st;
 	//st.initSolution(myRand->pick(2));
@@ -1426,10 +1433,10 @@ bool Goal::justLocalSearch() {
 
 	//ProbControl pc(2*globalCfg->ruinC_);
 	#if DIMACSGO
-	while (bks->bestSolFound.RoutesCost > dimacsRecRL && !t1.isTimeOut()) {
-		#else
-	while (bks->bestSolFound.RoutesCost > sintefRecRL && !t1.isTimeOut()) {
-		#endif // DIMACSGO
+	while (!gloalTimer.isTimeOut()) {
+	#else
+	while (bks->bestSolFound.RoutesCost > sintefRecRL && !gloalTimer.isTimeOut()) {
+	#endif // DIMACSGO
 
 		//st.ruinLocalSearch(c_ + 1);
 		//st.ruinLocalSearch(globalCfg->ruinC_);
@@ -1498,8 +1505,6 @@ bool Goal::saveSlnFile() {
 	std::string minKmax = ms.int_str(globalCfg->minKmax);
 	std::string maxKmax = ms.int_str(globalCfg->maxKmax);
 
-	//std::string type = output.rts.size() < input.sintefRecRN ? "br" : "Ej";
-
 	std::ofstream rgbData;
 	std::string wrPath = globalCfg->outputPath + "_" + path + ".csv";
 
@@ -1512,16 +1517,18 @@ bool Goal::saveSlnFile() {
 	rgbData.open(wrPath, std::ios::app | std::ios::out);
 
 	if (!rgbData) {
-		Log(Log::Level::Warning) << "output file open errno" << std::endl;
+		println("output file open errno");
 		return false;
 	}
 	if (!isGood) {
-		rgbData << "ins,lyhrn,sinrn,dimrn,lyhrl,dimRL,rate, sinRL,rate,naRL,rate,time,epsize,minep,ptw,pc,rts,seed" << std::endl;
+		//rgbData << "ins,lyhrn,sinrn,dimrn,lyhrl,dimRL,rate, sinRL,rate,naRL,rate,time,epsize,minep,ptw,pc,rts,seed" << std::endl;
+		rgbData << "ins,isopt,lyhrn,sinrn,dimrn,lyhrl,dimRL,rate,lkhrl,rate, sinRL,rate,naRL,rate,time,epsize,minep,ptw,pc,rts,seed" << std::endl;
 	}
 
 	auto& sol = bks->bestSolFound;
 
 	rgbData << input.example << ",";
+	rgbData << globalCfg->cmdIsopt << ",";
 	rgbData << sol.rts.size() << ",";
 	rgbData << sintefRecRN << ",";
 	rgbData << dimacsRecRN << ",";
@@ -1531,6 +1538,10 @@ bool Goal::saveSlnFile() {
 
 	rgbData << dimacsRecRL << ",";
 	rgbData << double((double)(state - dimacsRecRL) / dimacsRecRL) * 100 << ",";
+	
+	rgbData << globalCfg->cmdDimacsRL << ",";
+	rgbData << double((double)(state - globalCfg->cmdDimacsRL) 
+		/ globalCfg->cmdDimacsRL) * 100 << ",";
 
 	rgbData << sintefRecRL << ",";
 	rgbData << double((double)(state - sintefRecRL) / sintefRecRL) * 100 << ",";
@@ -1539,7 +1550,8 @@ bool Goal::saveSlnFile() {
 	rgbData << double((double)(state - naRecRL) / naRecRL) * 100 << ",";
 
 	//TODO[-1]:timer
-	//rgbData << output.runTime << ",";
+	rgbData << gloalTimer.getRunTime() << ",";
+
 	rgbData << sol.EPr.rCustCnt << ",";
 
 	rgbData << sol.minEPcus << ",";

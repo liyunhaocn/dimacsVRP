@@ -1073,10 +1073,17 @@ bool Solver::initByArr2(Vec < Vec<int>> arr2) {
 
 bool Solver::initByDimacsBKS() {
 
+	//std::string in = "../Instances/Solomon/C101.txt";
 	std::string bksPath = "../Data/DimacsBks/Homberger/" + globalInput->example + ".sol";
+	
+	if (globalCfg->inputPath.find("Solomon") != -1) {
+		bksPath = "../Data/DimacsBks/Solomon/" + globalInput->example + ".sol";
+	}
+
 	std::ifstream myfile(bksPath);
 	if (!myfile.is_open()) {
-		println("fail to open dimacs bks");
+		println("globalCfg->inputPath:",globalCfg->inputPath);
+		println("fail to open dimacs bks,bksPath:", bksPath);
 	}
 
 	std::string t;
@@ -1132,9 +1139,9 @@ bool Solver::initSolution(int kind) {//5种
 	}
 
 	reCalRtsCostAndPen();
-	Log(Log::Level::Info) << "init penalty: " << penalty;
-	Log(Log::Level::Info) << " rts.size():" << rts.size();
-	Log(Log::Level::Info) << " rtcost:" << RoutesCost << std::endl;
+	println("init penalty:",penalty);
+	println(" rts.size():",rts.size());
+	println(" rtcost:",RoutesCost);
 
 	return true;
 }
@@ -3566,7 +3573,7 @@ bool Solver::doMoves(TwoNodeMove& M) {
 	case 15:
 		doReverse(M); break;
 	default:
-		Log(Log::Level::Error) << "doNopt(M) error" << std::endl;
+		println("doNopt(M) error");
 		return false;
 		break;
 	}
@@ -6506,23 +6513,26 @@ Vec<int> Solver::ruinGetRuinCusBySec(int ruinCusNum) {
 
 	auto vei = rPutCusInve(rts[rti]);
 
-	Vec<int> cusArr;
+	UnorderedSet<int> cusSet;
+
 	for (int v : vei) {
 		int vAngle = input.datas[v].polarAngle;
-		if (cusArr.size() < ruinCusNum && secs[rti].isEnclosed(vAngle)
+		if (cusSet.size() < ruinCusNum && secs[rti].isEnclosed(vAngle)
 			&& secs[rtj].isEnclosed(vAngle)) {
-			cusArr.push_back(v);
+			cusSet.insert(v);
 		}
 	}
 
 	auto vej = rPutCusInve(rts[rtj]);
 	for (int v : vej) {
 		int vAngle = input.datas[v].polarAngle;
-		if (cusArr.size() < ruinCusNum && secs[rti].isEnclosed(vAngle)
+		if (cusSet.size() < ruinCusNum && secs[rti].isEnclosed(vAngle)
 			&& secs[rtj].isEnclosed(vAngle)) {
-			cusArr.push_back(v);
+			cusSet.insert(v);
 		}
 	}
+
+	Vec<int> cusArr = putEleInVec(cusSet);
 	return cusArr;
 }
 
@@ -6577,6 +6587,8 @@ bool Solver::doOneTimeRuinPer(int perturbkind,int ruinCusNum,int clearEPKind) {
 }
 
 bool Solver::perturbBaseRuin(int perturbkind, int ruinCusNum,int clearEPKind) {
+
+	ruinCusNum = std::min<int>(ruinCusNum,input.custCnt / 2);
 
 	gamma = 1;
 	//TODO[4][1]:这里可能可以去掉，如果之前每一条路径的cost都维护的话
@@ -7509,7 +7521,7 @@ void Solver::minimizeRN(int ourTarget) {
 			break;
 		}
 	}
-	Log(Log::Level::Warning) << "minRN,rts.size(): " << rts.size() << std::endl;
+	println("minRN,rts.size():",rts.size());
 }
 
 bool Solver::adjustRN(int ourTarget) {
@@ -8003,7 +8015,7 @@ bool Solver::saveOutAsSintefFile(std::string opt) {
 	rgbData.open(wrPath, std::ios::app | std::ios::out);
 
 	if (!rgbData) {
-		Log(Log::Level::Warning) << "sintefoutput file open errno" << std::endl;
+		println("sintefoutput file open errno");
 		return false;
 	}
 
@@ -8033,8 +8045,8 @@ bool BKS::updateBKS(Solver& newSol, std::string opt) {
 		lastRec = bestSolFound.RoutesCost;
 		bestSolFound = newSol;
 		//bestSolFound.printDimacs();
-		println("new bks found cost:", bestSolFound.RoutesCost,
-			"up:", lastRec - bestSolFound.RoutesCost, opt);
+		println("new bks cost:", bestSolFound.RoutesCost,
+			 opt,"up:", lastRec - bestSolFound.RoutesCost);
 
 		return true;
 	}

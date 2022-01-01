@@ -9,11 +9,15 @@ namespace hust{
 
 void Configuration::show() {
 
-	debug(runTimer);
-	debug(Pwei0);
-	debug(Pwei1);
-	debug(minKmax);
-	debug(maxKmax);
+	println("inputPath:", inputPath);
+	println("runTimer:",runTimer);
+	println("Pwei0:",Pwei0);
+	println("Pwei1:",Pwei1);
+	println("minKmax:",minKmax);
+	println("maxKmax:",maxKmax);
+	println("seed:",seed);
+	println("cmdDimacsRL:", cmdDimacsRL);
+	println("cmdIsopt", cmdIsopt);
 }
 
 void Configuration::repairByCusCnt(int cusCnt) {
@@ -52,10 +56,10 @@ void Configuration::solveCommandLine(int argc, char* argv[]) {
 
 	if (argc >= 4) {
 		if (std::is_same<DisType, LL>::value == true) {
-			globalCfg->cmdDimacsRL = std::strtoll(argv[3],nullptr,0);
+			globalCfg->cmdDimacsRL = std::atof(argv[3])*disMul;
 		}
 		else {
-			globalCfg->cmdDimacsRL = std::stoi(argv[3], nullptr, 0);
+			globalCfg->cmdDimacsRL = std::atof(argv[3]) * disMul;
 		}
 	}
 	

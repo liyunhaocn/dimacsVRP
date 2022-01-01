@@ -19,11 +19,12 @@ namespace hust {
 
 bool allocGlobalMem(int argc, char* argv[]) {
 
-
+	 //1800 827.3 1
 	globalCfg = new hust::Configuration();
 	//globalCfg->inputPath = "../Instances/Homberger/C2_8_7.txt";
 	//globalCfg->inputPath = "../Instances/Homberger/RC2_6_4.txt";
-	globalCfg->inputPath = "../Instances/Homberger/R2_2_4.txt";
+	globalCfg->inputPath = "../Instances/Solomon/RC201.txt";
+	//globalCfg->inputPath = "../Instances/Homberger/R2_2_4.txt";
 
 	//globalEnv = new Environment("../Instances/Solomon/C101.txt");
 	//globalEnv = new Environment("../Instances/Homberger/RC1_8_3.txt");
@@ -39,12 +40,13 @@ bool allocGlobalMem(int argc, char* argv[]) {
 		globalCfg->seed = std::time(nullptr) + std::clock();
 	}
 
-	//globalEnv->seed = 1611589828;
-	//globalEnv->seed = 1611589111;
-	//globalEnv->seed = 1640620823;
-	//globalEnv->seed = 1640660545;//RC2_6_4
-	//globalEnv->seed = 1640858824;//RC2_6_4
-	//globalEnv->seed = 1640880535;
+	//globalCfg->seed = 1611589828;
+	//globalCfg->seed = 1611589111;
+	//globalCfg->seed = 1640620823;
+	//globalCfg->seed = 1640660545;//RC2_6_4
+	//globalCfg->seed = 1640858824;//RC2_6_4
+	//globalCfg->seed = 1640880535;
+	//globalCfg->seed = 1641054042;
 
 	globalCfg->show();
 	myRand = new Random(globalCfg->seed);

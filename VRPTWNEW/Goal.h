@@ -18,6 +18,8 @@ struct Goal {
 
 	Vec<Solver> pool;
 
+	Timer gloalTimer;
+
 	Goal();
 
 	int doTwoKindEAX(Solver& pa, Solver& pb, int kind);
