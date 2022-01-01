@@ -10,7 +10,6 @@ namespace hust {
 
 struct Configuration {
 
-
 	unsigned seed = -1;
 	std::string inputPath = "";
 	std::string outputPath = "../Results/";

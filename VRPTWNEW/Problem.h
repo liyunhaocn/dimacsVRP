@@ -118,12 +118,6 @@ public:
 	}
 };
 
-static InsData getInsData(std::string& ins);
-
-static double getSintefRL(std::string& ins);
-
-static double getNagataRL(std::string ins);
-
 struct Input {
 
 	std::string example = "";
@@ -131,13 +125,6 @@ struct Input {
 	DisType Q = 0;
 	int vehicleCnt = 0;
 	Vec<Data> datas;
-	int sintefRecRN = 0;
-	DisType dimacsRecRL = 0;
-	DisType dimacsRecRN = 0;
-	DisType sintefRecRL = 0;
-	//  TODO[lyh][0]:提交之前要去掉
-	DisType naRecRL = 0;
-	bool isOptRL = false;
 
 	Vec<Vec<DisType>> disOf;
 
@@ -161,7 +148,7 @@ struct Input {
 
 	bool readDimacsInstance(std::string& instanciaPath);
 
-	bool readDimacsBKS();
+	//bool readDimacsBKS();
 
 };
 
@@ -177,7 +164,6 @@ struct Output
 
 };
 
-bool saveSlnFile(Output& output);
 
 }
 
