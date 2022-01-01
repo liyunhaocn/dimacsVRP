@@ -3,7 +3,6 @@
 #include <numeric>
 
 #include "EAX.h"
-#include "Flag.h"
 
 namespace hust {
 

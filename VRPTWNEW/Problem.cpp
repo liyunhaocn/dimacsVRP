@@ -257,29 +257,4 @@ bool Input::readDimacsInstance(std::string& instanciaPath) {
 	return true;
 }
 
-//bool Input::readDimacsBKS() {
-//
-//	std::string bksPath = "../Data/DimacsBks/Homberger/" + example + ".sol";
-//	std::ifstream myfile(bksPath);
-//	if (!myfile.is_open()){
-//		println("fail to open dimacs bks");
-//	}
-//
-//	std::string t;
-//	int rn = 0;
-//	while (std::getline(myfile, t)){
-//		if (t.find("Route #") != std::string::npos) {
-//			++rn;
-//		}
-//		else if (t.find("Cost ") != std::string::npos) {
-//			t = t.substr(5);
-//			dimacsRecRL = std::stof(t)*disMul;
-//		}
-//	}
-//	dimacsRecRN = rn;
-//	myfile.close();
-//	return true;
-//}
-
-
 }

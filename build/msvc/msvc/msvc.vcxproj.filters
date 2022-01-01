@@ -25,6 +25,9 @@
     <ClInclude Include="..\..\..\VRPTWNEW\Utility.h">
       <Filter>src</Filter>
     </ClInclude>
+    <ClInclude Include="..\..\..\VRPTWNEW\Goal.h">
+      <Filter>src</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\..\..\VRPTWNEW\main.cpp">
@@ -43,6 +46,9 @@
       <Filter>src</Filter>
     </ClCompile>
     <ClCompile Include="..\..\..\VRPTWNEW\EAX.cpp">
+      <Filter>src</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\VRPTWNEW\Goal.cpp">
       <Filter>src</Filter>
     </ClCompile>
   </ItemGroup>

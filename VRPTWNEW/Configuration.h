@@ -1,5 +1,5 @@
-#ifndef vrptwNew_CONFIGURATION_H
-#define vrptwNew_CONFIGURATION_H
+#ifndef CN_HUST_LYH_CFG_H
+#define CN_HUST_LYH_CFG_H
 
 #include "Flag.h"
 
@@ -98,4 +98,4 @@ struct Configuration {
 
 }
 
-#endif // !vrptwNew_CONFIGURATION_H
+#endif // !CN_HUST_LYH_CFG_H

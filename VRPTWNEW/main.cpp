@@ -8,11 +8,11 @@
 #include<vector>
 
 //#include "Utility.h"
-#include "Solver.h"
+//#include "Solver.h"
 //#include "Problem.h"
 //#include "Configuration.h"
 //#include "Flag.h"
-#include "EAX.h"
+//#include "EAX.h"
 #include "Goal.h"
 
 namespace hust {

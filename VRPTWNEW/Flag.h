@@ -1,5 +1,5 @@
-#ifndef vrptwNew_FLAG_H
-#define vrptwNew_FLAG_H
+#ifndef CN_HUST_LYH_FLAG_H
+#define CN_HUST_LYH_FLAG_H
 
 #include <vector>
 #include <unordered_map>
@@ -83,6 +83,6 @@ extern Input* globalInput;
 extern BKS* bks;
 
 }
-#endif // !vrptwNew_FLAG_H
+#endif // !CN_HUST_LYH_FLAG_H
 
 

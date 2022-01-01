@@ -1,5 +1,5 @@
-#ifndef vrptwNew_PROBLEM_H
-#define vrptwNew_PROBLEM_H
+#ifndef CN_HUST_LYH_PROBLEM_H
+#define CN_HUST_LYH_PROBLEM_H
 
 #include <algorithm>
 #include <fstream>
@@ -8,7 +8,6 @@
 #include <cstdio>
 
 #include "Configuration.h"
-#include "Flag.h"
 
 namespace hust {
 
@@ -168,5 +167,5 @@ struct Output
 }
 
 
-#endif // !vrptwNew_PROBLEM_H
+#endif // !CN_HUST_LYH_PROBLEM_H
 

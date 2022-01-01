@@ -1,8 +1,7 @@
-#ifndef LYH_EAX_H
-#define LYH_EAX_H
+#ifndef CN_HUST_LYH_EAX_H
+#define CN_HUST_LYH_EAX_H
 
 #include "Solver.h"
-#include "Flag.h"
 
 namespace hust {
 
@@ -146,4 +145,4 @@ public:
 };
 
 }
-#endif // !LYH_EAX_H
+#endif // !CN_HUST_LYH_EAX_H

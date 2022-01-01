@@ -1,7 +1,6 @@
 #ifndef CN_HUST_LYH_GOAL_H
 #define CN_HUST_LYH_GOAL_H
 
-#include "Flag.h"
 #include "Solver.h"
 
 namespace hust {

@@ -1,7 +1,7 @@
 
-#include "Solver.h"
 #include "EAX.h"
-#include "Flag.h"
+#include "Solver.h"
+
 
 namespace hust{
 
@@ -901,6 +901,28 @@ Solver::Position Solver::findBestPosInSolForInit(int w) {
 	}
 	return bestPos;
 }
+
+//Vec<Vec<int>> readDimacsBKS(std::string& example) {
+//
+//	std::string bksPath = "../Data/DimacsBks/Homberger/" + example + ".sol";
+//	std::ifstream myfile(bksPath);
+//	if (!myfile.is_open()){
+//		println("fail to open dimacs bks");
+//	}
+//
+//	std::string t;
+//	int rn = 0;
+//	while (std::getline(myfile, t)){
+//		if (t.find("Route #") != std::string::npos) {
+//			++rn;
+//		}
+//		else if (t.find("Cost ") != std::string::npos) {
+//			t = t.substr(5);
+//		}
+//	}
+//	myfile.close();
+//	return {};
+//}
 
 bool Solver::initBySecOrder(int kind) {
 
