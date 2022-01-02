@@ -74,6 +74,7 @@ bool EAX::classifyEdges(Solver& pa, Solver& pb) {
 	getAllEdgeInSol(pa, Owner::Pa);
 	getAllEdgeInSol(pb, Owner::Pb);
 
+	#if 0
 	auto dispDeoptE = [&](Solver& ps) {
 
 		for (int i = 0; i < ps.rts.cnt; ++i) {
@@ -89,6 +90,7 @@ bool EAX::classifyEdges(Solver& pa, Solver& pb) {
 			debug(b);
 		}
 	};
+	#endif // 0
 
 	for (int i = 0; i < richEdgeCurSize; ++i) {
 		RichEdge& re = richEdges[i];
@@ -334,6 +336,10 @@ Solver::Position EAX::findBestPosRemoveSubtour(Solver& pc, int w, int wj, DisTyp
 
 	auto& rtsIndexOrder = myRandX->getMN(pc.rts.cnt, pc.rts.cnt);
 
+	std::sort(rtsIndexOrder.begin(), rtsIndexOrder.end(), [&](int x,int y) {
+		return 	pc.rts[x].rQ < pc.rts[y].rQ;
+	});
+
 	Solver::Position ret;
 
 	for (int i : rtsIndexOrder) {
@@ -376,7 +382,7 @@ Solver::Position EAX::findBestPosRemoveSubtour(Solver& pc, int w, int wj, DisTyp
 				+ pc.input.disOf[pc.reCusNo(w)][pc.reCusNo(vj)]
 				- pc.input.disOf[pc.reCusNo(v)][pc.reCusNo(vj)];
 			-pc.input.disOf[pc.reCusNo(w)][pc.reCusNo(wj)];
-			//LL year = (*yearTable)[reCusNo(w)][reCusNo(v)] + (*yearTable)[reCusNo(w)][reCusNo(vj)];
+			//int year = (*yearTable)[reCusNo(w)][reCusNo(v)] + (*yearTable)[reCusNo(w)][reCusNo(vj)];
 			//year >>= 1;
 
 			Solver::Position posTemp;
@@ -752,9 +758,14 @@ int EAX::doPrEAX(Solver& pa, Solver& pb, Solver& pc) {
 				}
 			}
 		}
+
+		#if CHECKING
+
+		#endif // CHECKING
+		// TODO[-1]:这个检查之后没问题就放进去check吧
 		if (nextCyIndex == -1) {
-			debug(numABCyUsed);
-			debug(eset.size());
+			println("numABCyUsed:",numABCyUsed);
+			println("eset.size():",eset.size());
 			numABCyUsed = eset.size();
 			break;
 		}

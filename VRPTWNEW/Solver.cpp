@@ -38,7 +38,7 @@ Solver::Solver() :
 	alpha = 1;
 	beta = 1;
 	gamma = 1;
-	squIter = 1;
+	//squIter = 1;
 	penalty = 0;
 	Ptw = 0;
 	PtwNoWei = 0;
@@ -260,7 +260,6 @@ void Solver::rPreDisp(Route& r) {
 		pt = customers[pt].pre;
 	}
 	std::cout << std::endl;
-
 }
 
 void Solver::rNextDisp(Route& r) {
@@ -509,19 +508,19 @@ bool Solver::rtsCheck() {
 		}
 
 		if (cus1.size() != cus2.size()) {
-			debug(cus1.size() != cus2.size());
+			println("cus1.size() != cus2.size():",cus1.size() != cus2.size());
 		}
 
 		for (int i = 0; i < cus1.size(); ++i) {
 
 			if (cus1[i] != cus2[cus1.size() - 1 - i]) {
-				debug(cus1[i] != cus2[cus1.size() - 1 - i]);
+				println("cus1[i] != cus2[cus1.size() - 1 - i]",cus1[i] != cus2[cus1.size() - 1 - i]);
 			}
 		}
 
 		if (r.rCustCnt != cus1.size() - 2) {
-			debug(r.rCustCnt);
-			debug(cus1.size());
+			println("r.rCustCnt:",r.rCustCnt);
+			println("cus1.size():",cus1.size());
 			rNextDisp(r);
 			rNextDisp(r);
 		}
@@ -577,15 +576,17 @@ CircleSector Solver::rGetCircleSector(Route& r) {
 	ret.initialize(input.datas[ve.front()].polarAngle);
 	for (int j = 1; j < ve.size(); ++j) {
 		ret.extend(input.datas[ve[j]].polarAngle);
+		
+		#if CHECKING
 		if (!ret.isEnclosed(input.datas[ve[j]].polarAngle)) {
-			debug(ret.start);
-			debug(ret.end);
-			debug(input.datas[ve[j]].polarAngle);
+			println(ret.start);
+			println(ret.end);
+			println(input.datas[ve[j]].polarAngle);
 			for (int v : ve) {
-				debug(input.datas[v].polarAngle);
+				println(input.datas[v].polarAngle);
 			}
-			debug(1111);
 		}
+		#endif // CHECKING
 	}
 	return ret;
 }
@@ -699,7 +700,7 @@ Solver::Position Solver::findBestPosInSol(int w) {
 			int vre = v > input.custCnt ? 0 : v;
 			int vjre = vj > input.custCnt ? 0 : vj;
 
-			LL year = (*yearTable)[vre][w] + (*yearTable)[w][vjre];
+			int year = (*yearTable)[vre][w] + (*yearTable)[w][vjre];
 
 			Position pos;
 			pos.rIndex = i;
@@ -719,14 +720,7 @@ Solver::Position Solver::findBestPosInSol(int w) {
 	int p1cnt = 1;
 	int p2cnt = 1;
 	int p3cnt = 1;
-	auto q = qu;
-
-	/*while (!q.empty()) {
-		Position pos = q.top();
-		q.pop();
-		deOut(pos.pen)
-	}
-	cout << endl;*/
+	//auto q = qu;
 
 	while (!qu.empty()) {
 
@@ -1058,7 +1052,6 @@ bool Solver::initByArr2(Vec < Vec<int>> arr2) {
 		Route r = rCreateRoute(rid++);
 
 		for (int cus : arr) {
-			//cout << s << " ";
 			rInsAtPosPre(r, r.tail, (cus));
 		}
 
@@ -1140,8 +1133,8 @@ bool Solver::initSolution(int kind) {//5种
 
 	reCalRtsCostAndPen();
 	println("init penalty:",penalty);
-	println(" rts.size():",rts.size());
-	println(" rtcost:",RoutesCost);
+	println("rts.size():",rts.size());
+	println("rtcost:",RoutesCost);
 
 	return true;
 }
@@ -1252,7 +1245,7 @@ Solver::DeltPen Solver::estimatevw(int kind, int v, int w, int oneR) {
 	case 14:return outrelocatevv_Toww_(v, w, oneR);
 	case 15: return reversevw(v, w);
 	default:
-		debug("estimate no this kind move");
+		println("estimate no this kind move");
 		break;
 	}
 	DeltPen bestM;
@@ -1588,14 +1581,14 @@ Solver::DeltPen Solver::outrelocatevToww_(int v, int w, int oneR) { //2
 			else {
 
 				//rNextDisp(rv);
-				debug(front);
-				debug(back);
-				debug(v);
-				debug(w);
-				debug(globalCfg->seed);
-				debug(rv.head);
-				debug(rv.tail);
-				debug("error 333");
+				println(front);
+				println(back);
+				println(v);
+				println(w);
+				println(globalCfg->seed);
+				println(rv.head);
+				println(rv.tail);
+				println("error 333");
 			}
 			#endif // CHECKING
 
@@ -3670,7 +3663,7 @@ bool Solver::twoOptStar(TwoNodeMove& M) {
 
 	}
 	else {
-		debug("no this two opt * move!");
+		println("no this two opt * move!");
 		return false;
 	}
 	return false;
@@ -3799,7 +3792,7 @@ bool Solver::outRelocate(TwoNodeMove& M) {
 		}
 	}
 	else {
-		debug("no this inrelocate move");
+		println("no this inrelocate move");
 		return false;
 	}
 	return true;
@@ -4282,7 +4275,7 @@ bool Solver::exchange(TwoNodeMove& M) {
 		}
 	}
 	else {
-		debug("no this inrelocate move");
+		println("no this inrelocate move");
 		return false;
 	}
 	return true;
@@ -4679,7 +4672,7 @@ bool Solver::updateYearTable(TwoNodeMove& t) {
 
 	}*/
 	else {
-		debug("sol tabu dont include this move");
+		println("sol tabu dont include this move");
 	}
 
 
@@ -4743,10 +4736,12 @@ Vec<int> Solver::getPtwNodes(Route& r, int ptwKind) {
 				v = customers[v].next;
 			}
 		}
-
+		#if CHECKING
 		if (v != endNode) {
-			debug(v != endNode);
+			println(v != endNode);
 		}
+		#endif // CHECKING
+
 	};
 
 	auto getPtwNodesByLastPtw = [&]() {
@@ -5114,7 +5109,7 @@ LL Solver::getYearOfMove(TwoNodeMove& t) {
 
 	}
 	else {
-		debug("get year of none");
+		println("get year of none");
 	}
 	return sumYear;
 }
@@ -5350,7 +5345,7 @@ Solver::TwoNodeMove Solver::getMovesRandomly
 		rId = PcConfRts.ve[index];
 	}
 	else {
-		debug("error on conf route");
+		println("error on conf route");
 	}
 
 	Route& r = rts.getRouteByRid(rId);
@@ -5966,15 +5961,13 @@ bool Solver::squeeze() {
 
 		TwoNodeMove bestM = getMovesRandomly(updateBestM);
 
+		#if CHECKING
 		if (bestM.deltPen.PcOnly == DisInf || bestM.deltPen.PtwOnly == DisInf) {
-			debug("squeeze fail find move");
-			debug(squIter);
+			println("squeeze fail find move");
+			println("squIter",squIter);
 			++contiNotDe;
 			continue;
 		}
-
-		#if CHECKING
-
 		Vec<Vec<int>> oldRoutes;
 		Vec<int> oldrv;
 		Vec<int> oldrw;
@@ -6040,20 +6033,20 @@ bool Solver::squeeze() {
 
 		if (penaltyWeiError || penaltyError) {
 
-			debug("squeeze penalty update error!");
+			println("squeeze penalty update error!");
 
-			debug(bestM.v);
-			debug(bestM.w);
-			debug(bestM.kind);
-			debug(penaltyWeiError);
-			debug(penaltyError);
+			println(bestM.v);
+			println(bestM.w);
+			println(bestM.kind);
+			println(penaltyWeiError);
+			println(penaltyError);
 
 
-			debug(penaltyaferup);
-			debug(penalty);
-			debug(bestM.deltPen.deltPtw);
+			println(penaltyaferup);
+			println(penalty);
+			println(bestM.deltPen.deltPtw);
 
-			debug(rv.routeID == rw.routeID);
+			println(rv.routeID == rw.routeID);
 
 			std::cout << "oldrv: ";
 
@@ -6225,7 +6218,7 @@ Solver::Position Solver::findBestPosForRuin(int w) {
 			DisType cost = input.disOf[reCusNo(w)][reCusNo(v)]
 				+ input.disOf[reCusNo(w)][reCusNo(vj)]
 				- input.disOf[reCusNo(v)][reCusNo(vj)];
-			//LL year = (*yearTable)[reCusNo(w)][reCusNo(v)] + (*yearTable)[reCusNo(w)][reCusNo(vj)];
+			//int year = (*yearTable)[reCusNo(w)][reCusNo(v)] + (*yearTable)[reCusNo(w)][reCusNo(vj)];
 			//year >>= 1;
 
 			Position posTemp;
@@ -6558,6 +6551,10 @@ bool Solver::doOneTimeRuinPer(int perturbkind,int ruinCusNum,int clearEPKind) {
 		ruinCus = ruinGetRuinCusBySting(ruinKmax, Lmax);
 	}
 
+	//else if (perturbkind == 1) {
+	//ruinCus = ruinGetRuinCusBySec(ruinCusNum);
+	//}
+
 	std::unordered_set<int> rIds;
 	for (int cus : ruinCus) {
 		Route& r = rts.getRouteByRid(customers[cus].routeID);
@@ -6704,7 +6701,6 @@ int Solver::ruinLocalSearch(int ruinCusNum) {
 		else {
 			*this = pBest;
 		}
-		
 	}
 	*this = pBest;
 	return retState;
@@ -6737,7 +6733,7 @@ int Solver::LSBasedRuinAndRuin() {
 
 		if (contiNotDown > 50) {
 			++index;
-			debug(index);
+			println(index);
 			if (index == runSize.size()) {
 				break;
 			}
@@ -6778,7 +6774,7 @@ bool Solver::ejectLocalSearch() {
 				//globalCfg->minKmax = 1;
 				// 调整 minKmax 在1 2 之间切换
 				globalCfg->minKmax = 3 - globalCfg->minKmax;
-				debug(globalCfg->minKmax);
+				println("globalCfg->minKmax:",globalCfg->minKmax);
 			}
 		}
 
@@ -6803,7 +6799,6 @@ bool Solver::ejectLocalSearch() {
 				i = i * 0.4 + 1;
 				maxOfPval = std::max<DisType>(maxOfPval, i);
 			}
-			//cout << "p";
 		}
 
 		#if CHECKING
@@ -7015,7 +7010,6 @@ Vec<Solver::eOneRNode> Solver::ejectFromPatialSol() {
 		//auto en = ejectOneRouteMinPsumGreedy(r);
 
 		if (retNode.ejeVe.size() == 0) {
-			// cout << "kmax fail ";
 			retNode = ejectOneRouteMinPsumGreedy(r);
 		}
 		//else {
@@ -7932,7 +7926,7 @@ bool Solver::mRLLocalSearch(int hasRange,Vec<int> newCus) {
 		lyhCheckTrue(ver > 0)
 
 			if (!(oldpenalty + bestM.deltPen.deltPc + bestM.deltPen.deltPtw == penalty)) {
-				debug(1111);
+				println(1111);
 			}
 		#endif // CHECKING
 
@@ -8010,7 +8004,7 @@ bool Solver::saveOutAsSintefFile(std::string opt) {
 
 	std::ofstream rgbData;
 	std::string wrPath = globalCfg->outputPath + opt
-		+ input.example + "L" + ms.int_str(RoutesCost) + ".txt";
+		+ input.example + "L" + std::to_string(RoutesCost) + ".txt";
 
 	rgbData.open(wrPath, std::ios::app | std::ios::out);
 

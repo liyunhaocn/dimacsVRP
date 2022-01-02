@@ -47,6 +47,9 @@ struct Configuration {
 	int yearTabuLen = 5;
 	int yearTabuRand = 5;
 
+	//int yearTabuLen = 0;
+	//int yearTabuRand = 1;
+
 	// TODO[0]:看需不需要频繁构造 1000stepC_8_7 需要20s C1_6_6 需要6s
 	#if DIMACSGO
 	int ejectLSMaxIter = 200;
@@ -82,7 +85,6 @@ struct Configuration {
 	int ruinSplitRate = 25; // %100 means ruinSplitRate%
 	
 	int ruinLmax = 20;
-	
 	//(ruinLmax+1)/2
 	int ruinC_ = 15;
 

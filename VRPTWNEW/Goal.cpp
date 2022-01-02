@@ -4,6 +4,7 @@
 
 namespace hust {
 
+//TODO[0]:这个要更新成最新的了
 static InsData getInsData(std::string& ins) {
 	static std::unordered_map<std::string, InsData> dataBase = {
 {"C101", {10,827.3,1}},
@@ -373,6 +374,7 @@ static InsData getInsData(std::string& ins) {
 	}
 }
 
+//TODO[0]:下面的也加上路径数量，都弄成InsData的形式
 static double getSintefRL(std::string& ins) {
 
 	static std::unordered_map<std::string, double> sintefMinlen = {
@@ -686,6 +688,7 @@ static double getSintefRL(std::string& ins) {
 	}
 }
 
+//TODO[0]:下面的也加上路径数量，都弄成InsData的形式
 static double getNagataRL(std::string ins) {
 
 	static std::unordered_map<std::string, double> nagataRL = {
@@ -1211,31 +1214,53 @@ bool Goal::perturbThePop() {
 	return true;
 }
 
-int Goal::naMA(Solver& pa, Solver& pb) { // 1 代表更新了最优解 0表示没有
+int Goal::naMA() { // 1 代表更新了最优解 0表示没有
 
-
-	int strategy = 0;
 	int popSize = globalCfg->popSize;
+	Vec<int> papborder(popSize, 0);
+	std::iota(papborder.begin(), papborder.end(), 0);
+
+	myRand->shuffleVec(papborder);
 
 	int updateState = 0;
 
-	for (int contiNotDown = 1; contiNotDown < 20; ++contiNotDown) {
-
-		int isabState = doTwoKindEAX(pa, pb, strategy);
+	for (int orderIndex = 0; orderIndex < popSize; ++orderIndex) {
+	//for (int orderIndex = 0; orderIndex < 1; ++orderIndex) {
+		int paIndex = papborder[orderIndex];
+		int pbIndex = papborder[(orderIndex + 1) % popSize];
+		Solver& pa = pool[paIndex];
+		Solver& pb = pool[pbIndex];
+		int before = EAX::getabCyNum(pa, pb);
+		if (before <= 1) {
+			perturbThePop();
+			int after = EAX::getabCyNum(pa, pb);
+			//println("before:", before, "after:", after, "abCyNum <= 1");
+		}
+		int isabState = doTwoKindEAX(pa, pb, 0);
 		if (isabState == 1) {
 			updateState = 1;
-			contiNotDown = 1;
-		}
-		else {
-			strategy = strategy + 1;
-			if (strategy == 2) {
-				break;
-			}
 		}
 	}
-
+	//if (updateState == 1) {
+	//	return updateState;
+	//}
+	for (int orderIndex = 0; orderIndex < popSize; ++orderIndex) {
+		int paIndex = papborder[orderIndex];
+		int pbIndex = papborder[(orderIndex + 1) % popSize];
+		Solver& pa = pool[paIndex];
+		Solver& pb = pool[pbIndex];
+		int before = EAX::getabCyNum(pa, pb);
+		if (before <= 1) {
+			perturbThePop();
+			int after = EAX::getabCyNum(pa, pb);
+			//println("before:", before, "after:", after, "abCyNum <= 1");
+		}
+		int isabState = doTwoKindEAX(pa, pb, 1);
+		if (isabState == 1) {
+			updateState = 1;
+		}
+	}
 	return updateState;
-	//return updateState;
 }
 
 bool Goal::initPopulation() {
@@ -1319,6 +1344,7 @@ bool Goal::TwoAlgCombine() {
 	int whichAlg = 0; // 0代表局部搜搜 1 代表交叉
 	int popSize = globalCfg->popSize;
 
+
 	#if DIMACSGO
 	while (!gloalTimer.isTimeOut()) {
 	#else
@@ -1331,56 +1357,38 @@ bool Goal::TwoAlgCombine() {
 			}
 		}
 
-		int paIndex = myRand->pick(popSize);
-		int pbIndex = (paIndex + 1) % popSize;
-		Solver& pa = pool[paIndex];
-		Solver& pb = pool[pbIndex];
+		//println("squIter:", squIter);
+		if (squIter *10 > IntInf) {
+			squIter = 1;
+			for (auto& i:(*yearTable)) {
+				for (auto& j : i) {
+					j = 1;
+				}
+			}
+		}
 
 		int upState = 0;
 
 		if (whichAlg == 0) {
 
 			auto bestClone = bks->bestSolFound;
-			//if (myRand->pick(10) == 0) {
-			//	int step = myRand->pick(globalInput->custCnt * 0.2, globalInput->custCnt* 0.4);
-			//	println("bestClone.patternAdjustment");
-			//	bestClone.patternAdjustment(step);
-			//}
-
-			bestClone.ruinLocalSearch();
+			bestClone.ruinLocalSearch(globalCfg->ruinC_);
+			//bestClone.ruinLocalSearch(1);
 			
 			if (bks->updateBKS(bestClone, "time:" + std::to_string(gloalTimer.getRunTime())+" ruin ls")) {
 				upState = 1;
 			}
 			for (auto& better : pool) {
-				better.ruinLocalSearch();
+				//better.ruinLocalSearch(globalCfg->ruinC_);
+				better.ruinLocalSearch(1);
 				if (bks->updateBKS(bestClone, "time:" + std::to_string(gloalTimer.getRunTime()) + " ruin ls")) {
 					upState = 1;
 				}
 			}
-
-			//bestClone.LSBasedRuinAndRuin();
-			//if (bks->updateBKS(bestClone,"ruin bestSolFound")) {
-			//	upState = 1;
-			//}
-			//for (auto& better:pool) {
-			//	better.LSBasedRuinAndRuin();
-			//	if (bks->updateBKS(better, "ruin localSearch")) {
-			//		upState = 1;
-			//	}
-			//}
-
 		}
 		else {
 
-			int before = EAX::getabCyNum(pa, pb);
-			if (before <= 1) {
-				perturbThePop();
-				int after = EAX::getabCyNum(pa, pb);
-				//println("before:", before, "after:", after, "abCyNum <= 1");
-			}
-
-			upState = naMA(pa, pb);
+			upState = naMA();
 		}
 
 		if (upState == 1) {
@@ -1390,16 +1398,13 @@ bool Goal::TwoAlgCombine() {
 			++contiNotDown;
 		}
 
-		if (contiNotDown % 4 == 0) {
+		if(contiNotDown % 2 == 0) {
 			++whichAlg;
 			whichAlg %= 2;
 		}
 
 		if (contiNotDown == 100) {
-			int before = EAX::getabCyNum(pa, pb);
 			perturbThePop();
-			int after = EAX::getabCyNum(pa, pb);
-			//println("before:", before, "after:", after, "contiNotDown:", contiNotDown);
 			contiNotDown = 1;
 		}
 	}
@@ -1457,7 +1462,7 @@ bool Goal::justLocalSearch() {
 
 		if (contiNotDown > 50) {
 			++index;
-			debug(index);
+			println("index:",index);
 			if (index == runSize.size()) {
 				st = pBest;
 				if (myRand->pick(3) == 0) {
@@ -1480,7 +1485,6 @@ bool Goal::saveSlnFile() {
 
 	Input& input = *globalInput;
 
-	DateTime d(time(0));
 	MyString ms;
 	// 输出 tm 结构的各个组成部分
 	//std::string day = /*ms.LL_str(d.year) + */ms.LL_str(d.month) + ms.LL_str(d.day);
@@ -1522,7 +1526,7 @@ bool Goal::saveSlnFile() {
 	}
 	if (!isGood) {
 		//rgbData << "ins,lyhrn,sinrn,dimrn,lyhrl,dimRL,rate, sinRL,rate,naRL,rate,time,epsize,minep,ptw,pc,rts,seed" << std::endl;
-		rgbData << "ins,isopt,lyhrn,sinrn,dimrn,lyhrl,dimRL,rate,lkhrl,rate, sinRL,rate,naRL,rate,time,epsize,minep,ptw,pc,rts,seed" << std::endl;
+		rgbData << "ins,isopt,lyhrn,sinrn,dimrn,narn,lyhrl,dimRL,rate,lkhrl,rate, sinRL,rate,naRL,rate,time,epsize,minep,ptw,pc,rts,seed" << std::endl;
 	}
 
 	auto& sol = bks->bestSolFound;
@@ -1532,6 +1536,7 @@ bool Goal::saveSlnFile() {
 	rgbData << sol.rts.size() << ",";
 	rgbData << sintefRecRN << ",";
 	rgbData << dimacsRecRN << ",";
+	rgbData << naRecRL << ",";
 
 	auto state = sol.verify();
 	rgbData << state << ",";
@@ -1552,11 +1557,11 @@ bool Goal::saveSlnFile() {
 	//TODO[-1]:timer
 	rgbData << gloalTimer.getRunTime() << ",";
 
-	rgbData << sol.EPr.rCustCnt << ",";
+	//rgbData << sol.EPr.rCustCnt << ",";
+	//rgbData << sol.minEPcus << ",";
+	//rgbData << sol.PtwNoWei << ",";
+	//rgbData << sol.Pc << ",";
 
-	rgbData << sol.minEPcus << ",";
-	rgbData << sol.PtwNoWei << ",";
-	rgbData << sol.Pc << ",";
 	for (std::size_t i = 0; i < sol.rts.cnt; ++i) {
 		rgbData << "Route  " << i + 1 << " : ";
 		Route& r = sol.rts[i];

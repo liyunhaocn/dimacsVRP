@@ -7,23 +7,17 @@
 #include<iostream>
 #include<vector>
 
-//#include "Utility.h"
-//#include "Solver.h"
-//#include "Problem.h"
-//#include "Configuration.h"
-//#include "Flag.h"
-//#include "EAX.h"
 #include "Goal.h"
 
 namespace hust {
 
 bool allocGlobalMem(int argc, char* argv[]) {
 
-	 //1800 827.3 1
+	 //../Instances/Solomon/RC201.txt 1800 1261.8 1
 	globalCfg = new hust::Configuration();
 	//globalCfg->inputPath = "../Instances/Homberger/C2_8_7.txt";
-	//globalCfg->inputPath = "../Instances/Homberger/RC2_6_4.txt";
-	globalCfg->inputPath = "../Instances/Solomon/RC201.txt";
+	globalCfg->inputPath = "../Instances/Homberger/RC2_6_4.txt";
+	//globalCfg->inputPath = "../Instances/Solomon/RC201.txt";
 	//globalCfg->inputPath = "../Instances/Homberger/R2_2_4.txt";
 
 	//globalEnv = new Environment("../Instances/Solomon/C101.txt");
@@ -40,7 +34,7 @@ bool allocGlobalMem(int argc, char* argv[]) {
 		globalCfg->seed = std::time(nullptr) + std::clock();
 	}
 
-	//globalCfg->seed = 1611589828;
+	//globalCfg->seed = 1641141778;
 	//globalCfg->seed = 1611589111;
 	//globalCfg->seed = 1640620823;
 	//globalCfg->seed = 1640660545;//RC2_6_4
@@ -57,8 +51,8 @@ bool allocGlobalMem(int argc, char* argv[]) {
 	// TODO[lyh][0]:一定要记得globalCfg用cusCnt合法化一下
 	globalCfg->repairByCusCnt(globalInput->custCnt);
 
-	yearTable = new Vec<Vec<LL> >
-		(globalInput->custCnt + 1, Vec<LL>(globalInput->custCnt + 1, 0));
+	yearTable = new Vec<Vec<int>>
+		(globalInput->custCnt + 1, Vec<int>(globalInput->custCnt + 1, 0));
 
 	bks = new BKS();
 	//TODO[lyh][0]:

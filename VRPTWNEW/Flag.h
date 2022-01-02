@@ -10,15 +10,13 @@
 
 #define DIMACSGO 1
 #define ATTRIBUTETABU 1
-#define LOGINFO 1
 
 #define CHECKING 0
 
-#define debug(x) std::cout<<#x<<": "<<(x)<<std::endl
-#define deOut(x) std::cout<<#x<<": "<<(x)<<" "
-#define de15lf(x) {std::cout<<#x<<": "; printf("%.15lf\n",x);}
-#define outVe(arr) {std::cout<<#arr<<": ";for(auto i:arr){std::cout<<i<<", ";}std::cout<<std::endl;}
-#define DEFabs(a,b) ((a)>=(b))?((a)-(b)):((b)-(a))
+//#define debug(x) std::cout<<#x<<": "<<(x)<<std::endl
+//#define deOut(x) std::cout<<#x<<": "<<(x)<<" "
+//#define de15lf(x) {std::cout<<#x<<": "; printf("%.15lf\n",x);}
+//#define outVe(arr) {std::cout<<#arr<<": ";for(auto i:arr){std::cout<<i<<", ";}std::cout<<std::endl;}
 
 #define lyhCheckTrue(x) {				\
 	if(!(x) ){							\
@@ -55,7 +53,6 @@ using DisType = LL;
 
 extern int IntInf;
 extern long long int LLInf;
-extern double LFInf;
 extern DisType DisInf;
 
 extern double PI;
@@ -67,7 +64,6 @@ extern double PI_32;
 
 extern int disMul;
 extern unsigned Mod;
-extern LL squIter;
 
 struct Random;
 struct RandomX;
@@ -77,7 +73,8 @@ struct BKS;
 
 extern Random* myRand;
 extern RandomX* myRandX;
-extern Vec<Vec<LL>>* yearTable;
+extern int squIter;
+extern Vec<Vec<int>>* yearTable;
 extern Configuration* globalCfg;
 extern Input* globalInput;
 extern BKS* bks;

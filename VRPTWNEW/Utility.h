@@ -26,24 +26,20 @@
 
 #include "Flag.h"
 
-#define UTILITY_NOT_IMPLEMENTED  throw "Not implemented yet!";
-
-// [on] use chrono instead of ctime in Timer.
-#define UTILITY_TIMER_CPP_STYLE  1
-
-// [off] use chrono instead of ctime in DateTime.
-#define UTILITY_DATE_TIME_CPP_STYLE  0
+//#define println(...) ;
+#define println(...) println_(## __VA_ARGS__);
 
 namespace hust {
 
-static void println() { std::cout << std::endl; }
+static void println_() { std::cout << std::endl; }
 template<typename T, typename ... Types>
-static void println(const T& firstArg, const Types&... args) {
+static void println_(const T& firstArg, const Types&... args) {
 
     //cout << "size of args: " << sizeof...(args) << endl;
     std::cout << firstArg << " ";
     println(args...);
 }
+
 template<typename T>
 static void printve(T arr) {
     std::cout << " ";
@@ -100,7 +96,7 @@ public:
     }
 };
 
-class Random {
+struct Random {
 public:
     using Generator = std::mt19937;
     unsigned seed = -1;
@@ -178,58 +174,29 @@ protected:
 
 class Timer {
 public:
-    #if UTILITY_TIMER_CPP_STYLE
+
     using Millisecond = std::chrono::milliseconds;
     using TimePoint = std::chrono::steady_clock::time_point;
     using Clock = std::chrono::steady_clock;
-    #else
-    using Millisecond = int;
-    using TimePoint = int;
-    struct Clock {
-        static TimePoint now() { return clock(); }
-    };
-    #endif // UTILITY_TIMER_CPP_STYLE
-
 
     static constexpr double MillisecondsPerSecond = 1000;
-    static constexpr double ClocksPerSecond = CLOCKS_PER_SEC;
-    static constexpr int ClocksPerMillisecond = static_cast<int>(ClocksPerSecond / MillisecondsPerSecond);
-
-
-    #if UTILITY_TIMER_CPP_STYLE
+  
     Timer(const Millisecond& duration, const TimePoint& st = Clock::now(), std::string name = "")
         : duration(duration), startTime(st), endTime(startTime + duration), name(name) {}
 
     Timer(LL duration, const TimePoint& st = Clock::now(), std::string name = "")
         : duration(Millisecond(duration * 1000)), startTime(st), endTime(startTime + Millisecond(duration * 1000)), name(name) {}
 
-    #else
-    Timer(const Millisecond& duration, const TimePoint& st = Clock::now())
-        : startTime(st), endTime(startTime + duration * ClocksPerMillisecond) {}
-    #endif // UTILITY_TIMER_CPP_STYLE
-
     static Millisecond durationInMillisecond(const TimePoint& start, const TimePoint& end) {
-        #if UTILITY_TIMER_CPP_STYLE
         return std::chrono::duration_cast<Millisecond>(end - start);
-        #else
-        return (end - start) / ClocksPerMillisecond;
-        #endif // UTILITY_TIMER_CPP_STYLE
     }
 
     static double durationInSecond(const TimePoint& start, const TimePoint& end) {
-        #if UTILITY_TIMER_CPP_STYLE
         return std::chrono::duration_cast<Millisecond>(end - start).count() / MillisecondsPerSecond;
-        #else
-        return (end - start) / ClocksPerSecond;
-        #endif // UTILITY_TIMER_CPP_STYLE
     }
 
     static Millisecond toMillisecond(double second) {
-        #if UTILITY_TIMER_CPP_STYLE
         return Millisecond(static_cast<int>(second * MillisecondsPerSecond));
-        #else
-        return static_cast<Millisecond>(second * MillisecondsPerSecond);
-        #endif // UTILITY_TIMER_CPP_STYLE
     }
 
     // there is no need to free the pointer. the format of the format string is 
@@ -295,124 +262,6 @@ protected:
     Millisecond duration;
     std::string name;
 };
-
-class DateTime {
-public:
-    static constexpr int MinutesPerDay = 60 * 24;
-    static constexpr int MinutesPerHour = 60;
-    static constexpr int SecondsPerMinute = 60;
-
-
-    // TODO[szx][8]: use different names for the arguments.
-    DateTime(int year = 0, int month = 0, int day = 0, int hour = 0, int minute = 0, int second = 0)
-        : year(year), month(month), day(day), hour(hour), minute(minute), second(second) {}
-    DateTime(tm &t) : DateTime(t.tm_year + 1900, t.tm_mon + 1, t.tm_mday, t.tm_hour, t.tm_min) {}
-    DateTime(time_t t) : DateTime(*std::localtime(&t)) {}
-
-    // get an inconsistent tm struct which requires std::mktime() to revise.
-    operator std::tm() const {
-        std::tm datetime;
-
-        datetime.tm_year = year - 1900;
-        datetime.tm_mon = month - 1;
-        datetime.tm_mday = day;
-        datetime.tm_hour = hour;
-        datetime.tm_min = minute;
-        datetime.tm_sec = second;
-
-        datetime.tm_isdst = -1;
-
-        //datetime.tm_wday = 0; // ignored by mktime().
-        //datetime.tm_yday = 0; // ignored by mktime().
-
-        return datetime;
-    }
-
-    operator time_t() const {
-        std::tm t = static_cast<std::tm>(*this);
-        return std::mktime(&t);
-    }
-
-    friend DateTime operator+(const DateTime &dateTime, time_t second) {
-        time_t t = static_cast<time_t>(dateTime);
-        t += second;
-        return DateTime(t);
-    }
-    friend DateTime operator-(const DateTime &dateTime, time_t second) { return (dateTime + (-second)); }
-
-    friend std::ostream& operator<<(std::ostream &os, DateTime &dateTime) {
-        os << dateTime.year << '-'
-            << std::setw(2) << std::setfill('0') << dateTime.month << '-'
-            << std::setw(2) << std::setfill('0') << dateTime.day << ' '
-            << std::setw(2) << std::setfill('0') << dateTime.hour << ':'
-            << std::setw(2) << std::setfill('0') << dateTime.minute << ':'
-            << std::setw(2) << std::setfill('0') << dateTime.second;
-        return os;
-    }
-
-    static double durationInSecond(const DateTime &l, const DateTime &r) {
-        #if UTILITY_DATE_TIME_CPP_STYLE
-        using Clock = std::chrono::system_clock;
-        using TimePoint = Clock::time_point;
-        TimePoint tpl = Clock::from_time_t(static_cast<time_t>(l));
-        TimePoint tpr = Clock::from_time_t(static_cast<time_t>(r));
-        return std::chrono::duration_cast<std::chrono::seconds>(tpl - tpr).count();
-        #else
-        return std::difftime(static_cast<time_t>(l), static_cast<time_t>(r));
-        #endif // UTILITY_DATE_TIME_CPP_STYLE
-    };
-
-    int year; // year since Common Era.
-    int month; // months in year.
-    int day; // days in month.
-    int hour; // hours in day.
-    int minute; // minutes in hour.
-    int second; // seconds in minute.
-};
-
-//class Log {
-//public:
-//    using Manipulator = std::ostream& (*)(std::ostream&);
-//
-//    enum Level {
-//        On,
-//        Off, // the default state if not specified.
-//
-//        Fatal = On,
-//        Error = On,
-//        Warning = On,
-//        Debug = On,
-//        Info = On, // = Off.
-//    };
-//
-//#define SZX_DEBUG 1
-//
-//    #if SZX_DEBUG
-//    static bool isTurnedOn(int level) { return (level == On); }
-//    static bool isTurnedOff(int level) { return !isTurnedOn(level); }
-//    #else
-//    static bool isTurnedOn(int level) { return false; }
-//    static bool isTurnedOff(int level) { return true; }
-//    #endif // SZX_DEBUG
-//
-//
-//    Log(int logLevel, std::ostream &logFile) : level(logLevel), os(logFile) {}
-//    Log(int logLevel) : Log(logLevel, std::cerr) {}
-//
-//    template<typename T>
-//    Log& operator<<(const T &obj) {
-//        if (isTurnedOn(level)) { os << obj; }
-//        return *this;
-//    }
-//    Log& operator<<(Manipulator manip) {
-//        if (isTurnedOn(level)) { os << manip; }
-//        return *this;
-//    }
-//
-//protected:
-//    int level;
-//    std::ostream &os;
-//};
 
 struct Union {
 

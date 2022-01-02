@@ -499,7 +499,7 @@ public:
 		DisType pen = DisInf;
 		DisType cost = DisInf;
 		DisType secDis = DisInf;
-		LL year = LLInf;
+		int year = IntInf;
 	};
 
 	struct eOneRNode {
@@ -727,7 +727,7 @@ public:
 		
 	Vec<int> ruinGetRuinCusBySec(int ruinCusNum);
 
-	int ruinLocalSearch(int ruinCusNum=1);
+	int ruinLocalSearch(int ruinCusNum);
 		
 	int LSBasedRuinAndRuin();
 

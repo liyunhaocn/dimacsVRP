@@ -5,8 +5,10 @@
 
 namespace hust {
 
-extern int IntInf = INT_MAX/2;
-extern long long int LLInf = 0x3f3f3f3f3f3f3f3f / 4;
+extern int IntInf = INT_MAX/10;
+//extern long long int LLInf = 0x3f3f3f3f3f3f3f3f / 4;
+//extern long long int LLInf = LLONG_MAX / 2 - 1;
+extern long long int LLInf = LLONG_MAX / 10;
 
 extern double PI = 3.14159265359;
 extern double PI_2 = PI / 2;
@@ -30,10 +32,10 @@ extern unsigned Mod = 1000000007;
 
 extern Random* myRand = nullptr;
 extern RandomX* myRandX = nullptr;
-extern Vec<Vec<LL>>* yearTable = nullptr;
+extern Vec<Vec<int>>* yearTable = nullptr;
 extern Configuration* globalCfg = nullptr;
 extern Input* globalInput = nullptr;
 extern BKS* bks = nullptr;
-extern LL squIter = 1;
+extern int squIter = 1;
 
 }
