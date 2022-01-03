@@ -13,20 +13,24 @@ namespace hust {
 
 bool allocGlobalMem(int argc, char* argv[]) {
 
-	 //../Instances/Solomon/RC201.txt 1800 1261.8 1
+	// ../Instances/Solomon/RC201.txt 1800 1261.8 1
+	// ../Instances/Homberger/R1_8_3.txt 3600 29429.1 0
+	// ../Instances/Homberger/RC2_6_4.txt 3600 6989.4 0
+
 	globalCfg = new hust::Configuration();
 	//globalCfg->inputPath = "../Instances/Homberger/C2_8_7.txt";
-	globalCfg->inputPath = "../Instances/Homberger/RC2_6_4.txt";
+	//globalCfg->inputPath = "../Instances/Homberger/RC2_6_4.txt";
+	//globalCfg->inputPath = "../Instances/Homberger/R1_8_3.txt";
 	//globalCfg->inputPath = "../Instances/Solomon/RC201.txt";
 	//globalCfg->inputPath = "../Instances/Homberger/R2_2_4.txt";
 
-	//globalEnv = new Environment("../Instances/Solomon/C101.txt");
-	//globalEnv = new Environment("../Instances/Homberger/RC1_8_3.txt");
-	//globalEnv = new Environment("../Instances/Homberger/RC1_8_1.txt");
-	//globalEnv  = new Environment("../Instances/Homberger/C1_4_2.txt");
-	//globalEnv  = new Environment("../Instances/Homberger/C2_10_6.txt");
-	//globalEnv  = new Environment("../Instances/Homberger/RC1_8_5.txt");
-	//globalEnv = new Environment("../Instances/Homberger/C2_8_7.txt");
+	//globalCfg->inputPath = "Instances/Solomon/C101.txt";
+	//globalCfg->inputPath = "../Instances/Homberger/RC1_8_3.txt";
+	//globalCfg->inputPath = "../Instances/Homberger/RC1_8_1.txt";
+	//globalCfg->inputPath = "../Instances/Homberger/C1_4_2.txt";
+	//globalCfg->inputPath = "../Instances/Homberger/C2_10_6.txt";
+	//globalCfg->inputPath = "../Instances/Homberger/RC1_8_5.txt";
+	//globalCfg->inputPath = "../Instances/Homberger/C2_8_7.txt";
 
 	globalCfg->solveCommandLine(argc, argv);
 
@@ -42,11 +46,15 @@ bool allocGlobalMem(int argc, char* argv[]) {
 	//globalCfg->seed = 1640880535;
 	//globalCfg->seed = 1641054042;
 
-	globalCfg->show();
+	
 	myRand = new Random(globalCfg->seed);
 	myRandX = new RandomX(globalCfg->seed);
 
 	globalInput = new Input();
+
+	globalCfg->addHelpInfo();
+
+	globalCfg->show();
 
 	// TODO[lyh][0]:一定要记得globalCfg用cusCnt合法化一下
 	globalCfg->repairByCusCnt(globalInput->custCnt);
@@ -74,13 +82,13 @@ bool deallocGlobalMem() {
 
 int main(int argc, char* argv[])
 {
-	//hust::println(sizeof(std::mt19937));
-	//hust::println(sizeof(hust::Solver));
-	//hust::println(sizeof(hust::Timer));
-	//hust::println(sizeof(hust::Solver::alpha));
-	//hust::println(sizeof(hust::Solver::input));
-	//hust::println(sizeof(hust::Solver::globalCfg));
-	//hust::println(sizeof(hust::Input));
+	//hust::INFO(sizeof(std::mt19937));
+	//hust::INFO(sizeof(hust::Solver));
+	//hust::INFO(sizeof(hust::Timer));
+	//hust::INFO(sizeof(hust::Solver::alpha));
+	//hust::INFO(sizeof(hust::Solver::input));
+	//hust::INFO(sizeof(hust::Solver::globalCfg));
+	//hust::INFO(sizeof(hust::Input));
 
 	hust::allocGlobalMem(argc, argv);
 	hust::Goal goal;

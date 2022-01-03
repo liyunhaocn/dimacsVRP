@@ -194,7 +194,7 @@ bool EAX::generateCycles() {
 
 		#if CHECKING
 		else {
-			println("lastEdge: is not pa pb");
+			INFO("lastEdge: is not pa pb");
 		}
 		#endif // CHECKING
 
@@ -217,7 +217,7 @@ bool EAX::generateCycles() {
 
 		#if CHECKING
 		else {
-			println("re.owner lastEdge: is not pa pb");
+			INFO("re.owner lastEdge: is not pa pb");
 		}
 		#endif // CHECKING
 
@@ -628,7 +628,7 @@ int EAX::doNaEAX(Solver& pa, Solver& pb, Solver& pc) {
 			choosecyIndex = i;
 		}
 	}
-	//println("all:", all, "cnt:", cnt);
+	//INFO("all:", all, "cnt:", cnt);
 
 	if (choosecyIndex == -1) {
 		return -1;
@@ -647,7 +647,7 @@ int EAX::doNaEAX(Solver& pa, Solver& pb, Solver& pc) {
 		if (pc.RoutesCost == pa.RoutesCost) {
 				
 			/*for (auto id : tabuCyIds) {
-				println("id:", id);
+				INFO("id:", id);
 			}*/
 			return 0;
 		}
@@ -724,7 +724,7 @@ int EAX::doPrEAX(Solver& pa, Solver& pb, Solver& pc) {
 			break;
 		}
 	}
-	//println("putMax:",putMax,"numABCyUsed:", numABCyUsed);
+	//INFO("putMax:",putMax,"numABCyUsed:", numABCyUsed);
 
 	Vec<int> eset = { firstCyIndex };
 	resCycles.removeVal(firstCyIndex);
@@ -764,8 +764,8 @@ int EAX::doPrEAX(Solver& pa, Solver& pb, Solver& pc) {
 		#endif // CHECKING
 		// TODO[-1]:这个检查之后没问题就放进去check吧
 		if (nextCyIndex == -1) {
-			println("numABCyUsed:",numABCyUsed);
-			println("eset.size():",eset.size());
+			INFO("numABCyUsed:",numABCyUsed);
+			INFO("eset.size():",eset.size());
 			numABCyUsed = eset.size();
 			break;
 		}
@@ -792,7 +792,7 @@ int EAX::doPrEAX(Solver& pa, Solver& pb, Solver& pc) {
 		
 	if (pc.repair()) {
 		//++repair;
-		//println("all:", all, "repair:", repair,"abcyNum / 2:", abcyNum / 2,"numABCyUsed:", numABCyUsed);
+		//INFO("all:", all, "repair:", repair,"abcyNum / 2:", abcyNum / 2,"numABCyUsed:", numABCyUsed);
 
 		////TODO[0]:如果设置修复自回路使用眨眼的话，禁忌要在没有自回路的情况下禁忌
 		//if (numABCyUsed == unionArr[unionIndex].size()) {

@@ -10,13 +10,7 @@
 
 #define DIMACSGO 1
 #define ATTRIBUTETABU 1
-
 #define CHECKING 0
-
-//#define debug(x) std::cout<<#x<<": "<<(x)<<std::endl
-//#define deOut(x) std::cout<<#x<<": "<<(x)<<" "
-//#define de15lf(x) {std::cout<<#x<<": "; printf("%.15lf\n",x);}
-//#define outVe(arr) {std::cout<<#arr<<": ";for(auto i:arr){std::cout<<i<<", ";}std::cout<<std::endl;}
 
 #define lyhCheckTrue(x) {				\
 	if(!(x) ){							\

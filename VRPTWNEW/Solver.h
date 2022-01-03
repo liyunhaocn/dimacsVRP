@@ -601,7 +601,9 @@ public:
 
 	Position findBestPosInSolForInit(int w);
 
-	bool initBySecOrder(int kind);
+	bool initBySecOrder();
+
+	bool initSortOrder(int kind);
 
 	bool initMaxRoute();
 

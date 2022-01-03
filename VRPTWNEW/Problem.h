@@ -8,6 +8,7 @@
 #include <cstdio>
 
 #include "Configuration.h"
+#include "Flag.h"
 
 namespace hust {
 
@@ -50,6 +51,17 @@ struct CircleSector
 				start = point;
 		}
 	}
+	
+	static int disofpointandsec(int point,CircleSector& sec) {
+		if (!sec.isEnclosed(point)) {
+			if (positive_mod(point - sec.end) <= positive_mod(sec.start - point))
+				return positive_mod(point - sec.end);
+			else
+				return positive_mod(sec.start - point);
+		}
+		return 65536;
+	}
+
 };
 
 struct Data {
@@ -62,14 +74,6 @@ struct Data {
 	LL DUEDATE = -1;
 	LL SERVICETIME = -1;
 	LL polarAngle = 0;
-};
-
-struct InsData {
-	int minRN = 0;
-	double minRL = 0;
-	int isOpt = 0;
-	InsData() :minRN(0), minRL(0), isOpt(0) {}
-	InsData(int rn, double rl, int is) :minRN(rn), minRL(rl), isOpt(is) {}
 };
 
 struct Customer {

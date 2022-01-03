@@ -45,29 +45,21 @@ bool Input::initInput() {
 			//disOf[j][i] = disOf[i][j] = round(dis);
 			disOf[j][i] = disOf[i][j] = dis;
 			#else
-			disOf[j][i] = disOf[i][j] = round(dis);
 			//disOf[j][i] = disOf[i][j] = ceil(dis);
 			#endif // DIMACSGO
 		}
 	}
 
-	auto canlinkDir = [&](int v, int w) ->bool {
-
-		DisType av = disOf[0][v];
-		DisType aw = av + datas[v].SERVICETIME + disOf[v][w];
-		DisType ptw = std::max<DisType>(0, aw - datas[w].DUEDATE);
-		DisType an = aw + datas[w].SERVICETIME + disOf[w][0];
-		ptw += std::max<DisType>(0, an - datas[0].DUEDATE);
-		return ptw == 0;
-	};
-
-	auto canLinkNode = [&](int v, int w) ->bool {
-
-		if (!canlinkDir(v, w) && !canlinkDir(w, v)) {
-			return false;
-		}
-		return true;
-	};
+	//UnorderedSet<DisType> disSet;
+	//int cnt = 0;
+	//for (int i = 0; i <= custCnt + 1; ++i) {
+	//	for (int j = i + 1; j <= custCnt; ++j) {
+	//		disSet.insert(disOf[i][j]);
+	//		++cnt;
+	//	}
+	//}
+	//INFO(cnt);
+	//INFO(disSet.size());
 
 	sectorClose = Vec< Vec<int>>(custCnt + 1, Vec<int>(0));
 	for (int v = 0; v <= custCnt; ++v) {
@@ -88,6 +80,24 @@ bool Input::initInput() {
 
 	allCloseOf = Vec< Vec<int>>(custCnt + 1, Vec<int>(0));
 
+	auto canlinkDir = [&](int v, int w) ->bool {
+
+		DisType av = disOf[0][v];
+		DisType aw = av + datas[v].SERVICETIME + disOf[v][w];
+		DisType ptw = std::max<DisType>(0, aw - datas[w].DUEDATE);
+		DisType an = aw + datas[w].SERVICETIME + disOf[w][0];
+		ptw += std::max<DisType>(0, an - datas[0].DUEDATE);
+		return ptw == 0;
+	};
+
+	auto canLinkNode = [&](int v, int w) ->bool {
+
+		if (!canlinkDir(v, w) && !canlinkDir(w, v)) {
+			return false;
+		}
+		return true;
+	};
+
 	for (int v = 0; v <= custCnt; ++v) {
 
 		Vec<int> nums;
@@ -101,7 +111,15 @@ bool Input::initInput() {
 
 		auto cmp = [&](const int a, const int b) {
 
-			return disOf[a][v] < disOf[b][v];
+			if (disOf[a][v] == disOf[b][v]) {
+				return datas[a].DUEDATE < datas[b].DUEDATE;
+			}
+			else {
+				return disOf[a][v] < disOf[b][v];
+			}
+			return true;
+
+			//return disOf[a][v] < disOf[b][v];
 
 			//int aLinkv = canLinkNode(a, v);
 			//int bLinkv = canLinkNode(b, v);

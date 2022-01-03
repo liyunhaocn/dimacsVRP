@@ -27,7 +27,9 @@
 #include "Flag.h"
 
 //#define println(...) ;
-#define println(...) println_(## __VA_ARGS__);
+#define INFO(...) println_("[INFO]:",## __VA_ARGS__);
+#define DEBUG(...) println_("[DEBUG]:",## __VA_ARGS__);
+#define ERROR(...) println_("[ERROR]:"## __VA_ARGS__);
 
 namespace hust {
 
@@ -37,7 +39,7 @@ static void println_(const T& firstArg, const Types&... args) {
 
     //cout << "size of args: " << sizeof...(args) << endl;
     std::cout << firstArg << " ";
-    println(args...);
+    println_(args...);
 }
 
 template<typename T>
