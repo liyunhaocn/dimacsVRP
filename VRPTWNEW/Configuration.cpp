@@ -1116,7 +1116,8 @@ void Configuration::addHelpInfo() {
 	sintefRecRN = info.minRN;
 	sintefRecRL = getSintefRL(example) * disMul;
 	naRecRL = getNagataRL(example) * disMul;
-
+	//TODO[-1]:目前没有narn
+	naRecRN = -1;
 	Solver dimBKS;
 	dimBKS.initSolution(5);
 

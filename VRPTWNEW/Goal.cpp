@@ -272,8 +272,9 @@ bool Goal::initPopulation() {
 	#endif // DIMACSGO
 
 	// TODO[0]:สนำรมห ourTarget += 1;
-	ourTarget += 1;
-
+	if (globalCfg->cmdIsopt != 1) {
+		ourTarget += 1;
+	}
 	//for (int initKind = 0; initKind < kset.size(); ++initKind) {
 	//	std::string name = "init" + std::to_string(initKind);
 	//	Solver st;
@@ -534,7 +535,7 @@ bool Goal::saveSlnFile() {
 	rgbData << sol.rts.size() << ",";
 	rgbData << globalCfg->sintefRecRN << ",";
 	rgbData << globalCfg->dimacsRecRN << ",";
-	rgbData << globalCfg->naRecRL << ",";
+	rgbData << globalCfg->naRecRN << ",";
 
 	auto state = sol.verify();
 	rgbData << state << ",";
