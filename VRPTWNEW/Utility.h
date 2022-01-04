@@ -29,7 +29,7 @@
 //#define println(...) ;
 #define INFO(...) println_("[INFO]:",## __VA_ARGS__);
 #define DEBUG(...) println_("[DEBUG]:",## __VA_ARGS__);
-#define ERROR(...) println_("[ERROR]:"## __VA_ARGS__);
+#define ERROR(...) println_("[ERROR]:",## __VA_ARGS__);
 
 namespace hust {
 

@@ -263,18 +263,18 @@ bool Goal::initPopulation() {
 	Vec<int> kset = { 0,1,2,3,4 };
 	myRand->shuffleVec(kset);
 
-	int ourTarget = 0;
+	int ourTarget = -1;
 
 	#if DIMACSGO
-	ourTarget = globalCfg->dimacsRecRN;
+	ourTarget = globalCfg->lkhRN;
 	#else
 	ourTarget = globalInput->sintefRecRN;
 	#endif // DIMACSGO
 
 	// TODO[0]:สนำรมห ourTarget += 1;
-	if (globalCfg->cmdIsopt != 1) {
-		ourTarget += 1;
-	}
+	//if (globalCfg->cmdIsopt != 1) {
+	//	ourTarget += 1;
+	//}
 	//for (int initKind = 0; initKind < kset.size(); ++initKind) {
 	//	std::string name = "init" + std::to_string(initKind);
 	//	Solver st;
@@ -286,12 +286,24 @@ bool Goal::initPopulation() {
 	Solver s0;
 	s0.initSolution(kset[0]);
 	s0.adjustRN(ourTarget);
+	//s0.minimizeRN(0);
+
+	INFO("s0.RoutesCost:",s0.RoutesCost);
 	ourTarget = s0.rts.cnt;
 	s0.mRLLocalSearch(0, {});
+
+	INFO("s0.RoutesCost:", s0.RoutesCost);
+
+	INFO("sol0 inint kind:", kset[0]);
+
 	s0.ruinLocalSearch(globalCfg->ruinC_);
+
+
+	INFO("s0.RoutesCost:",s0.RoutesCost);
+
 	bks->updateBKS(s0);
 	pool.push_back(s0);
-	INFO("sol0 inint kind:", kset[0]);
+	
 
 	int produceNum = globalCfg->popSize * 2;
 	int i = 1;
@@ -327,6 +339,73 @@ bool Goal::initPopulation() {
 	return true;
 }
 
+bool Goal::CVB2LocalSearch(){
+
+	gloalTimer.setLenUseSecond(globalCfg->runTimer);
+	gloalTimer.reStart();
+
+	initPopulation();
+	//std::fill(globalInput->P.begin(), globalInput->P.end(), 1);
+	auto pBest = pool[0];
+
+	int contiNotDown = 1;
+
+	int pIndex = 0;
+
+	//ProbControl pc(2*globalCfg->ruinC_);
+	#if DIMACSGO
+	while (!gloalTimer.isTimeOut()) {
+		#else
+	while (bks->bestSolFound.RoutesCost > sintefRecRL && !gloalTimer.isTimeOut()) {
+		#endif // DIMACSGO
+
+		auto st = pBest;
+		//INFO("contiNotDown:", contiNotDown);
+		//if (contiNotDown > 50) {
+		//	++pIndex;
+		//	if (pIndex >= pool.size()) {
+		//		INFO("perturbThePop");
+		//		perturbThePop();
+		//		pIndex = 0;
+		//	}
+		//	contiNotDown = 1;
+		//}
+
+		if (squIter * 10 > IntInf) {
+			squIter = 1;
+			for (auto& i : (*yearTable)) {
+				for (auto& j : i) {
+					j = 1;
+				}
+			}
+		}
+
+		auto beforeLS = st.RoutesCost;
+
+		st.CVB2ruinLS(2*globalCfg->ruinC_);
+
+		if (st.RoutesCost < beforeLS) {
+			contiNotDown = 1;
+		}
+		else {
+			++contiNotDown;
+		}
+
+		bks->updateBKS(st);
+
+		if (st.RoutesCost < pBest.RoutesCost) {
+			INFO("pBest.rts.cnt:", pBest.rts.cnt);
+			pBest = st;
+			contiNotDown = 1;
+		}
+	}
+	saveSlnFile();
+	return true;
+
+
+	return false;
+}
+
 bool Goal::TwoAlgCombine() {
 
 	initPopulation();
@@ -346,7 +425,7 @@ bool Goal::TwoAlgCombine() {
 	#endif // DIMACSGO
 
 		if (globalCfg->cmdIsopt == 1) {
-			if (bks->bestSolFound.RoutesCost == globalCfg-> dimacsRecRL) {
+			if (bks->bestSolFound.RoutesCost == globalCfg-> d15RecRL) {
 				break;
 			}
 		}
@@ -414,25 +493,13 @@ bool Goal::justLocalSearch() {
 	gloalTimer.setLenUseSecond(globalCfg->runTimer);
 	gloalTimer.reStart();
 
-	Solver st;
-	
-	int intKind = myRand->pick(5);
-
-	st.initSolution(intKind);
-
-	INFO("intKind:", intKind);
-
-	st.adjustRN(globalCfg->dimacsRecRN);
-	//st.saveOutAsSintefFile("minR");
-	st.mRLLocalSearch(0, {});
-
+	initPopulation();
 	//std::fill(globalInput->P.begin(), globalInput->P.end(), 1);
-	auto pBest = st;
+	auto pBest = pool[0];
 
 	int contiNotDown = 1;
 
-	//Vec<int> runSize = { 1,globalCfg->ruinC_,2 * globalCfg->ruinC_ };
-	//int index = 0;
+	int pIndex = 0;
 
 	//ProbControl pc(2*globalCfg->ruinC_);
 	#if DIMACSGO
@@ -441,15 +508,15 @@ bool Goal::justLocalSearch() {
 	while (bks->bestSolFound.RoutesCost > sintefRecRL && !gloalTimer.isTimeOut()) {
 	#endif // DIMACSGO
 
+		auto& st = pool[pIndex];
 		//INFO("contiNotDown:", contiNotDown);
-		if (contiNotDown > 20) {
-			
-			//st = pBest;
-			/*int step = myRand->pick(st.input.custCnt * 0.2, st.input.custCnt * 0.4);
-			st.patternAdjustment(st.input.custCnt);
-			int abcyNum = EAX::getabCyNum(st, pBest);
-			INFO("st.patternAdjustment,cyNum", abcyNum);*/
-
+		if (contiNotDown > 50) {
+			++pIndex;
+ 			if (pIndex >= pool.size()) {
+				INFO("perturbThePop");
+				perturbThePop(); 
+				pIndex = 0;
+			}
 			contiNotDown = 1;
 		}
 
@@ -464,7 +531,16 @@ bool Goal::justLocalSearch() {
 
 		//st.ruinLocalSearch(c_ + 1);
 		//st.ruinLocalSearch(globalCfg->ruinC_);
+		auto beforeLS = st.RoutesCost;
+
 		st.ruinLocalSearch(globalCfg->ruinC_);
+
+		if (st.RoutesCost < beforeLS) {
+			contiNotDown = 1;
+		}
+		else {
+			++contiNotDown;
+		}
 
 		bks->updateBKS(st);
 
@@ -472,9 +548,6 @@ bool Goal::justLocalSearch() {
 			//++pc.data[c_];
 			pBest = st;
 			contiNotDown = 1;
-		}
-		else {
-			++contiNotDown;
 		}
 	}
 	saveSlnFile();
@@ -524,37 +597,35 @@ bool Goal::saveSlnFile() {
 		return false;
 	}
 	if (!isGood) {
-		//rgbData << "ins,lyhrn,sinrn,dimrn,lyhrl,dimRL,rate, sinRL,rate,naRL,rate,time,epsize,minep,ptw,pc,rts,seed" << std::endl;
-		rgbData << "ins,isopt,lyhrn,sinrn,dimrn,narn,lyhrl,dimRL,rate,lkhrl,rate, sinRL,rate,naRL,rate,time,rts,seed" << std::endl;
+		rgbData << "ins,isopt,lyhrl,lyhrn,time,gap,lkhrn,lkhrl,d15rn,d15RL,sinrn,sinrl,narn,narl,rts,seed" << std::endl;
 	}
 
 	auto& sol = bks->bestSolFound;
 
 	rgbData << input.example << ",";
 	rgbData << globalCfg->cmdIsopt << ",";
+
+	auto lyhrl = sol.verify();
+	rgbData << lyhrl << ",";
+
 	rgbData << sol.rts.size() << ",";
-	rgbData << globalCfg->sintefRecRN << ",";
-	rgbData << globalCfg->dimacsRecRN << ",";
-	rgbData << globalCfg->naRecRN << ",";
-
-	auto state = sol.verify();
-	rgbData << state << ",";
-
-	rgbData << globalCfg->dimacsRecRL << ",";
-	rgbData << double((double)(state - globalCfg->dimacsRecRL) / globalCfg->dimacsRecRL) * 100 << ",";
-	
-	rgbData << globalCfg->cmdDimacsRL << ",";
-	rgbData << double((double)(state - globalCfg->cmdDimacsRL) 
-		/ globalCfg->cmdDimacsRL) * 100 << ",";
-
-	rgbData << globalCfg->sintefRecRL << ",";
-	rgbData << double((double)(state - globalCfg->sintefRecRL) / globalCfg->sintefRecRL) * 100 << ",";
-
-	rgbData << globalCfg->naRecRL << ",";
-	rgbData << double((double)(state - globalCfg->naRecRL) / globalCfg->naRecRL) * 100 << ",";
 
 	//TODO[-1]:timer
 	rgbData << gloalTimer.getRunTime() << ",";
+
+	rgbData << double((double)(lyhrl - globalCfg->lkhRL) / globalCfg->lkhRL) * 100 << ",";
+
+	rgbData << globalCfg->lkhRN << ",";
+	rgbData << globalCfg->lkhRL << ",";
+
+	rgbData << globalCfg->d15RecRN << ",";
+	rgbData << globalCfg->d15RecRL << ",";
+
+	rgbData << globalCfg->sintefRecRN << ",";
+	rgbData << globalCfg->sintefRecRL << ",";
+
+	rgbData << globalCfg->naRecRN << ",";
+	rgbData << globalCfg->naRecRL << ",";
 
 	for (std::size_t i = 0; i < sol.rts.cnt; ++i) {
 		rgbData << "Route  " << i + 1 << " : ";
@@ -577,10 +648,7 @@ bool Goal::saveSlnFile() {
 
 bool Goal::test() {
 
-	Solver st;
-	//st.initSolution(myRand->pick(2));
-	st.initSolution(5);
-
+	saveSlnFile();
 	return true;
 }
 

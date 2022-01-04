@@ -609,7 +609,13 @@ public:
 
 	bool initByArr2(Vec < Vec<int>> arr2);
 
+	bool initBySolFile(std::string bksPath);
+
+	#if 0
 	bool initByDimacsBKS();
+
+	bool initByLKHBKS();
+	#endif // 0
 
 	bool initSolution(int kind);
 
@@ -703,7 +709,7 @@ public:
 
 	bool managerCusMem(Vec<int>& releaseNodes);
 
-	bool removeOneRouteRandomly(int index = -1);
+	bool removeOneRouteByRid(int rId = -1);
 		
 	DisType verify();
 
@@ -731,7 +737,9 @@ public:
 
 	int ruinLocalSearch(int ruinCusNum);
 		
-	int LSBasedRuinAndRuin();
+	int CVB2ruinLS(int ruinCusNum);
+	
+	int CVB2ClearEPAllowNewR(int kind);
 
 	bool doOneTimeRuinPer(int perturbkind, int ruinCusNum,int clearEPKind);
 	

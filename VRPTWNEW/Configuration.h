@@ -1,3 +1,4 @@
+
 #ifndef CN_HUST_LYH_CFG_H
 #define CN_HUST_LYH_CFG_H
 
@@ -13,11 +14,12 @@ struct Configuration {
 	unsigned seed = -1;
 	std::string inputPath = "";
 	std::string outputPath = "../Results/";
-	DisType cmdDimacsRL = -1;
+	DisType lkhRL = -1;
+	DisType lkhRN = -1;
 	int cmdIsopt = -1;
 
-	int dimacsRecRN = 0;
-	DisType dimacsRecRL = 0;
+	int d15RecRN = 0;
+	DisType d15RecRL = 0;
 
 	int sintefRecRN = 0;
 	DisType sintefRecRL = 0;

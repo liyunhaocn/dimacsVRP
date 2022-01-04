@@ -1,3 +1,4 @@
+
 #ifndef CN_HUST_LYH_FLAG_H
 #define CN_HUST_LYH_FLAG_H
 
@@ -10,6 +11,7 @@
 
 #define DIMACSGO 1
 #define ATTRIBUTETABU 1
+
 #define CHECKING 0
 
 #define lyhCheckTrue(x) {				\

@@ -212,20 +212,20 @@ bool Solver::rInsAtPosPre(Route& r, int pos, int node) {
 }
 
 int Solver::getFrontofTwoCus(int v, int w) {
-	return customers[v].av < customers[w].av ? v : w;
-	//if (customers[v].Q_X == customers[w].Q_X) {
-	//	for (int pt = v; pt != -1; pt = customers[pt].next) {
-	//		if (pt == w) {
-	//			ret = v;
-	//			break;
-	//		}
-	//	}
-	//	if (ret == -1) {
-	//		ret = w;
-	//	}
-	//}
-	//int ret = -1;
-	//return ret;
+	//return customers[v].av < customers[w].av ? v : w;
+
+	if (customers[v].Q_X == customers[w].Q_X) {
+		for (int pt = v; pt != -1; pt = customers[pt].next) {
+			if (pt == w) {
+				return v;
+			}
+		}
+		return w;
+	}
+	else {
+		return customers[v].Q_X < customers[w].Q_X ? v : w;
+	}
+	return -1;
 }
 
 bool Solver::rRemoveAtPos(Route& r, int a) {
@@ -834,9 +834,9 @@ Solver::Position Solver::findBestPosInSolForInit(int w) {
 		int secDis = CircleSector::disofpointandsec
 		(input.datas[w].polarAngle, secs[i]);
 
-		if (secDis > bestPos.secDis) {
-			continue;
-		}
+		//if (secDis > bestPos.secDis) {
+		//	continue;
+		//}
 
 		while (v != -1 && vj != -1) {
 
@@ -873,19 +873,22 @@ Solver::Position Solver::findBestPosInSolForInit(int w) {
 				bestPos = pt;
 			}
 			else {
-				if (pt.secDis < bestPos.secDis) {
+
+				if (pt.cost < bestPos.cost) {
 					bestPos = pt;
 				}
-				else {
-					if (pt.cost < bestPos.cost) {
-						bestPos = pt;
-					}
-				}
+				//if (pt.secDis < bestPos.secDis) {
+				//	bestPos = pt;
+				//}
+				//else {
+				//	if (pt.cost < bestPos.cost) {
+				//		bestPos = pt;
+				//	}
+				//}
 			}
 			
 			v = vj;
 			vj = customers[vj].next;
-			
 		}
 	}
 
@@ -1092,24 +1095,18 @@ bool Solver::initByArr2(Vec < Vec<int>> arr2) {
 	return true;
 }
 
-bool Solver::initByDimacsBKS() {
-
-	//std::string in = "../Instances/Solomon/C101.txt";
-	std::string bksPath = "../Data/DimacsBks/Homberger/" + globalInput->example + ".sol";
-	
-	if (globalCfg->inputPath.find("Solomon") != -1) {
-		bksPath = "../Data/DimacsBks/Solomon/" + globalInput->example + ".sol";
-	}
+bool Solver::initBySolFile(std::string bksPath) {
 
 	std::ifstream myfile(bksPath);
 	if (!myfile.is_open()) {
-		ERROR("globalCfg->inputPath:",globalCfg->inputPath);
-		ERROR("fail to open dimacs bks,bksPath:", bksPath);
+		ERROR("globalCfg->inputPath:", globalCfg->inputPath);
+		ERROR("fail to open initBySolFile,bksPath:", bksPath);
+		return false;
 	}
 
 	std::string t;
 	int rn = 0;
-	
+
 	double cost = 0.0;
 
 	Vec<Vec<int>> rArr2;
@@ -1117,15 +1114,15 @@ bool Solver::initByDimacsBKS() {
 	while (std::getline(myfile, t)) {
 		if (t.find("Route #") != std::string::npos) {
 			int mao = t.find(":");
-			t = t.substr(mao+2);
-			
+			t = t.substr(mao + 2);
+
 			std::stringstream ss;
 			ss << t;
-			
+
 			std::string st;
 
 			Vec<int> rArr;
-			while (std::getline(ss,st,' ')){
+			while (std::getline(ss, st, ' ')) {
 				//debug(st);
 				int c = std::stoi(st);
 				rArr.push_back(c);
@@ -1139,13 +1136,30 @@ bool Solver::initByDimacsBKS() {
 			cost = atof(t.c_str());
 		}
 	}
-
 	initByArr2(rArr2);
-	//debug(RoutesCost);
-	//debug(cost);
 	myfile.close();
-	return {};
+	return true;
 }
+
+#if 0
+bool Solver::initByDimacsBKS() {
+
+	//std::string in = "../Instances/Solomon/C101.txt";
+	std::string bksPath = "../Data/DimacsBks/Homberger/" + globalInput->example + ".sol";
+	
+	if (globalCfg->inputPath.find("Solomon") != -1) {
+		bksPath = "../Data/DimacsBks/Solomon/" + globalInput->example + ".sol";
+	}
+	initBySolFile(bksPath);
+}
+
+bool Solver::initByLKHBKS() {
+
+	std::string bksPath = "../Data/DimacsBks/LKHBKS/" + globalInput->example + "_LKHSP" + ".sol";
+
+	initBySolFile(bksPath);
+}
+#endif // 0
 
 bool Solver::initSolution(int kind) {//5种
 
@@ -1158,10 +1172,18 @@ bool Solver::initSolution(int kind) {//5种
 	else if (kind == 4) {
 		initMaxRoute();
 	}
+	
+	else {
+		ERROR("no this kind of init");
+	}
+	#if 0
 	else if (kind == 5) {
 		initByDimacsBKS();
 	}
-
+	else if (kind == 6) {
+		initByLKHBKS();
+	}
+	#endif // 0
 	reCalRtsCostAndPen();
 	INFO("init penalty:",penalty);
 	INFO("rts.size():",rts.size());
@@ -1934,6 +1956,14 @@ DisType Solver::getaRangeOffPtw(int twbegin, int twend) {
 		pt = customers[pt].next;
 	}
 
+	#if CHECKING
+	lyhCheckTrue(pt == twend);
+	if (pt != twend) {
+		ERROR("pt != twend:", pt != twend);
+	}
+	#endif // CHECKING
+
+
 	newwvPtw += std::max<DisType>(0, lastav - customers[twend].zv);
 	return newwvPtw;
 }
@@ -1990,13 +2020,21 @@ Solver::DeltPen Solver::inrelocatevv_(int v, int w, int oneR) { //4
 				// w ..... (v-) v
 			}
 
+			//auto cus = rPutCusInve(rw);
+
 			rRemoveAtPos(rw, w);
 			rInsAtPos(rw, v_, w);
 
+			//INFO("twbegin:", twbegin);
+			//INFO("twend:", twend);
+			
 			newwvPtw = getaRangeOffPtw(twbegin, twend);
+			//newwvPtw = rUpdateAvfrom(rw, rw.head);
 
 			rRemoveAtPos(rw, w);
 			rInsAtPos(rw, w_, w);
+
+			//rUpdateAvfrom(rw, rw.head);
 
 			bestM.PtwOnly = newwvPtw - rw.rPtw;
 			bestM.deltPtw = newwvPtw * rw.rWeight - wPtw;
@@ -5409,6 +5447,38 @@ Solver::TwoNodeMove Solver::getMovesRandomly
 
 			if (customers[v_].TW_X + customers[vj].TWX_ == r.rPtw) {
 				maxL = std::max<int>(10, r.rCustCnt / 5);
+				int wbegin = v;
+				int preStep = myRand->pick(1, maxL + 1);
+				int res = maxL;
+				for (int i = 0; i < preStep; ++i) {
+					wbegin = customers[wbegin].pre;
+					if (wbegin > input.custCnt) {
+						break;
+					}
+				}
+
+				wbegin = customers[wbegin].next;
+
+				for (int i = 0; i < maxL; ++i) {
+					wbegin = customers[wbegin].next;
+					if (wbegin > input.custCnt) {
+						break;
+					}
+					if (wbegin != v) {
+
+						TwoNodeMove m4(v, wbegin, 4, inrelocatevv_(v, wbegin, 1));
+						updateBestM(m4, bestM);
+
+						TwoNodeMove m8(v, wbegin, 8, exchangevw(v, wbegin, 1));
+						updateBestM(m8, bestM);
+
+						TwoNodeMove m13(v, wbegin, 13, outrelocatevvjTowwj(v, wbegin, 1));
+						updateBestM(m13, bestM);
+
+						TwoNodeMove m15(v, wbegin, 15, reversevw(v, wbegin));
+						updateBestM(m15, bestM);
+					}
+				}
 			}
 			else {
 				// TODO[3][getMoveRand] 这个maxL 以及ptNode.back() 后面的部分还可以优化
@@ -5416,40 +5486,6 @@ Solver::TwoNodeMove Solver::getMovesRandomly
 				exchangevwEffectively(v);
 				outrelocateEffectively(v);
 			}
-
-			int wbegin = v;
-			int preStep = myRand->pick(1, maxL + 1);
-			int res = maxL;
-			for (int i = 0; i < preStep; ++i) {
-				wbegin = customers[wbegin].pre;
-				if (wbegin > input.custCnt) {
-					break;
-				}
-			}
-
-			wbegin = customers[wbegin].next;
-
-			for (int i = 0; i < maxL; ++i) {
-				wbegin = customers[wbegin].next;
-				if (wbegin > input.custCnt) {
-					break;
-				}
-				if (wbegin != v) {
-
-					TwoNodeMove m4(v, wbegin, 4, inrelocatevv_(v, wbegin, 1));
-					updateBestM(m4, bestM);
-
-					TwoNodeMove m8(v, wbegin, 8, exchangevw(v, wbegin, 1));
-					updateBestM(m8, bestM);
-
-					TwoNodeMove m13(v, wbegin, 13, outrelocatevvjTowwj(v, wbegin, 1));
-					updateBestM(m13, bestM);
-
-					TwoNodeMove m15(v, wbegin, 15, reversevw(v, wbegin));
-					updateBestM(m15, bestM);
-				}
-			}
-
 		}
 	}
 	else {
@@ -5615,48 +5651,6 @@ bool Solver::doEject(Vec<eOneRNode>& XSet) {
 	return true;
 }
 
-bool Solver::EPNodesCanEasilyPut() {
-
-	for (int EPIndex = 0; EPIndex < EPsize();) {
-		#if CHECKING
-		DisType oldpenalty = PtwNoWei + Pc;
-		#endif // CHECKING
-
-		Vec<int> arr = EPve();
-		int top = arr[EPIndex];
-
-		//Position bestP = findBestPosInSol(top);
-		//TODO[0]:这里改了findBestPosInSolForInit
-		Position bestP = findBestPosInSolForInit(top);
-
-		if (bestP.pen == 0) {
-
-			Route& r = rts[bestP.rIndex];
-
-			input.P[top] += globalCfg->Pwei0;
-			//EP(*yearTable)[top] = EPIter + globalCfg->EPTabuStep + myRand->pick(globalCfg->EPTabuRand);
-			EPremoveByVal(top);
-
-			rInsAtPos(r, bestP.pos, top);
-			rUpdateAvQfrom(r, top);
-			rUpdateZvQfrom(r, top);
-
-			sumRtsPen();
-			resetConfRts();
-
-			#if CHECKING
-			lyhCheckTrue(oldpenalty + bestP.pen == PtwNoWei + Pc);
-			#endif // CHECKING
-
-		}
-		else {
-			++EPIndex;
-		}
-
-	}
-	return true;
-}
-
 bool Solver::managerCusMem(Vec<int>& releaseNodes) {
 
 	//printve(releaseNodes);
@@ -5693,36 +5687,20 @@ bool Solver::managerCusMem(Vec<int>& releaseNodes) {
 	return true;
 }
 
-bool Solver::removeOneRouteRandomly(int index) {
+bool Solver::removeOneRouteByRid(int rId) {
 
-	//Vec<CircleSector> angs(rts.cnt);
-	//Vec<int> range(rts.cnt);
-	//for (int i = 0; i < rts.cnt; ++i) {
-	//	auto ve = rPutCusInve(rts[i]);
-	//	angs[i].initialize(input.datas[ve[0]].polarAngle);
-	//	for (int j = 1; j < ve.size(); ++j) {
-	//		angs[i].extend(input.datas[ve[j]].polarAngle);
-	//	}
-	//	range[i] = CircleSector::positive_mod(angs[i].end - angs[i].start);
-	//}
-	//index = 0;
-	//for (int i = 1; i < rts.cnt; ++i) {
-	//	if (range[i] > range[index]) {
-	//		index = i;
-	//	}
-	//}
-
-	if (index == -1) {
-		index = myRand->pick(rts.size());
+	if (rId == -1) {
+		int index = myRand->pick(rts.size());
+		rId = rts[index].routeID;
 	}
 
-	Route& rt = rts[index];
+	Route& rt = rts.getRouteByRid(rId);
 
 	Vec<int> rtVe = rPutCusInve(rt);
 	Vec<int> releasedNodes = { rt.head,rt.tail };
 	rReset(rt);
-	rts.removeIndex(index);
-
+	rts.removeIndex(rts.posOf[rId]);
+	
 	for (int pt : rtVe) {
 		EPpush_back(pt);
 	}
@@ -6068,18 +6046,22 @@ bool Solver::squeeze() {
 
 			ERROR("squeeze penalty update error!");
 
-			ERROR(bestM.v);
-			ERROR(bestM.w);
-			ERROR(bestM.kind);
-			ERROR(penaltyWeiError);
-			ERROR(penaltyError);
+			ERROR("bestM.v:",bestM.v);
+			ERROR("bestM.w:",bestM.w);
+			ERROR("bestM.kind:",bestM.kind);
+			ERROR("penaltyWeiError:",penaltyWeiError);
+			ERROR("penaltyError:", penaltyError);
 
+			ERROR("penaltyaferup:",penaltyaferup);
+			ERROR("penalty:",penalty);
+			ERROR("Ptw:",Ptw);
+			ERROR("Pc:",Pc);
 
-			ERROR(penaltyaferup);
-			ERROR(penalty);
-			ERROR(bestM.deltPen.deltPtw);
+			ERROR("bestM.deltPen.deltPtw:",bestM.deltPen.deltPtw);
+			ERROR("oldPtw:", oldPtw);
+			ERROR("oldPc:", oldPc);
 
-			ERROR(rv.routeID == rw.routeID);
+			ERROR("rv.routeID == rw.routeID:",rv.routeID == rw.routeID);
 
 			std::cout << "oldrv: ";
 
@@ -6564,14 +6546,13 @@ Vec<int> Solver::ruinGetRuinCusBySec(int ruinCusNum) {
 
 bool Solver::doOneTimeRuinPer(int perturbkind,int ruinCusNum,int clearEPKind) {
 
-
 	int avgLen = input.custCnt / rts.cnt;
 	int Lmax = std::min<int>(globalCfg->ruinLmax, avgLen);
 	int ruinKmax = 4 * ruinCusNum / (1 + Lmax) - 1;
 	ruinKmax = std::min<int>(rts.cnt, ruinKmax);
 	ruinKmax = std::max<int>(1, ruinKmax);
 
-	DisType routesCostBefore = RoutesCost;
+	//DisType routesCostBefore = RoutesCost;
 
 	Vec<int> ruinCus;
 	if (perturbkind == 0) {
@@ -6580,13 +6561,12 @@ bool Solver::doOneTimeRuinPer(int perturbkind,int ruinCusNum,int clearEPKind) {
 	else if (perturbkind == 1) {
 		ruinCus = ruinGetRuinCusBySec(ruinCusNum);
 	}
-	else {
+	else if(perturbkind==2){
 		ruinCus = ruinGetRuinCusBySting(ruinKmax, Lmax);
 	}
-
-	//else if (perturbkind == 1) {
-	//ruinCus = ruinGetRuinCusBySec(ruinCusNum);
-	//}
+	else {
+		ERROR("no this kind of ruin");
+	}
 
 	std::unordered_set<int> rIds;
 	for (int cus : ruinCus) {
@@ -6672,6 +6652,7 @@ bool Solver::perturbBaseRuin(int perturbkind, int ruinCusNum,int clearEPKind) {
 
 		if (hasPenMinSol) { //生成了有惩罚的解
 			++pen;
+			
 			if (penMinSol.repair()) {
 				++rep;
 				*this = penMinSol;
@@ -6739,165 +6720,162 @@ int Solver::ruinLocalSearch(int ruinCusNum) {
 	return retState;
 }
 
-int Solver::LSBasedRuinAndRuin() {
+int Solver::CVB2ClearEPAllowNewR(int kind) {
 
-	auto pBest = *this;
-	int contiNotDown = 1;
-	Vec<int> runSize = { 1,globalCfg->ruinC_,2 * globalCfg->ruinC_ };
-	int index = 0;
-	
-	for(;;){
-		//st.ruinLocalSearch(c_ + 1);
-		//st.ruinLocalSearch(globalCfg->ruinC_);
-		ruinLocalSearch(runSize[index]);
+	std::unordered_set<int> insRts;
+	Vec<int> EPArr = rPutCusInve(EPr);
 
-		bks->updateBKS(*this);
+	auto cmp1 = [&](int a, int b) {
+		return input.datas[a].DEMAND > input.datas[b].DEMAND;
+	};
+	auto cmp2 = [&](int a, int b) {
+		return input.datas[a].DUEDATE - input.datas[a].READYTIME
+			< input.datas[b].DUEDATE - input.datas[b].READYTIME;
+	};
 
-		if (RoutesCost < pBest.RoutesCost) {
-			//++pc.data[c_];
-			pBest = *this;
-			contiNotDown = 1;
-			index = 0;
+	auto cmp3 = [&](int a, int b) {
+		return input.disOf[a][0] < input.disOf[b][0];
+	};
+
+	auto cmp4 = [&](int a, int b) {
+		return input.datas[a].READYTIME > input.datas[b].READYTIME;
+	};
+
+	auto cmp5 = [&](int a, int b) {
+		return input.datas[a].DUEDATE < input.datas[b].DUEDATE;
+	};
+
+
+	switch (kind) {
+	case 0:
+		myRand->shuffleVec(EPArr);
+		break;
+	case 1:
+		std::sort(EPArr.begin(), EPArr.end(), cmp1);
+		break;
+	case 2:
+		std::sort(EPArr.begin(), EPArr.end(), cmp2);
+		break;
+	case 3:
+		std::sort(EPArr.begin(), EPArr.end(), cmp3);
+		break;
+	case 4:
+		std::sort(EPArr.begin(), EPArr.end(), cmp4);
+		break;
+	case 5:
+		std::sort(EPArr.begin(), EPArr.end(), cmp5);
+		break;
+	default:
+		break;
+	}
+
+	for (int i = 0; i < EPArr.size(); ++i) {
+		//for (int i = EPArr.size() - 1;i>=0;--i) {
+		int pt = EPArr[i];
+		EPrRemoveAtPos(pt);
+		//++P[pt];
+		auto bestPos = findBestPosForRuin(pt);
+		
+		if (bestPos.pen == 0) {
+			Route& r = rts[bestPos.rIndex];
+			insRts.insert(r.routeID);
+			rInsAtPos(r, bestPos.pos, pt);
+			rUpdateAvQfrom(r, pt);
+			rUpdateZvQfrom(r, pt);
 		}
 		else {
-			*this = pBest;
-			++contiNotDown;
-		}
-
-		if (contiNotDown > 50) {
-			++index;
-			INFO(index);
-			if (index == runSize.size()) {
-				break;
+			int rid = 0;
+			for (; rid < rts.posOf.size(); ++rid) {
+				if (rts.posOf[rid] == -1) {
+					break;
+				}
 			}
-			index %= runSize.size();
-			contiNotDown = 1;
+			Route r1 = rCreateRoute(rid);
+			rInsAtPosPre(r1, r1.tail, pt);
+			rUpdateAvQfrom(r1, r1.head);
+			rUpdateZvQfrom(r1, r1.tail);
+			rts.push_back(r1);
+			insRts.insert(rid);
 		}
 	}
-	return 1;
+
+	sumRtsPen();
+	for (auto rId : insRts) {
+		Route& r = rts.getRouteByRid(rId);
+		rReCalRCost(r);
+	}
+	sumRtsCost();
 }
 
-bool Solver::ejectLocalSearch() {
+int Solver::CVB2ruinLS(int ruinCusNum) {
 
-	minEPcus = IntInf;
-	squIter += globalCfg->yearTabuLen + globalCfg->yearTabuRand;
-	int maxOfPval = -1;
-	gamma = 0;
+	int avgLen = input.custCnt / rts.cnt;
+	int Lmax = std::min<int>(globalCfg->ruinLmax, avgLen);
+	int ruinKmax = 4 * ruinCusNum / (1 + Lmax) - 1;
+	ruinKmax = std::min<int>(rts.cnt, ruinKmax);
+	ruinKmax = std::max<int>(1, ruinKmax);
 
-	int EpCusNoDown = 1;
-	int iter = 1;
+	static ProbControl pcRuKind(3);
+	static ProbControl pcCLKind(6);
 
-	while (iter < globalCfg->ejectLSMaxIter) {
-	//while (1) {
+	Solver solClone = *this;
+	int perturbkind = pcRuKind.getIndexBasedData();
 
-		++iter;
+	Vec<int> ruinCus;
+	if (perturbkind == 0) {
+		ruinCus = ruinGetRuinCusByRound(ruinCusNum);
+	}
+	else if (perturbkind == 1) {
+		ruinCus = ruinGetRuinCusBySec(ruinCusNum);
+	}
+	else if (perturbkind == 2) {
+		ruinCus = ruinGetRuinCusBySting(ruinKmax, Lmax);
+	}
+	else {
+		ERROR("no this kind of ruin");
+	}
 
-		EPNodesCanEasilyPut();
+	std::unordered_set<int> rIds;
+	for (int cus : ruinCus) {
+		Route& r = rts.getRouteByRid(customers[cus].routeID);
+		rIds.insert(r.routeID);
+		rRemoveAtPos(r, cus);
+		EPpush_back(cus);
 
-		if (EPr.rCustCnt < minEPcus) {
-			minEPcus = EPr.rCustCnt;
-			EpCusNoDown = 1;
-		}
-		else {
-
-			++EpCusNoDown;
-			if (EpCusNoDown % 10000 == 0) {
-
-				//globalCfg->minKmax = 1;
-				// 调整 minKmax 在1 2 之间切换
-				globalCfg->minKmax = 3 - globalCfg->minKmax;
-				INFO("globalCfg->minKmax:",globalCfg->minKmax);
+		if (r.rCustCnt == 0) {
+			if (rIds.count(r.routeID)>0) {
+				rIds.erase(rIds.find(r.routeID));
 			}
-		}
-
-		minEPcus = std::min<int>(minEPcus, EPr.rCustCnt);
-		if (EPsize() == 0 && penalty == 0) {
-			//debug(iter);
-			break;
-		}
-
-		Vec<int> EPrVe = rPutCusInve(EPr);
-		int top = EPrVe[myRand->pick(EPrVe.size())];
-
-		//Position bestP = findBestPosInSol(top);
-		//TODO[0]:这里改了findBestPosInSolForInit
-		Position bestP = findBestPosInSolForInit(top);
-
-		Route& r = rts[bestP.rIndex];
-		EPremoveByVal(top);
-
-		input.P[top] += globalCfg->Pwei0;
-		maxOfPval = std::max<int>(input.P[top], maxOfPval);
-
-		if (maxOfPval >= 1000) {
-			maxOfPval = 0;
-			for (auto& i : input.P) {
-				i = i * 0.4 + 1;
-				maxOfPval = std::max<DisType>(maxOfPval, i);
-			}
-		}
-
-		#if CHECKING
-		DisType oldpenalty = PtwNoWei + Pc;
-		#endif
-		rInsAtPos(r, bestP.pos, top);
-		rUpdateAvQfrom(r, top);
-		rUpdateZvQfrom(r, top);
-		sumRtsPen();
-		resetConfRts();
-
-		#if CHECKING
-		lyhCheckTrue((oldpenalty + bestP.pen == PtwNoWei + Pc));
-		#endif // CHECKING
-
-		if (bestP.pen == 0) {
-			continue;
-		}
-		else {
-
-			bool squ = squeeze();
-			//t1.disp();
-
-			if (squ == true) {
-				continue;
-			}
-			else {
-
-				auto& XSet = ejeNodesAfterSqueeze;
-
-				for (eOneRNode& en : XSet) {
-					for (int c : en.ejeVe) {
-						/*int cpre = customers[c].pre > input.custCnt ? 0 : customers[c].pre;
-						int cnext = customers[c].next > input.custCnt ? 0 : customers[c].next;
-						(*yearTable)[cpre][c] = squIter + globalCfg->yearTabuLen + myRand->pick(globalCfg->yearTabuRand);
-						(*yearTable)[c][cnext] = squIter + globalCfg->yearTabuLen + myRand->pick(globalCfg->yearTabuRand);*/
-						input.P[c] += globalCfg->Pwei1;
-						maxOfPval = std::max<DisType>(input.P[c], maxOfPval);
-
-						//P[c] += std::max<DisType>(log(P[c]), globalCfg->Pwei1);
-						//debug(std::max<DisType>(log(P[c]), globalCfg->Pwei1))
-					}
-				}
-
-				doEject(XSet);
-				int Irand = input.custCnt / EPr.rCustCnt / 4;
-				Irand = std::max<int>(Irand, 100);
-				patternAdjustment(Irand);
-				//system("pause");
-				//saveOutAsSintefFile();
-				//patternMakeBigBigger();
-				//system("pause");
-				//saveOutAsSintefFile();
-
-				//end our method 2
-			}
+			removeOneRouteByRid(r.routeID);
 		}
 	}
 
-	//debug(iter);
-	
+	for (auto rid : rIds) {
+		Route& r = rts.getRouteByRid(rid);
+		rUpdateAvQfrom(r, r.head);
+		rUpdateZvQfrom(r, r.tail);
+		rReCalRCost(r);
+	}
 
-	return (EPsize() == 0 && penalty == 0);
+	sumRtsCost();
+	sumRtsPen();
+
+
+	int clearKind = pcCLKind.getIndexBasedData();
+
+	CVB2ClearEPAllowNewR(clearKind);
+
+	auto cuses = EAX::getDiffCusofPb(solClone, *this);
+	if (cuses.size() > 0 && rts.cnt < solClone.rts.cnt+5) {
+		mRLLocalSearch(1, cuses);
+	}
+
+	reCalRtsCostAndPen();
+	if (RoutesCost < solClone.RoutesCost) {
+		++pcRuKind.data[perturbkind];
+		++pcCLKind.data[clearKind];
+	}
+	return true;
 }
 
 bool Solver::patternAdjustment(int Irand) {
@@ -7527,6 +7505,186 @@ bool Solver::resetSol() {
 	return true;
 }
 
+bool Solver::EPNodesCanEasilyPut() {
+
+	for (int EPIndex = 0; EPIndex < EPsize();) {
+		#if CHECKING
+		DisType oldpenalty = PtwNoWei + Pc;
+		#endif // CHECKING
+
+		Vec<int> arr = EPve();
+		int top = arr[EPIndex];
+
+		Position bestP = findBestPosInSol(top);
+		//TODO[0]:这里改了findBestPosInSolForInit
+		//Position bestP = findBestPosInSolForInit(top);
+
+		if (bestP.pen == 0) {
+
+			Route& r = rts[bestP.rIndex];
+
+			input.P[top] += globalCfg->Pwei0;
+			//EP(*yearTable)[top] = EPIter + globalCfg->EPTabuStep + myRand->pick(globalCfg->EPTabuRand);
+			EPremoveByVal(top);
+
+			rInsAtPos(r, bestP.pos, top);
+			rUpdateAvQfrom(r, top);
+			rUpdateZvQfrom(r, top);
+
+			sumRtsPen();
+			resetConfRts();
+
+			#if CHECKING
+			lyhCheckTrue(oldpenalty + bestP.pen == PtwNoWei + Pc);
+			#endif // CHECKING
+
+		}
+		else {
+			++EPIndex;
+		}
+
+	}
+	return true;
+}
+
+bool Solver::ejectLocalSearch() {
+
+	minEPcus = IntInf;
+	squIter += globalCfg->yearTabuLen + globalCfg->yearTabuRand;
+	int maxOfPval = -1;
+	gamma = 0;
+
+	int EpCusNoDown = 1;
+	int iter = 1;
+
+	while (iter < globalCfg->ejectLSMaxIter) {
+		//while (1) {
+
+		++iter;
+
+		EPNodesCanEasilyPut();
+
+		if (EPr.rCustCnt < minEPcus) {
+			minEPcus = EPr.rCustCnt;
+			EpCusNoDown = 1;
+		}
+		else {
+
+			++EpCusNoDown;
+			if (EpCusNoDown % 10000 == 0) {
+
+				//globalCfg->minKmax = 1;
+				// 调整 minKmax 在1 2 之间切换
+				globalCfg->minKmax = 3 - globalCfg->minKmax;
+				INFO("globalCfg->minKmax:", globalCfg->minKmax);
+			}
+		}
+
+		minEPcus = std::min<int>(minEPcus, EPr.rCustCnt);
+		if (EPsize() == 0 && penalty == 0) {
+			//debug(iter);
+			break;
+		}
+
+		Vec<int> EPrVe = rPutCusInve(EPr);
+		int top = EPrVe[myRand->pick(EPrVe.size())];
+
+		Position bestP = findBestPosInSol(top);
+		//TODO[0]:这里改了findBestPosInSolForInit
+		//Position bestP = findBestPosInSolForInit(top);
+
+		Route& r = rts[bestP.rIndex];
+		EPremoveByVal(top);
+
+		input.P[top] += globalCfg->Pwei0;
+		maxOfPval = std::max<int>(input.P[top], maxOfPval);
+
+		if (maxOfPval >= 1000) {
+			maxOfPval = 0;
+			for (auto& i : input.P) {
+				i = i * 0.4 + 1;
+				maxOfPval = std::max<DisType>(maxOfPval, i);
+			}
+		}
+
+		#if CHECKING
+		DisType oldpenalty = PtwNoWei + Pc;
+		#endif
+
+		rInsAtPos(r, bestP.pos, top);
+		rUpdateAvQfrom(r, top);
+		rUpdateZvQfrom(r, top);
+		sumRtsPen();
+		resetConfRts();
+
+		#if CHECKING
+		reCalRtsCostAndPen();
+		lyhCheckTrue((oldpenalty + bestP.pen == PtwNoWei + Pc));
+		if (oldpenalty + bestP.pen != PtwNoWei + Pc) {
+			ERROR("oldpenalty:", oldpenalty);
+			ERROR("bestP.pen:", bestP.pen);
+			ERROR("PtwNoWei + Pc:", PtwNoWei + Pc);
+		}
+		#endif // CHECKING
+
+		if (bestP.pen == 0) {
+			continue;
+		}
+		else {
+
+			#if CHECKING
+			lyhCheckTrue(penalty > 0);
+			if (penalty == 0) {
+				ERROR("penalty == 0:", penalty == 0);
+				ERROR("penalty == 0:", penalty == 0);
+			}
+			#endif // CHECKING
+
+			bool squ = squeeze();
+			
+
+			if (squ == true) {
+				continue;
+			}
+			else {
+
+				auto& XSet = ejeNodesAfterSqueeze;
+
+				for (eOneRNode& en : XSet) {
+					for (int c : en.ejeVe) {
+						/*int cpre = customers[c].pre > input.custCnt ? 0 : customers[c].pre;
+						int cnext = customers[c].next > input.custCnt ? 0 : customers[c].next;
+						(*yearTable)[cpre][c] = squIter + globalCfg->yearTabuLen + myRand->pick(globalCfg->yearTabuRand);
+						(*yearTable)[c][cnext] = squIter + globalCfg->yearTabuLen + myRand->pick(globalCfg->yearTabuRand);*/
+						input.P[c] += globalCfg->Pwei1;
+						maxOfPval = std::max<DisType>(input.P[c], maxOfPval);
+
+						//P[c] += std::max<DisType>(log(P[c]), globalCfg->Pwei1);
+						//debug(std::max<DisType>(log(P[c]), globalCfg->Pwei1))
+					}
+				}
+
+				doEject(XSet);
+				int Irand = input.custCnt / EPr.rCustCnt / 4;
+				Irand = std::max<int>(Irand, 100);
+				patternAdjustment(Irand);
+				//system("pause");
+				//saveOutAsSintefFile();
+				//patternMakeBigBigger();
+				//system("pause");
+				//saveOutAsSintefFile();
+
+				//end our method 2
+			}
+		}
+	}
+
+	//debug(iter);
+
+
+	return (EPsize() == 0 && penalty == 0);
+}
+
 void Solver::minimizeRN(int ourTarget) {
 
 	gamma = 0;
@@ -7537,7 +7695,7 @@ void Solver::minimizeRN(int ourTarget) {
 	while (rts.cnt > ourTarget) {
 
 		Solver sclone = *this;
-		removeOneRouteRandomly();
+		removeOneRouteByRid();
 
 		std::fill(input.P.begin(), input.P.end(), 1);
 		bool isDelete = ejectLocalSearch();
@@ -7598,13 +7756,13 @@ bool Solver::adjustRN(int ourTarget) {
 	}
 	
 	//TODO[0]:Lmax和ruinLmax的定义
-	globalCfg->ruinLmax = 0;
-	for (int i = 0; i < rts.cnt; ++i) {
-		globalCfg->ruinLmax = std::max<int>(globalCfg->ruinLmax,rts[i].rCustCnt);
-	}
-	globalCfg->ruinLmax /= 2;
-	//globalCfg->ruinC_ = (globalCfg->ruinLmax + 1)/2 ;
-	globalCfg->ruinC_ = (globalCfg->ruinLmax + 1);
+	//globalCfg->ruinLmax = 0;
+	//for (int i = 0; i < rts.cnt; ++i) {
+	//	globalCfg->ruinLmax = std::max<int>(globalCfg->ruinLmax,rts[i].rCustCnt);
+	//}
+	////globalCfg->ruinLmax /= 2;
+	////globalCfg->ruinC_ = (globalCfg->ruinLmax + 1)/2 ;
+	//globalCfg->ruinC_ = (globalCfg->ruinLmax + 1);
 	return true;
 }
 
@@ -7667,7 +7825,9 @@ bool Solver::repair() {
 				bestM = t;
 			}
 		}*/
+
 		if (t.deltPen.PcOnly + t.deltPen.PtwOnly < 0) {
+
 			if (t.deltPen.PcOnly + t.deltPen.PtwOnly + t.deltPen.deltCost
 				< bestM.deltPen.PcOnly + bestM.deltPen.PtwOnly + bestM.deltPen.deltCost) {
 				bestM = t;
@@ -7717,10 +7877,7 @@ bool Solver::repair() {
 		int rwId = customers[bestM.w].routeID;
 
 		doMoves(bestM);
-		//if (rvId == rwId) {
-		//	++moveContribute[bestM.kind];
-		//}
-
+		
 		++squIter;
 
 		sumRtsPen();

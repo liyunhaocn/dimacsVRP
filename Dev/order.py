@@ -81,9 +81,9 @@ def orderOneFile(path):
 
     with open(path,'w',newline='') as f:
         csv_write = csv.writer(f)
-        csv_write.writerow(dic.get("ins", []))
+        csv_write.writerow(dic.get("ins", [9999999]* len(dic["ins"])))
         for o in order:
-            csv_write.writerow(dic.get(o, []))
+            csv_write.writerow(dic.get(o, [o,]+ [9999999] * (-1+len(dic["ins"]))))
     
 
 if __name__ == "__main__":

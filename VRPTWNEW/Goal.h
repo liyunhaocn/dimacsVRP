@@ -23,9 +23,11 @@ struct Goal {
 
 	bool initPopulation();
 
-	bool TwoAlgCombine();
-
 	bool justLocalSearch();
+
+	bool CVB2LocalSearch();
+
+	bool TwoAlgCombine();
 
 	bool saveSlnFile();
 
