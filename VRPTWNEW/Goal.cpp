@@ -344,13 +344,19 @@ bool Goal::CVB2LocalSearch(){
 	gloalTimer.setLenUseSecond(globalCfg->runTimer);
 	gloalTimer.reStart();
 
-	initPopulation();
+	//initPopulation();
 	//std::fill(globalInput->P.begin(), globalInput->P.end(), 1);
-	auto pBest = pool[0];
+	Solver pBest;
+	
+	int ourTarget = globalCfg->lkhRN;
+
+	pBest.initSolution(4);
+	pBest.adjustRN(ourTarget);
+	//s0.minimizeRN(0);
+	pBest.mRLLocalSearch(0, {});
+	pBest.ruinLocalSearch(globalCfg->ruinC_);
 
 	int contiNotDown = 1;
-
-	int pIndex = 0;
 
 	//ProbControl pc(2*globalCfg->ruinC_);
 	#if DIMACSGO
@@ -360,6 +366,13 @@ bool Goal::CVB2LocalSearch(){
 		#endif // DIMACSGO
 
 		auto st = pBest;
+
+		if (globalCfg->cmdIsopt == 1) {
+			if (bks->bestSolFound.RoutesCost == globalCfg->d15RecRL) {
+				break;
+			}
+		}
+
 		//INFO("contiNotDown:", contiNotDown);
 		//if (contiNotDown > 50) {
 		//	++pIndex;
@@ -392,13 +405,15 @@ bool Goal::CVB2LocalSearch(){
 		}
 
 		bks->updateBKS(st);
-
-		if (st.RoutesCost < pBest.RoutesCost) {
-			INFO("pBest.rts.cnt:", pBest.rts.cnt);
+		DisType delt = 100 * log(myRand->pick(1, 100000) / (double)100000);
+		//DEBUG("delt:",delt);
+		if (st.RoutesCost < pBest.RoutesCost - delt) {
+			//INFO("st.RoutesCost:",st.RoutesCost,"pBest.rts.cnt:", pBest.rts.cnt);
 			pBest = st;
 			contiNotDown = 1;
 		}
 	}
+	bks->bestSolFound.saveOutAsSintefFile();
 	saveSlnFile();
 	return true;
 
@@ -493,13 +508,15 @@ bool Goal::justLocalSearch() {
 	gloalTimer.setLenUseSecond(globalCfg->runTimer);
 	gloalTimer.reStart();
 
-	initPopulation();
-	//std::fill(globalInput->P.begin(), globalInput->P.end(), 1);
-	auto pBest = pool[0];
+	Solver pBest;
 
-	int contiNotDown = 1;
+	int ourTarget = globalCfg->lkhRN;
 
-	int pIndex = 0;
+	pBest.initSolution(4);
+	pBest.adjustRN(ourTarget);
+	//s0.minimizeRN(0);
+	pBest.mRLLocalSearch(0, {});
+	pBest.ruinLocalSearch(globalCfg->ruinC_);
 
 	//ProbControl pc(2*globalCfg->ruinC_);
 	#if DIMACSGO
@@ -508,17 +525,7 @@ bool Goal::justLocalSearch() {
 	while (bks->bestSolFound.RoutesCost > sintefRecRL && !gloalTimer.isTimeOut()) {
 	#endif // DIMACSGO
 
-		auto& st = pool[pIndex];
-		//INFO("contiNotDown:", contiNotDown);
-		if (contiNotDown > 50) {
-			++pIndex;
- 			if (pIndex >= pool.size()) {
-				INFO("perturbThePop");
-				perturbThePop(); 
-				pIndex = 0;
-			}
-			contiNotDown = 1;
-		}
+		auto st = pBest;
 
 		if (squIter * 10 > IntInf) {
 			squIter = 1;
@@ -529,25 +536,25 @@ bool Goal::justLocalSearch() {
 			}
 		}
 
+		if (globalCfg->cmdIsopt == 1) {
+			if (bks->bestSolFound.RoutesCost == globalCfg->d15RecRL) {
+				break;
+			}
+		}
+
 		//st.ruinLocalSearch(c_ + 1);
 		//st.ruinLocalSearch(globalCfg->ruinC_);
 		auto beforeLS = st.RoutesCost;
 
 		st.ruinLocalSearch(globalCfg->ruinC_);
 
-		if (st.RoutesCost < beforeLS) {
-			contiNotDown = 1;
-		}
-		else {
-			++contiNotDown;
-		}
-
 		bks->updateBKS(st);
 
-		if (st.RoutesCost < pBest.RoutesCost) {
-			//++pc.data[c_];
+		DisType delt = 100 * log(myRand->pick(1, 100000) / (double)100000);
+		//DEBUG("delt:",delt);
+		if (st.RoutesCost < pBest.RoutesCost - delt) {
+			//INFO("st.RoutesCost:",st.RoutesCost,"pBest.rts.cnt:", pBest.rts.cnt);
 			pBest = st;
-			contiNotDown = 1;
 		}
 	}
 	saveSlnFile();

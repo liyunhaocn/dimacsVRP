@@ -461,10 +461,9 @@ int main(int argc, char* argv[])
 
 	hust::allocGlobalMem(argc,argv);
 	hust::Goal goal;
-
-	//goal.justLocalSearch(); 
-	//goal.justLocalSearch(); 
-	goal.CVB2LocalSearch(); 
+; 
+	goal.justLocalSearch(); 
+	//goal.CVB2LocalSearch(); 
 	//goal.TwoAlgCombine();
 	//goal.test();
 	hust::deallocGlobalMem();

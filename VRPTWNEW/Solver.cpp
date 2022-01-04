@@ -6374,7 +6374,7 @@ Vec<int> Solver::ruinGetRuinCusBySting(int ruinKmax, int ruinLmax) {
 		++wpos;
 	}
 
-	//Vec<int> arr;
+	#if 0
 	auto splitAndmiddle = [&](int beg) {
 
 		Route& r = rts.getRouteByRid(customers[beg].routeID);
@@ -6451,6 +6451,58 @@ Vec<int> Solver::ruinGetRuinCusBySting(int ruinKmax, int ruinLmax) {
 			pt = customers[pt].next;
 		}
 
+	};
+	#endif
+
+	auto splitAndmiddle = [&](int beg) {
+		Route& r = rts.getRouteByRid(customers[beg].routeID);
+		auto a = rPutCusInve(r);
+		int n = r.rCustCnt;
+		int index = std::find(a.begin(), a.end(),beg) - a.begin();
+
+		//ruin m+t 个 把t个放回来
+
+		int ruinL = myRand->pick(1, ruinLmax + 1);
+
+		int m = std::min<int>(r.rCustCnt, ruinL);
+
+		int t = 0;
+		if (myRand->pick(100) < globalCfg->ruinSplitRate) {
+			//int maxMCusPutBack = n - m;
+			//if (maxMCusPutBack > 0) {
+			//	t = ruinGetSplitDepth(maxMCusPutBack);
+			//}
+			if (n - m > 0) {
+				t = myRand->pick(1, n - m + 1);
+			}
+			
+		}
+		int s = m + t;
+
+		int strbeglowbound = std::max<int>(0, index - s + 1);
+		int strbegupbound = std::min<int>(index,n-s);
+		int strbeg = myRand->pick(strbeglowbound, strbegupbound+1);
+
+		int frontStr = myRand->pick(1,m+1);
+		int endStr = m - frontStr;
+
+		//Vec<int> farr;
+		for (int i = 0; i < frontStr;++i) {
+			uset.insert(a[strbeg+i]);
+			//farr.push_back(a[strbeg + i]);
+		}
+
+		//Vec<int> eArr;
+		for (int i = 0; i < endStr; ++i) {
+			uset.insert(a[strbeg + t + i]);
+			//eArr.push_back(a[strbeg + frontStr + t + i]);
+		}
+
+		//INFO("m:",m);
+		//INFO("t:",t);
+		//printve(a);
+		//printve(farr);
+		//printve(eArr);
 	};
 
 	for (int beg : begCusSet) {
@@ -6680,7 +6732,7 @@ int Solver::ruinLocalSearch(int ruinCusNum) {
 	//TODO[4][2]:但是接到扰动后面就不太行了
 	reCalRtsCostSumCost();
 
-	auto pBest = *this;
+	auto solclone = *this;
 
 	static ProbControl pcRuinkind(3);
 	static ProbControl pcClEPkind(6);
@@ -6695,28 +6747,29 @@ int Solver::ruinLocalSearch(int ruinCusNum) {
 		bool ispertutb = perturbBaseRuin(kind, ruinCusNum, kindclep);
 		//debug(conti);
 		if (ispertutb) {
-			auto cuses = EAX::getDiffCusofPb(pBest, *this);
+			auto cuses = EAX::getDiffCusofPb(solclone, *this);
 			if (cuses.size() > 0) {
 				mRLLocalSearch(1,cuses);
 			}
+			break;
 		}
 		else {
-			*this = pBest;
+			//*this = pBest;
 			continue;
 		}
 
-		if (RoutesCost < pBest.RoutesCost) {
-			pBest = *this;
-			++pcRuinkind.data[kind];
-			++pcClEPkind.data[kindclep];
-			retState = 1;
-			conti = 1;
-		}
-		else {
-			*this = pBest;
-		}
+		//if (RoutesCost < pBest.RoutesCost) {
+		//	pBest = *this;
+		//	++pcRuinkind.data[kind];
+		//	++pcClEPkind.data[kindclep];
+		//	retState = 1;
+		//	conti = 1;
+		//}
+		//else {
+		//	*this = pBest;
+		//}
 	}
-	*this = pBest;
+
 	return retState;
 }
 

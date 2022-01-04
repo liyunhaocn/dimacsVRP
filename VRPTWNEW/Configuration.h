@@ -99,7 +99,7 @@ struct Configuration {
 	//(ruinLmax+1)/2
 	int ruinC_ = 15;
 
-	int ruinWinkacRate = 98; // 100
+	int ruinWinkacRate = 95; // 100
 	int abcyWinkacRate = 100; // 100
 
 	void show();
