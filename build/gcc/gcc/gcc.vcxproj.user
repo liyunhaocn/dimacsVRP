@@ -5,6 +5,7 @@
     <DebuggerFlavor>LinuxWSLDebugger</DebuggerFlavor>
     <RemoteDebuggingTarget>WSL</RemoteDebuggingTarget>
     <RemoteDebuggerWorkingDirectory>$(SolutionDir)..\..\Dev</RemoteDebuggerWorkingDirectory>
+    <RemoteDebuggerCommandArguments>../Instances/Homberger/R1_8_3.txt 3600 29429.1 0</RemoteDebuggerCommandArguments>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <DebuggerWorkingDirectory>$(SolutionDir)..\..\Dev</DebuggerWorkingDirectory>

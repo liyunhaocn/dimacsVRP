@@ -9,7 +9,7 @@
 #include <iostream>
 #include <list>
 
-#define DIMACSGO 1
+#define DIMACSGO 0
 #define ATTRIBUTETABU 1
 
 #define CHECKING 0
@@ -40,13 +40,7 @@ using List = std::list<V>;
 
 using LL = long long int;
 
-//TODO[0] 都用LL了 为了找10倍DIMACSGO的bug
-#if DIMACSGO
 using DisType = LL;
-#else
-using DisType = LL;
-#endif // DIMACSGO
-
 extern int IntInf;
 extern long long int LLInf;
 extern DisType DisInf;

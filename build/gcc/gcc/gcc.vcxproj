@@ -34,6 +34,24 @@
       <Platform>x64</Platform>
     </ProjectConfiguration>
   </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="..\..\..\src\Configuration.cpp" />
+    <ClCompile Include="..\..\..\src\EAX.cpp" />
+    <ClCompile Include="..\..\..\src\Flag.cpp" />
+    <ClCompile Include="..\..\..\src\Goal.cpp" />
+    <ClCompile Include="..\..\..\src\main.cpp" />
+    <ClCompile Include="..\..\..\src\Problem.cpp" />
+    <ClCompile Include="..\..\..\src\Solver.cpp" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="..\..\..\src\Configuration.h" />
+    <ClInclude Include="..\..\..\src\EAX.h" />
+    <ClInclude Include="..\..\..\src\Flag.h" />
+    <ClInclude Include="..\..\..\src\Goal.h" />
+    <ClInclude Include="..\..\..\src\Problem.h" />
+    <ClInclude Include="..\..\..\src\Solver.h" />
+    <ClInclude Include="..\..\..\src\Utility.h" />
+  </ItemGroup>
   <PropertyGroup Label="Globals">
     <ProjectGuid>{99c18e9d-0137-4c7e-a863-412f9f0505e9}</ProjectGuid>
     <Keyword>Linux</Keyword>
@@ -118,22 +136,6 @@
     <TargetExt />
     <OutDir>$(SolutionDir)..\..\Dev</OutDir>
   </PropertyGroup>
-  <ItemGroup>
-    <ClCompile Include="..\..\..\VRPTWNEW\Configuration.cpp" />
-    <ClCompile Include="..\..\..\VRPTWNEW\EAX.cpp" />
-    <ClCompile Include="..\..\..\VRPTWNEW\Flag.cpp" />
-    <ClCompile Include="..\..\..\VRPTWNEW\main.cpp" />
-    <ClCompile Include="..\..\..\VRPTWNEW\Problem.cpp" />
-    <ClCompile Include="..\..\..\VRPTWNEW\Solver.cpp" />
-  </ItemGroup>
-  <ItemGroup>
-    <ClInclude Include="..\..\..\VRPTWNEW\Configuration.h" />
-    <ClInclude Include="..\..\..\VRPTWNEW\EAX.h" />
-    <ClInclude Include="..\..\..\VRPTWNEW\Flag.h" />
-    <ClInclude Include="..\..\..\VRPTWNEW\Problem.h" />
-    <ClInclude Include="..\..\..\VRPTWNEW\Solver.h" />
-    <ClInclude Include="..\..\..\VRPTWNEW\Utility.h" />
-  </ItemGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <ClCompile>
       <Optimization>Full</Optimization>

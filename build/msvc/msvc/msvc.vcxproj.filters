@@ -7,49 +7,49 @@
     </Filter>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="..\..\..\VRPTWNEW\Configuration.h">
+    <ClCompile Include="..\..\..\src\Configuration.cpp">
       <Filter>src</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\..\VRPTWNEW\EAX.h">
+    </ClCompile>
+    <ClCompile Include="..\..\..\src\EAX.cpp">
       <Filter>src</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\..\VRPTWNEW\Flag.h">
+    </ClCompile>
+    <ClCompile Include="..\..\..\src\Flag.cpp">
       <Filter>src</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\..\VRPTWNEW\Problem.h">
+    </ClCompile>
+    <ClCompile Include="..\..\..\src\Goal.cpp">
       <Filter>src</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\..\VRPTWNEW\Solver.h">
+    </ClCompile>
+    <ClCompile Include="..\..\..\src\main.cpp">
       <Filter>src</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\..\VRPTWNEW\Utility.h">
+    </ClCompile>
+    <ClCompile Include="..\..\..\src\Problem.cpp">
       <Filter>src</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\..\VRPTWNEW\Goal.h">
+    </ClCompile>
+    <ClCompile Include="..\..\..\src\Solver.cpp">
       <Filter>src</Filter>
-    </ClInclude>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="..\..\..\VRPTWNEW\main.cpp">
+    <ClInclude Include="..\..\..\src\Configuration.h">
       <Filter>src</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\..\VRPTWNEW\Solver.cpp">
+    </ClInclude>
+    <ClInclude Include="..\..\..\src\EAX.h">
       <Filter>src</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\..\VRPTWNEW\Flag.cpp">
+    </ClInclude>
+    <ClInclude Include="..\..\..\src\Flag.h">
       <Filter>src</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\..\VRPTWNEW\Problem.cpp">
+    </ClInclude>
+    <ClInclude Include="..\..\..\src\Goal.h">
       <Filter>src</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\..\VRPTWNEW\Configuration.cpp">
+    </ClInclude>
+    <ClInclude Include="..\..\..\src\Problem.h">
       <Filter>src</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\..\VRPTWNEW\EAX.cpp">
+    </ClInclude>
+    <ClInclude Include="..\..\..\src\Solver.h">
       <Filter>src</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\..\VRPTWNEW\Goal.cpp">
+    </ClInclude>
+    <ClInclude Include="..\..\..\src\Utility.h">
       <Filter>src</Filter>
-    </ClCompile>
+    </ClInclude>
   </ItemGroup>
 </Project>

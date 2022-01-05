@@ -1,5 +1,5 @@
-#ifndef vrptwNew_SOLVER_H
-#define vrptwNew_SOLVER_H
+#ifndef CN_HUST_LYH_SOLVER_H
+#define CN_HUST_LYH_SOLVER_H
 
 #include <queue>
 #include <functional>
@@ -735,11 +735,13 @@ public:
 		
 	Vec<int> ruinGetRuinCusBySec(int ruinCusNum);
 
-	int ruinLocalSearch(int ruinCusNum);
+	int ruinLocalSearchNotNewR(int ruinCusNum);
 		
 	int CVB2ruinLS(int ruinCusNum);
 	
 	int CVB2ClearEPAllowNewR(int kind);
+
+	int Simulatedannealing(int kind,int iterMax);
 
 	bool doOneTimeRuinPer(int perturbkind, int ruinCusNum,int clearEPKind);
 	
@@ -797,4 +799,4 @@ struct BKS {
 
 };
 
-#endif // !vrptwNew_SOLVER_H
+#endif // !CN_HUST_LYH_SOLVER_H

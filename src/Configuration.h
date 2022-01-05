@@ -32,8 +32,9 @@ struct Configuration {
 	int squMaxContiIter = 199;
 	int squIterStepUp = 10;
 
-	int outNeiSize = 100;
-	//int outNeiSize = 50;
+	//int outNeiSize = 100;
+
+	int outNeiSize = 50;
 	double broaden = 1.2;
 	int broadenWhenPos_0 = 50;
 
@@ -62,18 +63,14 @@ struct Configuration {
 	//int yearTabuRand = 10;
 
 	// TODO[0]:看需不需要频繁构造 1000stepC_8_7 需要20s C1_6_6 需要6s
-	#if DIMACSGO
 	int ejectLSMaxIter = 200;
-	#else
-	int ejectLSMaxIter = 20000;
-	#endif // DIMACSGO
 
 	//int yearTabuLen = 20;
 	//int yearTabuRand = 10;
 
 	int popSize = 5;
 	//int repairExitStep = 50;
-	int repairExitStep = 50;
+	int repairExitStep = 20;
 	int initFindPosPqSize = 20;
 	int findBestPosForRuinPqSize = 10;
 	int findBestPosInSolPqSize = 64;//64
@@ -93,13 +90,13 @@ struct Configuration {
 	//ruinLocalSearch
 	int ruinLocalSearchNextNeiBroad = 5;
 
-	int ruinSplitRate = 25; // %100 means ruinSplitRate%
+	int ruinSplitRate = 5; // %100 means ruinSplitRate%
 	
 	int ruinLmax = 20;
 	//(ruinLmax+1)/2
 	int ruinC_ = 15;
 
-	int ruinWinkacRate = 95; // 100
+	int ruinWinkacRate = 98; // 100
 	int abcyWinkacRate = 100; // 100
 
 	void show();

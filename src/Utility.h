@@ -26,10 +26,20 @@
 
 #include "Flag.h"
 
+#if DIMACSGO
+//#define println(...) ;
+#define INFO(...);
+#define DEBUG(...);
+#define ERROR(...);
+
+#else
 //#define println(...) ;
 #define INFO(...) println_("[INFO]:",## __VA_ARGS__);
 #define DEBUG(...) println_("[DEBUG]:",## __VA_ARGS__);
 #define ERROR(...) println_("[ERROR]:",## __VA_ARGS__);
+
+#endif // DIMACSGO
+
 
 namespace hust {
 

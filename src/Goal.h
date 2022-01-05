@@ -19,19 +19,20 @@ struct Goal {
 
 	bool perturbThePop();
 
-	int naMA();
+	int naMA(Solver& pa, Solver& pb);
+
+	Vec<int> getpairOfPaPb();
 
 	bool initPopulation();
 
-	bool justLocalSearch();
-
-	bool CVB2LocalSearch();
-
-	bool TwoAlgCombine();
-
 	bool saveSlnFile();
 
+	int callSimulatedannealing();
+
 	bool test();
+
+	int TwoAlgCombine();
+
 };
 
 

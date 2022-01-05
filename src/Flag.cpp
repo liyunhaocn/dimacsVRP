@@ -17,15 +17,9 @@ extern double PI_8 = PI / 8;
 extern double PI_16 = PI / 16;
 extern double PI_32 = PI / 32;
 
-#if DIMACSGO
 //TODO[lyh][000]:dimacs «10
 extern int disMul = 10;
 extern DisType DisInf = LLInf;
-#else
-//TODO[lyh][000]:dimacs «10
-extern int disMul = 10000;
-extern DisType DisInf = LLInf;
-#endif // 0
 
 //extern int disMul = 10000;
 extern unsigned Mod = 1000000007;

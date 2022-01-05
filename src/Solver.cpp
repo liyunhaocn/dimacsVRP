@@ -6469,12 +6469,12 @@ Vec<int> Solver::ruinGetRuinCusBySting(int ruinKmax, int ruinLmax) {
 		int t = 0;
 		if (myRand->pick(100) < globalCfg->ruinSplitRate) {
 			//int maxMCusPutBack = n - m;
-			//if (maxMCusPutBack > 0) {
-			//	t = ruinGetSplitDepth(maxMCusPutBack);
-			//}
-			if (n - m > 0) {
-				t = myRand->pick(1, n - m + 1);
+			if (n-m > 0) {
+				t = ruinGetSplitDepth(n-m);
 			}
+			//if (n - m > 0) {
+			//	t = myRand->pick(1, n - m + 1);
+			//}
 			
 		}
 		int s = m + t;
@@ -6666,7 +6666,7 @@ bool Solver::perturbBaseRuin(int perturbkind, int ruinCusNum,int clearEPKind) {
 	bool perSuc = false;
 	bool hasPenMinSol = false;
 
-	for (i = 0 ;i < 5;++i) {
+	for (i = 0 ;i < 10 ;++i) {
 		bool noPen = doOneTimeRuinPer(perturbkind,ruinCusNum,clearEPKind);
 		if (noPen) {
 			if (RoutesCost != pClone.RoutesCost) {
@@ -6701,6 +6701,8 @@ bool Solver::perturbBaseRuin(int perturbkind, int ruinCusNum,int clearEPKind) {
 		return true;
 	}
 	else {
+		// TODO[-1]:去掉了修复
+		return false;
 
 		if (hasPenMinSol) { //生成了有惩罚的解
 			++pen;
@@ -6725,7 +6727,8 @@ bool Solver::perturbBaseRuin(int perturbkind, int ruinCusNum,int clearEPKind) {
 	return false;
 }
 
-int Solver::ruinLocalSearch(int ruinCusNum) {
+//TODO[-1]:可能把解变差
+int Solver::ruinLocalSearchNotNewR(int ruinCusNum) {
 
 	gamma = 1;
 	//TODO[4][1]:这里可能可以去掉，如果之前每一条路径的cost都维护的话
@@ -6747,29 +6750,20 @@ int Solver::ruinLocalSearch(int ruinCusNum) {
 		bool ispertutb = perturbBaseRuin(kind, ruinCusNum, kindclep);
 		//debug(conti);
 		if (ispertutb) {
-			auto cuses = EAX::getDiffCusofPb(solclone, *this);
-			if (cuses.size() > 0) {
-				mRLLocalSearch(1,cuses);
-			}
+			//auto cuses = EAX::getDiffCusofPb(solclone, *this);
+			//if (cuses.size() > 0) {
+			//	mRLLocalSearch(1,cuses);
+			//}
+			//else {
+			//	INFO("no new Cus after ruin");
+			//}
 			break;
 		}
 		else {
 			//*this = pBest;
 			continue;
 		}
-
-		//if (RoutesCost < pBest.RoutesCost) {
-		//	pBest = *this;
-		//	++pcRuinkind.data[kind];
-		//	++pcClEPkind.data[kindclep];
-		//	retState = 1;
-		//	conti = 1;
-		//}
-		//else {
-		//	*this = pBest;
-		//}
 	}
-
 	return retState;
 }
 
@@ -6858,6 +6852,7 @@ int Solver::CVB2ClearEPAllowNewR(int kind) {
 		rReCalRCost(r);
 	}
 	sumRtsCost();
+	return 0;
 }
 
 int Solver::CVB2ruinLS(int ruinCusNum) {
@@ -6913,22 +6908,88 @@ int Solver::CVB2ruinLS(int ruinCusNum) {
 	sumRtsCost();
 	sumRtsPen();
 
-
 	int clearKind = pcCLKind.getIndexBasedData();
 
 	CVB2ClearEPAllowNewR(clearKind);
 
 	auto cuses = EAX::getDiffCusofPb(solClone, *this);
-	if (cuses.size() > 0 && rts.cnt < solClone.rts.cnt+5) {
-		mRLLocalSearch(1, cuses);
-	}
-
+	//if (cuses.size() > 0 && rts.cnt < solClone.rts.cnt+2) {
+	//	mRLLocalSearch(1, cuses);
+	//}
 	reCalRtsCostAndPen();
 	if (RoutesCost < solClone.RoutesCost) {
 		++pcRuKind.data[perturbkind];
 		++pcCLKind.data[clearKind];
 	}
 	return true;
+}
+
+//0 表示不可以增加新路，1表示可以增加新路
+int Solver::Simulatedannealing(int kind,int iterMax) {
+
+	//Solver pBest = *this;
+	Solver s = *this;
+
+	double j0 = 80;
+	double jf = 1;
+	
+	double c = pow(jf / j0, 1 / double(iterMax) );
+
+	double temperature = j0;
+	int iter = 1;
+
+	while (++iter < iterMax){
+
+		auto sStar = s;
+
+		if (globalCfg->cmdIsopt == 1) {
+			if (bks->bestSolFound.RoutesCost == globalCfg->d15RecRL) {
+				break;
+			}
+		}
+
+		temperature *= c;
+		//if (iter % 100 == 0) {
+		//	printf("tmp %lf \n", temperature);
+		//}
+
+		if (squIter * 10 > IntInf) {
+			squIter = 1;
+			for (auto& i : (*yearTable)) {
+				for (auto& j : i) {
+					j = 1;
+				}
+			}
+		}
+		if (kind == 0) {
+			sStar.ruinLocalSearchNotNewR(globalCfg->ruinC_);
+		}
+		else if (kind == 1) {
+			sStar.CVB2ruinLS(globalCfg->ruinC_);
+		}
+		
+		bks->updateBKS(sStar);
+
+		DisType delt = temperature * log(double(myRand->pick(1, 1000000)) / (double)1000000);
+		//INFO("temperature:", temperature,"delt:",delt);
+		if (sStar.RoutesCost < s.RoutesCost - delt) {
+			//INFO("st.RoutesCost:",st.RoutesCost,"pBest.rts.cnt:", pBest.rts.cnt);
+			s = sStar;
+		}
+		//if (sStar.RoutesCost < pBest.RoutesCost) {
+		//	pBest = sStar;
+		//}
+	}
+
+	//if (pBest.RoutesCost < RoutesCost) {
+	//	*this = pBest;
+	//}
+	
+	*this = s;
+	//INFO("temperature:", temperature, "RoutesCost:",RoutesCost);
+	//bks->bestSolFound.saveOutAsSintefFile();
+	return true;
+
 }
 
 bool Solver::patternAdjustment(int Irand) {
@@ -7809,13 +7870,13 @@ bool Solver::adjustRN(int ourTarget) {
 	}
 	
 	//TODO[0]:Lmax和ruinLmax的定义
-	//globalCfg->ruinLmax = 0;
-	//for (int i = 0; i < rts.cnt; ++i) {
-	//	globalCfg->ruinLmax = std::max<int>(globalCfg->ruinLmax,rts[i].rCustCnt);
-	//}
-	////globalCfg->ruinLmax /= 2;
-	////globalCfg->ruinC_ = (globalCfg->ruinLmax + 1)/2 ;
-	//globalCfg->ruinC_ = (globalCfg->ruinLmax + 1);
+	globalCfg->ruinLmax = 0;
+	for (int i = 0; i < rts.cnt; ++i) {
+		globalCfg->ruinLmax = std::max<int>(globalCfg->ruinLmax,rts[i].rCustCnt);
+	}
+	//globalCfg->ruinLmax /= 2;
+	//globalCfg->ruinC_ = (globalCfg->ruinLmax + 1)/2 ;
+	globalCfg->ruinC_ = (globalCfg->ruinLmax + 1);
 	return true;
 }
 
@@ -8218,7 +8279,7 @@ bool Solver::printDimacs() {
 		printf("\n");
 	}
 	// TODO[6]:这里的倍数需要处理一下
-	printf("Cost %.1lf\n", double(RoutesCost / 10));
+	printf("Cost %.1lf\n", double(RoutesCost) / 10);
 	fflush(stdout);
 	return true;
 }
@@ -8285,7 +8346,10 @@ bool BKS::updateBKS(Solver& newSol, std::string opt) {
 		bestSolFound = newSol;
 		//bestSolFound.printDimacs();
 		INFO("new bks cost:", bestSolFound.RoutesCost,
-			 opt,"up:", lastRec - bestSolFound.RoutesCost);
+			 opt,"rn:",bestSolFound.rts.cnt, "up:",lastRec - bestSolFound.RoutesCost);
+		#if DIMACSGO
+		bks->bestSolFound.printDimacs();
+		#endif // DIMACSGO
 
 		return true;
 	}

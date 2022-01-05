@@ -1821,19 +1821,6 @@ void Configuration::solveCommandLine(int argc, char* argv[]) {
 	if (argc >= 3) {
 		globalCfg->runTimer = std::stoi(argv[2], nullptr, 0);
 	}
-
-	if (argc >= 4) {
-		if (std::is_same<DisType, LL>::value == true) {
-			globalCfg->lkhRL = std::atof(argv[3]) * disMul;
-		}
-		else {
-			globalCfg->lkhRL = std::atof(argv[3]) * disMul;
-		}
-	}
-	
-	if (argc >= 5) {
-		globalCfg->cmdIsopt = std::stoi(argv[4], nullptr, 0);
-	}
 }
 
 
@@ -1882,7 +1869,9 @@ void Configuration::addHelpInfo() {
 	d15RecRL = getD15InsData(example).minRL;
 
 	lkhRN = getLKHInsData(example).minRN;
-	
+	lkhRL = getLKHInsData(example).minRL * disMul;
+	cmdIsopt = getLKHInsData(example).isOpt;
+
 	//char lkh[100];
 	//snprintf(lkh, 100, "{ \"%s\", {%d, %lld, %d}},", example, lkhRN, lkhRL, cmdIsopt);
 	//writeOneLineToFile("./lkh.txt", lkh);
