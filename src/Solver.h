@@ -741,7 +741,7 @@ public:
 	
 	int CVB2ClearEPAllowNewR(int kind);
 
-	int Simulatedannealing(int kind,int iterMax);
+	int Simulatedannealing(int kind,int iterMax, double temperature,int ruinNum);
 
 	bool doOneTimeRuinPer(int perturbkind, int ruinCusNum,int clearEPKind);
 	
@@ -750,6 +750,8 @@ public:
 	bool ejectLocalSearch();
 
 	bool patternAdjustment(int Irand = -1);
+
+	void perturbBasedejepool(int ruinCusNum);
 
 	Vec<eOneRNode> ejectFromPatialSol();
 

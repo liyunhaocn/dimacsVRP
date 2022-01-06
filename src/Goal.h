@@ -7,7 +7,7 @@ namespace hust {
 
 struct Goal {
 
-	Vec<Vec<LL>> eaxYearTable;
+	Vec<Vec<bool>> eaxTabuTable;
 
 	Vec<Solver> pool;
 
@@ -17,9 +17,11 @@ struct Goal {
 
 	int doTwoKindEAX(Solver& pa, Solver& pb, int kind);
 
-	bool perturbThePop();
+	bool perturbOnePop(int i);
 
 	int naMA(Solver& pa, Solver& pb);
+
+	Vec<int> getNotTabuPaPb();
 
 	Vec<int> getpairOfPaPb();
 

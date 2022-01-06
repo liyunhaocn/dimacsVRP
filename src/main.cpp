@@ -58,7 +58,7 @@ bool allocGlobalMem(int argc, char* argv[]) {
 		(globalInput->custCnt + 1, Vec<int>(globalInput->custCnt + 1, 0));
 
 	bks = new BKS();
-	//TODO[lyh][0]:
+
 	return true;
 }
 
@@ -87,8 +87,8 @@ int main(int argc, char* argv[])
 
 	hust::allocGlobalMem(argc,argv);
 	hust::Goal goal;
-; 
-	//goal.twoKindRuinLocalSearch();
+
+	//goal.callSimulatedannealing();
 	goal.TwoAlgCombine();
 	//goal.test();
 	hust::deallocGlobalMem();

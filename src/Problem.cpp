@@ -39,7 +39,7 @@ bool Input::initInput() {
 			Data& d2 = datas[j];
 			double dis = sqrt((d1.XCOORD - d2.XCOORD) * (d1.XCOORD - d2.XCOORD)
 				+ (d1.YCOORD - d2.YCOORD) * (d1.YCOORD - d2.YCOORD));
-			//TODO[lyh][000]:dimacs的距离计算不同！！！！
+
 			disOf[j][i] = disOf[i][j] = dis;
 		}
 	}
@@ -241,8 +241,6 @@ bool Input::readDimacsInstance(std::string& instanciaPath) {
 
 	this->Q *= disMul;
 	std::string line = "";
-	size_t len = 0;
-	long read = 0;
 
 	int index = 0;
 	int id = -1, coordx = -1, coordy = -1, demand = -1;

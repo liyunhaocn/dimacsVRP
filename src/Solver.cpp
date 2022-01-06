@@ -633,274 +633,10 @@ void Solver::reCalRtsCostSumCost() {
 	}
 }
 
-Solver::Position Solver::findBestPosInSol(int w) {
-
-	Vec<Position> posPool = { Position(),Position(),Position(),Position(), };
-
-	// 惩罚最大的排在最前面
-	auto cmp = [&](const Position a, const Position& b) {
-		if (a.pen == b.pen) {
-			return  a.year < b.year;
-		}
-		else {
-			return a.pen < b.pen;
-		}
-	};
-
-	std::priority_queue<Position, Vec<Position>, decltype(cmp)> qu(cmp);
-	qu.push(Position());
-
-	auto updatePool = [&](Position& pos) {
-
-		if (pos.pen <= qu.top().pen) {
-			qu.push(pos);
-			if (qu.size() < globalCfg->findBestPosInSolPqSize) {
-				;
-			}
-			else {
-				qu.pop();
-			}
-		}
-	};
-
-	for (int i = 0; i < rts.size(); ++i) {
-		//debug(i)
-		Route& rt = rts[i];
-
-		int v = rt.head;
-		int vj = customers[v].next;
-
-		DisType oldrPc = rts[i].rPc;
-		DisType rPc = std::max<DisType>(0, rt.rQ + input.datas[w].DEMAND - input.Q);
-		rPc = rPc - oldrPc;
-
-		while (v != -1 && vj != -1) {
-
-			DisType oldrPtw = rts[i].rPtw;
-
-			DisType rPtw = customers[v].TW_X;
-			rPtw += customers[vj].TWX_;
-
-			DisType awp = customers[v].av + input.datas[v].SERVICETIME + input.disOf[reCusNo(v)][reCusNo(w)];
-			rPtw += std::max<DisType>(0, awp - input.datas[w].DUEDATE);
-			DisType aw =
-				awp <= input.datas[w].DUEDATE ? std::max<DisType>(input.datas[w].READYTIME, awp) : input.datas[w].DUEDATE;
-
-			DisType avjp = aw + input.datas[w].SERVICETIME + input.disOf[reCusNo(w)][reCusNo(vj)];
-			rPtw += std::max<DisType>(0, avjp - input.datas[vj].DUEDATE);
-			DisType avj =
-				avjp <= input.datas[vj].DUEDATE ? std::max<DisType>(input.datas[vj].READYTIME, avjp) : input.datas[vj].DUEDATE;
-			rPtw += std::max<DisType>(0, avj - customers[vj].zv);
-
-			rPtw = rPtw - oldrPtw;
-
-			DisType cost = input.disOf[reCusNo(w)][reCusNo(v)]
-				+ input.disOf[reCusNo(w)][reCusNo(vj)]
-				- input.disOf[reCusNo(vj)][reCusNo(v)];
-
-			int vre = v > input.custCnt ? 0 : v;
-			int vjre = vj > input.custCnt ? 0 : vj;
-
-			int year = (*yearTable)[vre][w] + (*yearTable)[w][vjre];
-
-			Position pos;
-			pos.rIndex = i;
-			pos.cost = cost;
-			pos.pen = rPtw + rPc;
-			pos.pos = v;
-			pos.year = year;
-			pos.secDis = abs(input.datas[w].polarAngle - input.datas[v].polarAngle);
-			updatePool(pos);
-
-			v = vj;
-			vj = customers[vj].next;
-		}
-	}
-
-	int p0cnt = 1;
-	int p1cnt = 1;
-	int p2cnt = 1;
-	int p3cnt = 1;
-	//auto q = qu;
-
-	while (!qu.empty()) {
-
-		Position pos = qu.top();
-		qu.pop();
-
-		if (pos.pen == DisInf) {
-			continue;
-		}
-
-		if (pos.pen < posPool[0].pen) {
-			p0cnt = 1;
-			posPool[0] = pos;
-		}
-		else if (pos.pen == posPool[0].pen) {
-			++p0cnt;
-			if (myRand->pick(p0cnt) == 0) {
-				posPool[0] = pos;
-			}
-		}
-
-		if (pos.year < posPool[1].year) {
-			p1cnt = 1;
-			posPool[1] = pos;
-		}
-		else if (pos.year == posPool[1].year) {
-			++p1cnt;
-			if (myRand->pick(p1cnt) == 0) {
-				posPool[1] = pos;
-			}
-		}
-
-		if (pos.cost < posPool[2].cost) {
-			p2cnt = 1;
-			posPool[2] = pos;
-		}
-		else if (pos.cost == posPool[2].cost) {
-			++p2cnt;
-			if (myRand->pick(p2cnt) == 0) {
-				posPool[2] = pos;
-			}
-		}
-
-		if (posPool[3].rIndex == -1) {
-			posPool[3] = pos;
-		}
-		else {
-			Route& rpos = rts[pos.rIndex];
-			Route& rpool = rts[posPool[3].rIndex];
-
-			if (rpos.rCustCnt > rpool.rCustCnt) {
-				p3cnt = 1;
-				posPool[3] = pos;
-			}
-			else if (rpos.rCustCnt == rpool.rCustCnt) {
-				++p3cnt;
-				if (myRand->pick(p3cnt) == 0) {
-					posPool[3] = pos;
-				}
-			}
-		}
-	}
-
-	if (posPool[0].pen > 0) {
-		int index = myRand->pick(posPool.size());
-		return posPool[index];
-	}
-	else {
-		int cnt = 0;
-		Position retP;
-		for (int i = 0; i < posPool.size(); ++i) {
-			if (posPool[i].pen <= 0) {
-				++cnt;
-				if (myRand->pick(cnt) == 0) {
-					retP = posPool[i];
-				}
-			}
-		}
-		return retP;
-	}
-	return Position();
-
-}
-
-Solver::Position Solver::findBestPosInSolForInit(int w) {
-
-	//int quMax = globalCfg->initFindPosPqSize;
-
-	Vec<CircleSector> secs(rts.cnt);
-	for (int i = 0; i < rts.cnt; ++i) {
-		secs[i] = rGetCircleSector(rts[i]);
-	}
-
-	Position bestPos;
-
-	for (int i = 0; i < rts.size(); ++i) {
-		//debug(i)
-		Route& rt = rts[i];
-
-		int v = rt.head;
-		int vj = customers[v].next;
-
-		DisType rtPc = std::max<DisType>(0, rt.rQ + input.datas[w].DEMAND - input.Q);
-		rtPc = rtPc - rt.rPc;
-
-		if (rtPc > bestPos.pen) {
-			continue;
-		}
-		
-		int secDis = CircleSector::disofpointandsec
-		(input.datas[w].polarAngle, secs[i]);
-
-		//if (secDis > bestPos.secDis) {
-		//	continue;
-		//}
-
-		while (v != -1 && vj != -1) {
-
-			DisType rtPtw = 0;
-			rtPtw += customers[v].TW_X;
-			rtPtw += customers[vj].TWX_;
-
-			DisType awp = customers[v].av + input.datas[v].SERVICETIME + input.disOf[reCusNo(v)][reCusNo(w)];
-			rtPtw += std::max<DisType>(0, awp - input.datas[w].DUEDATE);
-			DisType aw =
-				awp <= input.datas[w].DUEDATE ? std::max<DisType>(input.datas[w].READYTIME, awp) : input.datas[w].DUEDATE;
-
-			DisType avjp = aw + input.datas[w].SERVICETIME + input.disOf[reCusNo(w)][reCusNo(vj)];
-			rtPtw += std::max<DisType>(0, avjp - input.datas[vj].DUEDATE);
-			DisType avj =
-				avjp <= input.datas[vj].DUEDATE ? std::max<DisType>(input.datas[vj].READYTIME, avjp) : input.datas[vj].DUEDATE;
-			rtPtw += std::max<DisType>(0, avj - customers[vj].zv);
-
-			rtPtw = rtPtw - rt.rPtw;
-
-			DisType cost =
-				input.disOf[reCusNo(w)][reCusNo(v)]
-				+ input.disOf[reCusNo(w)][reCusNo(vj)]
-				- input.disOf[reCusNo(vj)][reCusNo(v)];
-
-			Position pt;
-			pt.cost = cost;
-			pt.pen = rtPtw + rtPc;
-			pt.pos = v;
-			pt.rIndex = i;
-			pt.secDis = secDis;
-
-			if (pt.pen < bestPos.pen) {
-				bestPos = pt;
-			}
-			else {
-
-				if (pt.cost < bestPos.cost) {
-					bestPos = pt;
-				}
-				//if (pt.secDis < bestPos.secDis) {
-				//	bestPos = pt;
-				//}
-				//else {
-				//	if (pt.cost < bestPos.cost) {
-				//		bestPos = pt;
-				//	}
-				//}
-			}
-			
-			v = vj;
-			vj = customers[vj].next;
-		}
-	}
-
-	return bestPos;
-}
-
 bool Solver::initBySecOrder() {
 
 	Vec<int>que1(input.custCnt);
 	std::iota(que1.begin(), que1.end(), 1);
-
-	//TODO[0]:init 这里可以切换 根据需要优化 先注释掉了
 
 	auto cmp0 = [&](int x, int y) {
 		return input.datas[x].polarAngle < input.datas[y].polarAngle;
@@ -910,8 +646,9 @@ bool Solver::initBySecOrder() {
 	int rid = 0;
 
 	int indexBeg = myRand->pick(input.custCnt);
+
 	//int indexBeg = 100;
-	// 方向，+inupt.custCnt-1 相当于反方向转动
+	// TODO[0]:init方向，+inupt.custCnt-1 相当于反方向转动
 	int deltstep = input.custCnt - 1;
 	if (myRand->pick(2) == 0) {
 		deltstep = 1;
@@ -997,6 +734,7 @@ bool Solver::initSortOrder(int kind) {
 			rUpdateZvQfrom(r1, r1.tail);
 			rts.push_back(r1);
 		}
+		//saveOutAsSintefFile("k_" + std::to_string(kind));
 	}
 
 	for (int i = 0; i < rts.size(); ++i) {
@@ -1107,8 +845,6 @@ bool Solver::initBySolFile(std::string bksPath) {
 	std::string t;
 	int rn = 0;
 
-	double cost = 0.0;
-
 	Vec<Vec<int>> rArr2;
 
 	while (std::getline(myfile, t)) {
@@ -1133,33 +869,12 @@ bool Solver::initBySolFile(std::string bksPath) {
 		}
 		else if (t.find("Cost ") != std::string::npos) {
 			t = t.substr(5);
-			cost = atof(t.c_str());
 		}
 	}
 	initByArr2(rArr2);
 	myfile.close();
 	return true;
 }
-
-#if 0
-bool Solver::initByDimacsBKS() {
-
-	//std::string in = "../Instances/Solomon/C101.txt";
-	std::string bksPath = "../Data/DimacsBks/Homberger/" + globalInput->example + ".sol";
-	
-	if (globalCfg->inputPath.find("Solomon") != -1) {
-		bksPath = "../Data/DimacsBks/Solomon/" + globalInput->example + ".sol";
-	}
-	initBySolFile(bksPath);
-}
-
-bool Solver::initByLKHBKS() {
-
-	std::string bksPath = "../Data/DimacsBks/LKHBKS/" + globalInput->example + "_LKHSP" + ".sol";
-
-	initBySolFile(bksPath);
-}
-#endif // 0
 
 bool Solver::initSolution(int kind) {//5种
 
@@ -1530,7 +1245,7 @@ Solver::DeltPen Solver::outrelocatevToww_(int v, int w, int oneR) { //2
 			}
 
 			int front = getFrontofTwoCus(v, w);
-			int back = (front == v ? w : v);
+			//int back = (front == v ? w : v);
 
 			DisType lastav = 0;
 			int lastv = 0;
@@ -1762,7 +1477,7 @@ Solver::DeltPen Solver::outrelocatevTowwj(int v, int w, int oneR) { //3
 			newv_vjPtw = newvwPtw = 0;
 
 			int front = getFrontofTwoCus(v, w);
-			int back = (front == v ? w : v);
+			//int back = (front == v ? w : v);
 
 			DisType lastav = 0;
 			int lastv = 0;
@@ -5446,17 +5161,16 @@ Solver::TwoNodeMove Solver::getMovesRandomly
 			int maxL = std::max<int>(5, r.rCustCnt / 5);
 
 			if (customers[v_].TW_X + customers[vj].TWX_ == r.rPtw) {
-				maxL = std::max<int>(10, r.rCustCnt / 5);
+				//maxL = std::max<int>(10, r.rCustCnt / 5);
 				int wbegin = v;
 				int preStep = myRand->pick(1, maxL + 1);
-				int res = maxL;
+
 				for (int i = 0; i < preStep; ++i) {
 					wbegin = customers[wbegin].pre;
 					if (wbegin > input.custCnt) {
 						break;
 					}
 				}
-
 				wbegin = customers[wbegin].next;
 
 				for (int i = 0; i < maxL; ++i) {
@@ -5480,12 +5194,12 @@ Solver::TwoNodeMove Solver::getMovesRandomly
 					}
 				}
 			}
-			else {
-				// TODO[3][getMoveRand] 这个maxL 以及ptNode.back() 后面的部分还可以优化
-				_2optEffectively(v);
-				exchangevwEffectively(v);
-				outrelocateEffectively(v);
-			}
+			//else {
+			//}
+			// TODO[3][getMoveRand] 这个maxL 以及ptNode.back() 后面的部分还可以优化
+			_2optEffectively(v);
+			exchangevwEffectively(v);
+			outrelocateEffectively(v);
 		}
 	}
 	else {
@@ -6172,31 +5886,38 @@ bool Solver::squeeze() {
 	return true;
 }
 
-Solver::Position Solver::findBestPosForRuin(int w) {
+Solver::Position Solver::findBestPosInSol(int w) {
 
-	Position ret;
+	Vec<Position> posPool = { Position(),Position(),Position(),Position(), };
 
 	// 惩罚最大的排在最前面
+	auto cmp = [&](const Position a, const Position& b) {
+		if (a.pen == b.pen) {
+			return  a.year < b.year;
+		}
+		else {
+			return a.pen < b.pen;
+		}
+	};
+
+	std::priority_queue<Position, Vec<Position>, decltype(cmp)> qu(cmp);
+	qu.push(Position());
+
 	auto updatePool = [&](Position& pos) {
 
-		if (pos.pen < ret.pen) {
-			ret = pos;
-		}
-		else if (pos.cost < ret.cost) {
-			// TODO[8]:眨眼率可以调 5%合适？
-			if (myRand->pick(100) < globalCfg->ruinWinkacRate) {
-				ret = pos;
+		if (pos.pen <= qu.top().pen) {
+			qu.push(pos);
+			if (qu.size() < globalCfg->findBestPosInSolPqSize) {
+				;
+			}
+			else {
+				qu.pop();
 			}
 		}
 	};
 
-	auto rtsIndexOrder = myRandX->getMN(rts.cnt, rts.cnt);
-	sort(rtsIndexOrder.begin(), rtsIndexOrder.end(), [&](int x,int y) {
-		return rts[x].rQ < rts[y].rQ;
-	});
-	//printve(rtsIndexOrder);
-	for (int i : rtsIndexOrder) {
-	
+	for (int i = 0; i < rts.size(); ++i) {
+		//debug(i)
 		Route& rt = rts[i];
 
 		int v = rt.head;
@@ -6205,10 +5926,6 @@ Solver::Position Solver::findBestPosForRuin(int w) {
 		DisType oldrPc = rts[i].rPc;
 		DisType rPc = std::max<DisType>(0, rt.rQ + input.datas[w].DEMAND - input.Q);
 		rPc = rPc - oldrPc;
-
-		if (rPc > ret.pen) {
-			continue;
-		}
 
 		while (v != -1 && vj != -1) {
 
@@ -6232,6 +5949,273 @@ Solver::Position Solver::findBestPosForRuin(int w) {
 
 			DisType cost = input.disOf[reCusNo(w)][reCusNo(v)]
 				+ input.disOf[reCusNo(w)][reCusNo(vj)]
+				- input.disOf[reCusNo(vj)][reCusNo(v)];
+
+			int vre = v > input.custCnt ? 0 : v;
+			int vjre = vj > input.custCnt ? 0 : vj;
+
+			int year = (*yearTable)[vre][w] + (*yearTable)[w][vjre];
+
+			Position pos;
+			pos.rIndex = i;
+			pos.cost = cost;
+			pos.pen = rPtw + rPc;
+			pos.pos = v;
+			pos.year = year;
+			pos.secDis = abs(input.datas[w].polarAngle - input.datas[v].polarAngle);
+			updatePool(pos);
+
+			v = vj;
+			vj = customers[vj].next;
+		}
+	}
+
+	int p0cnt = 1;
+	int p1cnt = 1;
+	int p2cnt = 1;
+	int p3cnt = 1;
+	//auto q = qu;
+
+	while (!qu.empty()) {
+
+		Position pos = qu.top();
+		qu.pop();
+
+		if (pos.pen == DisInf) {
+			continue;
+		}
+
+		if (pos.pen < posPool[0].pen) {
+			p0cnt = 1;
+			posPool[0] = pos;
+		}
+		else if (pos.pen == posPool[0].pen) {
+			++p0cnt;
+			if (myRand->pick(p0cnt) == 0) {
+				posPool[0] = pos;
+			}
+		}
+
+		if (pos.year < posPool[1].year) {
+			p1cnt = 1;
+			posPool[1] = pos;
+		}
+		else if (pos.year == posPool[1].year) {
+			++p1cnt;
+			if (myRand->pick(p1cnt) == 0) {
+				posPool[1] = pos;
+			}
+		}
+
+		if (pos.cost < posPool[2].cost) {
+			p2cnt = 1;
+			posPool[2] = pos;
+		}
+		else if (pos.cost == posPool[2].cost) {
+			++p2cnt;
+			if (myRand->pick(p2cnt) == 0) {
+				posPool[2] = pos;
+			}
+		}
+
+		if (posPool[3].rIndex == -1) {
+			posPool[3] = pos;
+		}
+		else {
+			Route& rpos = rts[pos.rIndex];
+			Route& rpool = rts[posPool[3].rIndex];
+
+			if (rpos.rCustCnt > rpool.rCustCnt) {
+				p3cnt = 1;
+				posPool[3] = pos;
+			}
+			else if (rpos.rCustCnt == rpool.rCustCnt) {
+				++p3cnt;
+				if (myRand->pick(p3cnt) == 0) {
+					posPool[3] = pos;
+				}
+			}
+		}
+	}
+
+	if (posPool[0].pen > 0) {
+		int index = myRand->pick(posPool.size());
+		return posPool[index];
+	}
+	else {
+		int cnt = 0;
+		Position retP;
+		for (int i = 0; i < posPool.size(); ++i) {
+			if (posPool[i].pen <= 0) {
+				++cnt;
+				if (myRand->pick(cnt) == 0) {
+					retP = posPool[i];
+				}
+			}
+		}
+		return retP;
+	}
+	return Position();
+
+}
+
+Solver::Position Solver::findBestPosInSolForInit(int w) {
+
+	//int quMax = globalCfg->initFindPosPqSize;
+
+	//Vec<CircleSector> secs(rts.cnt);
+	//for (int i = 0; i < rts.cnt; ++i) {
+	//	secs[i] = rGetCircleSector(rts[i]);
+	//}
+
+	Position bestPos;
+
+	for (int i = 0; i < rts.size(); ++i) {
+		//debug(i)
+		Route& rt = rts[i];
+
+		int v = rt.head;
+		int vj = customers[v].next;
+
+		DisType rtPc = std::max<DisType>(0, rt.rQ + input.datas[w].DEMAND - input.Q);
+		rtPc = rtPc - rt.rPc;
+
+		if (rtPc > bestPos.pen) {
+			continue;
+		}
+
+		//int secDis = CircleSector::disofpointandsec
+		//(input.datas[w].polarAngle, secs[i]);
+		//if (secDis > bestPos.secDis) {
+		//	continue;
+		//}
+
+		while (v != -1 && vj != -1) {
+
+			DisType rtPtw = 0;
+			rtPtw += customers[v].TW_X;
+			rtPtw += customers[vj].TWX_;
+
+			DisType awp = customers[v].av + input.datas[v].SERVICETIME + input.disOf[reCusNo(v)][reCusNo(w)];
+			rtPtw += std::max<DisType>(0, awp - input.datas[w].DUEDATE);
+			DisType aw =
+				awp <= input.datas[w].DUEDATE ? std::max<DisType>(input.datas[w].READYTIME, awp) : input.datas[w].DUEDATE;
+
+			DisType avjp = aw + input.datas[w].SERVICETIME + input.disOf[reCusNo(w)][reCusNo(vj)];
+			rtPtw += std::max<DisType>(0, avjp - input.datas[vj].DUEDATE);
+			DisType avj =
+				avjp <= input.datas[vj].DUEDATE ? std::max<DisType>(input.datas[vj].READYTIME, avjp) : input.datas[vj].DUEDATE;
+			rtPtw += std::max<DisType>(0, avj - customers[vj].zv);
+
+			rtPtw = rtPtw - rt.rPtw;
+
+			DisType cost =
+				input.disOf[reCusNo(w)][reCusNo(v)]
+				+ input.disOf[reCusNo(w)][reCusNo(vj)];
+			//- input.disOf[reCusNo(vj)][reCusNo(v)];
+
+			Position pt;
+			pt.cost = cost;
+			pt.pen = rtPtw + rtPc;
+			pt.pos = v;
+			pt.rIndex = i;
+			//pt.secDis = secDis;
+
+			if (pt.pen < bestPos.pen) {
+				bestPos = pt;
+			}
+			else {
+
+				if (myRand->pick(100) < globalCfg->initWinkacRate) {
+					if (pt.cost < bestPos.cost) {
+						bestPos = pt;
+					}
+				}
+				
+				//if (pt.secDis < bestPos.secDis) {
+				//	bestPos = pt;
+				//}
+				//else {
+				//	if (pt.cost < bestPos.cost) {
+				//		bestPos = pt;
+				//	}
+				//}
+			}
+
+			v = vj;
+			vj = customers[vj].next;
+		}
+	}
+
+	return bestPos;
+}
+
+Solver::Position Solver::findBestPosForRuin(int w) {
+
+	Position ret;
+
+	// 惩罚最大的排在最前面
+	auto updatePool = [&](Position& pos) {
+
+		if (pos.pen < ret.pen) {
+			ret = pos;
+		}
+		else if (pos.cost < ret.cost) {
+			// TODO[8]:眨眼率可以调 5%合适？
+			if (myRand->pick(100) < globalCfg->ruinWinkacRate) {
+				ret = pos;
+			}
+		}
+	};
+
+	auto& rtsIndexOrder = myRandX->getMN(rts.cnt, rts.cnt);
+	sort(rtsIndexOrder.begin(), rtsIndexOrder.end(), [&](int x,int y) {
+		return rts[x].rQ < rts[y].rQ;
+	});
+	//printve(rtsIndexOrder);
+	for (int i : rtsIndexOrder) {
+	
+		Route& r = rts[i];
+
+		DisType oldrPc = rts[i].rPc;
+		DisType rPc = std::max<DisType>(0, r.rQ + input.datas[w].DEMAND - input.Q);
+		rPc = rPc - oldrPc;
+
+		if (rPc > ret.pen) {
+			continue;
+		}
+		Vec<int> a = rPutCusInve(r);
+		a.push_back(r.tail);
+
+		for(int vj:a) {
+
+			int v = customers[vj].pre;
+
+			//if (myRand->pick(2) == 0) {
+			//	continue;
+			//}
+
+			DisType oldrPtw = rts[i].rPtw;
+			DisType rPtw = customers[v].TW_X;
+			rPtw += customers[vj].TWX_;
+
+			DisType awp = customers[v].av + input.datas[v].SERVICETIME + input.disOf[reCusNo(v)][reCusNo(w)];
+			rPtw += std::max<DisType>(0, awp - input.datas[w].DUEDATE);
+			DisType aw =
+				awp <= input.datas[w].DUEDATE ? std::max<DisType>(input.datas[w].READYTIME, awp) : input.datas[w].DUEDATE;
+
+			DisType avjp = aw + input.datas[w].SERVICETIME + input.disOf[reCusNo(w)][reCusNo(vj)];
+			rPtw += std::max<DisType>(0, avjp - input.datas[vj].DUEDATE);
+			DisType avj =
+				avjp <= input.datas[vj].DUEDATE ? std::max<DisType>(input.datas[vj].READYTIME, avjp) : input.datas[vj].DUEDATE;
+			rPtw += std::max<DisType>(0, avj - customers[vj].zv);
+
+			rPtw = rPtw - oldrPtw;
+
+			//TODO[-1]:这里的距离计算方式改变了
+			DisType cost = input.disOf[reCusNo(w)][reCusNo(v)]
+				+ input.disOf[reCusNo(w)][reCusNo(vj)]
+				//;
 				- input.disOf[reCusNo(v)][reCusNo(vj)];
 			//int year = (*yearTable)[reCusNo(w)][reCusNo(v)] + (*yearTable)[reCusNo(w)][reCusNo(vj)];
 			//year >>= 1;
@@ -6246,8 +6230,6 @@ Solver::Position Solver::findBestPosForRuin(int w) {
 
 			updatePool(posTemp);
 
-			v = vj;
-			vj = customers[vj].next;
 		}
 	}
 	return ret;
@@ -6520,7 +6502,8 @@ Vec<int> Solver::ruinGetRuinCusBySting(int ruinKmax, int ruinLmax) {
 
 Vec<int> Solver::ruinGetRuinCusByRound(int ruinCusNum) {
 
-	ruinCusNum = myRand->pick(1, ruinCusNum * 2 + 1);
+	ruinCusNum = myRand->pick(1, ruinCusNum+1);
+	//ruinCusNum = std::min<int>(ruinCusNum,input.custCnt-1);
 	int v = myRand->pick(input.custCnt) + 1;
 
 	Vec<int> runCus;
@@ -6536,10 +6519,8 @@ Vec<int> Solver::ruinGetRuinCusByRound(int ruinCusNum) {
 	}
 	return runCus;
 }
-
+#if 0
 Vec<int> Solver::ruinGetRuinCusBySec(int ruinCusNum) {
-
-	int v = myRand->pick(input.custCnt) + 1;
 
 	ruinCusNum = myRand->pick(1, ruinCusNum * 2 + 1);
 
@@ -6573,38 +6554,118 @@ Vec<int> Solver::ruinGetRuinCusBySec(int ruinCusNum) {
 
 	auto vei = rPutCusInve(rts[rti]);
 
-	UnorderedSet<int> cusSet;
+	Vec<int> cusArr;
 
 	for (int v : vei) {
 		int vAngle = input.datas[v].polarAngle;
-		if (cusSet.size() < ruinCusNum && secs[rti].isEnclosed(vAngle)
+		if (cusArr.size() < ruinCusNum && secs[rti].isEnclosed(vAngle)
 			&& secs[rtj].isEnclosed(vAngle)) {
-			cusSet.insert(v);
+			cusArr.push_back(v);
 		}
 	}
 
 	auto vej = rPutCusInve(rts[rtj]);
 	for (int v : vej) {
 		int vAngle = input.datas[v].polarAngle;
-		if (cusSet.size() < ruinCusNum && secs[rti].isEnclosed(vAngle)
+		if (cusArr.size() < ruinCusNum && secs[rti].isEnclosed(vAngle)
 			&& secs[rtj].isEnclosed(vAngle)) {
-			cusSet.insert(v);
+			cusArr.push_back(v);
 		}
 	}
-
-	Vec<int> cusArr = putEleInVec(cusSet);
 	return cusArr;
 }
 
+#else
+Vec<int> Solver::ruinGetRuinCusBySec(int ruinCusNum) {
+
+	ruinCusNum = myRand->pick(1, ruinCusNum * 2 + 1);
+
+	Vec<CircleSector> secs(rts.cnt);
+	for (int i = 0; i < rts.cnt; ++i) {
+		secs[i] = rGetCircleSector(rts[i]);
+	}
+
+	Vec<int> rOrder(rts.cnt, 0);
+	std::iota(rOrder.begin(), rOrder.end(), 0);
+	myRand->shuffleVec(rOrder);
+
+	int rti = 0;
+	int rtj = 0;
+
+	for (int i = 0; i < rts.cnt; ++i) {
+		rti = rOrder[i];
+		bool isbreak = false;
+		for (int j = i + 1; j < rts.cnt; ++j) {
+			rtj = rOrder[j];
+			bool is = CircleSector::overlap(secs[rti], secs[rtj]);
+			if (is) {
+				isbreak = true;
+				break;
+			}
+		}
+		if (isbreak) {
+			break;
+		}
+	}
+	auto vei = rPutCusInve(rts[rti]);
+
+	Vec<int> cusArr;
+
+	for (int v : vei) {
+		int vAngle = input.datas[v].polarAngle;
+		if (cusArr.size() < ruinCusNum && secs[rti].isEnclosed(vAngle)
+			&& secs[rtj].isEnclosed(vAngle)) {
+			cusArr.push_back(v);
+		}
+	}
+
+	auto vej = rPutCusInve(rts[rtj]);
+	for (int v : vej) {
+		int vAngle = input.datas[v].polarAngle;
+		if (cusArr.size() < ruinCusNum && secs[rti].isEnclosed(vAngle)
+			&& secs[rtj].isEnclosed(vAngle)) {
+			cusArr.push_back(v);
+		}
+	}
+	return cusArr;
+}
+#endif // 0
+
+void Solver::perturbBasedejepool(int ruinCusNum) {
+
+	auto clone = *this;
+
+	//auto ruinCus = ruinGetRuinCusBySec(ruinCusNum);
+	auto ruinCus = ruinGetRuinCusByRound(ruinCusNum);
+	std::unordered_set<int> rIds;
+	for (int cus : ruinCus) {
+		Route& r = rts.getRouteByRid(customers[cus].routeID);
+		rIds.insert(r.routeID);
+		if (r.rCustCnt > 2) {
+			rRemoveAtPos(r, cus);
+			EPpush_back(cus);
+		}
+	}
+
+	for (auto rid : rIds) {
+		Route& r = rts.getRouteByRid(rid);
+		rUpdateAvQfrom(r, r.head);
+		rUpdateZvQfrom(r, r.tail);
+		rReCalRCost(r);
+	}
+	sumRtsCost();
+	sumRtsPen();
+	bool isej = ejectLocalSearch();
+	if (isej) {
+		reCalRtsCostAndPen();
+	}
+	else {
+		*this = clone;
+	}
+	
+}
+
 bool Solver::doOneTimeRuinPer(int perturbkind,int ruinCusNum,int clearEPKind) {
-
-	int avgLen = input.custCnt / rts.cnt;
-	int Lmax = std::min<int>(globalCfg->ruinLmax, avgLen);
-	int ruinKmax = 4 * ruinCusNum / (1 + Lmax) - 1;
-	ruinKmax = std::min<int>(rts.cnt, ruinKmax);
-	ruinKmax = std::max<int>(1, ruinKmax);
-
-	//DisType routesCostBefore = RoutesCost;
 
 	Vec<int> ruinCus;
 	if (perturbkind == 0) {
@@ -6614,6 +6675,13 @@ bool Solver::doOneTimeRuinPer(int perturbkind,int ruinCusNum,int clearEPKind) {
 		ruinCus = ruinGetRuinCusBySec(ruinCusNum);
 	}
 	else if(perturbkind==2){
+		
+		int avgLen = input.custCnt / rts.cnt;
+		int Lmax = std::min<int>(globalCfg->ruinLmax, avgLen);
+		int ruinKmax = 4 * ruinCusNum / (1 + Lmax) - 1;
+		ruinKmax = std::min<int>(rts.cnt, ruinKmax);
+		ruinKmax = std::max<int>(1, ruinKmax);
+
 		ruinCus = ruinGetRuinCusBySting(ruinKmax, Lmax);
 	}
 	else {
@@ -6639,6 +6707,7 @@ bool Solver::doOneTimeRuinPer(int perturbkind,int ruinCusNum,int clearEPKind) {
 	sumRtsCost();
 	sumRtsPen();
 	ruinClearEP(clearEPKind);
+
 	if (penalty == 0) {
 		return true;
 	}
@@ -6686,41 +6755,41 @@ bool Solver::perturbBaseRuin(int perturbkind, int ruinCusNum,int clearEPKind) {
 		}
 	}
 	
-	static int all = 0;
-	static int sam = 0;
-	static int suc = 0;
-	static int pen = 0;
-	static int rep = 0;
-	static int nre = 0;
+	//static int all = 0;
+	//static int sam = 0;
+	//static int suc = 0;
+	//static int pen = 0;
+	//static int rep = 0;
+	//static int nre = 0;
 
-	++all;
+	//++all;
 	//INFO("i:",i,"all:", all, "sam : ", sam, "suc : ", suc, "pen : ", pen, "rep : ", rep, "nre : ", nre,"ruinCusNum : ", ruinCusNum);
 	
 	if (perSuc) {
-		++suc;
+		//++suc;
 		return true;
 	}
 	else {
-		// TODO[-1]:去掉了修复
-		return false;
+		// TODO[-1]:修复还是需要的
+		//return false;
 
 		if (hasPenMinSol) { //生成了有惩罚的解
-			++pen;
+			//++pen;
 			
 			if (penMinSol.repair()) {
-				++rep;
+				//++rep;
 				*this = penMinSol;
 				return true;
 			}
 			else {
-				++nre;
+				//++nre;
 				*this = pClone;
 				return false;
 			}
 
 		}
 		else {// 生成了10个相同的解
-			++sam;
+			//++sam;
 			return false;
 		}
 	} 
@@ -6750,10 +6819,10 @@ int Solver::ruinLocalSearchNotNewR(int ruinCusNum) {
 		bool ispertutb = perturbBaseRuin(kind, ruinCusNum, kindclep);
 		//debug(conti);
 		if (ispertutb) {
-			//auto cuses = EAX::getDiffCusofPb(solclone, *this);
-			//if (cuses.size() > 0) {
-			//	mRLLocalSearch(1,cuses);
-			//}
+			auto cuses = EAX::getDiffCusofPb(solclone, *this);
+			if (cuses.size() > 0) {
+				mRLLocalSearch(1,cuses);
+			}
 			//else {
 			//	INFO("no new Cus after ruin");
 			//}
@@ -6925,17 +6994,18 @@ int Solver::CVB2ruinLS(int ruinCusNum) {
 }
 
 //0 表示不可以增加新路，1表示可以增加新路
-int Solver::Simulatedannealing(int kind,int iterMax) {
+int Solver::Simulatedannealing(int kind,int iterMax, double temperature,int ruinNum) {
 
 	//Solver pBest = *this;
 	Solver s = *this;
 
-	double j0 = 80;
+	double j0 = temperature;
 	double jf = 1;
-	
-	double c = pow(jf / j0, 1 / double(iterMax) );
+	//temperature = j0;
+	double c = pow(jf / j0, 1 / double(iterMax));
 
-	double temperature = j0;
+	//double temperature = j0;
+
 	int iter = 1;
 
 	while (++iter < iterMax){
@@ -6949,10 +7019,8 @@ int Solver::Simulatedannealing(int kind,int iterMax) {
 		}
 
 		temperature *= c;
-		//if (iter % 100 == 0) {
-		//	printf("tmp %lf \n", temperature);
-		//}
-
+		//printf("tmp %lf \n", temperature);
+		
 		if (squIter * 10 > IntInf) {
 			squIter = 1;
 			for (auto& i : (*yearTable)) {
@@ -6962,15 +7030,17 @@ int Solver::Simulatedannealing(int kind,int iterMax) {
 			}
 		}
 		if (kind == 0) {
-			sStar.ruinLocalSearchNotNewR(globalCfg->ruinC_);
+			//sStar.ruinLocalSearchNotNewR(globalCfg->ruinC_);
+			sStar.ruinLocalSearchNotNewR(ruinNum);
 		}
 		else if (kind == 1) {
-			sStar.CVB2ruinLS(globalCfg->ruinC_);
+			//sStar.CVB2ruinLS(globalCfg->ruinC_);
+			sStar.CVB2ruinLS(ruinNum);
 		}
 		
 		bks->updateBKS(sStar);
 
-		DisType delt = temperature * log(double(myRand->pick(1, 1000000)) / (double)1000000);
+		DisType delt = temperature * log(double(myRand->pick(1, 100000)) / (double)100000);
 		//INFO("temperature:", temperature,"delt:",delt);
 		if (sStar.RoutesCost < s.RoutesCost - delt) {
 			//INFO("st.RoutesCost:",st.RoutesCost,"pBest.rts.cnt:", pBest.rts.cnt);
@@ -7018,7 +7088,7 @@ bool Solver::patternAdjustment(int Irand) {
 				continue;
 			}
 
-			m = std::max<DisType>(1, m);
+			m = std::max<int>(1, m);
 			myRandX->getMN(N, m);
 			Vec<int>& ve = myRandX->mpLLArr[N];
 			for (int i = 0; i < m; ++i) {
@@ -7717,7 +7787,7 @@ bool Solver::ejectLocalSearch() {
 			maxOfPval = 0;
 			for (auto& i : input.P) {
 				i = i * 0.4 + 1;
-				maxOfPval = std::max<DisType>(maxOfPval, i);
+				maxOfPval = std::max<int>(maxOfPval, i);
 			}
 		}
 
@@ -7802,10 +7872,9 @@ bool Solver::ejectLocalSearch() {
 void Solver::minimizeRN(int ourTarget) {
 
 	gamma = 0;
-	bool isSucceed = false;
 
 	lyhTimer.reStart();
-	globalCfg;
+
 	while (rts.cnt > ourTarget) {
 
 		Solver sclone = *this;
@@ -7874,8 +7943,6 @@ bool Solver::adjustRN(int ourTarget) {
 	for (int i = 0; i < rts.cnt; ++i) {
 		globalCfg->ruinLmax = std::max<int>(globalCfg->ruinLmax,rts[i].rCustCnt);
 	}
-	//globalCfg->ruinLmax /= 2;
-	//globalCfg->ruinC_ = (globalCfg->ruinLmax + 1)/2 ;
 	globalCfg->ruinC_ = (globalCfg->ruinLmax + 1);
 	return true;
 }
@@ -7965,14 +8032,9 @@ bool Solver::repair() {
 		}
 		//TODO[2][repair]:这里修复的邻域动作究竟怎么选
 		TwoNodeMove bestM = getMovesRandomly(updateBestM);
-		//TwoNodeMove bestM = naRepairGetMoves(updateBestM);
-		/*if (bestM.deltPen.PcOnly + bestM.deltPen.PtwOnly > 0) {
-			bestM = naRepairGetMoves(updateBestM);
-		}*/
 
 		if (bestM.deltPen.PcOnly + bestM.deltPen.PtwOnly > 0) {
-			//if (bestM.deltPen.deltPc + bestM.deltPen.deltPtw > 0) {
-			//break;
+
 			++contiNotDe;
 			if (contiNotDe > globalCfg->repairExitStep) {
 				break;
@@ -8013,11 +8075,6 @@ bool Solver::repair() {
 	//printve(moveContribute);
 
 	if (penalty == 0) {
-
-		//if ((double)(RoutesCost - oldrc)/oldrc > 0.05 ) {
-		//	return false;
-		//	INFO("penalty:", penalty, "iter:", iter, "oldrc:", oldrc, "rc:", RoutesCost);
-		//}
 		return true;
 	}
 	else {
@@ -8247,7 +8304,6 @@ Output Solver::saveToOutPut() {
 
 	Output output;
 
-	DisType rc = RoutesCost;
 	DisType state = verify();
 
 	output.runTime = lyhTimer.getRunTime();
@@ -8278,7 +8334,8 @@ bool Solver::printDimacs() {
 		}
 		printf("\n");
 	}
-	// TODO[6]:这里的倍数需要处理一下
+	
+	//这里的倍数需要处理一下
 	printf("Cost %.1lf\n", double(RoutesCost) / 10);
 	fflush(stdout);
 	return true;

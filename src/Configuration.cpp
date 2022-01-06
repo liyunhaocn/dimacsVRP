@@ -34,25 +34,22 @@ void Configuration::show() {
 
 void Configuration::repairByCusCnt(int cusCnt) {
 
-	outNeiSize = std::min<int>(cusCnt, outNeiSize);
+	outNeiSize = std::min<int>(cusCnt-1, outNeiSize);
 	broadenWhenPos_0 = std::min<int>(cusCnt, broadenWhenPos_0);
 
-	//TODO[lyh][2]: patternAdjustment参数
 	patternAdjustmentNnei = std::min<int>(cusCnt, patternAdjustmentNnei);
 	patternAdjustmentGetM = std::min<int>(cusCnt, patternAdjustmentGetM);
 
-	//TODO[lyh][2]:naRepairGetMoves
 	naRepairGetMovesNei = std::min<int>(cusCnt, naRepairGetMovesNei);
 
-	// TODO[lyh][2] mRLLocalSearchRange
 	//mRLLocalSearchRange = { 10,50 };
 	mRLLocalSearchRange[0] = std::min<int>(cusCnt, mRLLocalSearchRange[0]);
 	mRLLocalSearchRange[1] = std::min<int>(cusCnt, mRLLocalSearchRange[1]);
 	//mRLLSgetAllRange = std::min<int>(cusCnt, mRLLSgetAllRange);
 
-	//ruinLocalSearch
 	ruinLocalSearchNextNeiBroad = std::min<int>(cusCnt, ruinLocalSearchNextNeiBroad);
 
+	ruinC_ = std::min<int>(cusCnt - 1, ruinC_);
 }
 
 struct InsData {
@@ -436,7 +433,6 @@ static int getSintefMinRN(std::string& ins) {
 	return -1;
 }
 
-//TODO[0]:下面的也加上路径数量，都弄成InsData的形式
 static double getSintefRL(std::string& ins) {
 
 	static std::unordered_map<std::string, double> sintefMinlen = {
@@ -750,7 +746,6 @@ static double getSintefRL(std::string& ins) {
 	}
 }
 
-//TODO[0]:下面的也加上路径数量，都弄成InsData的形式
 static InsData getNagataInsData(std::string ins) {
 
 	static std::unordered_map<std::string, InsData> mapdata = {
@@ -1066,7 +1061,6 @@ static InsData getNagataInsData(std::string ins) {
 	return InsData{};
 }
 
-//TODO[0]:下面的也加上路径数量，都弄成InsData的形式
 static InsData getLKHInsData(std::string ins) {
 
 	static std::unordered_map<std::string, InsData> mapdata = {
@@ -1438,7 +1432,6 @@ static InsData getLKHInsData(std::string ins) {
 	return InsData{};
 }
 
-//TODO[0]:下面的也加上路径数量，都弄成InsData的形式
 static InsData getD15InsData(std::string ins) {
 
 	static std::unordered_map<std::string, InsData> mapdata = {
@@ -1827,10 +1820,6 @@ void Configuration::solveCommandLine(int argc, char* argv[]) {
 static bool writeOneLineToFile(std::string path,std::string data) {
 	
 	std::ofstream rgbData;
-	bool isGood = false; {
-		std::ifstream f(path.c_str());
-		isGood = f.good();
-	}
 
 	rgbData.open(path, std::ios::app | std::ios::out);
 

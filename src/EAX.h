@@ -85,9 +85,8 @@ public:
 	int subCyCusNum = 0;
 	
 	Vec< Vec<int> > unionArr;
-
+	Vec< Vec<int> > abCyAdj;
 	UnorderedSet<int> tabuCyIds;
-	UnorderedSet<int> tabuUnionIds;
 
 	int unionIndex = -1;
 	int choosecyIndex = -1;

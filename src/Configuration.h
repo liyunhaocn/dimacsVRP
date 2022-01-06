@@ -14,8 +14,9 @@ struct Configuration {
 	unsigned seed = -1;
 	std::string inputPath = "";
 	std::string outputPath = "../Results/";
+	
+	int lkhRN = -1;
 	DisType lkhRL = -1;
-	DisType lkhRN = -1;
 	int cmdIsopt = -1;
 
 	int d15RecRN = 0;
@@ -78,18 +79,18 @@ struct Configuration {
 	int naEaxCh = 20;
 	//int naEaxCh = 20;
 
-	//TODO[lyh][2]: patternAdjustment参数
+	//patternAdjustment参数
 	int patternAdjustmentNnei = 60;
 	int patternAdjustmentGetM = 10;
 
-	//TODO[lyh][2]:naRepairGetMoves
+	//naRepairGetMoves
 	int naRepairGetMovesNei = 50;
 
-	// TODO[lyh][2] mRLLocalSearchRange
+	// mRLLocalSearchRange
 	Vec<int> mRLLocalSearchRange = { 10,50 };
 	//int mRLLSgetAllRange = 50;
 
-	//ruinLocalSearch
+	// ruinLocalSearch
 	int ruinLocalSearchNextNeiBroad = 5;
 
 	int ruinSplitRate = 5; // %100 means ruinSplitRate%
@@ -98,8 +99,10 @@ struct Configuration {
 	//(ruinLmax+1)/2
 	int ruinC_ = 15;
 
-	int ruinWinkacRate = 98; // 100
-	int abcyWinkacRate = 100; // 100
+	int ruinWinkacRate = 99; // 100
+	//TODO[-1]:为初始化设置了眨眼
+	int initWinkacRate = 99; // 100
+	int abcyWinkacRate = 99; // 100
 
 	void show();
 

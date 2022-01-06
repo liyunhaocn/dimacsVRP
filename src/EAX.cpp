@@ -112,9 +112,8 @@ bool EAX::classifyEdges(Solver& pa, Solver& pb) {
 bool EAX::generateCycles() {
 
 	tabuCyIds.clear();
-	tabuUnionIds.clear();
-
 	abCycleSet.clear();
+
 	for (auto i = 0; i < richEdges.size(); ++i) {
 		richEdges[i].visited = false;
 	}
@@ -257,6 +256,10 @@ bool EAX::generateCycles() {
 			}
 		}
 	}
+
+	//TODO: 这玩意只在生成abcy换之后才发生变化 所以放在这里
+	getUnionArr();
+
 	return true;
 }
 
@@ -380,8 +383,8 @@ Solver::Position EAX::findBestPosRemoveSubtour(Solver& pc, int w, int wj, DisTyp
 			DisType cost =
 				pc.input.disOf[pc.reCusNo(v)][pc.reCusNo(wj)]
 				+ pc.input.disOf[pc.reCusNo(w)][pc.reCusNo(vj)]
-				- pc.input.disOf[pc.reCusNo(v)][pc.reCusNo(vj)];
-			-pc.input.disOf[pc.reCusNo(w)][pc.reCusNo(wj)];
+				- pc.input.disOf[pc.reCusNo(v)][pc.reCusNo(vj)]
+				-pc.input.disOf[pc.reCusNo(w)][pc.reCusNo(wj)];
 			//int year = (*yearTable)[reCusNo(w)][reCusNo(v)] + (*yearTable)[reCusNo(w)][reCusNo(vj)];
 			//year >>= 1;
 
@@ -393,12 +396,15 @@ Solver::Position EAX::findBestPosRemoveSubtour(Solver& pc, int w, int wj, DisTyp
 			//posTemp.year = year;
 			//posTemp.secDis = abs(input.datas[w].polarAngle - input.datas[v].polarAngle);
 
+			// TODO[-1]:移除子环的方式，目标函数
+			//if (posTemp.cost + posTemp.pen < ret.cost + ret.pen) {
+			//	ret = posTemp;
+			//}
 
 			if (posTemp.pen < ret.pen) {
 				ret = posTemp;
 			}
 			else if (posTemp.cost < ret.cost) {
-				//++sameCnt;
 				if (myRand->pick(100) < globalCfg->abcyWinkacRate) {
 					ret = posTemp;
 				}
@@ -442,7 +448,7 @@ int EAX::removeSubring(Solver& pc) {
 		int w = subbegin;
 		DisType demandInSub = 0;
 
-		Solver::Position posInsert;
+		Solver::Position ret;
 		do {
 			subCyCus.removeVal(w);
 			demandInSub += pc.input.datas[w].DEMAND;
@@ -459,16 +465,20 @@ int EAX::removeSubring(Solver& pc) {
 		do {
 
 			int wj = pc.customers[w].next;
-			auto posT = findBestPosRemoveSubtour(pc, w, wj, demandInSub);
-			if (posT.pen < posInsert.pen) {
-				//debug(posT.pen);
-				//debug(posT.cost);
-				posInsert = posT;
+			auto posTemp = findBestPosRemoveSubtour(pc, w, wj, demandInSub);
+
+			//if (posTemp.cost + posTemp.pen < ret.cost + ret.pen) {
+			//	ret = posTemp;
+			//	retW = w;
+			//}
+
+			if (posTemp.pen < ret.pen) {
+				ret = posTemp;
 				retW = w;
 			}
-			else if (posT.cost < posInsert.cost) {
+			else if (posTemp.cost < ret.cost) {
 				if (myRand->pick(100) < globalCfg->abcyWinkacRate) {
-					posInsert = posT;
+					ret = posTemp;
 					retW = w;
 				}
 			}
@@ -479,7 +489,7 @@ int EAX::removeSubring(Solver& pc) {
 		//debug(sameCnt);
 		//debug(posInsert.pen);
 		//debug(posInsert.cost);
-		int v = posInsert.pos;
+		int v = ret.pos;
 		int vj = pc.customers[v].next;
 		w = retW;
 		int wj = pc.customers[w].next;
@@ -491,16 +501,6 @@ int EAX::removeSubring(Solver& pc) {
 		pc.customers[w].next = vj;
 		pc.customers[vj].pre = w;
 
-		//pc.rUpdateAvQfrom(r,v);
-		//pc.rUpdateZvQfrom(r,vj);
-
-		//auto oldptw = r.rPtw;
-		//auto oldpc = r.rPc;
-		//auto oldcost = r.routeCost;
-		//pc.rUpdateAvQfrom(r,r.head);
-		//debug(oldptw + oldpc + posInsert.pen == r.rPtw + r.rPc);
-		//debug(oldcost + posInsert.cost == r.routeCost);
-
 		pc.rReCalCusNumAndSetCusrIdWithHeadrId(r);
 		pc.reCalRtsCostAndPen();
 
@@ -509,15 +509,6 @@ int EAX::removeSubring(Solver& pc) {
 
 	return subCyNum;
 }
-
-#if 0
-template <typename Enumeration>
-auto EAX::enum_int(Enumeration const value)
-	-> typename std::underlying_type<Enumeration>::type
-{
-	return static_cast<typename std::underlying_type<Enumeration>::type>(value);
-}
-#endif // 0
 
 Vec<int> EAX::getRepartOrder(Vec<SolScore>& solScores) {
 
@@ -573,11 +564,15 @@ void EAX::getUnionArr() {
 	for (int cyIndex = 0; cyIndex < n; ++cyIndex) {
 		setVe[cyIndex] = getCusInOneCycle(cyIndex);
 	}
+	abCyAdj.clear();
+	abCyAdj.resize(n);
 
 	for (int i = 0; i < n; ++i) {
 		for (int j = i + 1; j < n; ++j) {
 			if (isInter(setVe[i], setVe[j])) {
 				u.merge(i, j);
+				abCyAdj[i].push_back(j);
+				abCyAdj[j].push_back(i);
 			}
 		}
 	}
@@ -605,11 +600,6 @@ void EAX::getUnionArr() {
 int EAX::doNaEAX(Solver& pa, Solver& pb, Solver& pc) {
 
 	repairSolNum = 0;
-	if (abCycleSet.size() == 0) {
-		return -1;
-	}
-
-	//TODO[lyh][001]:最多放置多少个abcycle[2,(abcyNum+1)/2]
 	generSolNum = 1;
 
 	static int cnt = 0;
@@ -641,8 +631,10 @@ int EAX::doNaEAX(Solver& pa, Solver& pb, Solver& pc) {
 	pc.reCalRtsCostAndPen();
 		
 	//TODO[0]:这里考虑是否可以在没有子换的情况下再禁忌
-	tabuCyIds.insert(choosecyIndex);
-
+	if (subCyCusNum == 0) {
+		tabuCyIds.insert(choosecyIndex);
+	}
+	
 	if (pc.repair()) {
 		if (pc.RoutesCost == pa.RoutesCost) {
 				
@@ -666,22 +658,8 @@ int EAX::doPrEAX(Solver& pa, Solver& pb, Solver& pc) {
 	repairSolNum = 0;
 
 	Vec<int> ret;
-	if (abCycleSet.size() < 4) {
-		return -1;
-	}
 
 	generSolNum = 1;
-
-	int abcyNum = abCycleSet.size();
-
-	ConfSet resCycles(abcyNum);
-	for (int i = 0; i < abcyNum; ++i) {
-		resCycles.ins(i);
-	}
-
-	getUnionArr();
-
-	//TODO[lyh][001]:最多放置多少个abcycle[2,(abcyNum)/2],pick 是开区间
 
 	int cnt = 0;
 		
@@ -705,81 +683,52 @@ int EAX::doPrEAX(Solver& pa, Solver& pb, Solver& pc) {
 
 	int firstCyIndex = unionArr[unionIndex][myRand->pick(unionArr[unionIndex].size())];
 
+	//TODO[lyh][001]:最多放置多少个abcycle[2,(abcyNum)/2],pick 是开区间
+	int abcyNum = abCycleSet.size();
+
 	int numABCyUsed = unionArr[unionIndex].size();
-		
 	//numABCyUsed = std::min<int>(4, numABCyUsed);
 	numABCyUsed = std::min<int>(abcyNum / 2, numABCyUsed);
-		
-	//if (unionArr[unionIndex].size() >= 4) {
-	//	numABCyUsed = std::min<int>(numABCyUsed,unionArr[unionIndex].size() / 2);
-	//}
-		
+	
 	int putMax = numABCyUsed;
 	numABCyUsed = 2;
 	for (int i = 3; i <= putMax; ++i) {
-		if (myRand->pick(100) < 80) {
+		// TODO[-1]:这里可以调整 放置多少个abcy
+		if (myRand->pick(100) < 40) {
 			numABCyUsed = i;
 		}
 		else {
 			break;
 		}
 	}
-	//INFO("putMax:",putMax,"numABCyUsed:", numABCyUsed);
 
-	Vec<int> eset = { firstCyIndex };
-	resCycles.removeVal(firstCyIndex);
-
-	UnorderedSet <int> alreadyPlaceCusSet;
-	auto cusInFirstcy = getCusInOneCycle(firstCyIndex);
-	for (int cus : cusInFirstcy) {
-		alreadyPlaceCusSet.insert(cus);
+	ConfSet cyInUnion(abCycleSet.size());
+	for (int cy : unionArr[unionIndex]) {
+		cyInUnion.ins(cy);
 	}
+
+	Vec<int> eset;
+	std::queue<int> qu;
+	qu.push(firstCyIndex);
+	cyInUnion.removeVal(firstCyIndex);
 
 	while (eset.size() < numABCyUsed) {
+		auto tp = qu.front();
+		eset.push_back(tp);
+		qu.pop();
 
-		int nextCyIndex = -1;
-		int nextChooseNum = 0;
-		for (int i = 0; i < resCycles.cnt; ++i) {
-			int chooseCyIndex = resCycles.ve[i];
-
-			bool isSharedCus = false;
-			auto cusIncy = getCusInOneCycle(chooseCyIndex);
-
-			for (int cus : cusIncy) {
-				if (alreadyPlaceCusSet.count(cus) > 0) {
-					isSharedCus = true;
-					break;
-				}
+		auto adjs = abCyAdj[tp];
+		myRand->shuffleVec(adjs);
+		for (int ad : adjs) {
+			if (cyInUnion.pos[ad] >= 0) {
+				qu.push(ad);
+				cyInUnion.removeVal(ad);
 			}
-			if (isSharedCus) {
-				++nextChooseNum;
-				if (myRand->pick(nextChooseNum) == 0) {
-					nextCyIndex = chooseCyIndex;
-				}
-			}
-		}
-
-		#if CHECKING
-
-		#endif // CHECKING
-		// TODO[-1]:这个检查之后没问题就放进去check吧
-		if (nextCyIndex == -1) {
-			INFO("numABCyUsed:",numABCyUsed);
-			INFO("eset.size():",eset.size());
-			numABCyUsed = eset.size();
-			break;
-		}
-
-		if (nextCyIndex >= 0) {
-
-			auto cusIncy = getCusInOneCycle(nextCyIndex);
-			for (int cus : cusIncy) {
-				alreadyPlaceCusSet.insert(cus);
-			}
-			eset.push_back(nextCyIndex);
-			resCycles.removeVal(nextCyIndex);
 		}
 	}
+
+	//printve(eset);
+	//INFO("eset.size():", eset.size(),"numABCyUsed:", numABCyUsed);
 
 	applyCycles(eset, pc);
 	pc.reCalRtsCostAndPen();

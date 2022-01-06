@@ -67,14 +67,14 @@ struct CircleSector
 
 struct Data {
 
-	LL CUSTNO = -1;
-	LL XCOORD = -1;
-	LL YCOORD = -1;
-	LL DEMAND = -1;
-	LL READYTIME = -1;
-	LL DUEDATE = -1;
-	LL SERVICETIME = -1;
-	LL polarAngle = 0;
+	int CUSTNO = -1;
+	DisType XCOORD = -1;
+	DisType YCOORD = -1;
+	DisType DEMAND = -1;
+	DisType READYTIME = -1;
+	DisType DUEDATE = -1;
+	DisType SERVICETIME = -1;
+	int polarAngle = 0;
 };
 
 struct Customer {
