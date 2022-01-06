@@ -4940,6 +4940,7 @@ Solver::TwoNodeMove Solver::getMovesRandomly
 
 			TwoNodeMove m0(v, w, 0, _2optOpenvv_(v, w));
 			updateBestM(m0, bestM);
+
 		}
 
 		int vj = customers[v].next;
@@ -5155,13 +5156,13 @@ Solver::TwoNodeMove Solver::getMovesRandomly
 		}
 
 		for (int v = customers[r.head].next; v != endNode; v = customers[v].next) {
-
+			
 			int v_ = customers[v].pre;
 			int vj = customers[v].next;
 			int maxL = std::max<int>(5, r.rCustCnt / 5);
 
 			if (customers[v_].TW_X + customers[vj].TWX_ == r.rPtw) {
-				//maxL = std::max<int>(10, r.rCustCnt / 5);
+				
 				int wbegin = v;
 				int preStep = myRand->pick(1, maxL + 1);
 
@@ -5194,12 +5195,11 @@ Solver::TwoNodeMove Solver::getMovesRandomly
 					}
 				}
 			}
-			//else {
-			//}
-			// TODO[3][getMoveRand] 这个maxL 以及ptNode.back() 后面的部分还可以优化
+			
 			_2optEffectively(v);
 			exchangevwEffectively(v);
 			outrelocateEffectively(v);
+
 		}
 	}
 	else {
@@ -5685,6 +5685,13 @@ bool Solver::squeeze() {
 	while (penalty > 0 && !lyhTimer.isTimeOut()) {
 
 		TwoNodeMove bestM = getMovesRandomly(updateBestM);
+
+		if (bestM.deltPen.PcOnly == DisInf || bestM.deltPen.PtwOnly == DisInf) {
+			ERROR("squeeze fail find move");
+			ERROR("squIter", squIter);
+			++contiNotDe;
+			break;
+		}
 
 		#if CHECKING
 		if (bestM.deltPen.PcOnly == DisInf || bestM.deltPen.PtwOnly == DisInf) {
@@ -6578,7 +6585,7 @@ Vec<int> Solver::ruinGetRuinCusBySec(int ruinCusNum) {
 #else
 Vec<int> Solver::ruinGetRuinCusBySec(int ruinCusNum) {
 
-	ruinCusNum = myRand->pick(1, ruinCusNum * 2 + 1);
+	ruinCusNum = myRand->pick(1, ruinCusNum+1);
 
 	Vec<CircleSector> secs(rts.cnt);
 	for (int i = 0; i < rts.cnt; ++i) {
@@ -6589,24 +6596,30 @@ Vec<int> Solver::ruinGetRuinCusBySec(int ruinCusNum) {
 	std::iota(rOrder.begin(), rOrder.end(), 0);
 	myRand->shuffleVec(rOrder);
 
-	int rti = 0;
-	int rtj = 0;
+	int rti = -1;
+	int rtj = -1;
+
+	bool isFind = false;
 
 	for (int i = 0; i < rts.cnt; ++i) {
 		rti = rOrder[i];
-		bool isbreak = false;
 		for (int j = i + 1; j < rts.cnt; ++j) {
 			rtj = rOrder[j];
 			bool is = CircleSector::overlap(secs[rti], secs[rtj]);
 			if (is) {
-				isbreak = true;
+				isFind = true;
 				break;
 			}
 		}
-		if (isbreak) {
+		if (isFind) {
 			break;
 		}
 	}
+
+	if (!isFind) {
+		return {};
+	}
+
 	auto vei = rPutCusInve(rts[rti]);
 
 	Vec<int> cusArr;

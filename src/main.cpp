@@ -41,7 +41,10 @@ bool allocGlobalMem(int argc, char* argv[]) {
 	if (globalCfg->seed == -1) {
 		globalCfg->seed = std::time(nullptr) + std::clock();
 	}
-	//globalCfg->seed = 1641240893;
+	
+
+	globalCfg->seed = 1641485895;
+
 	myRand = new Random(globalCfg->seed);
 	myRandX = new RandomX(globalCfg->seed);
 

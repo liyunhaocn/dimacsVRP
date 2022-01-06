@@ -366,9 +366,9 @@ minRLhardlist = [
 cases = minRLhardlist
 print(len(cases))
 
-path = "./dimall300stdTime.bat"
+path = "./all300stdTime20cmd.bat"
 
-part = 40
+part = 20
 part = min(part,len(cases))
 
 print(part)
