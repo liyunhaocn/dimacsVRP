@@ -74,7 +74,9 @@ struct Configuration {
 	int initFindPosPqSize = 20;
 	int findBestPosForRuinPqSize = 10;
 	int findBestPosInSolPqSize = 64;//64
+
 	int naEaxCh = 20;
+	//int naEaxCh = 20;
 
 	//TODO[lyh][2]: patternAdjustment²ÎÊý
 	int patternAdjustmentNnei = 60;

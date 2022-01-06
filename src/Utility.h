@@ -319,7 +319,7 @@ struct ProbControl {
         sum.resize(maxSize, 0);
     }
 
-    bool resetData() {
+    void resetData() {
         std::fill(data.begin(), data.end(), 10);
     }
 

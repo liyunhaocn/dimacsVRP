@@ -1869,7 +1869,7 @@ void Configuration::addHelpInfo() {
 	d15RecRL = getD15InsData(example).minRL;
 
 	lkhRN = getLKHInsData(example).minRN;
-	lkhRL = getLKHInsData(example).minRL * disMul;
+	lkhRL = getLKHInsData(example).minRL;
 	cmdIsopt = getLKHInsData(example).isOpt;
 
 	//char lkh[100];

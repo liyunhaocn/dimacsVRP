@@ -16,36 +16,42 @@ Goal::Goal():gloalTimer(0){
 
 Vec<int> Goal::getpairOfPaPb() {
 
-	int paIndex = -1;
-	int pbIndex = -1;
-	int retNum = 0;
+	int popSize = globalCfg->popSize;
+	auto popOr = myRandX->getMN(globalCfg->popSize, popSize);
+	myRand->shuffleVec(popOr);
 
-	for (int i = 1; i < globalCfg->popSize; ++i) {
-		for (int j = 0; j < globalCfg->popSize; ++j) {
-			if (i != j) {
-				if (retNum == 0) {
-					paIndex = i;
-					pbIndex = j;
-				}
-				else {
-					if (eaxYearTable[i][j] < eaxYearTable[paIndex][pbIndex]) {
-						retNum = 1;
-						paIndex = i;
-						pbIndex = j;
-					}
-					else if (eaxYearTable[i][j] == eaxYearTable[paIndex][pbIndex]) {
-						++retNum;
-						if (myRand->pick(retNum) == 0) {
-							paIndex = i;
-							pbIndex = j;
-						}
-					}
-				}
-			}
-		}
+	Vec< Vec<int> > ords;
+	for (int i = 0; i < popSize; ++i) {
+		int paIndex = popOr[i];
+		int pbIndex = popOr[(i + 1) % popSize];
+		ords.push_back({ paIndex ,pbIndex });
+	}
+	// 0, 1, 2, 3, 4
+	std::swap(popOr[0], popOr[1]);
+	std::swap(popOr[3], popOr[4]);
+
+	for (int i = 0; i < popSize; ++i) {
+		int paIndex = popOr[i];
+		int pbIndex = popOr[(i + 1) % popSize];
+		ords.push_back({ paIndex ,pbIndex });
 	}
 
-	return { paIndex,pbIndex };
+	for (auto& apair : ords) {
+		int paIndex = apair[0];
+		int pbIndex = apair[1];
+		Solver& pa = pool[paIndex];
+		Solver& pb = pool[pbIndex];
+		int abcyNum = EAX::getabCyNum(pa, pb);
+		//INFO("papb abcyNum:", abcyNum);
+		if (abcyNum <= 1) {
+			INFO("papb abcyNum < 1 abcyNum:", abcyNum);
+			continue;
+			//pa.Simulatedannealing(0, 100);
+			//abcyNum = EAX::getabCyNum(pa, pb);
+		}
+
+	}
+	return {};
 }
 
 int Goal::doTwoKindEAX(Solver& pa, Solver& pb, int kind) {
@@ -142,36 +148,9 @@ int Goal::doTwoKindEAX(Solver& pa, Solver& pb, int kind) {
 
 bool Goal::perturbThePop() {
 
-	auto pertuOrder = Vec<int>(pool.size(), 0);
-	std::iota(pertuOrder.begin(), pertuOrder.end(), 0);
-	std::sort(pertuOrder.begin(), pertuOrder.end(), [&](int x, int y) {return
-		pool[x].RoutesCost < pool[y].RoutesCost;
-		});
-	//unsigned shuseed = myRand->pickRandSeed();
-	//std::shuffle(pertuOrder.begin(), pertuOrder.end(), std::default_random_engine(shuseed));
-
-	#if 0
-	for (int peri = 0; peri < pool.size(); ++peri) {
-		int pi = pertuOrder[peri];
-		auto& sol = pool[pi];
-		auto before = sol.RoutesCost;
-		Solver sclone = sol;
-		sclone.resetSol();
-		int initKind = myRand->pick(5);
-		sclone.initSolution(initKind);
-		sclone.adjustRN();
-		sclone.mRLLocalSearch(0, {});
-		//sclone.ruinLocalSearch(1);
-		sol = sclone;
-
-		auto after = sol.RoutesCost;
-		INFO("before:", before, "after:", after, "initKind:", initKind);
-	}
-	#else	
-
-	for (int peri = 0; peri < pool.size(); ++peri) {
-		int pi = pertuOrder[peri];
-		auto& sol = pool[pi];
+	for (int i = 0; i < pool.size(); ++i) {
+		
+		auto& sol = pool[i];
 		auto before = sol.RoutesCost;
 		Solver sclone = sol;
 		//sclone.saveOutAsSintefFile();
@@ -197,22 +176,22 @@ bool Goal::perturbThePop() {
 			else {
 				sclone = sol;
 			}
-
 		}
 	}
-	#endif // 0
 
 	return true;
 }
 
 int Goal::naMA(Solver& pa, Solver& pb) { // 1 代表更新了最优解 0表示没有
-	
+
 	int updateState = 0;
 	int isabState = doTwoKindEAX(pa, pb, 0);
 	if (isabState == 1) {
 		updateState = 1;
 	}
-	//int before = EAX::getabCyNum(pa, pb);
+	if (updateState == 1) {
+		return 1;
+	}
 	isabState = doTwoKindEAX(pa, pb, 1);
 	if (isabState == 1) {
 		updateState = 1;
@@ -425,14 +404,12 @@ int Goal::TwoAlgCombine() {
 
 	int contiNotDown = 1;
 	//TODO[0]:先使用哪个
-	int whichAlg = 1; // 0代表局部搜搜 1 代表交叉
+	
 	int popSize = globalCfg->popSize;
 
 	int iter = 1;
 	#if DIMACSGO
-
 	while (true) {
-
 	#else
 	while (!gloalTimer.isTimeOut()) {
 		if (globalCfg->cmdIsopt == 1) {
@@ -452,102 +429,70 @@ int Goal::TwoAlgCombine() {
 				}
 			}
 		}
+		
+		auto& popArr = myRandX->getMN(popSize,1);
+		int paIndex = popArr[0];
+		int pbIndex = popArr[1];
+		Solver& pa = pool[paIndex];
+		Solver& pb = pool[pbIndex];
 
-		int upState = 0;
+		// 0代表局部搜搜 1 代表交叉
+		static ProbControl pc(2);
+
+		int whichAlg = pc.getIndexBasedData();
+		if (pc.data[0] / pc.data[1] > 10 || pc.data[1] / pc.data[0] > 10) {
+			pc.resetData();
+		}
+		//INFO("pc.data[0]:", pc.data[0],"pc.data[1]:", pc.data[1]);
+
 		if (whichAlg == 0) {
+			//auto bestClone = bks->bestSolFound;
+			//bestClone.Simulatedannealing(0, 100);
+			//if (bks->updateBKS(bestClone, "time:" + std::to_string(gloalTimer.getRunTime()) + " ruin ls")) {
+			//	upState = 1;
+			//}
+			//auto difcus = EAX::getDiffCusofPb(bestClone, bks->bestSolFound);
+			//if (difcus.size()>0) {
+			//	bestClone.mRLLocalSearch(1, difcus);
+			//}
+			//bks->updateBKS(bestClone, "time:" + std::to_string(gloalTimer.getRunTime()) + " bks ls after ruin");
 
-			Timer t(100);
-
-			auto bestClone = bks->bestSolFound;
-			bestClone.Simulatedannealing(0, 100);
-
-			if (bks->updateBKS(bestClone, "time:" + std::to_string(gloalTimer.getRunTime()) + " ruin ls")) {
-				upState = 1;
+			auto& sol = pool[myRand->pick(popSize)];
+			auto clone = sol;
+			//DisType dele = sol.
+			sol.Simulatedannealing(0, 200);
+			int cynum = EAX::getabCyNum(sol, clone);
+			auto difcus = EAX::getDiffCusofPb(sol, clone);
+			if (bks->updateBKS(sol, "time:" + std::to_string(gloalTimer.getRunTime()) + " ruin ls")) {
+				pc.data[0] += 1;
 			}
-			auto difcus = EAX::getDiffCusofPb(bestClone, bks->bestSolFound);
-			if (difcus.size()>0) {
-				bestClone.mRLLocalSearch(1, difcus);
-			}
-			bks->updateBKS(bestClone, "time:" + std::to_string(gloalTimer.getRunTime()) + " bks ls after ruin");
 
-			for (auto& sol : pool) {
-				auto clone = sol;
-				sol.Simulatedannealing(0, 100);
-				int cynum = EAX::getabCyNum(sol, clone);
-				auto difcus = EAX::getDiffCusofPb(sol, clone);
-				if (bks->updateBKS(sol, "time:" + std::to_string(gloalTimer.getRunTime()) + " ruin ls")) {
-					upState = 1;
+			if (difcus.size() > 0) {
+				sol.mRLLocalSearch(1,difcus);
+				if (bks->updateBKS(sol, "time:" + std::to_string(gloalTimer.getRunTime()) + " ls after ruin")) {
+					pc.data[0] += 1;
 				}
-				if (difcus.size() > 0) {
-					sol.mRLLocalSearch(1,difcus);
-					bks->updateBKS(sol, "time:" + std::to_string(gloalTimer.getRunTime()) + " ls after ruin");
-				}
 			}
-
-			INFO("mul huo run", t.getRunTime());
-			INFO("mul huo run", t.getRunTime());
+			//for (auto& sol : pool) {
+			//	auto clone = sol;
+			//	sol.Simulatedannealing(0, 100);
+			//	int cynum = EAX::getabCyNum(sol, clone);
+			//	auto difcus = EAX::getDiffCusofPb(sol, clone);
+			//	if (bks->updateBKS(sol, "time:" + std::to_string(gloalTimer.getRunTime()) + " ruin ls")) {
+			//		upState = 1;
+			//	}
+			//	if (difcus.size() > 0) {
+			//		sol.mRLLocalSearch(1,difcus);
+			//		bks->updateBKS(sol, "time:" + std::to_string(gloalTimer.getRunTime()) + " ls after ruin");
+			//	}
+			//}
 
 		}
 		else {
-
-			Timer t(100);
-			auto popOr = myRandX->getMN(popSize, popSize);
-			myRand->shuffleVec(popOr);
-
-			Vec< Vec<int> > ords;
-			for (int i = 0; i < popSize; ++i) {
-				int paIndex = popOr[i];
-				int pbIndex = popOr[(i + 1) % popSize];
-				ords.push_back({ paIndex ,pbIndex });
+			int up1 = naMA(pa, pb);
+			if (up1 == 1) {
+				pc.data[1] += 1;
 			}
-			// 0, 1, 2, 3, 4
-			std::swap(popOr[0], popOr[1]);
-			std::swap(popOr[3], popOr[4]);
-
-			for (int i = 0; i < popSize; ++i) {
-				int paIndex = popOr[i];
-				int pbIndex = popOr[(i + 1) % popSize];
-				ords.push_back({ paIndex ,pbIndex });
-			}
-
-			for (auto& apair : ords) {
-				int paIndex = apair[0];
-				int pbIndex = apair[1];
-				Solver& pa = pool[paIndex];
-				Solver& pb = pool[pbIndex];
-				int abcyNum = EAX::getabCyNum(pa, pb);
-				//INFO("papb abcyNum:", abcyNum);
-				if (abcyNum <= 1) {
-					INFO("papb abcyNum < 1 abcyNum:", abcyNum);
-					continue;
-					//pa.Simulatedannealing(0, 100);
-					//abcyNum = EAX::getabCyNum(pa, pb);
-				}
-
-				int up1 = naMA(pa, pb);
-				//int up2 = naMA(pb, pa);
-				if (up1 == 1) {
-					upState = 1;
-				}
-			}
-			INFO("eax run", t.getRunTime());
-			INFO("eax run", t.getRunTime());
-
-		}
-
-		//whichAlg %= 2;
-		//contiNotDown = 1;
-
-		if (upState == 1) {
-			contiNotDown = 1;
-		}
-		else {
-			++contiNotDown;
-		}
-		if (contiNotDown > 5) {
-			//++whichAlg;
-			//whichAlg %= 2;
-			contiNotDown = 1;
 		}
 
 	}
