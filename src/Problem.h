@@ -129,17 +129,18 @@ struct Input {
 	DisType Q = 0;
 	int vehicleCnt = 0;
 	Vec<Data> datas;
+	int Qbound = -1;
 
 	Vec<Vec<DisType>> disOf;
 
-	// disOf[v][w] 表示w和v之间的距离
-	Vec<Vec<int>> allCloseOf;
-	// input.allCloseOf[v][wpos] 表示v的地理位置第wpos近的点
+	//// disOf[v][w] 表示w和v之间的距离
+	//Vec<Vec<int>> allCloseOf;
+	//// input.allCloseOf[v][wpos] 表示v的地理位置第wpos近的点
 	Vec<Vec<int>> addSTclose;
+
 	// input.addSTclose[v][wpos] 表示v的地理位置加上v的服务时间第wpos近的点
 	Vec<Vec<int>> addSTJIsxthcloseOf;
 	//表示v的地理位置加上v的服务时间作为排序依据 input.addSTJIsxthcloseOf[v][w],w是v的第几近
-
 	Vec<Vec<int>> iInNeicloseOfUnionNeiCloseOfI;
 
 	Vec<Vec<int>> sectorClose;

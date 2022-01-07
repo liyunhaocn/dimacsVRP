@@ -65,12 +65,19 @@ Vec<int> Goal::getpairOfPaPb() {
 			//pa.Simulatedannealing(0, 100);
 			//abcyNum = EAX::getabCyNum(pa, pb);
 		}
-
 	}
 	return {};
 }
 
-int Goal::doTwoKindEAX(Solver& pa, Solver& pb, int kind) {
+DisType Goal::getMinRtCostInPool() {
+	DisType bestSolInPool = DisInf;
+	for (int i = 0; i < pool.size(); ++i) {
+		bestSolInPool = std::min<DisType>(bestSolInPool, pool[i].RoutesCost);
+	}
+	return bestSolInPool;
+}
+
+DisType Goal::doTwoKindEAX(Solver& pa, Solver& pb, int kind) {
 
 	int retState = 0; // 0 表示没有成功更新最优解，1表示更新了最优解 -1表示这两个解无法进行eax
 
@@ -85,9 +92,6 @@ int Goal::doTwoKindEAX(Solver& pa, Solver& pb, int kind) {
 	}
 
 	Solver paBest = pa;
-
-	//static int genSol = 0;
-	//static int repSol = 0;
 
 	int contiNotRepair = 1;
 
@@ -163,7 +167,7 @@ int Goal::doTwoKindEAX(Solver& pa, Solver& pb, int kind) {
 			pa = paBest;
 		}
 	}
-	return retState;
+	return paBest.RoutesCost;
 }
 
 bool Goal::perturbOnePop(int i) {
@@ -177,32 +181,30 @@ bool Goal::perturbOnePop(int i) {
 
 		//尝试使用 100度的模拟退火进行扰动
 		//sclone.Simulatedannealing(0,100,1000.0,2*globalCfg->ruinC_);
-		int kind = myRand->pick(5);
+		int kind = myRand->pick(4);
 		if (kind <= 2) {
 			int clearEPkind = myRand->pick(6);
 			int ruinCusNum = std::min<int>(globalInput->custCnt/2, 2 * globalCfg->ruinC_);
 			sclone.perturbBaseRuin(kind, ruinCusNum, clearEPkind);
 		}
 		else if(kind ==3){
-			int step = myRand->pick(sclone.input.custCnt * 0.1, sclone.input.custCnt * 0.2);
+			int step = myRand->pick(sclone.input.custCnt * 0.1, sclone.input.custCnt * 0.3);
 			sclone.patternAdjustment(step);
 		}
-		else if (kind == 4) {
-			int step = myRand->pick(sclone.input.custCnt * 0.1, sclone.input.custCnt * 0.2);
-			sclone.perturbBasedejepool(step);
-		}
+		//else if (kind == 4) {
+		//	int step = myRand->pick(sclone.input.custCnt * 0.1, sclone.input.custCnt * 0.2);
+		//	sclone.perturbBasedejepool(step);
+		//}
 
 		//int step = myRand->pick(sclone.input.custCnt * 0.1, sclone.input.custCnt * 0.2);
 		//sclone.patternAdjustment(step);
-			
 		//int clearEPkind = myRand->pick(6);
 		//int ruinCusNum = std::min<int>(globalInput->custCnt/2, 2 * globalCfg->ruinC_);
 		//sclone.perturbBaseRuin(1, ruinCusNum, clearEPkind);
 		//int ejNum = myRand->pick(sclone.input.custCnt * 0.1, sclone.input.custCnt*0.2);
-		//
 
 		auto diff = EAX::getDiffCusofPb(sol, sclone);
-		INFO("i:",i,"diff.size):",diff.size());
+		//INFO("i:",i,"diff.size:",diff.size());
 		if (diff.size() > sol.input.custCnt * 0.2) {
 			sclone.mRLLocalSearch(1, diff);
 			sol = sclone;
@@ -213,28 +215,53 @@ bool Goal::perturbOnePop(int i) {
 			sclone = sol;
 		}
 	}
-
-	INFO("isPerOnePerson:", isPerOnePerson);
 	return true;
 }
 
-int Goal::naMA(Solver& pa, Solver& pb) { // 1 代表更新了最优解 0表示没有
+int Goal::naMA() { // 1 代表更新了最优解 0表示没有
 
-	int updateState = 0;
-	int isabState = doTwoKindEAX(pa, pb, 0);
-	if (isabState == 1) {
-		updateState = 1;
-	}
-	//TODO[-1]在一个换可以下降的时候 还要用pr吗
-	//if (updateState == 1) {
-	//	return 1;
-	//}
+	int popSize = globalCfg->popSize;
+	auto& ords = myRandX->getMN(popSize, popSize);
+	
+	DisType bestSolInPool = getMinRtCostInPool();
 
-	isabState = doTwoKindEAX(pa, pb, 1);
-	if (isabState == 1) {
-		updateState = 1;
+	for (int ct = 0; ct < 5; ct++) {
+		myRand->shuffleVec(ords);
+		for (int i = 0; i < popSize; ++i) {
+			int paIndex = ords[i];
+			int pbIndex = ords[(i + 1) % popSize];
+			Solver& pa = pool[paIndex];
+			Solver& pb = pool[pbIndex];
+			doTwoKindEAX(pa, pb, 0);
+		}
+		
+		DisType curBest = getMinRtCostInPool();
+		if (curBest < bestSolInPool ) {
+			bestSolInPool = curBest;
+			ct = 0;
+		}
 	}
-	return updateState;
+
+	bestSolInPool = getMinRtCostInPool();
+	for (int ct = 0; ct < 5; ct++) {
+		myRand->shuffleVec(ords);
+		for (int i = 0; i < popSize; ++i) {
+			int paIndex = ords[i];
+			int pbIndex = ords[(i + 1) % popSize];
+			Solver& pa = pool[paIndex];
+			Solver& pb = pool[pbIndex];
+			doTwoKindEAX(pa, pb, 1);
+		}
+
+		DisType curBest = getMinRtCostInPool();
+		if (curBest < bestSolInPool) {
+			bestSolInPool = curBest;
+			ct = 0;
+		}
+	}
+	
+	INFO("getMinRtCostInPool():", getMinRtCostInPool());
+	return 0;
 }
 
 bool Goal::initPopulation() {
@@ -242,13 +269,13 @@ bool Goal::initPopulation() {
 	pool.reserve(globalCfg->popSize);
 	Vec<int> kset = { 4,3,2,1,0};
 
-	Solver s0;
-	s0.initSolution(kset[0]);
-	s0.minimizeRN(0);
 
-	int ourTarget = s0.rts.cnt;
+	int ourTarget = globalCfg->lkhRN;
 	//int ourTarget = globalCfg->lkhRN;
 
+	Solver s0;
+	s0.initSolution(kset[0]);
+	s0.adjustRN(ourTarget);
 
 	INFO("s0.RoutesCost:",s0.RoutesCost);
 	ourTarget = s0.rts.cnt;
@@ -280,6 +307,7 @@ bool Goal::initPopulation() {
 		}
 	}
 
+	i = 0;
 	if (pool.size() < globalCfg->popSize) {
 		INFO("dont get enough population");
 		while (pool.size() < globalCfg->popSize) {
@@ -389,8 +417,11 @@ int Goal::callSimulatedannealing() {
 	Solver st;
 
 	st.initSolution(4);
-	st.adjustRN(ourTarget);
-	//s0.minimizeRN(0);
+	//st.adjustRN(ourTarget);
+	st.minimizeRN(0);
+
+	ourTarget = st.rts.cnt;
+
 	st.mRLLocalSearch(0, {});
 	st.Simulatedannealing(0,1000, 20.0, 1);
 
@@ -405,21 +436,15 @@ int Goal::callSimulatedannealing() {
 		}
 	#endif // DIMACSGO
 
-		if (squIter * 10 > IntInf) {
-			squIter = 1;
-			for (auto& i : (*yearTable)) {
-				for (auto& j : i) {
-					j = 1;
-				}
-			}
-		}
+		globalRepairSquIter();
+
 		if (globalCfg->cmdIsopt == 1) {
 			if (bks->bestSolFound.RoutesCost == globalCfg->d15RecRL) {
 				break;
 			}
 		}
 
-		st.Simulatedannealing(0, 1000, 100.0, globalCfg->ruinC_);
+		st.Simulatedannealing(1, 10000, 100.0, globalCfg->ruinC_);
 		bks->updateBKS(st);
 	}
 
@@ -428,54 +453,6 @@ int Goal::callSimulatedannealing() {
 }
 
 bool Goal::test() {
-
-	int ourTarget = globalCfg->lkhRN;
-
-	Solver st;
-
-	st.initSolution(4);
-	st.adjustRN(ourTarget);
-	//s0.minimizeRN(0);
-	st.mRLLocalSearch(0, {});
-
-	bks->bestSolFound = st;
-
-	#if DIMACSGO
-	while (true) {
-	#else
-	while (!gloalTimer.isTimeOut()) {
-		
-		if (globalCfg->cmdIsopt == 1) {
-			if (bks->bestSolFound.RoutesCost == globalCfg->d15RecRL) {
-				break;
-			}
-		}
-	#endif // DIMACSGO
-		if (squIter * 10 > IntInf) {
-			squIter = 1;
-			for (auto& i : (*yearTable)) {
-				for (auto& j : i) {
-					j = 1;
-				}
-			}
-		}
-		if (globalCfg->cmdIsopt == 1) {
-			if (bks->bestSolFound.RoutesCost == globalCfg->d15RecRL) {
-				break;
-			}
-		}
-
-		st = bks->bestSolFound;
-		int step = myRand->pick(1,50);
-		st.patternAdjustment(step);
-		auto difcus = EAX::getDiffCusofPb(st, bks->bestSolFound);
-		if (difcus.size() > 0) {
-			st.mRLLocalSearch(1, difcus);
-			bks->updateBKS(st, "time:" + std::to_string(gloalTimer.getRunTime()) + " ls after ruin");
-		}
-	}
-
-	saveSlnFile();
 
 	return true;
 }
@@ -486,16 +463,6 @@ int Goal::TwoAlgCombine() {
 
 	int popSize = globalCfg->popSize;
 
-	int iter = 1;
-
-	DisType bestRLInPool = DisInf;
-	for (int i = 0; i < pool.size(); ++i) {
-		bestRLInPool = std::min<DisType>(bestRLInPool, pool[i].RoutesCost);
-	}
-
-	Vec<int> notDownOf(3,0);
-	//TODO[0]:先使用哪个
-
 	#if DIMACSGO
 	while (true) {
 	#else
@@ -507,123 +474,22 @@ int Goal::TwoAlgCombine() {
 		}
 	#endif // DIMACSGO
 
-		++iter;
-		if (squIter * 10 > IntInf) {
-			squIter = 1;
-			for (auto& i : (*yearTable)) {
-				for (auto& j : i) {
-					j = 1;
-				}
-			}
-		}
-		
-		//auto& arr = myRandX->getMN(popSize,2);
-		//myRand->shuffleVec(arr);
-		// 0代表局部搜搜 1 代表交叉
-		static ProbControl pc(2);
+		globalRepairSquIter();
 
-		int whichAlg = pc.getIndexBasedData();
-		//int whichAlg = 1;
-		//auto arr = getNotTabuPaPb();
-		//if (arr[0] == -1) {
-		//	whichAlg = 0;
-		//}
+		naMA();
 
-		if (notDownOf[0] > 20 && notDownOf[1] > 3) {
-			INFO(bks->bestSolFound.RoutesCost);
-			for (int i = 0; i < popSize; ++i) {
-				//pool[i].Simulatedannealing(0, 1000, 100.0, globalCfg->ruinC_);
-				//int pIndex = myRand->pick(popSize);
-				perturbOnePop(i);
-			}
-			for (int i = 0; i < popSize; ++i) {
-				for (int j = 0; j < popSize; ++j) {
-					eaxTabuTable[i][j] = false;
-				}
-			}
-			bestRLInPool = DisInf;
-			for (auto& p : pool) {
-				bestRLInPool = std::min<DisType>(bestRLInPool, p.RoutesCost);
-			}
-			INFO("perturbOnePop ", "bks:", bks->bestSolFound.RoutesCost, "popMin:", bestRLInPool);
-			notDownOf[0] = 0;
-			notDownOf[1] = 0;
-		}
-
-		if(whichAlg==0){
-
-			int perIndex = myRand->pick(popSize);
-			for (int i = 0; i < popSize; ++i) {
-				eaxTabuTable[i][perIndex] = false;
-				eaxTabuTable[perIndex][i] = false;
-			}
-			auto& sol = pool[perIndex];
-			auto clone = sol;
-			
-			DisType bksbefore = bks->bestSolFound.RoutesCost;
-			// kind,MaxIter,temputre,ruinNum
-			//sol.Simulatedannealing(0, 100,20.0,1);
-			clone.Simulatedannealing(0, 100,20.0,globalCfg->ruinC_);
+		for (int i = 0; i <= popSize; ++i) {
+			Solver& sol = i < popSize ? pool[i] : bks->bestSolFound;
+			Solver clone = sol;
+			clone.Simulatedannealing(0, 100, 100.0, globalCfg->ruinC_);
 			bks->updateBKS(clone, "time:" + std::to_string(gloalTimer.getRunTime()) + " ls after ruin");
-
-			if (clone.RoutesCost < bestRLInPool) {
-				bestRLInPool = clone.RoutesCost;
-				pc.data[whichAlg] += 1;
-				notDownOf[whichAlg] = 0;
-			}
-			else {
-				++notDownOf[whichAlg];
-			}
-
-			auto difcus = EAX::getDiffCusofPb(sol, clone);
-			if (difcus.size() > 0) {
-				clone.mRLLocalSearch(1, difcus);
-				if (bks->updateBKS(clone, "time:" + std::to_string(gloalTimer.getRunTime()) + " ls after ruin")) {
-					pc.data[1] += 1;
-					notDownOf[1] = 0;
-				}
-			}
 			if (clone.RoutesCost < sol.RoutesCost) {
 				sol = clone;
 			}
-
 		}
-		else if(whichAlg==1){ // 2
-			
-			DisType bksbefore = bks->bestSolFound.RoutesCost;
-			//arr = getNotTabuPaPb();
-			auto& ords = myRandX->getMN(popSize,popSize);
-			myRand->shuffleVec(ords);
 
-			for (int i = 0;i<popSize;++i) {
-				int paIndex = ords[i];
-				int pbIndex = ords[(i + 1) % popSize];
-				if (!eaxTabuTable[paIndex][pbIndex]) {
-					Solver& pa = pool[paIndex];
-					Solver& pb = pool[pbIndex];
-					int up1 = naMA(pa, pb);
-					eaxTabuTable[paIndex][pbIndex] = true;
-					//arr = getNotTabuPaPb();
-				}
-				
-			}
-
-			DisType minLRCur = DisInf;
-			for (int i = 0; i < pool.size(); ++i) {
-				minLRCur = std::min<DisType>(minLRCur, pool[i].RoutesCost);
-			}
-
-			if (minLRCur < bestRLInPool) {
-				bestRLInPool = minLRCur;
-				pc.data[whichAlg] += 1;
-				notDownOf[whichAlg] = 0;
-			}
-			else {
-				++notDownOf[whichAlg];
-			}
-		}
-		else {
-			ERROR("NO this kind of Alg");
+		for (int i = 0; i < popSize; ++i) {
+			perturbOnePop(i);
 		}
 	}
 

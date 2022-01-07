@@ -136,6 +136,12 @@ struct RTS {
 
 	bool push_back(Route& r1) {
 
+		if (r1.routeID >= posOf.size()) {
+			int newSize = posOf.size() + std::max<int>(r1.routeID + 1, posOf.size() / 2 + 1);
+			ve.resize(newSize, Route());
+			posOf.resize(newSize, -1);
+		}
+
 		ve[cnt] = r1;
 		posOf[r1.routeID] = cnt;
 		++cnt;
@@ -198,13 +204,13 @@ struct ConfSet {
 		ve = Vec<int>(maxSize + 1, -1);
 		pos = Vec<int>(maxSize + 1, -1);
 	}
-		
+
 	ConfSet(const ConfSet& cs) {
 		cnt = cs.cnt;
 		ve = cs.ve;
 		pos = cs.pos;
 	}
-		
+
 	ConfSet& operator = (const ConfSet& cs) {
 		cnt = cs.cnt;
 		ve = cs.ve;
@@ -217,7 +223,7 @@ struct ConfSet {
 		ve = std::move(cs.ve);
 		pos = std::move(cs.pos);
 	}
-		
+
 	ConfSet& operator = (ConfSet&& cs) noexcept {
 		cnt = std::move(cs.cnt);
 		ve = std::move(cs.ve);
@@ -243,6 +249,12 @@ struct ConfSet {
 
 	bool ins(int val) {
 
+		if (val >= pos.size()) {
+			int newSize = pos.size() + std::max<int>(val + 1, pos.size() / 2 + 1);
+			ve.resize(newSize, -1);
+			pos.resize(newSize, -1);
+		}
+
 		if (pos[val] >= 0) {
 			return false;
 		}
@@ -253,21 +265,16 @@ struct ConfSet {
 		return true;
 	}
 
-	int posAt(int val) {
-
-		if (val < 0 && val >= static_cast<int>(pos.size())) {
-			return -1;
-		}
-		return pos[val];
-	}
-
 	bool removeVal(int val) {
 
-		int index = pos[val];
-		if (index == -1 || cnt <= 0) {
+		if (val >= pos.size() || val < 0) {
 			return false;
 		}
 
+		int index = pos[val];
+		if (index == -1) {
+			return false;
+		}
 		pos[ve[cnt - 1]] = index;
 		pos[val] = -1;
 
@@ -768,8 +775,10 @@ public:
 
 	bool adjustRN(int ourTarget);
 
+	#if 0
 	TwoNodeMove naRepairGetMoves(std::function<bool(TwoNodeMove& t, TwoNodeMove& bestM)>updateBestM);
-	
+	#endif // 0
+
 	bool repair();
 
 	bool mRLLocalSearch(int hasRange,Vec<int> newCus);

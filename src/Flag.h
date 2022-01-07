@@ -69,6 +69,7 @@ extern Configuration* globalCfg;
 extern Input* globalInput;
 extern BKS* bks;
 
+void globalRepairSquIter();
 }
 #endif // !CN_HUST_LYH_FLAG_H
 

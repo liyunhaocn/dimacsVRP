@@ -335,6 +335,30 @@ bool EAX::applyCycles(const Vec<int>& cyclesIndexes, Solver& pc) {
 
 }
 
+bool updateBestPos(Solver::Position& ret,Solver::Position& temp) {
+
+	//if (temp.cost + 2 * temp.pen < ret.cost + 2 * ret.pen) {
+	//	ret = temp;
+	//	return true;
+	//}
+	//return false;
+
+	if (temp.pen < ret.pen) {
+		ret = temp;
+		return true;
+	}
+	else if (temp.cost < ret.cost) {
+		if (myRand->pick(100) < globalCfg->abcyWinkacRate) {
+			ret = temp;
+			return true;
+		}
+		else {
+			return false;
+		}
+	}
+	return false;
+};
+
 Solver::Position EAX::findBestPosRemoveSubtour(Solver& pc, int w, int wj, DisType deInSub) {
 
 	auto& rtsIndexOrder = myRandX->getMN(pc.rts.cnt, pc.rts.cnt);
@@ -356,9 +380,9 @@ Solver::Position EAX::findBestPosRemoveSubtour(Solver& pc, int w, int wj, DisTyp
 		DisType rPc = std::max<DisType>(0, rt.rQ + deInSub - pc.input.Q);
 		rPc = rPc - oldrPc;
 
-		if (rPc > ret.pen) {
-			continue;
-		}
+		//if (rPc > ret.pen) {
+		//	continue;
+		//}
 
 		while (v != -1 && vj != -1) {
 
@@ -395,20 +419,9 @@ Solver::Position EAX::findBestPosRemoveSubtour(Solver& pc, int w, int wj, DisTyp
 			posTemp.pos = v;
 			//posTemp.year = year;
 			//posTemp.secDis = abs(input.datas[w].polarAngle - input.datas[v].polarAngle);
-
 			// TODO[-1]:移除子环的方式，目标函数
-			//if (posTemp.cost + posTemp.pen < ret.cost + ret.pen) {
-			//	ret = posTemp;
-			//}
 
-			if (posTemp.pen < ret.pen) {
-				ret = posTemp;
-			}
-			else if (posTemp.cost < ret.cost) {
-				if (myRand->pick(100) < globalCfg->abcyWinkacRate) {
-					ret = posTemp;
-				}
-			}
+			updateBestPos(ret,posTemp);
 
 			v = vj;
 			vj = pc.customers[vj].next;
@@ -467,20 +480,8 @@ int EAX::removeSubring(Solver& pc) {
 			int wj = pc.customers[w].next;
 			auto posTemp = findBestPosRemoveSubtour(pc, w, wj, demandInSub);
 
-			//if (posTemp.cost + posTemp.pen < ret.cost + ret.pen) {
-			//	ret = posTemp;
-			//	retW = w;
-			//}
-
-			if (posTemp.pen < ret.pen) {
-				ret = posTemp;
+			if (updateBestPos(ret, posTemp)) {
 				retW = w;
-			}
-			else if (posTemp.cost < ret.cost) {
-				if (myRand->pick(100) < globalCfg->abcyWinkacRate) {
-					ret = posTemp;
-					retW = w;
-				}
 			}
 
 			w = wj;

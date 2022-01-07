@@ -32,4 +32,15 @@ extern Input* globalInput = nullptr;
 extern BKS* bks = nullptr;
 extern int squIter = 1;
 
+void globalRepairSquIter() {
+	if (squIter * 10 > IntInf) {
+		squIter = 1;
+		for (auto& i : (*yearTable)) {
+			for (auto& j : i) {
+				j = 1;
+			}
+		}
+	}
+}
+
 }

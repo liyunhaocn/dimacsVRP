@@ -18,18 +18,17 @@ bool allocGlobalMem(int argc, char* argv[]) {
 	// ../Instances/Solomon/RC201.txt 1800 1261.8 1
 	// ../Instances/Homberger/R1_8_3.txt 3600 29429.1 0
 	// ../Instances/Homberger/RC2_6_4.txt 3600 6989.4 0
+	// ../Instances/Homberger/RC2_10_5.txt 3600 6989.4 0
+	//../Instances/Solomon/R204.txt squeeze找不到合法动作
 
 	globalCfg = new hust::Configuration();
 
-	//globalCfg->inputPath = inpath;
 	//globalCfg->inputPath = "../Instances/Homberger/C2_8_7.txt";
 	//globalCfg->inputPath = "../Instances/Homberger/RC2_6_4.txt";
 	//globalCfg->inputPath = "../Instances/Homberger/R1_8_3.txt";
 	//globalCfg->inputPath = "../Instances/Solomon/RC201.txt";
 	//globalCfg->inputPath = "../Instances/Homberger/R2_2_4.txt";
 
-	//globalCfg->inputPath = "Instances/Solomon/C101.txt";
-	//globalCfg->inputPath = "../Instances/Homberger/RC1_8_3.txt";
 	//globalCfg->inputPath = "../Instances/Homberger/RC1_8_1.txt";
 	//globalCfg->inputPath = "../Instances/Homberger/C1_4_2.txt";
 	//globalCfg->inputPath = "../Instances/Homberger/C2_10_6.txt";
@@ -42,8 +41,7 @@ bool allocGlobalMem(int argc, char* argv[]) {
 		globalCfg->seed = std::time(nullptr) + std::clock();
 	}
 	
-
-	globalCfg->seed = 1641485895;
+	//globalCfg->seed = 1641485895;
 
 	myRand = new Random(globalCfg->seed);
 	myRandX = new RandomX(globalCfg->seed);

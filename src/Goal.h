@@ -15,11 +15,13 @@ struct Goal {
 
 	Goal();
 
-	int doTwoKindEAX(Solver& pa, Solver& pb, int kind);
+	DisType getMinRtCostInPool();
+
+	DisType doTwoKindEAX(Solver& pa, Solver& pb, int kind);
 
 	bool perturbOnePop(int i);
 
-	int naMA(Solver& pa, Solver& pb);
+	int naMA();
 
 	Vec<int> getNotTabuPaPb();
 

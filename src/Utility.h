@@ -30,15 +30,14 @@
 //#define println(...) ;
 #define INFO(...);
 #define DEBUG(...);
-#define ERROR(...);
+//#define ERROR(...);
 
 #else
 //#define println(...) ;
 #define INFO(...) println_("[INFO]:",## __VA_ARGS__);
 #define DEBUG(...) println_("[DEBUG]:",## __VA_ARGS__);
-#define ERROR(...) println_("[ERROR]:",## __VA_ARGS__);
-
 #endif // DIMACSGO
+#define ERROR(...) printlnerr_("[ERROR]:",## __VA_ARGS__);
 
 
 namespace hust {
@@ -50,6 +49,16 @@ static void println_(const T& firstArg, const Types&... args) {
     //cout << "size of args: " << sizeof...(args) << endl;
     std::cout << firstArg << " ";
     println_(args...);
+}
+
+
+static void printlnerr_() { std::cerr << std::endl; }
+template<typename T, typename ... Types>
+static void printlnerr_(const T& firstArg, const Types&... args) {
+
+    //cout << "size of args: " << sizeof...(args) << endl;
+    std::cerr << firstArg << " ";
+    printlnerr_(args...);
 }
 
 template<typename T>

@@ -17,6 +17,9 @@ bool Input::initInput() {
 	//readDimacsBKS();
 
 	P = Vec<int>(custCnt + 1, 1);
+	if (datas.size() < custCnt * 3 + 3) {
+		datas.resize(custCnt * 3 + 3);
+	}
 	for (int i = custCnt + 1; i < datas.size(); ++i) {
 		datas[i] = datas[0];
 		datas[i].CUSTNO = i;
@@ -24,6 +27,14 @@ bool Input::initInput() {
 
 	disOf = Vec< Vec<DisType> >
 		(custCnt + 1, Vec<DisType>(custCnt + 1, 0));
+
+
+	double sumq = 0;
+	for (int i = 1; i <= custCnt; ++i) {
+		sumq += datas[i].DEMAND;
+	}
+	Qbound = ceil(double(sumq) / Q);
+	Qbound = std::max<int>(Qbound, 2);
 
 	/*
 		sqrt函数有三种形式
@@ -44,17 +55,6 @@ bool Input::initInput() {
 		}
 	}
 
-	//UnorderedSet<DisType> disSet;
-	//int cnt = 0;
-	//for (int i = 0; i <= custCnt + 1; ++i) {
-	//	for (int j = i + 1; j <= custCnt; ++j) {
-	//		disSet.insert(disOf[i][j]);
-	//		++cnt;
-	//	}
-	//}
-	//INFO(cnt);
-	//INFO(disSet.size());
-
 	sectorClose = Vec< Vec<int>>(custCnt + 1, Vec<int>(0));
 	for (int v = 0; v <= custCnt; ++v) {
 		Vec<int> nums;
@@ -72,8 +72,7 @@ bool Input::initInput() {
 		sectorClose[v] = std::move(nums);
 	}
 
-	allCloseOf = Vec< Vec<int>>(custCnt + 1, Vec<int>(0));
-
+	
 	auto canlinkDir = [&](int v, int w) ->bool {
 
 		DisType av = disOf[0][v];
@@ -91,6 +90,12 @@ bool Input::initInput() {
 		}
 		return true;
 	};
+
+	#if 0
+	// disOf[v][w] 表示w和v之间的距离
+	Vec<Vec<int>> allCloseOf;
+
+	allCloseOf = Vec< Vec<int>>(custCnt + 1, Vec<int>(0));
 
 	for (int v = 0; v <= custCnt; ++v) {
 
@@ -136,6 +141,7 @@ bool Input::initInput() {
 
 	Vec<Vec<int>> iInNeicloseOf;
 
+
 	jIsxthcloseOf = Vec< Vec<int> >
 		(custCnt + 1, Vec<int>(custCnt + 1, -1));
 
@@ -146,7 +152,6 @@ bool Input::initInput() {
 	}
 
 	iInNeicloseOfUnionNeiCloseOfI = Vec< Vec<int> >(custCnt + 1);
-
 	int deNeiSize = globalCfg->outNeiSize;
 	deNeiSize = std::min(custCnt - 1, deNeiSize);
 
@@ -157,7 +162,7 @@ bool Input::initInput() {
 	}
 	for (int v = 0; v <= custCnt; ++v) {
 		for (int wpos = 0; wpos < deNeiSize; ++wpos) {
-			LL w = allCloseOf[v][wpos];
+			int w = allCloseOf[v][wpos];
 			iInNeicloseOf[w].push_back(v);
 		}
 	}
@@ -176,6 +181,7 @@ bool Input::initInput() {
 			}
 		}
 	}
+	#endif // 0
 
 	addSTclose = Vec< Vec<int>>
 		(custCnt + 1, Vec<int>());
@@ -191,15 +197,28 @@ bool Input::initInput() {
 
 		auto cmp = [&](const int a, const int b) {
 
-			int aLinkv = canLinkNode(a, v);
-			int bLinkv = canLinkNode(b, v);
-			if ((aLinkv && bLinkv) || (!aLinkv && !bLinkv)) {
-				return disOf[v][a] + datas[a].SERVICETIME <
-					disOf[v][b] + datas[b].SERVICETIME;
+			//TODO[-1] 这里的比较方式进行了修改
+			//return disOf[v][a] < disOf[v][b];
+			//return disOf[v][a] + datas[a].SERVICETIME <
+			//	disOf[v][b] + datas[b].SERVICETIME;
+
+			if (disOf[a][v] == disOf[b][v]) {
+				return datas[a].DUEDATE < datas[b].DUEDATE;
 			}
 			else {
-				return aLinkv ? true : false;
+				return disOf[a][v] < disOf[b][v];
 			}
+			return true;
+
+			//int aLinkv = canLinkNode(a, v);
+			//int bLinkv = canLinkNode(b, v);
+			//if ((aLinkv && bLinkv) || (!aLinkv && !bLinkv)) {
+			//	return disOf[v][a] + datas[a].SERVICETIME <
+			//		disOf[v][b] + datas[b].SERVICETIME;
+			//}
+			//else {
+			//	return aLinkv ? true : false;
+			//}
 
 		};
 		std::sort(addSTclose[v].begin(), addSTclose[v].end(), cmp);
@@ -215,6 +234,46 @@ bool Input::initInput() {
 		}
 	}
 
+	iInNeicloseOfUnionNeiCloseOfI = Vec< Vec<int> >(custCnt + 1);
+	int deNeiSize = globalCfg->outNeiSize;
+	deNeiSize = std::min(custCnt - 1, deNeiSize);
+
+	auto iInNeicloseOf = Vec< Vec<int> >
+		(custCnt + 1, Vec<int>());
+	for (int i = 0; i < custCnt + 1; ++i) {
+		iInNeicloseOf[i].reserve(custCnt);
+	}
+	for (int v = 0; v <= custCnt; ++v) {
+		for (int wpos = 0; wpos < deNeiSize; ++wpos) {
+			int w = addSTclose[v][wpos];
+			iInNeicloseOf[w].push_back(v);
+		}
+	}
+	
+	auto jIsxthcloseOf = Vec< Vec<int> >
+		(custCnt + 1, Vec<int>(custCnt + 1, -1));
+
+	for (int i = 0; i <= custCnt; ++i) {
+		for (int j = 0; j < custCnt; ++j) {
+			jIsxthcloseOf[i][addSTclose[i][j]] = j;
+		}
+	}
+
+	iInNeicloseOfUnionNeiCloseOfI
+		= Vec<Vec<int>>(custCnt + 1);
+	for (std::size_t v = 0; v <= custCnt; ++v) {
+
+		iInNeicloseOfUnionNeiCloseOfI[v] = Vec<int>
+			(addSTclose[v].begin(), addSTclose[v].begin() + deNeiSize);
+
+		for (std::size_t wpos = 0; wpos < iInNeicloseOf[v].size(); ++wpos) {
+
+			int w = iInNeicloseOf[v][wpos];
+			if (jIsxthcloseOf[v][w] >= deNeiSize) {
+				iInNeicloseOfUnionNeiCloseOfI[v].push_back(w);
+			}
+		}
+	}
 	return true;
 }
 
@@ -229,7 +288,7 @@ bool Input::readDimacsInstance(std::string& instanciaPath) {
 	}
 
 	char name[64];
-	this->datas = Vec<Data>(1000 * 3 + 3);
+	
 
 	fscanf(file, "%s\n", name);
 	this->example = std::string(name);
@@ -242,11 +301,18 @@ bool Input::readDimacsInstance(std::string& instanciaPath) {
 	this->Q *= disMul;
 	std::string line = "";
 
+	this->datas = Vec<Data>(303);
+
 	int index = 0;
 	int id = -1, coordx = -1, coordy = -1, demand = -1;
 	int ready_time = -1, due_date = -1, service_time = -1;
 	int readArgNum = 0;
 	while ((readArgNum = fscanf(file, "%d %d %d %d %d %d %d\n", &id, &coordx, &coordy, &demand, &ready_time, &due_date, &service_time)) == 7) {
+
+		if (index >= datas.size()) {
+			int newSize = datas.size() + datas.size() / 2;
+			datas.resize(newSize);
+		}
 
 		this->datas[index].CUSTNO = id;
 		this->datas[index].XCOORD = coordx * disMul;

@@ -30,9 +30,9 @@ int Solver::reCusNo(int x) {
 Solver::Solver() :
 	input(*globalInput),
 	lyhTimer(globalCfg->runTimer),
-	PtwConfRts(input.custCnt),
-	PcConfRts(input.custCnt),
-	rts(input.custCnt)
+	PtwConfRts(globalInput->custCnt/8),
+	PcConfRts(globalInput->custCnt/8),
+	rts(globalInput->custCnt/8)
 {
 
 	customers = Vec<Customer>(input.custCnt + 1);
@@ -1108,6 +1108,9 @@ Solver::DeltPen Solver::_2optOpenvv_(int v, int w) { //0
 		getRcost();
 	}
 
+	if (bestM.deltPtw == DisInf) {
+		INFO(11111);
+	}
 	return bestM;
 }
 
@@ -1350,13 +1353,11 @@ Solver::DeltPen Solver::outrelocatevToww_(int v, int w, int oneR) { //2
 
 				//rNextDisp(rv);
 				ERROR(front);
-				ERROR(back);
 				ERROR(v);
 				ERROR(w);
 				ERROR(globalCfg->seed);
 				ERROR(rv.head);
 				ERROR(rv.tail);
-				ERROR("error 333");
 			}
 			#endif // CHECKING
 
@@ -4962,7 +4963,7 @@ Solver::TwoNodeMove Solver::getMovesRandomly
 			int w = input.addSTclose[v][wpos];
 			//int w = input.allCloseOf[v][wpos];
 			int wid = customers[w].routeID;
-
+			
 			if (wid == -1 || wid == vid) {
 				continue;
 			}
@@ -4974,6 +4975,7 @@ Solver::TwoNodeMove Solver::getMovesRandomly
 			TwoNodeMove m1(v, w, 1, _2optOpenvvj(v, w));
 			updateBestM(m1, bestM);
 		}
+
 	};
 
 	auto exchangevwEffectively = [&](int v) {
@@ -5142,21 +5144,31 @@ Solver::TwoNodeMove Solver::getMovesRandomly
 	if (r.rPtw > 0) {
 
 		int pt = r.tail;
-		int endNode = pt;
 		while (pt != -1) {
 			if (customers[pt].avp > input.datas[pt].DUEDATE) {
-				endNode = pt;
 				break;
 			}
 			pt = customers[pt].pre;
 		}
-
-		if (endNode == r.tail) {
-			endNode = customers[endNode].pre;
+		
+		#if CHECKING
+		if (pt == r.head) {
+			ERROR("NO Ptw In R");
 		}
+		#endif // CHECKING
 
+		int endNode = -1;
+		if (pt == r.tail) {
+			endNode = pt;
+		}
+		else {
+			endNode = customers[pt].next;
+		}
+		
+		//auto arr = rPutCusInve(r);
+		//for (int v : arr ) {
 		for (int v = customers[r.head].next; v != endNode; v = customers[v].next) {
-			
+
 			int v_ = customers[v].pre;
 			int vj = customers[v].next;
 			int maxL = std::max<int>(5, r.rCustCnt / 5);
@@ -5687,10 +5699,13 @@ bool Solver::squeeze() {
 		TwoNodeMove bestM = getMovesRandomly(updateBestM);
 
 		if (bestM.deltPen.PcOnly == DisInf || bestM.deltPen.PtwOnly == DisInf) {
-			ERROR("squeeze fail find move");
-			ERROR("squIter", squIter);
+			if (contiNotDe == globalCfg->squContiIter) {
+				break;
+			}
+			INFO("squeeze fail find move");
+			INFO("squIter", squIter);
 			++contiNotDe;
-			break;
+			continue;
 		}
 
 		#if CHECKING
@@ -6119,7 +6134,7 @@ Solver::Position Solver::findBestPosInSolForInit(int w) {
 			DisType cost =
 				input.disOf[reCusNo(w)][reCusNo(v)]
 				+ input.disOf[reCusNo(w)][reCusNo(vj)];
-			//- input.disOf[reCusNo(vj)][reCusNo(v)];
+			    - input.disOf[reCusNo(vj)][reCusNo(v)];
 
 			Position pt;
 			pt.cost = cost;
@@ -6354,7 +6369,7 @@ Vec<int> Solver::ruinGetRuinCusBySting(int ruinKmax, int ruinLmax) {
 
 	int wpos = 0;
 	while (rIdSet.size() < ruinK) {
-		int w = input.allCloseOf[v][wpos];
+		int w = input.addSTclose[v][wpos];
 		int wrId = customers[w].routeID;
 		if (wrId != -1 && rIdSet.count(wrId) == 0) {
 			rIdSet.insert(wrId);
@@ -6519,7 +6534,7 @@ Vec<int> Solver::ruinGetRuinCusByRound(int ruinCusNum) {
 
 	for (int i = 0; i < ruinCusNum; ++i) {
 		int wpos = i;
-		int w = input.allCloseOf[v][wpos];
+		int w = input.addSTclose[v][wpos];
 		if (customers[w].routeID != -1) {
 			runCus.push_back(w);
 		}
@@ -6995,9 +7010,9 @@ int Solver::CVB2ruinLS(int ruinCusNum) {
 	CVB2ClearEPAllowNewR(clearKind);
 
 	auto cuses = EAX::getDiffCusofPb(solClone, *this);
-	//if (cuses.size() > 0 && rts.cnt < solClone.rts.cnt+2) {
-	//	mRLLocalSearch(1, cuses);
-	//}
+	if (cuses.size() > 0) {
+		mRLLocalSearch(1, cuses);
+	}
 	reCalRtsCostAndPen();
 	if (RoutesCost < solClone.RoutesCost) {
 		++pcRuKind.data[perturbkind];
@@ -7107,7 +7122,9 @@ bool Solver::patternAdjustment(int Irand) {
 			for (int i = 0; i < m; ++i) {
 				int wpos = ve[i];
 
-				int w = input.allCloseOf[v][wpos];
+				//TODO[-1]:这里改成了addSTclose
+				//int w = input.allCloseOf[v][wpos];
+				int w = input.addSTclose[v][wpos];
 				if (customers[w].routeID == -1
 					//|| customers[w].routeID == customers[v].routeID
 					) {
@@ -7896,8 +7913,11 @@ void Solver::minimizeRN(int ourTarget) {
 		std::fill(input.P.begin(), input.P.end(), 1);
 		bool isDelete = ejectLocalSearch();
 		if (isDelete) {
+			if (rts.cnt == input.Qbound) {
+				break;
+			}
 			//saveOutAsSintefFile();
-			//debug(rts.size());
+			//INFO("rts.size():",rts.size());
 		}
 		else {
 			*this = sclone;
@@ -7959,7 +7979,7 @@ bool Solver::adjustRN(int ourTarget) {
 	globalCfg->ruinC_ = (globalCfg->ruinLmax + 1);
 	return true;
 }
-
+#if 0
 Solver::TwoNodeMove Solver::naRepairGetMoves(std::function<bool(TwoNodeMove& t, TwoNodeMove& bestM)>updateBestM) {
 
 	TwoNodeMove bestM;
@@ -7994,6 +8014,7 @@ Solver::TwoNodeMove Solver::naRepairGetMoves(std::function<bool(TwoNodeMove& t, 
 	}
 	return bestM;
 }
+#endif // 0
 
 bool Solver::repair() {
 
@@ -8157,7 +8178,9 @@ bool Solver::mRLLocalSearch(int hasRange,Vec<int> newCus) {
 			}
 			for (int wpos = 0; wpos < range; ++wpos) {
 
-				int w = input.allCloseOf[v][wpos];
+				//TODO[-1]:这里改成了addSTclose
+				//int w = input.allCloseOf[v][wpos];
+				int w = input.addSTclose[v][wpos];
 				//int w = input.sectorClose[v][wpos];
 				if (customers[w].routeID == -1) {
 					continue;
@@ -8192,8 +8215,9 @@ bool Solver::mRLLocalSearch(int hasRange,Vec<int> newCus) {
 				continue;
 			}
 			for (int wpos = 0; wpos < range; ++wpos) {
-
-				int w = input.allCloseOf[v][wpos];
+				//TODO[-1]:这里改成了addSTclose
+				int w = input.addSTclose[v][wpos];
+				//int w = input.allCloseOf[v][wpos];
 				//int w = input.sectorClose[v][wpos];
 				if (customers[w].routeID == -1) {
 					continue;
