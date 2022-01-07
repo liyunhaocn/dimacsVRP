@@ -93,13 +93,13 @@ struct Configuration {
 	// ruinLocalSearch
 	int ruinLocalSearchNextNeiBroad = 5;
 
-	int ruinSplitRate = 25; // %100 means ruinSplitRate%
+	int ruinSplitRate = 0; // %100 means ruinSplitRate%
 	
 	int ruinLmax = 20;
 	//(ruinLmax+1)/2
 	int ruinC_ = 15;
 
-	int ruinWinkacRate = 90; // 100
+	int ruinWinkacRate = 80; // 100
 	//TODO[-1]:为初始化设置了眨眼
 	int initWinkacRate = 99; // 100
 	int abcyWinkacRate = 100; // 100

@@ -20,27 +20,18 @@ bool allocGlobalMem(int argc, char* argv[]) {
 	// ../Instances/Homberger/RC2_6_4.txt 3600 6989.4 0
 	// ../Instances/Homberger/RC2_10_5.txt 3600 6989.4 0
 	//../Instances/Solomon/R204.txt squeeze找不到合法动作
+	//../Instances/Homberger/R2_2_4.txt 
+	//../Instances/Homberger/RC1_8_1.txt 
+	//../Instances/Homberger/C1_4_2.txt 
+	//../Instances/Homberger/C2_10_6.txt 
+	//../Instances/Homberger/RC1_8_5.txt
 
 	globalCfg = new hust::Configuration();
 
-	//globalCfg->inputPath = "../Instances/Homberger/C2_8_7.txt";
-	//globalCfg->inputPath = "../Instances/Homberger/RC2_6_4.txt";
-	//globalCfg->inputPath = "../Instances/Homberger/R1_8_3.txt";
-	//globalCfg->inputPath = "../Instances/Solomon/RC201.txt";
-	//globalCfg->inputPath = "../Instances/Homberger/R2_2_4.txt";
-
-	//globalCfg->inputPath = "../Instances/Homberger/RC1_8_1.txt";
-	//globalCfg->inputPath = "../Instances/Homberger/C1_4_2.txt";
-	//globalCfg->inputPath = "../Instances/Homberger/C2_10_6.txt";
-	//globalCfg->inputPath = "../Instances/Homberger/RC1_8_5.txt";
-	//globalCfg->inputPath = "../Instances/Homberger/C2_8_7.txt";
-
 	globalCfg->solveCommandLine(argc, argv);
 
-	if (globalCfg->seed == -1) {
-		globalCfg->seed = std::time(nullptr) + std::clock();
-	}
-	
+	globalCfg->seed = std::time(nullptr) + std::clock();
+
 	//globalCfg->seed = 1641485895;
 
 	myRand = new Random(globalCfg->seed);

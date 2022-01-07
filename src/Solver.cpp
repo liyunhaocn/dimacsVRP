@@ -6839,6 +6839,8 @@ int Solver::ruinLocalSearchNotNewR(int ruinCusNum) {
 	
 	int retState = 0;
 
+	DisType Before = RoutesCost;
+
 	for (int conti = 1; conti < 20;++conti) {
 
 		int kind = pcRuinkind.getIndexBasedData();
@@ -6851,9 +6853,10 @@ int Solver::ruinLocalSearchNotNewR(int ruinCusNum) {
 			if (cuses.size() > 0) {
 				mRLLocalSearch(1,cuses);
 			}
-			//else {
-			//	INFO("no new Cus after ruin");
-			//}
+			if (RoutesCost < Before) {
+				++pcRuinkind.data[kind];
+				++pcClEPkind.data[kindclep];
+			}
 			break;
 		}
 		else {
@@ -6861,6 +6864,7 @@ int Solver::ruinLocalSearchNotNewR(int ruinCusNum) {
 			continue;
 		}
 	}
+	
 	return retState;
 }
 
@@ -7079,13 +7083,7 @@ int Solver::Simulatedannealing(int kind,int iterMax, double temperature,int ruin
 		//}
 	}
 
-	//if (pBest.RoutesCost < RoutesCost) {
-	//	*this = pBest;
-	//}
-	
 	*this = s;
-	//INFO("temperature:", temperature, "RoutesCost:",RoutesCost);
-	//bks->bestSolFound.saveOutAsSintefFile();
 	return true;
 
 }

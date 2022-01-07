@@ -417,10 +417,7 @@ int Goal::callSimulatedannealing() {
 	Solver st;
 
 	st.initSolution(4);
-	//st.adjustRN(ourTarget);
-	st.minimizeRN(0);
-
-	ourTarget = st.rts.cnt;
+	st.adjustRN(ourTarget);
 
 	st.mRLLocalSearch(0, {});
 	st.Simulatedannealing(0,1000, 20.0, 1);
@@ -478,16 +475,22 @@ int Goal::TwoAlgCombine() {
 
 		naMA();
 
-		for (int i = 0; i <= popSize; ++i) {
+		Solver& sol = bks->bestSolFound;
+		Solver clone = sol;
+		clone.Simulatedannealing(0, 500, 100.0, globalCfg->ruinC_);
+		bks->updateBKS(clone, "time:" + std::to_string(gloalTimer.getRunTime()) + " ls after ruin");
+		for (int i = 0; i < popSize; ++i) {
 			Solver& sol = i < popSize ? pool[i] : bks->bestSolFound;
 			Solver clone = sol;
 			clone.Simulatedannealing(0, 100, 100.0, globalCfg->ruinC_);
+			
 			bks->updateBKS(clone, "time:" + std::to_string(gloalTimer.getRunTime()) + " ls after ruin");
 			if (clone.RoutesCost < sol.RoutesCost) {
 				sol = clone;
 			}
 		}
-
+		//TODO[-1]:这里还要不要呢？
+		naMA();
 		for (int i = 0; i < popSize; ++i) {
 			perturbOnePop(i);
 		}
