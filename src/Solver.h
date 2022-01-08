@@ -797,15 +797,17 @@ public:
 
 struct BKS {
 
-	DisType lastRec = DisInf;
 	Solver bestSolFound;
-	
+	DisType limitVal = DisInf;
+
 	BKS();
 
 	void reSet();
 
-	bool updateBKS(Solver& newSol, std::string opt = "");
+	bool updateBKSAndPrint(Solver& newSol, std::string opt = "");
 	
+	//bool justPrint();
+
 };
 
 };

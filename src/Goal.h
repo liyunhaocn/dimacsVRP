@@ -11,8 +11,6 @@ struct Goal {
 
 	Vec<Solver> pool;
 
-	Timer gloalTimer;
-
 	Goal();
 
 	DisType getMinRtCostInPool();

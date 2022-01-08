@@ -24,11 +24,11 @@ void Configuration::show() {
 	INFO("sintefRecRL:", sintefRecRL);
 	INFO("naRecRL:", naRecRL);
 	INFO("naRecRN:", naRecRN);
-
 	INFO("Pwei0:", Pwei0);
 	INFO("Pwei1:", Pwei1);
 	INFO("minKmax:", minKmax);
 	INFO("maxKmax:", maxKmax);
+
 	INFO("seed:", seed);
 }
 
@@ -37,17 +37,17 @@ void Configuration::repairByCusCnt(int cusCnt) {
 	outNeiSize = std::min<int>(cusCnt-1, outNeiSize);
 	broadenWhenPos_0 = std::min<int>(cusCnt, broadenWhenPos_0);
 
-	patternAdjustmentNnei = std::min<int>(cusCnt, patternAdjustmentNnei);
-	patternAdjustmentGetM = std::min<int>(cusCnt, patternAdjustmentGetM);
+	patternAdjustmentNnei = std::min<int>(cusCnt-1, patternAdjustmentNnei);
+	patternAdjustmentGetM = std::min<int>(cusCnt-1, patternAdjustmentGetM);
 
-	naRepairGetMovesNei = std::min<int>(cusCnt, naRepairGetMovesNei);
+	naRepairGetMovesNei = std::min<int>(cusCnt-1, naRepairGetMovesNei);
 
 	//mRLLocalSearchRange = { 10,50 };
-	mRLLocalSearchRange[0] = std::min<int>(cusCnt, mRLLocalSearchRange[0]);
-	mRLLocalSearchRange[1] = std::min<int>(cusCnt, mRLLocalSearchRange[1]);
+	mRLLocalSearchRange[0] = std::min<int>(cusCnt-1, mRLLocalSearchRange[0]);
+	mRLLocalSearchRange[1] = std::min<int>(cusCnt-1, mRLLocalSearchRange[1]);
 	//mRLLSgetAllRange = std::min<int>(cusCnt, mRLLSgetAllRange);
 
-	ruinLocalSearchNextNeiBroad = std::min<int>(cusCnt, ruinLocalSearchNextNeiBroad);
+	ruinLocalSearchNextNeiBroad = std::min<int>(cusCnt-1, ruinLocalSearchNextNeiBroad);
 
 	ruinC_ = std::min<int>(cusCnt - 1, ruinC_);
 }
@@ -1803,7 +1803,6 @@ static InsData getD15InsData(std::string ins) {
 	return InsData{};
 }
 
-
 void Configuration::solveCommandLine(int argc, char* argv[]) {
 
 	if (argc >= 2) {
@@ -1814,8 +1813,8 @@ void Configuration::solveCommandLine(int argc, char* argv[]) {
 	if (argc >= 3) {
 		globalCfg->runTimer = std::stoi(argv[2], nullptr, 0);
 	}
-}
 
+}
 
 static bool writeOneLineToFile(std::string path,std::string data) {
 	

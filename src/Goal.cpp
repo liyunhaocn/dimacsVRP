@@ -4,13 +4,10 @@
 
 namespace hust {
 
-Goal::Goal():gloalTimer(0){
+Goal::Goal(){
 
 	eaxTabuTable = Vec<Vec<bool>>
 		(globalCfg->popSize, Vec<bool>(globalCfg->popSize,false));
-
-	gloalTimer.setLenUseSecond(globalCfg->runTimer);
-	gloalTimer.reStart();
 
 }
 
@@ -128,11 +125,12 @@ DisType Goal::doTwoKindEAX(Solver& pa, Solver& pb, int kind) {
 		auto newCus = EAX::getDiffCusofPb(pa, pc);
 
 		if (newCus.size() > 0) {
+			//pc.mRLLocalSearch(0, {});
 			pc.mRLLocalSearch(1, newCus);
-			auto cus1 = EAX::getDiffCusofPb(pa, pc);
-			if (cus1.size() == 0) {
-				//debug("pa is same as pa");
-			}
+			//auto cus1 = EAX::getDiffCusofPb(pa, pc);
+			//if (cus1.size() == 0) {
+			//	//debug("pa is same as pa");
+			//}
 		}
 		else {
 			//debug("pa is same as pa");
@@ -141,7 +139,7 @@ DisType Goal::doTwoKindEAX(Solver& pa, Solver& pb, int kind) {
 		if (pc.RoutesCost < paBest.RoutesCost) {
 			paBest = pc;
 			
-			bool isup = bks->updateBKS(pc, "time:" + std::to_string(gloalTimer.getRunTime()) + " eax ls, kind:" + std::to_string(kind));
+			bool isup = bks->updateBKSAndPrint(pc, "time:" + std::to_string(gloalTimer->getRunTime()) + " eax ls, kind:" + std::to_string(kind));
 			if (isup) {
 				ch = 1;
 				retState = 1;
@@ -188,7 +186,7 @@ bool Goal::perturbOnePop(int i) {
 			sclone.perturbBaseRuin(kind, ruinCusNum, clearEPkind);
 		}
 		else if(kind ==3){
-			int step = myRand->pick(sclone.input.custCnt * 0.4, sclone.input.custCnt*0.6);
+			int step = myRand->pick(sclone.input.custCnt * 0.2, sclone.input.custCnt*0.4);
 			sclone.patternAdjustment(step);
 			sclone.reCalRtsCostAndPen();
 		}
@@ -269,8 +267,18 @@ bool Goal::initPopulation() {
 	pool.reserve(globalCfg->popSize);
 	Vec<int> kset = { 4,3,2,1,0};
 
-
 	int ourTarget = globalCfg->lkhRN;
+
+	//for (int k : kset) {
+	//	char a[100];
+	//	snprintf(a,100,"k%d_",k);
+	//	Solver s0;
+	//	s0.initSolution(k);
+	//	s0.adjustRN(ourTarget);
+	//	s0.saveOutAsSintefFile(a);
+	//}
+
+	
 	//int ourTarget = globalCfg->lkhRN;
 
 	Solver s0;
@@ -283,9 +291,7 @@ bool Goal::initPopulation() {
 
 	INFO("s0.RoutesCost:", s0.RoutesCost);
 	INFO("sol0 inint kind:", kset[0]);
-
-	bks->updateBKS(s0);
-
+	bks->updateBKSAndPrint(s0);
 	s0.ruinLocalSearchNotNewR(1);
 
 	pool.push_back(s0);
@@ -301,7 +307,7 @@ bool Goal::initPopulation() {
 		if (st.rts.cnt == ourTarget) {
 			st.mRLLocalSearch(0, {});
 			s0.ruinLocalSearchNotNewR(1);
-			bks->updateBKS(st);
+			bks->updateBKSAndPrint(st);
 			INFO("sol inint kind:", kset[i % kset.size()]);
 			pool.push_back(st);
 		}
@@ -316,7 +322,7 @@ bool Goal::initPopulation() {
 			sclone.reCalRtsCostAndPen();
 			sclone.mRLLocalSearch(0, {});
 			//sclone.Simulatedannealing(0,1000);
-			bks->updateBKS(sclone);
+			bks->updateBKSAndPrint(sclone);
 			pool.push_back(sclone);
 		}
 	}
@@ -375,7 +381,7 @@ bool Goal::saveSlnFile() {
 
 	rgbData << sol.rts.size() << ",";
 
-	rgbData << gloalTimer.getRunTime() << ",";
+	rgbData << gloalTimer->getRunTime() << ",";
 
 	rgbData << double((double)(lyhrl - globalCfg->lkhRL) / globalCfg->lkhRL) * 100 << ",";
 
@@ -425,7 +431,7 @@ int Goal::callSimulatedannealing() {
 	#if DIMACSGO
 	while (true) {
 	#else
-	while (!gloalTimer.isTimeOut()) {
+	while (!gloalTimer->isTimeOut()) {
 		if (globalCfg->cmdIsopt == 1) {
 			if (bks->bestSolFound.RoutesCost == globalCfg->d15RecRL) {
 				break;
@@ -442,7 +448,7 @@ int Goal::callSimulatedannealing() {
 		}
 
 		st.Simulatedannealing(1, 10000, 100.0, globalCfg->ruinC_);
-		bks->updateBKS(st);
+		bks->updateBKSAndPrint(st);
 	}
 
 	saveSlnFile();
@@ -462,10 +468,12 @@ int Goal::TwoAlgCombine() {
 	DisType naMAHis = 0;
 	DisType ruinHis = 0;
 
+	int iter = 0;
+
 	#if DIMACSGO
 	while (true) {
 	#else
-	while (!gloalTimer.isTimeOut()) {
+	while (!gloalTimer->isTimeOut()) {
 		if (globalCfg->cmdIsopt == 1) {
 			if (bks->bestSolFound.RoutesCost == globalCfg->d15RecRL) {
 				break;
@@ -476,18 +484,16 @@ int Goal::TwoAlgCombine() {
 		globalRepairSquIter();
 
 		naMA();
-
 		Solver& sol = bks->bestSolFound;
 		Solver clone = sol;
-		clone.Simulatedannealing(0, 50, 0.0, 15);
-		bks->updateBKS(clone, "time:" + std::to_string(gloalTimer.getRunTime()) + " ls after ruin");
+		clone.Simulatedannealing(1, 50, 0.0, 10);
+		bks->updateBKSAndPrint(clone, "time:" + std::to_string(gloalTimer->getRunTime()) + " ls after ruin");
 		for (int i = 0; i < popSize; ++i) {
 			Solver& sol = i < popSize ? pool[i] : bks->bestSolFound;
 			Solver clone = sol;
-			clone.Simulatedannealing(0, 20, 0.0, 15);
+			clone.Simulatedannealing(0, 20, 0.0, 10);
 			//clone.Simulatedannealing(0, 20, 1.0, globalCfg->ruinC_);
-			
-			bks->updateBKS(clone, "time:" + std::to_string(gloalTimer.getRunTime()) + " ls after ruin");
+			bks->updateBKSAndPrint(clone, "time:" + std::to_string(gloalTimer->getRunTime()) + " ls after ruin");
 			if (clone.RoutesCost < sol.RoutesCost) {
 				sol = clone;
 			}
@@ -497,10 +503,12 @@ int Goal::TwoAlgCombine() {
 		for (int i = 0; i < popSize; ++i) {
 			perturbOnePop(i);
 		}
+		//exit(0);
 	}
 
+	bks->bestSolFound.printDimacs();
 	saveSlnFile();
-	gloalTimer.disp();
+	gloalTimer->disp();
 
 	return true;
 }

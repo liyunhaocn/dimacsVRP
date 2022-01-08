@@ -774,21 +774,38 @@ int EAX::getabCyNum(Solver& pa, Solver& pb) {
 
 Vec<int> EAX::getDiffCusofPb(Solver& pa, Solver& pb) {
 
-		UnorderedSet<int> s;
-		EAX et(pa, pb);
+	UnorderedSet<int> s;
+	EAX et(pa, pb);
 
-		for (int i = 0; i < et.pbPriE.cnt; ++i) {
-			int index = et.pbPriE.ve[i];
-			s.insert(et.richEdges[index].e.a);
-			s.insert(et.richEdges[index].e.b);
-		}
-
-		Vec<int> ret;
-		for (int c : s) {
-			ret.push_back(c);
-		}
-		return ret;
+	for (int i = 0; i < et.pbPriE.cnt; ++i) {
+		int index = et.pbPriE.ve[i];
+		s.insert(et.richEdges[index].e.a);
+		s.insert(et.richEdges[index].e.b);
 	}
+
+	//Vec<int> ret;
+	//for (int c : s) {
+	//	ret.push_back(c);
+	//}
+	//return ret;
+
+	UnorderedSet<int> ss;
+	for (int c : s) {
+		ss.insert(c);
+		for (int i = 0; i < 5; ++i) {
+			int w = globalInput->addSTclose[c][i];
+			if (pb.customers[w].routeID!=-1) {
+				ss.insert(w);
+			}
+		}
+	}
+	Vec<int> ret;
+	for (int c : ss) {
+		ret.push_back(c);
+	}
+	return ret;
+
+}
 
 }
 

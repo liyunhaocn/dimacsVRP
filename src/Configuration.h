@@ -80,7 +80,7 @@ struct Configuration {
 	//int naEaxCh = 20;
 
 	//patternAdjustment参数
-	int patternAdjustmentNnei = 60;
+	int patternAdjustmentNnei = 80;
 	int patternAdjustmentGetM = 10;
 
 	//naRepairGetMoves
@@ -99,9 +99,9 @@ struct Configuration {
 	//(ruinLmax+1)/2
 	int ruinC_ = 15;
 
-	int ruinWinkacRate = 95; // 100
+	int ruinWinkacRate = 99; // 100
 	//TODO[-1]:为初始化设置了眨眼
-	int initWinkacRate = 99; // 100
+	int initWinkacRate = 100; // 100
 	int abcyWinkacRate = 100; // 100
 
 	void show();
@@ -111,6 +111,7 @@ struct Configuration {
 	void solveCommandLine(int argc, char* argv[]);
 
 	void addHelpInfo();
+
 };
 
 }

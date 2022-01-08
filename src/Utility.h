@@ -39,7 +39,6 @@
 #endif // DIMACSGO
 #define ERROR(...) printlnerr_("[ERROR]:",## __VA_ARGS__);
 
-
 namespace hust {
 
 static void println_() { std::cout << std::endl; }
@@ -197,8 +196,9 @@ class Timer {
 public:
 
     using Millisecond = std::chrono::milliseconds;
-    using TimePoint = std::chrono::steady_clock::time_point;
-    using Clock = std::chrono::steady_clock;
+    using Microsecond = std::chrono::microseconds;
+    using TimePoint = std::chrono::high_resolution_clock::time_point;
+    using Clock = std::chrono::high_resolution_clock;
 
     static constexpr double MillisecondsPerSecond = 1000;
   
@@ -214,6 +214,10 @@ public:
 
     static double durationInSecond(const TimePoint& start, const TimePoint& end) {
         return std::chrono::duration_cast<Millisecond>(end - start).count() / MillisecondsPerSecond;
+    }
+
+    static Microsecond durationInMicrosecond(const TimePoint& start, const TimePoint& end) {
+        return std::chrono::duration_cast<Microsecond>(end - start);
     }
 
     static Millisecond toMillisecond(double second) {
@@ -260,7 +264,8 @@ public:
     const TimePoint& getEndTime() const { return endTime; }
 
     void disp() {
-        std::cout << name << "run :" << elapsedSeconds() << "s" << std::endl;
+        std::cout << name << "run:" << elapsedSeconds() << "s " 
+            << elapsedMilliseconds().count() << "ms" << std::endl;
     }
 
     double getRunTime() {

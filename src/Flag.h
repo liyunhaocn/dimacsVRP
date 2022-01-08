@@ -52,6 +52,13 @@ extern double PI_8;
 extern double PI_16;
 extern double PI_32;
 
+extern int vd2pi;
+extern int vdpi;
+extern int vd2fpi;
+extern int vd4fpi;
+extern int vd8fpi;
+
+
 extern int disMul;
 extern unsigned Mod;
 
@@ -60,6 +67,7 @@ struct RandomX;
 struct Configuration;
 struct Input;
 struct BKS;
+struct Timer;
 
 extern Random* myRand;
 extern RandomX* myRandX;
@@ -68,6 +76,7 @@ extern Vec<Vec<int>>* yearTable;
 extern Configuration* globalCfg;
 extern Input* globalInput;
 extern BKS* bks;
+extern Timer* gloalTimer;
 
 void globalRepairSquIter();
 }

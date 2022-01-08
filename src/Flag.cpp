@@ -17,6 +17,12 @@ extern double PI_8 = PI / 8;
 extern double PI_16 = PI / 16;
 extern double PI_32 = PI / 32;
 
+extern int vd2pi = 65536;
+extern int vdpi = vd2pi/2;
+extern int vd2fpi = vdpi/2;
+extern int vd4fpi = vd2fpi/2;
+extern int vd8fpi = vd4fpi/2;
+
 // dimacs «10
 extern int disMul = 10;
 extern DisType DisInf = LLInf;
@@ -30,6 +36,7 @@ extern Vec<Vec<int>>* yearTable = nullptr;
 extern Configuration* globalCfg = nullptr;
 extern Input* globalInput = nullptr;
 extern BKS* bks = nullptr;
+extern Timer* gloalTimer = nullptr;
 extern int squIter = 1;
 
 void globalRepairSquIter() {
