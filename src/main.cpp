@@ -19,6 +19,7 @@ bool allocGlobalMem(int argc, char* argv[]) {
 	// ../Instances/Homberger/R1_8_3.txt 3600 29429.1 0
 	// ../Instances/Homberger/RC2_6_4.txt 3600 6989.4 0
 	// ../Instances/Homberger/RC2_10_5.txt 3600 6989.4 0
+	// ../Instances/Homberger/RC2_4_8.txt 3600 6989.4 0
 	//../Instances/Solomon/R204.txt squeeze找不到合法动作
 	//../Instances/Homberger/R2_2_4.txt 
 	//../Instances/Homberger/RC1_8_1.txt 

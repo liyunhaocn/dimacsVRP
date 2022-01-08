@@ -752,13 +752,14 @@ bool Solver::initMaxRoute() {
 
 	Vec<int>que1(input.custCnt);
 	std::iota(que1.begin(), que1.end(), 1);
+	
+	//TODO[-1]:这里的排序，现在是乱序
+	myRand->shuffleVec(que1);
 
-	//myRand->shuffleVec(que1);
-
-	auto cmp = [&](int x, int y) {
-		return input.datas[x].polarAngle < input.datas[y].polarAngle;
-	};
-	std::sort(que1.begin(), que1.end(), cmp);
+	//auto cmp = [&](int x, int y) {
+	//	return input.datas[x].polarAngle < input.datas[y].polarAngle;
+	//};
+	//std::sort(que1.begin(), que1.end(), cmp);
 
 	int rid = 0;
 
@@ -813,6 +814,7 @@ bool Solver::initMaxRoute() {
 	return true;
 }
 
+#if 0
 bool Solver::initByArr2(Vec < Vec<int>> arr2) {
 
 	int rid = 0;
@@ -875,6 +877,7 @@ bool Solver::initBySolFile(std::string bksPath) {
 	myfile.close();
 	return true;
 }
+#endif // 0
 
 bool Solver::initSolution(int kind) {//5种
 
@@ -1672,13 +1675,14 @@ DisType Solver::getaRangeOffPtw(int twbegin, int twend) {
 		pt = customers[pt].next;
 	}
 
+
+
 	#if CHECKING
 	lyhCheckTrue(pt == twend);
 	if (pt != twend) {
 		ERROR("pt != twend:", pt != twend);
 	}
 	#endif // CHECKING
-
 
 	newwvPtw += std::max<DisType>(0, lastav - customers[twend].zv);
 	return newwvPtw;
@@ -5174,7 +5178,8 @@ Solver::TwoNodeMove Solver::getMovesRandomly
 			int maxL = std::max<int>(5, r.rCustCnt / 5);
 
 			if (customers[v_].TW_X + customers[vj].TWX_ == r.rPtw) {
-				
+
+				//TODO[-1]:这里改了啊 修复程序
 				int wbegin = v;
 				int preStep = myRand->pick(1, maxL + 1);
 
@@ -5207,11 +5212,13 @@ Solver::TwoNodeMove Solver::getMovesRandomly
 					}
 				}
 			}
-			
-			_2optEffectively(v);
-			exchangevwEffectively(v);
-			outrelocateEffectively(v);
+			else {
 
+				_2optEffectively(v);
+				exchangevwEffectively(v);
+				outrelocateEffectively(v);
+			}
+			
 		}
 	}
 	else {
@@ -6085,10 +6092,10 @@ Solver::Position Solver::findBestPosInSolForInit(int w) {
 
 	//int quMax = globalCfg->initFindPosPqSize;
 
-	//Vec<CircleSector> secs(rts.cnt);
-	//for (int i = 0; i < rts.cnt; ++i) {
-	//	secs[i] = rGetCircleSector(rts[i]);
-	//}
+	Vec<CircleSector> secs(rts.cnt);
+	for (int i = 0; i < rts.cnt; ++i) {
+		secs[i] = rGetCircleSector(rts[i]);
+	}
 
 	Position bestPos;
 
@@ -6106,11 +6113,13 @@ Solver::Position Solver::findBestPosInSolForInit(int w) {
 			continue;
 		}
 
-		//int secDis = CircleSector::disofpointandsec
-		//(input.datas[w].polarAngle, secs[i]);
-		//if (secDis > bestPos.secDis) {
-		//	continue;
-		//}
+		int secDis = CircleSector::disofpointandsec
+		(input.datas[w].polarAngle, secs[i]);
+
+		
+		if (secDis > 65536 / 4) {
+			continue;
+		}
 
 		while (v != -1 && vj != -1) {
 
@@ -6141,19 +6150,26 @@ Solver::Position Solver::findBestPosInSolForInit(int w) {
 			pt.pen = rtPtw + rtPc;
 			pt.pos = v;
 			pt.rIndex = i;
-			//pt.secDis = secDis;
+			pt.secDis = secDis;
 
 			if (pt.pen < bestPos.pen) {
 				bestPos = pt;
 			}
-			else {
+			else if(pt.pen == bestPos.pen){
 
-				if (myRand->pick(100) < globalCfg->initWinkacRate) {
+				if (pt.secDis < bestPos.secDis) {
+					bestPos = pt;
+				}
+
+				if (pt.secDis <= 65536 / 4) {
 					if (pt.cost < bestPos.cost) {
 						bestPos = pt;
 					}
 				}
-				
+
+				//if (pt.cost < bestPos.cost) {
+				//	bestPos = pt;
+				//}
 				//if (pt.secDis < bestPos.secDis) {
 				//	bestPos = pt;
 				//}
@@ -6162,6 +6178,7 @@ Solver::Position Solver::findBestPosInSolForInit(int w) {
 				//		bestPos = pt;
 				//	}
 				//}
+
 			}
 
 			v = vj;
@@ -6182,10 +6199,12 @@ Solver::Position Solver::findBestPosForRuin(int w) {
 		if (pos.pen < ret.pen) {
 			ret = pos;
 		}
-		else if (pos.cost < ret.cost) {
-			// TODO[8]:眨眼率可以调 5%合适？
-			if (myRand->pick(100) < globalCfg->ruinWinkacRate) {
-				ret = pos;
+		else if(pos.pen == ret.pen){
+			if (pos.cost < ret.cost) {
+				// TODO[8]:眨眼率可以调 5%合适？
+				if (myRand->pick(100) < globalCfg->ruinWinkacRate) {
+					ret = pos;
+				}
 			}
 		}
 	};
@@ -6456,8 +6475,7 @@ Vec<int> Solver::ruinGetRuinCusBySting(int ruinKmax, int ruinLmax) {
 		}
 
 	};
-	#endif
-
+	#else
 	auto splitAndmiddle = [&](int beg) {
 		Route& r = rts.getRouteByRid(customers[beg].routeID);
 		auto a = rPutCusInve(r);
@@ -6472,14 +6490,13 @@ Vec<int> Solver::ruinGetRuinCusBySting(int ruinKmax, int ruinLmax) {
 
 		int t = 0;
 		if (myRand->pick(100) < globalCfg->ruinSplitRate) {
-			//int maxMCusPutBack = n - m;
-			if (n-m > 0) {
-				t = ruinGetSplitDepth(n-m);
-			}
-			//if (n - m > 0) {
-			//	t = myRand->pick(1, n - m + 1);
+
+			//if (n-m > 0) {
+			//	t = ruinGetSplitDepth(n-m);
 			//}
-			
+			if (n - m > 0) {
+				t = myRand->pick(1, n - m + 1);
+			}
 		}
 		int s = m + t;
 
@@ -6508,6 +6525,7 @@ Vec<int> Solver::ruinGetRuinCusBySting(int ruinKmax, int ruinLmax) {
 		//printve(farr);
 		//printve(eArr);
 	};
+	#endif
 
 	for (int beg : begCusSet) {
 		splitAndmiddle(beg);
@@ -6821,6 +6839,7 @@ bool Solver::perturbBaseRuin(int perturbkind, int ruinCusNum,int clearEPKind) {
 			return false;
 		}
 	} 
+	reCalRtsCostSumCost();
 	return false;
 }
 
@@ -6932,12 +6951,17 @@ int Solver::CVB2ClearEPAllowNewR(int kind) {
 			rUpdateZvQfrom(r, pt);
 		}
 		else {
-			int rid = 0;
+			int rid = -2;
 			for (; rid < rts.posOf.size(); ++rid) {
 				if (rts.posOf[rid] == -1) {
 					break;
 				}
 			}
+
+			if (rid == -2) {
+				rid = rts.posOf.size();
+			}
+
 			Route r1 = rCreateRoute(rid);
 			rInsAtPosPre(r1, r1.tail, pt);
 			rUpdateAvQfrom(r1, r1.head);
@@ -7031,12 +7055,9 @@ int Solver::Simulatedannealing(int kind,int iterMax, double temperature,int ruin
 	//Solver pBest = *this;
 	Solver s = *this;
 
-	double j0 = temperature;
-	double jf = 1;
-	//temperature = j0;
-	double c = pow(jf / j0, 1 / double(iterMax));
-
-	//double temperature = j0;
+	//double j0 = temperature;
+	//double jf = 1;
+	//double c = pow(jf / j0, 1 / double(iterMax));
 
 	int iter = 1;
 
@@ -7050,17 +7071,8 @@ int Solver::Simulatedannealing(int kind,int iterMax, double temperature,int ruin
 			}
 		}
 
-		temperature *= c;
-		//printf("tmp %lf \n", temperature);
-		
-		if (squIter * 10 > IntInf) {
-			squIter = 1;
-			for (auto& i : (*yearTable)) {
-				for (auto& j : i) {
-					j = 1;
-				}
-			}
-		}
+		globalRepairSquIter();
+
 		if (kind == 0) {
 			//sStar.ruinLocalSearchNotNewR(globalCfg->ruinC_);
 			sStar.ruinLocalSearchNotNewR(ruinNum);
@@ -7073,9 +7085,10 @@ int Solver::Simulatedannealing(int kind,int iterMax, double temperature,int ruin
 		bks->updateBKS(sStar);
 
 		DisType delt = temperature * log(double(myRand->pick(1, 100000)) / (double)100000);
-		//INFO("temperature:", temperature,"delt:",delt);
+
 		if (sStar.RoutesCost < s.RoutesCost - delt) {
-			//INFO("st.RoutesCost:",st.RoutesCost,"pBest.rts.cnt:", pBest.rts.cnt);
+		//if (sStar.RoutesCost < s.RoutesCost) {
+			iter = 1;
 			s = sStar;
 		}
 		//if (sStar.RoutesCost < pBest.RoutesCost) {
@@ -7934,12 +7947,15 @@ bool Solver::adjustRN(int ourTarget) {
 		
 		while (rts.cnt < ourTarget) {
 
-			int rId = -1;
+			int rId = -2;
 			for (int i = 0; i < rts.posOf.size(); ++i) {
 				if (rts.posOf[i] == -1) {
 					rId = i;
 					break;
 				}
+			}
+			if (rId == -2) {
+				rId = rts.posOf.size();
 			}
 
 			Route r1 = rCreateRoute(rId);
@@ -7970,11 +7986,13 @@ bool Solver::adjustRN(int ourTarget) {
 	}
 	
 	//TODO[0]:Lmax和ruinLmax的定义
-	globalCfg->ruinLmax = 0;
-	for (int i = 0; i < rts.cnt; ++i) {
-		globalCfg->ruinLmax = std::max<int>(globalCfg->ruinLmax,rts[i].rCustCnt);
-	}
-	globalCfg->ruinC_ = (globalCfg->ruinLmax + 1);
+	//globalCfg->ruinLmax = 0;
+	//for (int i = 0; i < rts.cnt; ++i) {
+	//	globalCfg->ruinLmax = std::max<int>(globalCfg->ruinLmax,rts[i].rCustCnt);
+	//}
+	//globalCfg->ruinLmax = std::min<int>(globalCfg->ruinLmax,input.custCnt/rts.cnt);
+	//globalCfg->ruinC_ = (globalCfg->ruinLmax + 1)/2;
+	//globalCfg->ruinC_ = (globalCfg->ruinLmax + 1)/2;
 	return true;
 }
 #if 0

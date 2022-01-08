@@ -184,12 +184,13 @@ bool Goal::perturbOnePop(int i) {
 		int kind = myRand->pick(4);
 		if (kind <= 2) {
 			int clearEPkind = myRand->pick(6);
-			int ruinCusNum = std::min<int>(globalInput->custCnt/2, 2 * globalCfg->ruinC_);
+			int ruinCusNum = std::min<int>(globalInput->custCnt/2, globalCfg->ruinC_);
 			sclone.perturbBaseRuin(kind, ruinCusNum, clearEPkind);
 		}
 		else if(kind ==3){
-			int step = myRand->pick(sclone.input.custCnt * 0.1, sclone.input.custCnt * 0.3);
+			int step = myRand->pick(sclone.input.custCnt * 0.4, sclone.input.custCnt*0.6);
 			sclone.patternAdjustment(step);
+			sclone.reCalRtsCostAndPen();
 		}
 		//else if (kind == 4) {
 		//	int step = myRand->pick(sclone.input.custCnt * 0.1, sclone.input.custCnt * 0.2);
@@ -225,7 +226,7 @@ int Goal::naMA() { // 1 代表更新了最优解 0表示没有
 	
 	DisType bestSolInPool = getMinRtCostInPool();
 
-	for (int ct = 0; ct < 5; ct++) {
+	for (int ct = 0; ct < 10; ct++) {
 		myRand->shuffleVec(ords);
 		for (int i = 0; i < popSize; ++i) {
 			int paIndex = ords[i];
@@ -243,7 +244,7 @@ int Goal::naMA() { // 1 代表更新了最优解 0表示没有
 	}
 
 	bestSolInPool = getMinRtCostInPool();
-	for (int ct = 0; ct < 5; ct++) {
+	for (int ct = 0; ct < 10; ct++) {
 		myRand->shuffleVec(ords);
 		for (int i = 0; i < popSize; ++i) {
 			int paIndex = ords[i];
@@ -259,7 +260,6 @@ int Goal::naMA() { // 1 代表更新了最优解 0表示没有
 			ct = 0;
 		}
 	}
-	
 	INFO("getMinRtCostInPool():", getMinRtCostInPool());
 	return 0;
 }
@@ -457,8 +457,10 @@ bool Goal::test() {
 int Goal::TwoAlgCombine() {
 
 	initPopulation();
-
 	int popSize = globalCfg->popSize;
+
+	DisType naMAHis = 0;
+	DisType ruinHis = 0;
 
 	#if DIMACSGO
 	while (true) {
@@ -477,20 +479,21 @@ int Goal::TwoAlgCombine() {
 
 		Solver& sol = bks->bestSolFound;
 		Solver clone = sol;
-		clone.Simulatedannealing(0, 500, 100.0, globalCfg->ruinC_);
+		clone.Simulatedannealing(0, 50, 0.0, 15);
 		bks->updateBKS(clone, "time:" + std::to_string(gloalTimer.getRunTime()) + " ls after ruin");
 		for (int i = 0; i < popSize; ++i) {
 			Solver& sol = i < popSize ? pool[i] : bks->bestSolFound;
 			Solver clone = sol;
-			clone.Simulatedannealing(0, 100, 100.0, globalCfg->ruinC_);
+			clone.Simulatedannealing(0, 20, 0.0, 15);
+			//clone.Simulatedannealing(0, 20, 1.0, globalCfg->ruinC_);
 			
 			bks->updateBKS(clone, "time:" + std::to_string(gloalTimer.getRunTime()) + " ls after ruin");
 			if (clone.RoutesCost < sol.RoutesCost) {
 				sol = clone;
 			}
 		}
-		//TODO[-1]:这里还要不要呢？
-		naMA();
+
+		INFO("perturbAllPop");
 		for (int i = 0; i < popSize; ++i) {
 			perturbOnePop(i);
 		}

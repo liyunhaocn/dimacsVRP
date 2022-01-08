@@ -60,6 +60,9 @@ struct CircleSector
 			else
 				return positive_mod(sec.start - point);
 		}
+		else {
+			return 0;
+		}
 		return 65536;
 	}
 

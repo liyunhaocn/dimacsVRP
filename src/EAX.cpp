@@ -347,15 +347,15 @@ bool updateBestPos(Solver::Position& ret,Solver::Position& temp) {
 		ret = temp;
 		return true;
 	}
-	else if (temp.cost < ret.cost) {
-		if (myRand->pick(100) < globalCfg->abcyWinkacRate) {
+	else if(temp.pen == ret.pen){
+		if (temp.cost < ret.cost) {
 			ret = temp;
 			return true;
 		}
 		else {
 			return false;
 		}
-	}
+	} 
 	return false;
 };
 
@@ -487,9 +487,6 @@ int EAX::removeSubring(Solver& pc) {
 			w = wj;
 		} while (w != subbegin);
 
-		//debug(sameCnt);
-		//debug(posInsert.pen);
-		//debug(posInsert.cost);
 		int v = ret.pos;
 		int vj = pc.customers[v].next;
 		w = retW;
@@ -632,8 +629,14 @@ int EAX::doNaEAX(Solver& pa, Solver& pb, Solver& pc) {
 	pc.reCalRtsCostAndPen();
 		
 	//TODO[0]:这里考虑是否可以在没有子换的情况下再禁忌
-	if (subCyCusNum == 0) {
+
+	if (globalCfg->abcyWinkacRate == 100) {
 		tabuCyIds.insert(choosecyIndex);
+	}
+	else {
+		if (subCyCusNum == 0) {
+			tabuCyIds.insert(choosecyIndex);
+		}
 	}
 	
 	if (pc.repair()) {

@@ -614,11 +614,11 @@ public:
 
 	bool initMaxRoute();
 
+	#if 0
 	bool initByArr2(Vec < Vec<int>> arr2);
 
 	bool initBySolFile(std::string bksPath);
 
-	#if 0
 	bool initByDimacsBKS();
 
 	bool initByLKHBKS();
