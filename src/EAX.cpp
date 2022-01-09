@@ -783,27 +783,27 @@ Vec<int> EAX::getDiffCusofPb(Solver& pa, Solver& pb) {
 		s.insert(et.richEdges[index].e.b);
 	}
 
-	//Vec<int> ret;
-	//for (int c : s) {
-	//	ret.push_back(c);
-	//}
-	//return ret;
-
-	UnorderedSet<int> ss;
-	for (int c : s) {
-		ss.insert(c);
-		for (int i = 0; i < 5; ++i) {
-			int w = globalInput->addSTclose[c][i];
-			if (pb.customers[w].routeID!=-1) {
-				ss.insert(w);
-			}
-		}
-	}
 	Vec<int> ret;
-	for (int c : ss) {
+	for (int c : s) {
 		ret.push_back(c);
 	}
 	return ret;
+
+	//UnorderedSet<int> ss;
+	//for (int c : s) {
+	//	ss.insert(c);
+	//	for (int i = 0; i < 5; ++i) {
+	//		int w = globalInput->addSTclose[c][i];
+	//		if (pb.customers[w].routeID!=-1) {
+	//			ss.insert(w);
+	//		}
+	//	}
+	//}
+	//Vec<int> ret;
+	//for (int c : ss) {
+	//	ret.push_back(c);
+	//}
+	//return ret;
 
 }
 

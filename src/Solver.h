@@ -424,7 +424,7 @@ public:
 	DisType beta = 1;
 	DisType gamma = 0;
 
-	DisType RoutesCost = 0;
+	DisType RoutesCost = DisInf;
 
 	RTS rts;
 

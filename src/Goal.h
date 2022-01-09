@@ -9,7 +9,12 @@ struct Goal {
 
 	Vec<Vec<bool>> eaxTabuTable;
 
-	Vec<Solver> pool;
+	//Vec<Solver> pool;
+	//Vec<Vec<Solver>> ppool;
+	UnorderedMap<int, Vec<Solver>> ppool;
+	//Vec<Vec<Solver>> ppool;
+
+	int curSearchRN = -1;
 
 	Goal();
 
@@ -21,11 +26,12 @@ struct Goal {
 
 	int naMA();
 
-	Vec<int> getNotTabuPaPb();
+	//Vec<int> getNotTabuPaPb();
+	//Vec<int> getpairOfPaPb();
 
-	Vec<int> getpairOfPaPb();
+	int gotoRNPop(int rn);
 
-	bool initPopulation();
+	bool fillPopulation(int rn);
 
 	bool saveSlnFile();
 
