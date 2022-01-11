@@ -178,7 +178,7 @@ bool Goal::perturbOnePop(int i) {
 	//auto before = sol.RoutesCost;
 	Solver sclone = sol;
 	
-	int isPerOnePerson = 0;
+	bool isPerOnePerson = false;
 	for (int i = 0; i < 10; ++i) {
 
 		//尝试使用 100度的模拟退火进行扰动
@@ -216,14 +216,14 @@ bool Goal::perturbOnePop(int i) {
 		if (diff.size() > sol.input.custCnt * 0.2) {
 			sclone.mRLLocalSearch(1, diff);
 			sol = sclone;
-			isPerOnePerson = 1;
+			isPerOnePerson = true;
 			break;
 		}
 		else {
 			sclone = sol;
 		}
 	}
-	return true;
+	return isPerOnePerson;
 }
 
 int Goal::naMA() { // 1 代表更新了最优解 0表示没有
@@ -286,33 +286,25 @@ int Goal::gotoRNPop(int rn) {
 	for (int i = 0; i < popSize; ++i) {
 		if (pool[i].rts.cnt == 0) {
 			pool[i].initSolution(kset[i]);
-			pool[i].mRLLocalSearch(0, {});
+			bool isAdj = pool[i].adjustRN(rn);
+			if (isAdj) {
+				pool[i].mRLLocalSearch(0, {});
+				bks->updateBKSAndPrint(pool[i]);
+				adSucceed.push_back(i);
+			}
 		}
-		bool isAdj = pool[i].adjustRN(rn);
-		if (isAdj) {
-			bks->updateBKSAndPrint(pool[i]);
+		else {
 			adSucceed.push_back(i);
 		}
 	}
 
 	if (adSucceed.size() == 0) {
 
-		int onlyCanReach = -1;
 		for (int i = 0; i < popSize; ++i) {
-			pool[i].minimizeRN(0);
-			onlyCanReach = std::max<int>(onlyCanReach,pool[i].rts.cnt);
+			pool[i] = ppool[poprnLowBound][i];
+			pool[i].adjustRN(rn);
 		}
-
-		auto& pool = ppool[onlyCanReach];
-
-		for (int i = 0; i < popSize; ++i) {
-
-			pool[i].adjustRN(onlyCanReach);
-			pool[i].patternAdjustment(globalInput->custCnt);
-			pool[i].reCalRtsCostAndPen();
-			bks->updateBKSAndPrint(pool[i]);
-		}
-		return onlyCanReach;
+		return rn;
 	}
 	else if (adSucceed.size() == popSize) {
 		return rn;
@@ -343,115 +335,12 @@ int Goal::gotoRNPop(int rn) {
 
 bool Goal::fillPopulation(int rn) {
 
-	//Vec<int> kset = { 0,0,0,0,0};
-	//for (int k : kset) {
-	//	char a[100];
-	//	snprintf(a,100,"k%d_",k);
-	//	Solver s0;
-	//	s0.initSolution(k);
-	//	s0.adjustRN(ourTarget);
-	//	s0.saveOutAsSintefFile(a);
-	//}
-
 	int popSize = globalCfg->popSize;
 	auto& pool = ppool[rn];
 
-	if (pool.size() < popSize) {
+	if (pool.size() == 0 ) {
 		pool.resize(popSize);
 	}
-
-	for (int i = 0; i < popSize; ++i) {
-		if (pool[i].rts.cnt == 0) {
-			Solver s0;
-			pool[i] = s0;
-		}
-	}
-	return true;
-}
-
-bool Goal::saveSlnFile() {
-
-	Input& input = *globalInput;
-
-	MyString ms;
-	// 输出 tm 结构的各个组成部分
-	//std::string day = /*ms.LL_str(d.year) + */ms.LL_str(d.month) + ms.LL_str(d.day);
-
-	std::string type = "[dim]";
-
-	std::string path = type + __DATE__;
-	path += std::string(1, '_') + __TIME__;
-
-	for (auto& c : path) {
-		if (c == ' ' || c == ':') {
-			c = '_';
-		}
-	}
-
-	std::string pwe0 = ms.int_str(globalCfg->Pwei0);
-	std::string pwe1 = ms.int_str(globalCfg->Pwei1);
-	std::string minKmax = ms.int_str(globalCfg->minKmax);
-	std::string maxKmax = ms.int_str(globalCfg->maxKmax);
-
-	std::ofstream rgbData;
-	std::string wrPath = globalCfg->outputPath + "_" + path + ".csv";
-
-	bool isGood = false;{
-		std::ifstream f(wrPath.c_str());
-		isGood = f.good();
-	}
-
-	rgbData.open(wrPath, std::ios::app | std::ios::out);
-
-	if (!rgbData) {
-		INFO("output file open errno");
-		return false;
-	}
-	if (!isGood) {
-		rgbData << "ins,isopt,lyhrl,lyhrn,time,gap,lkhrn,lkhrl,d15rn,d15RL,sinrn,sinrl,narn,narl,rts,seed" << std::endl;
-	}
-
-	auto& sol = bks->bestSolFound;
-
-	rgbData << input.example << ",";
-	rgbData << globalCfg->cmdIsopt << ",";
-
-	auto lyhrl = sol.verify();
-	rgbData << lyhrl << ",";
-
-	rgbData << sol.rts.size() << ",";
-
-	rgbData << gloalTimer->getRunTime() << ",";
-
-	rgbData << double((double)(lyhrl - globalCfg->lkhRL) / globalCfg->lkhRL) * 100 << ",";
-
-	rgbData << globalCfg->lkhRN << ",";
-	rgbData << globalCfg->lkhRL << ",";
-
-	rgbData << globalCfg->d15RecRN << ",";
-	rgbData << globalCfg->d15RecRL << ",";
-
-	rgbData << globalCfg->sintefRecRN << ",";
-	rgbData << globalCfg->sintefRecRL << ",";
-
-	rgbData << globalCfg->naRecRN << ",";
-	rgbData << globalCfg->naRecRL << ",";
-
-	for (int i = 0; i < sol.rts.cnt; ++i) {
-		rgbData << "Route  " << i + 1 << " : ";
-		Route& r = sol.rts[i];
-		auto cusArr = sol.rPutCusInve(r);
-		for (int c: cusArr) {
-			rgbData << c << " ";
-		}
-		rgbData << "| ";
-	}
-
-	rgbData << ",";
-	rgbData << globalCfg->seed;
-
-	rgbData << std::endl;
-	rgbData.close();
 
 	return true;
 }
@@ -484,24 +373,56 @@ bool Goal::test() {
 int Goal::TwoAlgCombine() {
 
 	int popSize = globalCfg->popSize;
-	curSearchRN = globalCfg->lkhRN + 5;
-	int canGoto = gotoRNPop(curSearchRN);
-	if (curSearchRN!= canGoto) {
-		curSearchRN = canGoto;
+	Solver srnbound;
+	srnbound.initSolution(0);
+	srnbound.mRLLocalSearch(0, {});
+	bks->updateBKSAndPrint(srnbound,"srnbound mRLLocalSearch(0, {})");
+	srnbound.minimizeRN(2);
+	poprnLowBound = srnbound.rts.cnt;
+	fillPopulation(poprnLowBound);
+
+	ppool[poprnLowBound][0] = srnbound;
+
+	curSearchRN = gotoRNPop(poprnLowBound);
+
+	if (curSearchRN != poprnLowBound) {
+		ERROR("srnbound rn cant reach");
+	}
+
+	auto updateppol = [&](Solver& sol,int index) {
+		int tar = sol.rts.cnt;
+		if (ppool[tar].size() == 0) {
+			ppool[tar].resize(popSize);
+		}
+		if (sol.RoutesCost < ppool[tar][index].RoutesCost) {
+			INFO("update pool rn:",tar,"index:",index);
+			ppool[tar][index] = sol;
+		}
+	};
+	
+	DisType bksLastLoop = bks->bestSolFound.RoutesCost;
+	int contiNotDown = 1;
+
+	std::queue <int> rnOrderqu;
+
+	//int poprnUpBound = -1;
+	if (poprnLowBound <= globalCfg->lkhRN) {
+		for (int i = globalCfg->lkhRN + 3; i > std::max<int>(globalCfg->lkhRN - 3, poprnLowBound); --i) {
+			rnOrderqu.push(i);
+		}
+		//poprnUpBound = globalCfg->lkhRN + 3;
 	}
 	else {
-		for (int i = 0; i < popSize; ++i) {
-			auto& sol = ppool[curSearchRN][i];
-			sol.mRLLocalSearch(0, {});
-			bks->updateBKSAndPrint(sol);
+		for (int i = poprnLowBound + 2; i >= poprnLowBound; --i) {
+			rnOrderqu.push(i);
 		}
+		//poprnUpBound = poprnLowBound + 2;
 	}
 	
-	DisType naMAHis = 0;
-	DisType ruinHis = 0;
-
-	int iter = 0;
-
+	curSearchRN = gotoRNPop(rnOrderqu.front());
+	rnOrderqu.push(rnOrderqu.front());
+	rnOrderqu.pop();
+	
 	#if DIMACSGO
 	while (true) {
 	#else
@@ -512,12 +433,38 @@ int Goal::TwoAlgCombine() {
 			}
 		}
 	#endif // DIMACSGO
+		
+		if (bksLastLoop < bks->bestSolFound.RoutesCost) {
+			contiNotDown = 1;
+		}
+		else {
+			++contiNotDown;
+		}
+		bksLastLoop = bks->bestSolFound.RoutesCost;
 
-		if (curSearchRN != bks->bestSolFound.rts.cnt) {
-			curSearchRN = bks->bestSolFound.rts.cnt;
-			gotoRNPop(curSearchRN);
+		int plangoto = -1;
+
+		if (curSearchRN != bks->bestSolFound.rts.cnt && bks->bestSolFound.rts.cnt>=poprnLowBound) {
+			plangoto = bks->bestSolFound.rts.cnt;
+		}
+		else {
+			if (contiNotDown % 10 == 0) {
+				plangoto = rnOrderqu.front();
+				rnOrderqu.pop();
+				rnOrderqu.push(plangoto);
+			}
 		}
 
+		if (plangoto != -1) {
+			curSearchRN = gotoRNPop(plangoto);
+			if (curSearchRN == plangoto) {
+				INFO("jump succeed curSearchRN", curSearchRN);
+			}
+			else {
+				INFO("jump fail curSearchRN", curSearchRN, "plangoto:", plangoto);
+			}
+		}
+		
 		auto& pool = ppool[curSearchRN];
 		globalRepairSquIter();
 		naMA();
@@ -534,30 +481,26 @@ int Goal::TwoAlgCombine() {
 
 		Solver& sol = bks->bestSolFound;
 		Solver clone = sol;
-		clone.Simulatedannealing(1, 100, 1.0, globalCfg->ruinC_);
-		
-		bks->updateBKSAndPrint(clone, " ls after ruin");
+		clone.Simulatedannealing(0, 100, 1.0, globalCfg->ruinC_);
+		bks->updateBKSAndPrint(clone, " bks ruin simulate 0");
+
+		clone.Simulatedannealing(1, 100, 1.0, globalCfg->ruinC_);		
+		bks->updateBKSAndPrint(clone, " bks ruin simulate 1");
+		updateppol(clone, 1);
 
 		for (int i = 0; i < popSize; ++i) {
 			Solver& sol = pool[i];
 			Solver clone = sol;
-			clone.Simulatedannealing(1, 50, 1.0, globalCfg->ruinC_);
-			//clone.Simulatedannealing(0, 20, 1.0, globalCfg->ruinC_);
-			bks->updateBKSAndPrint(clone," ls after ruin");
-			
-			if (clone.RoutesCost < sol.RoutesCost) {
+			clone.Simulatedannealing(0, 50, 1.0, globalCfg->ruinC_);
+			bks->updateBKSAndPrint(clone, " pool sol simulate 0");
 
+			clone.Simulatedannealing(1, 50, 1.0, globalCfg->ruinC_);
+			bks->updateBKSAndPrint(clone, " pool sol simulate 1");
+			updateppol(sol, i);
+
+			if (clone.RoutesCost < sol.RoutesCost) {
 				if (clone.rts.cnt == sol.rts.cnt) {
 					sol = clone;
-				}
-				else {
-					int tar = clone.rts.cnt;
-					if (ppool[tar].size() == 0) {
-						ppool[tar].resize(popSize);
-					}
-					if (clone.RoutesCost < ppool[tar][i].RoutesCost) {
-						ppool[tar][i] = clone;
-					}
 				}
 			}
 		}
@@ -566,11 +509,13 @@ int Goal::TwoAlgCombine() {
 		for (int i = 0; i < popSize; ++i) {
 			perturbOnePop(i);
 		}
-		//exit(0);
 	}
 
 	bks->bestSolFound.printDimacs();
-	saveSlnFile();
+
+	//TODO[-1]:如果提交求解器记得去掉
+	saveBKStoCsvFile();
+
 	gloalTimer->disp();
 
 	return true;

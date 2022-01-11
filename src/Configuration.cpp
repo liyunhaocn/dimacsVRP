@@ -1816,6 +1816,7 @@ void Configuration::solveCommandLine(int argc, char* argv[]) {
 
 }
 
+#if 0
 static bool writeOneLineToFile(std::string path,std::string data) {
 	
 	std::ofstream rgbData;
@@ -1830,6 +1831,7 @@ static bool writeOneLineToFile(std::string path,std::string data) {
 	rgbData.close();
 	return true;
 }
+#endif // 0
 
 void Configuration::addHelpInfo() {
 

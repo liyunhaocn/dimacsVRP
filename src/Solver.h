@@ -136,8 +136,12 @@ struct RTS {
 
 	bool push_back(Route& r1) {
 
+		#if CHECKING
+		lyhCheckTrue(r1.routeID>=0);
+		#endif // CHECKING
+
 		if (r1.routeID >= posOf.size()) {
-			int newSize = posOf.size() + std::max<int>(r1.routeID + 1, posOf.size() / 2 + 1);
+			size_t newSize = posOf.size() + std::max<size_t>(r1.routeID + 1, posOf.size() / 2 + 1);
 			ve.resize(newSize, Route());
 			posOf.resize(newSize, -1);
 		}
@@ -248,6 +252,10 @@ struct ConfSet {
 	}
 
 	bool ins(int val) {
+
+		#if CHECKING
+		lyhCheckTrue(val>=0);
+		#endif // CHECKING
 
 		if (val >= pos.size()) {
 			int newSize = pos.size() + std::max<int>(val + 1, pos.size() / 2 + 1);
@@ -543,7 +551,9 @@ public:
 
 	bool initEPr();
 
-	int reCusNo(int x);
+	inline int reCusNo(int x) {
+		return x <= input.custCnt ? x : 0;
+	}
 
 	Solver();
 
@@ -614,13 +624,11 @@ public:
 
 	bool initMaxRoute();
 
-	#if 0
 	bool initByArr2(Vec < Vec<int>> arr2);
 
+	#if 0
 	bool initBySolFile(std::string bksPath);
-
 	bool initByDimacsBKS();
-
 	bool initByLKHBKS();
 	#endif // 0
 
@@ -739,6 +747,8 @@ public:
 	Vec<int> ruinGetRuinCusBySting(int ruinK, int ruinL);
 
 	Vec<int> ruinGetRuinCusByRound(int ruinCusNum);
+
+	Vec<int> ruinGetRuinCusByRandOneR(int ruinCusNum);
 		
 	Vec<int> ruinGetRuinCusBySec(int ruinCusNum);
 
@@ -789,10 +799,11 @@ public:
 
 	bool saveOutAsSintefFile(std::string opt = "");
 		
+	Solver splitSol();
+
 	~Solver();
 
 public:
-	Timer lyhTimer;
 };
 
 struct BKS {
@@ -809,6 +820,8 @@ struct BKS {
 	//bool justPrint();
 
 };
+
+bool saveBKStoCsvFile();
 
 };
 

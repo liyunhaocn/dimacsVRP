@@ -119,6 +119,7 @@ public:
 struct Random {
 public:
     using Generator = std::mt19937;
+    Generator rgen;
     unsigned seed = -1;
     Random(unsigned seed) : rgen(seed),seed(seed) {}
     Random() : rgen(generateSeed()) {}
@@ -147,8 +148,6 @@ public:
         unsigned shuseed = (seed % hust::Mod) + ((pick(10000007))) % hust::Mod;
         std::shuffle(v.begin(), v.end(), std::default_random_engine(shuseed));
     }
-
-    Generator rgen;
 };
 
 // count | 1 2 3 4 ...  k   k+1   k+2   k+3  ...  n
@@ -203,10 +202,10 @@ public:
     static constexpr double MillisecondsPerSecond = 1000;
   
     Timer(const Millisecond& duration, const TimePoint& st = Clock::now(), std::string name = "")
-        : duration(duration), startTime(st), endTime(startTime + duration), name(name) {}
+        : startTime(st), endTime(startTime + duration), duration(duration), name(name) {}
 
     Timer(LL duration, const TimePoint& st = Clock::now(), std::string name = "")
-        : duration(Millisecond(duration * 1000)), startTime(st), endTime(startTime + Millisecond(duration * 1000)), name(name) {}
+        : startTime(st), endTime(startTime + Millisecond(duration * 1000)), duration(Millisecond(duration * 1000)), name(name) {}
 
     static Millisecond durationInMillisecond(const TimePoint& start, const TimePoint& end) {
         return std::chrono::duration_cast<Millisecond>(end - start);

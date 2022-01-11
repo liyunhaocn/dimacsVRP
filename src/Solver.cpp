@@ -23,19 +23,14 @@ bool Solver::initEPr() {
 	return true;
 }
 
-int Solver::reCusNo(int x) {
-	return x <= input.custCnt ? x : 0;
-}
-
 Solver::Solver() :
 	input(*globalInput),
-	lyhTimer(globalCfg->runTimer),
 	PtwConfRts(globalInput->custCnt/8),
 	PcConfRts(globalInput->custCnt/8),
 	rts(globalInput->custCnt/8)
 {
 
-	customers = Vec<Customer>(input.custCnt + 1);
+	customers = Vec<Customer>( (input.custCnt + 1) * 1.5 );
 	alpha = 1;
 	beta = 1;
 	gamma = 1;
@@ -51,7 +46,6 @@ Solver::Solver() :
 
 Solver::Solver(const Solver& s) :
 	input(s.input),
-	lyhTimer(s.lyhTimer),
 	PtwConfRts(s.PtwConfRts),
 	PcConfRts(s.PcConfRts),
 	rts(s.rts)
@@ -1165,7 +1159,6 @@ bool Solver::initMaxRoute() {
 	return true;
 }
 
-#if 0
 bool Solver::initByArr2(Vec < Vec<int>> arr2) {
 
 	int rid = 0;
@@ -1185,6 +1178,8 @@ bool Solver::initByArr2(Vec < Vec<int>> arr2) {
 	//sumRtsPen();
 	return true;
 }
+
+#if 0
 
 bool Solver::initBySolFile(std::string bksPath) {
 
@@ -6052,7 +6047,8 @@ bool Solver::squeeze() {
 		return true;
 	};
 
-	while (penalty > 0 && !lyhTimer.isTimeOut()) {
+	//while (penalty > 0 && !lyhTimer.isTimeOut()) {
+	while (penalty > 0) {
 
 		TwoNodeMove bestM = getMovesRandomly(updateBestM);
 
@@ -6551,6 +6547,13 @@ Vec<int> Solver::ruinGetRuinCusByRound(int ruinCusNum) {
 	return runCus;
 }
 
+Vec<int> Solver::ruinGetRuinCusByRandOneR(int ruinCusNum) {
+
+	Route& r = rts[myRand->pick(rts.cnt)];
+	auto arr = rPutCusInve(r);
+	return arr;
+}
+
 #if 0
 Vec<int> Solver::ruinGetRuinCusBySec(int ruinCusNum) {
 
@@ -6953,14 +6956,17 @@ int Solver::CVB2ClearEPAllowNewR(int kind) {
 			rUpdateZvQfrom(r, pt);
 		}
 		else {
-			int rid = -2;
-			for (; rid < rts.posOf.size(); ++rid) {
-				if (rts.posOf[rid] == -1) {
+
+			int rid = -1;
+			
+			for (int i=0; i < rts.posOf.size(); ++i) {
+				if (rts.posOf[i] == -1) {
+					rid = i;
 					break;
 				}
 			}
 
-			if (rid == -2) {
+			if (rid == -1) {
 				rid = rts.posOf.size();
 			}
 
@@ -7001,7 +7007,10 @@ int Solver::CVB2ruinLS(int ruinCusNum) {
 		ruinCus = ruinGetRuinCusByRound(ruinCusNum);
 	}
 	else if (perturbkind == 1) {
-		ruinCus = ruinGetRuinCusBySec(ruinCusNum);
+
+		// TODO[-1]:加入一个删除整条路径的
+		//ruinCus = ruinGetRuinCusBySec(ruinCusNum);
+		ruinCus = ruinGetRuinCusByRandOneR(ruinCusNum);
 	}
 	else if (perturbkind == 2) {
 		ruinCus = ruinGetRuinCusBySting(ruinKmax, Lmax);
@@ -7056,10 +7065,6 @@ int Solver::Simulatedannealing(int kind,int iterMax, double temperature,int ruin
 
 	Solver pBest = *this;
 	Solver s = *this;
-
-	//double j0 = temperature;
-	//double jf = 1;
-	//double c = pow(jf / j0, 1 / double(iterMax));
 
 	int iter = 1;
 
@@ -7916,8 +7921,6 @@ void Solver::minimizeRN(int ourTarget) {
 
 	gamma = 0;
 
-	lyhTimer.reStart();
-
 	while (rts.cnt > ourTarget) {
 
 		Solver sclone = *this;
@@ -8087,7 +8090,7 @@ bool Solver::repair() {
 
 	auto penBest = penalty;
 
-	while (penalty > 0 && !lyhTimer.isTimeOut()) {
+	while (penalty > 0) {
 		++iter;
 		if (contiNotDe > globalCfg->repairExitStep) {
 			break;
@@ -8155,14 +8158,12 @@ bool Solver::mRLLocalSearch(int hasRange,Vec<int> newCus) {
 
 	TwoNodeMove MRLbestM;
 
-	static Vec<int> contribution(16, 0);
-	Vec<int> contricus(input.custCnt+1, 0);
-
 	static Vec<int> moveKindOrder = { 0,1,2,3,4,5,6,7, 8,9,10,11,12,13,14,15};
 
-	auto maxIt = std::max_element(contribution.begin(), contribution.end());
-	
-	for (auto& i : contribution) { i = (i>>1)+1; }
+	//static Vec<int> contribution(16, 0);
+	//Vec<int> contricus(input.custCnt + 1, 0);
+	//auto maxIt = std::max_element(contribution.begin(), contribution.end());
+	//for (auto& i : contribution) { i = (i>>1)+1; }
 	
 	//std::sort(moveKindOrder.begin(), moveKindOrder.end(), [&](int a, int b) {
 	//	return contribution[a] > contribution[b];
@@ -8267,7 +8268,7 @@ bool Solver::mRLLocalSearch(int hasRange,Vec<int> newCus) {
 
 	Vec<int>& ranges = globalCfg->mRLLocalSearchRange;
 
-	while (!lyhTimer.isTimeOut()) {
+	while (true) {
 
 		TwoNodeMove bestM;
 		//TwoNodeMove bestM 
@@ -8291,8 +8292,8 @@ bool Solver::mRLLocalSearch(int hasRange,Vec<int> newCus) {
 			break;
 		}
 
-		++contricus[bestM.v];
-		++contribution[bestM.kind];
+		//++contricus[bestM.v];
+		//++contribution[bestM.kind];
 
 		#if CHECKING
 		Vec<Vec<int>> oldRoutes;
@@ -8372,7 +8373,7 @@ Output Solver::saveToOutPut() {
 
 	DisType state = verify();
 
-	output.runTime = lyhTimer.getRunTime();
+	output.runTime = gloalTimer->getRunTime();
 	output.EP = rPutCusInve(EPr);
 	output.minEP = minEPcus;
 	output.PtwNoWei = PtwNoWei;
@@ -8449,12 +8450,225 @@ bool Solver::saveOutAsSintefFile(std::string opt) {
 	return true;
 }
 
+#if 0
+Solver Solver::splitSol() {// 使用分割函数：跑一遍bellman-ford算法获得最优分割，实际上转化为从开始点到结束点的最短路划分问题
+
+	Vec<int> cur_list = {0};
+	for (int i = 0; i < rts.cnt; ++i) {
+		//Route& r = rts[myRand->pick(rts.cnt)];
+		Route& r = rts[i];
+		auto arr = rPutCusInve(r);
+		cur_list.insert(cur_list.end(), arr.begin(), arr.end());
+	}
+
+	std::vector < std::vector < DisType > > potential;  // Potential vector
+	int maxVehicles = input.vehicleCnt;
+	int nbVehicles = input.vehicleCnt;
+	int nbClients = input.custCnt;
+	potential = std::vector < std::vector <DisType> >(nbVehicles + 1, std::vector <DisType>(nbClients + 1, DisInf));
+
+	potential[0][0] = 0;
+	for (int k = 0; k <= maxVehicles; k++)
+		for (int i = 1; i <= nbClients; i++)
+			potential[k][i] = DisInf;
+	auto pred = std::vector < std::vector <int> >(nbVehicles + 1, std::vector <int>(nbClients + 1, 0));
+
+	auto getDis = [&](int x, int y) ->DisType {
+		return input.disOf[reCusNo(x)][reCusNo(y)];
+	};
+
+	auto dnext = [&](int i) {
+		if (i < nbClients) return input.disOf[cur_list[i - 1]][cur_list[i]];
+		else return -DisInf;
+	};
+
+	for (int k = 0; k < maxVehicles; k++)
+	{
+		for (int i = k; i < nbClients && potential[k][i] < DisInf / 10; i++)
+		{
+			DisType load = 0.;
+			//DisType serviceDuration = 0;
+			DisType distance = 0;
+			for (int j = i + 1; j <= nbClients && load <= input.Q; j++) // Setting a maximum limit on load infeasibility to accelerate the algorithm
+			{
+				load += input.datas[j].DEMAND;
+				//serviceDuration += input.datas[j].SERVICETIME;
+				if (j == i + 1) distance += getDis(0, cur_list[j]);// cliSplit[j].d0_x;
+				else distance += dnext(cur_list[j]) ;//cliSplit[j - 1].dnext;
+
+				//DisType cost = distance + getDis(0, cur_list[j])
+				//	+ std::max<DisType>(load -input.Q, 0)
+				//	+ std::max<DisType>(distance + getDis(0, cur_list[j]) + serviceDuration
+				//		- durationLimit, 0);
+
+				//if (potential[k][i] + cost < potential[k + 1][j]) {
+				//	potential[k + 1][j] = potential[k][i] + cost;
+				//	pred[k + 1][j] = i;
+				//}
+
+				if (potential[k][i] + distance < potential[k + 1][j]) {
+					potential[k + 1][j] = potential[k][i] + distance;
+					pred[k + 1][j] = i;
+				}
+			}
+		}
+	}
+
+	double minCost = potential[maxVehicles][nbClients];
+	int nbRoutes = maxVehicles;
+	for (int k = 1; k < maxVehicles; k++) {
+		if (potential[k][nbClients] < minCost) {
+			minCost = potential[k][nbClients]; nbRoutes = k;
+		}
+	}
+	// Filling the chromR structure
+	//for (int k = nbVehicles - 1; k >= nbRoutes; k--)
+	//	indiv->chromR[k].clear();
+	Vec<Vec<int>> rtses;
+
+	int end = nbClients;
+	for (int k = nbRoutes - 1; k >= 0; k--)
+	{
+		//indiv->chromR[k].clear();
+		Vec<int> rt;
+		int begin = pred[k + 1][end];
+		for (int ii = begin; ii < end; ii++) {
+			rt.push_back(cur_list[ii]);
+		}
+		rtses.push_back(rt);
+		end = begin;
+	}
+
+
+	#if 0
+	Vec<int> cur_list = { 0 };
+	for (int i = 0; i < rts.cnt; ++i) {
+		//Route& r = rts[myRand->pick(rts.cnt)];
+		Route& r = rts[i];
+		auto arr = rPutCusInve(r);
+		cur_list.insert(cur_list.end(), arr.begin(), arr.end());
+	}
+
+	//cur_list.push_back(input.custCnt + 1);
+	//int N = cur_list.size() - 1;
+	int N = input.custCnt;
+
+	Vec<DisType> V(N + 1, DisInf);//距离数组
+	V[0] = 0;
+	Vec<int> P(N + 1); // 储存了连接该点的上一点
+	P[0] = 0;
+
+	for (int i = 1; i <= N; i++) {
+		P[i] = cur_list[i];//最开始所有点都没连上
+	}
+	//std::iota(P.begin(), P.end(), 0);
+
+	auto getDis = [&](int x, int y) ->DisType {
+		return input.disOf[reCusNo(x)][reCusNo(y)];
+	};
+
+
+	DisType time = 0;// 当前的时间
+	DisType cost = 0;// 当前的花费
+	DisType load = 0;// 当前的需求
+
+	for (int i = 1; i <= N; i++) {
+
+		time = 0;// 当前的时间
+		cost = 0;// 当前的花费
+		load = 0;
+
+		for (int j = i; j <= N; ++j) {
+
+			bool isFind = false;
+
+			if (i == j) {
+				//行程的开始
+				time += std::max<DisType>(input.datas[cur_list[j]].READYTIME, getDis(0, cur_list[j]));
+				time += input.datas[cur_list[j]].SERVICETIME; // 服务时间
+				time += getDis(0, cur_list[j]);
+
+				V[i] = std::min<DisType>(2 * getDis(0, cur_list[j]), V[i]);
+
+				cost += V[i];
+				//cost += 2 * getDis(0, cur_list[j]);
+				load += input.datas[cur_list[j]].DEMAND;
+			}
+			else {
+
+				DisType next_time = time - getDis(cur_list[j - 1], 0) + getDis(cur_list[j - 1], cur_list[j]);//到达下一个的时间
+				if (next_time > input.datas[cur_list[j]].DUEDATE) {
+					break;
+				}
+
+				time = std::max<DisType>(next_time, input.datas[cur_list[j]].READYTIME);
+				time += getDis(cur_list[j], 0);
+				cost =
+					cost - getDis(cur_list[j - 1], 0)
+					+ getDis(cur_list[j - 1], cur_list[j])
+					+ getDis(cur_list[j], 0);
+
+				load += input.datas[cur_list[j]].DEMAND;
+			}
+
+			if (time > input.datas[0].DUEDATE || load > input.Q) {
+				break;
+			}
+
+			if (load <= input.Q) {//假如满足容量约束和时间约束
+
+				if (V[cur_list[j]] > V[cur_list[i - 1]] + cost) {
+					V[cur_list[j]] = V[cur_list[i - 1]] + cost;//不断更新当前最短路
+					P[cur_list[j]] = cur_list[i - 1];
+				}
+			}
+		}
+	}
+
+	//Route route = new Route();
+	Vec<int> route;
+	Vec<Vec<int>> rtses;
+	int tmp = P[cur_list[N]];
+	int i = N;
+	while (i > 0) { // 将分割过的重新组成Solution
+
+		if (P[cur_list[i]] == tmp) {
+			route.push_back(cur_list[i]);
+		}
+		else {
+			tmp = P[cur_list[i]];
+			std::reverse(route.begin(), route.end());
+			rtses.push_back(route);
+			route = {};
+			route.push_back(cur_list[i]);
+		}
+		i--;
+	}
+
+	if (route.size() != 0) {
+		std::reverse(route.begin(), route.end());
+		rtses.push_back(route);
+	}
+
+	#endif // 0
+
+	INFO("RoutesCost:",RoutesCost);
+	Solver sol;
+	sol.initByArr2(rtses);
+	DEBUG("rtses.size()", rtses.size());
+	INFO("sol.RoutesCost:", sol.RoutesCost);
+	INFO("sol.verify():", sol.verify());
+
+	return sol;
+}
+#endif // 0
+
 Solver::~Solver() {};
 
 BKS::BKS() {
 	bestSolFound.penalty = DisInf;
 	bestSolFound.RoutesCost = DisInf;
-	limitVal = globalCfg->lkhRL * 1.1;
+	limitVal = globalCfg->lkhRL + globalCfg->lkhRL / 10;
 
 }
 
@@ -8474,6 +8688,9 @@ bool BKS::updateBKSAndPrint(Solver& newSol, std::string opt) {
 			lastRec - bestSolFound.RoutesCost, opt);
 
 		if (bestSolFound.RoutesCost < limitVal) {
+			if (globalCfg->cmdIsopt == 1 && bestSolFound.RoutesCost == globalCfg->lkhRL) {
+				saveBKStoCsvFile();
+			}
 			#if DIMACSGO
 			bks->bestSolFound.printDimacs();
 			#else
@@ -8485,5 +8702,97 @@ bool BKS::updateBKSAndPrint(Solver& newSol, std::string opt) {
 	return false;
 }
 
+bool saveBKStoCsvFile() {
+
+	static bool isPrinted = false;
+	if (isPrinted) {
+		return 0;
+	}
+	isPrinted = true;
+
+	MyString ms;
+	// 输出 tm 结构的各个组成部分
+	//std::string day = /*ms.LL_str(d.year) + */ms.LL_str(d.month) + ms.LL_str(d.day);
+
+	std::string type = "[dim]";
+
+	std::string path = type + __DATE__;
+	path += std::string(1, '_') + __TIME__;
+
+	for (auto& c : path) {
+		if (c == ' ' || c == ':') {
+			c = '_';
+		}
+	}
+
+	std::string pwe0 = ms.int_str(globalCfg->Pwei0);
+	std::string pwe1 = ms.int_str(globalCfg->Pwei1);
+	std::string minKmax = ms.int_str(globalCfg->minKmax);
+	std::string maxKmax = ms.int_str(globalCfg->maxKmax);
+
+	std::ofstream rgbData;
+	std::string wrPath = globalCfg->outputPath + "_" + path + ".csv";
+
+	bool isGood = false; {
+		std::ifstream f(wrPath.c_str());
+		isGood = f.good();
+	}
+
+	rgbData.open(wrPath, std::ios::app | std::ios::out);
+
+	if (!rgbData) {
+		INFO("output file open errno");
+		return false;
+	}
+	if (!isGood) {
+		rgbData << "ins,isopt,lyhrl,lyhrn,time,gap,lkhrn,lkhrl,d15rn,d15RL,sinrn,sinrl,narn,narl,rts,seed" << std::endl;
+	}
+
+	auto& sol = bks->bestSolFound;
+
+	Input& input = *globalInput;
+
+	rgbData << input.example << ",";
+	rgbData << globalCfg->cmdIsopt << ",";
+
+	auto lyhrl = sol.RoutesCost;
+	rgbData << lyhrl << ",";
+
+	rgbData << sol.rts.size() << ",";
+
+	rgbData << gloalTimer->getRunTime() << ",";
+
+	rgbData << double((double)(lyhrl - globalCfg->lkhRL) / globalCfg->lkhRL) * 100 << ",";
+
+	rgbData << globalCfg->lkhRN << ",";
+	rgbData << globalCfg->lkhRL << ",";
+
+	rgbData << globalCfg->d15RecRN << ",";
+	rgbData << globalCfg->d15RecRL << ",";
+
+	rgbData << globalCfg->sintefRecRN << ",";
+	rgbData << globalCfg->sintefRecRL << ",";
+
+	rgbData << globalCfg->naRecRN << ",";
+	rgbData << globalCfg->naRecRL << ",";
+
+	for (int i = 0; i < sol.rts.cnt; ++i) {
+		rgbData << "Route  " << i + 1 << " : ";
+		Route& r = sol.rts[i];
+		auto cusArr = sol.rPutCusInve(r);
+		for (int c : cusArr) {
+			rgbData << c << " ";
+		}
+		rgbData << "| ";
+	}
+
+	rgbData << ",";
+	rgbData << globalCfg->seed;
+
+	rgbData << std::endl;
+	rgbData.close();
+
+	return true;
+}
 
 }

@@ -9,8 +9,8 @@ struct Goal {
 
 	Vec<Vec<bool>> eaxTabuTable;
 
-	//Vec<Solver> pool;
-	//Vec<Vec<Solver>> ppool;
+	int poprnLowBound = -1;
+
 	UnorderedMap<int, Vec<Solver>> ppool;
 	//Vec<Vec<Solver>> ppool;
 
@@ -32,8 +32,6 @@ struct Goal {
 	int gotoRNPop(int rn);
 
 	bool fillPopulation(int rn);
-
-	bool saveSlnFile();
 
 	int callSimulatedannealing();
 

@@ -72,7 +72,6 @@ bool Input::initInput() {
 		sectorClose[v] = std::move(nums);
 	}
 
-	
 	auto canlinkDir = [&](int v, int w) ->bool {
 
 		DisType av = disOf[0][v];
