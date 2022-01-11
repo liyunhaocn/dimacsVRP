@@ -794,7 +794,7 @@ public:
 
 	bool saveOutAsSintefFile(std::string opt = "");
 		
-	Vec<Vec<int>> splitSol(int rIndex);
+	Vec<Vec<int>> rSplit(Route& r);
 
 	~Solver();
 

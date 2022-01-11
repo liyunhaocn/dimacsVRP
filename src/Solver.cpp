@@ -7938,7 +7938,7 @@ void Solver::minimizeRN(int ourTarget) {
 				break;
 			}
 			//saveOutAsSintefFile();
-			//INFO("rts.size():",rts.size());
+			INFO("rts.size():",rts.size());
 		}
 		else {
 			*this = sclone;
@@ -7952,11 +7952,11 @@ bool Solver::adjustRN(int ourTarget) {
 
 	if (rts.cnt > ourTarget) {
 		minimizeRN(ourTarget);
+		INFO("adjust rn rts.cnt:", rts.cnt);
 	}
 	else if (rts.cnt < ourTarget) {
 		
 		while (rts.cnt < ourTarget) {
-
 			int rId = -2;
 			for (int i = 0; i < rts.posOf.size(); ++i) {
 				if (rts.posOf[i] == -1) {
@@ -7970,35 +7970,43 @@ bool Solver::adjustRN(int ourTarget) {
 
 			Route r1 = rCreateRoute(rId);
 			int rIdChose = -1;
+			int choseNum = 0;
 			for (int i = 0; i < rts.cnt; ++i) {
 				if (rts[i].rCustCnt >= 2) {
-					rIdChose = i;
-					break;
+					if (myRand->pick(++choseNum) == 0) {
+						rIdChose = i;
+					}
 				}
 			}
 			
 			Route& r = rts[rIdChose];
 
 			auto arr = rPutCusInve(r);
+
+			//rSplit(r);
+
 			for (int i = 0; i < arr.size(); ++i) {
 				if (i % 2 == 0) {
 					rRemoveAtPos(r, arr[i]);
 					rInsAtPosPre(r1, r1.tail, arr[i]);
 				}
 			}
+
 			rUpdateAvQfrom(r1, r1.head);
 			rUpdateZvQfrom(r1, r1.tail);
 			rUpdateAvQfrom(r, r.head);
 			rUpdateZvQfrom(r, r.tail);
 			rts.push_back(r1);
+
 			sumRtsPen();
 		}
+		INFO("adjust rn rts.cnt:", rts.cnt);
+	}
+	else {
+		INFO("no need adjust rn rts.cnt:", rts.cnt);
 	}
 	
 	reCalRtsCostAndPen();
-
-	INFO("adj rts.cnt:",rts.cnt);
-
 	//TODO[0]:LmaxºÍruinLmaxµÄ¶¨Òå
 	globalCfg->ruinLmax = input.custCnt / rts.cnt;
 	//for (int i = 0; i < rts.cnt; ++i) {
@@ -8456,10 +8464,10 @@ bool Solver::saveOutAsSintefFile(std::string opt) {
 }
 
 #if 1
-Vec<Vec<int>> Solver::splitSol(int rIndex) {// Ê¹ÓÃ·Ö¸îº¯Êı£ºÅÜÒ»±ébellman-fordËã·¨»ñµÃ×îÓÅ·Ö¸î£¬Êµ¼ÊÉÏ×ª»¯Îª´Ó¿ªÊ¼µãµ½½áÊøµãµÄ×î¶ÌÂ·»®·ÖÎÊÌâ
+Vec<Vec<int>> Solver::rSplit(Route& r) {
+	// Ê¹ÓÃ·Ö¸îº¯Êı£ºÅÜÒ»±ébellman-fordËã·¨»ñµÃ×îÓÅ·Ö¸î£¬Êµ¼ÊÉÏ×ª»¯Îª´Ó¿ªÊ¼µãµ½½áÊøµãµÄ×î¶ÌÂ·»®·ÖÎÊÌâ
 
 	Vec<int> cli = {0};
-	Route& r = rts[rIndex];
 	auto arr = rPutCusInve(r);
 	cli.insert(cli.end(), arr.begin(), arr.end());
 
@@ -8537,20 +8545,6 @@ Vec<Vec<int>> Solver::splitSol(int rIndex) {// Ê¹ÓÃ·Ö¸îº¯Êı£ºÅÜÒ»±ébellman-fordË
 			rt.push_back(cli[ii+1]);
 		end = begin;
 		rtses.push_back(rt);
-	}
-
-	//INFO("-------------");
-	//Solver sol;
-	//sol.initByArr2(rtses);
-	//DEBUG("rtses.size()", rtses.size());
-	//INFO("r.routeCost:", r.routeCost);
-	//rReCalRCost(r);
-	//INFO("r.up:", r.routeCost);
-	//INFO("sol.RoutesCost:", sol.RoutesCost);
-	//DisType solutionCost = potential[nbNodes];
-	//INFO("solutionCost:", solutionCost);
-	if (rtses.size() > 1) {
-		INFO("111111:", 111111);
 	}
 
 	return rtses;

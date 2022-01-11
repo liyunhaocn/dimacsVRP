@@ -16,7 +16,7 @@ bool allocGlobalMem(int argc, char* argv[]) {
 //bool allocGlobalMem(std::string inpath) {
 
 	// ../Instances/Homberger/RC2_4_8.txt 3600 6989.4 0
-	// ../Instances/Solomon/C102.txt 1800 1261.8 1
+	// ../Instances/Solomon/R104.txt 1800 1261.8 1
 	// ../Instances/Solomon/RC201.txt 1800 1261.8 1
 	// ../Instances/Homberger/R1_8_3.txt
 	// ../Instances/Homberger/R1_10_1.txt
@@ -35,7 +35,7 @@ bool allocGlobalMem(int argc, char* argv[]) {
 
 	globalCfg->seed = std::time(nullptr) + std::clock();
 
-	globalCfg->seed = 1641908196;
+	globalCfg->seed = 1641919874;
 
 	myRand = new Random(globalCfg->seed);
 	myRandX = new RandomX(globalCfg->seed);
@@ -87,8 +87,8 @@ int main(int argc, char* argv[])
 	hust::Goal goal;
 
 	//goal.callSimulatedannealing();
-	//goal.TwoAlgCombine();
-	goal.test();
+	goal.TwoAlgCombine();
+	//goal.test();
 
 	hust::deallocGlobalMem();
 
