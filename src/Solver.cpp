@@ -1166,9 +1166,12 @@ bool Solver::initByArr2(Vec < Vec<int>> arr2) {
 
 		Route r = rCreateRoute(rid++);
 
+		printve(arr);
+
 		for (int cus : arr) {
 			rInsAtPosPre(r, r.tail, (cus));
 		}
+		rNextDisp(r);
 
 		rUpdateAvQfrom(r, r.head);
 		rUpdateZvQfrom(r, r.tail);
@@ -5233,16 +5236,14 @@ LL Solver::getYearOfMove(TwoNodeMove& t) {
 
 		sumYear = ((*yearTable)[v][wj] + (*yearTable)[w][v_]) / 2;
 	}
-	else if (t.kind == 16) {
-
-		for (int i = 0; i < t.ve.size(); i += 2) {
-			int v = t.ve[i];
-			int w = t.ve[(i + 3) % t.ve.size()];
-			sumYear += (*yearTable)[v][w];
-		}
-		sumYear = sumYear / t.ve.size() * 2;
-
-	}
+	//else if (t.kind == 16) {
+	//	for (int i = 0; i < t.ve.size(); i += 2) {
+	//		int v = t.ve[i];
+	//		int w = t.ve[(i + 3) % t.ve.size()];
+	//		sumYear += (*yearTable)[v][w];
+	//	}
+	//	sumYear = sumYear / t.ve.size() * 2;
+	//}
 	else {
 		ERROR("get year of none");
 	}
@@ -5801,7 +5802,7 @@ DisType Solver::verify() {
 	Ptw = 0;
 	Pc = 0;
 
-	for (int i = 0; i < rts.size(); ++i) {
+	for (int i = 0; i < rts.cnt; ++i) {
 
 		Route& r = rts[i];
 
@@ -6735,6 +6736,9 @@ bool Solver::doOneTimeRuinPer(int perturbkind,int ruinCusNum,int clearEPKind) {
 
 		ruinCus = ruinGetRuinCusBySting(ruinKmax, Lmax);
 	}
+	else if (perturbkind == 3) {
+		ruinCus = ruinGetRuinCusByRandOneR(ruinCusNum);
+	}
 	else {
 		ERROR("no this kind of ruin");
 	}
@@ -6858,7 +6862,7 @@ int Solver::ruinLocalSearchNotNewR(int ruinCusNum) {
 
 	auto solclone = *this;
 
-	static ProbControl pcRuinkind(3);
+	static ProbControl pcRuinkind(4);
 	static ProbControl pcClEPkind(6);
 	
 	int retState = 0;
@@ -6996,7 +7000,7 @@ int Solver::CVB2ruinLS(int ruinCusNum) {
 	ruinKmax = std::min<int>(rts.cnt, ruinKmax);
 	ruinKmax = std::max<int>(1, ruinKmax);
 
-	static ProbControl pcRuKind(3);
+	static ProbControl pcRuKind(4);
 	static ProbControl pcCLKind(6);
 
 	Solver solClone = *this;
@@ -7007,13 +7011,14 @@ int Solver::CVB2ruinLS(int ruinCusNum) {
 		ruinCus = ruinGetRuinCusByRound(ruinCusNum);
 	}
 	else if (perturbkind == 1) {
-
-		// TODO[-1]:加入一个删除整条路径的
-		//ruinCus = ruinGetRuinCusBySec(ruinCusNum);
-		ruinCus = ruinGetRuinCusByRandOneR(ruinCusNum);
+		ruinCus = ruinGetRuinCusBySec(ruinCusNum);
 	}
 	else if (perturbkind == 2) {
 		ruinCus = ruinGetRuinCusBySting(ruinKmax, Lmax);
+	}
+	else if(perturbkind==3){
+		// TODO[-1]:加入一个删除整条路径的
+		ruinCus = ruinGetRuinCusByRandOneR(ruinCusNum);
 	}
 	else {
 		ERROR("no this kind of ruin");
@@ -8450,216 +8455,107 @@ bool Solver::saveOutAsSintefFile(std::string opt) {
 	return true;
 }
 
-#if 0
-Solver Solver::splitSol() {// 使用分割函数：跑一遍bellman-ford算法获得最优分割，实际上转化为从开始点到结束点的最短路划分问题
+#if 1
+Vec<Vec<int>> Solver::splitSol(int rIndex) {// 使用分割函数：跑一遍bellman-ford算法获得最优分割，实际上转化为从开始点到结束点的最短路划分问题
 
-	Vec<int> cur_list = {0};
-	for (int i = 0; i < rts.cnt; ++i) {
-		//Route& r = rts[myRand->pick(rts.cnt)];
-		Route& r = rts[i];
-		auto arr = rPutCusInve(r);
-		cur_list.insert(cur_list.end(), arr.begin(), arr.end());
-	}
+	Vec<int> cli = {0};
+	Route& r = rts[rIndex];
+	auto arr = rPutCusInve(r);
+	cli.insert(cli.end(), arr.begin(), arr.end());
 
-	std::vector < std::vector < DisType > > potential;  // Potential vector
-	int maxVehicles = input.vehicleCnt;
-	int nbVehicles = input.vehicleCnt;
-	int nbClients = input.custCnt;
-	potential = std::vector < std::vector <DisType> >(nbVehicles + 1, std::vector <DisType>(nbClients + 1, DisInf));
+	//int nbNodes = input.custCnt;
+	int nbNodes = cli.size()-1;
+	DisType vehCapacity = input.Q;
+	DisType load, distance, cost;
 
-	potential[0][0] = 0;
-	for (int k = 0; k <= maxVehicles; k++)
-		for (int i = 1; i <= nbClients; i++)
-			potential[k][i] = DisInf;
-	auto pred = std::vector < std::vector <int> >(nbVehicles + 1, std::vector <int>(nbClients + 1, 0));
+	// Initialization of the structures
+	auto potential = Vec<DisType> (nbNodes + 1);
+	auto pred = Vec <int> (nbNodes + 1);
 
-	auto getDis = [&](int x, int y) ->DisType {
-		return input.disOf[reCusNo(x)][reCusNo(y)];
-	};
-
-	auto dnext = [&](int i) {
-		if (i < nbClients) return input.disOf[cur_list[i - 1]][cur_list[i]];
-		else return -DisInf;
-	};
-
-	for (int k = 0; k < maxVehicles; k++)
+	for (int i = 0; i < nbNodes + 1; i++)
 	{
-		for (int i = k; i < nbClients && potential[k][i] < DisInf / 10; i++)
-		{
-			DisType load = 0.;
-			//DisType serviceDuration = 0;
-			DisType distance = 0;
-			for (int j = i + 1; j <= nbClients && load <= input.Q; j++) // Setting a maximum limit on load infeasibility to accelerate the algorithm
-			{
-				load += input.datas[j].DEMAND;
-				//serviceDuration += input.datas[j].SERVICETIME;
-				if (j == i + 1) distance += getDis(0, cur_list[j]);// cliSplit[j].d0_x;
-				else distance += dnext(cur_list[j]) ;//cliSplit[j - 1].dnext;
-
-				//DisType cost = distance + getDis(0, cur_list[j])
-				//	+ std::max<DisType>(load -input.Q, 0)
-				//	+ std::max<DisType>(distance + getDis(0, cur_list[j]) + serviceDuration
-				//		- durationLimit, 0);
-
-				//if (potential[k][i] + cost < potential[k + 1][j]) {
-				//	potential[k + 1][j] = potential[k][i] + cost;
-				//	pred[k + 1][j] = i;
-				//}
-
-				if (potential[k][i] + distance < potential[k + 1][j]) {
-					potential[k + 1][j] = potential[k][i] + distance;
-					pred[k + 1][j] = i;
-				}
-			}
-		}
+		potential[i] = DisInf;
+		pred[i] = -1;
 	}
+	potential[0] = 0;
 
-	double minCost = potential[maxVehicles][nbClients];
-	int nbRoutes = maxVehicles;
-	for (int k = 1; k < maxVehicles; k++) {
-		if (potential[k][nbClients] < minCost) {
-			minCost = potential[k][nbClients]; nbRoutes = k;
-		}
-	}
-	// Filling the chromR structure
-	//for (int k = nbVehicles - 1; k >= nbRoutes; k--)
-	//	indiv->chromR[k].clear();
-	Vec<Vec<int>> rtses;
-
-	int end = nbClients;
-	for (int k = nbRoutes - 1; k >= 0; k--)
+	// Split algorithm here
+	for (int i = 0; i < nbNodes; i++)
 	{
-		//indiv->chromR[k].clear();
-		Vec<int> rt;
-		int begin = pred[k + 1][end];
-		for (int ii = begin; ii < end; ii++) {
-			rt.push_back(cur_list[ii]);
-		}
-		rtses.push_back(rt);
-		end = begin;
-	}
-
-
-	#if 0
-	Vec<int> cur_list = { 0 };
-	for (int i = 0; i < rts.cnt; ++i) {
-		//Route& r = rts[myRand->pick(rts.cnt)];
-		Route& r = rts[i];
-		auto arr = rPutCusInve(r);
-		cur_list.insert(cur_list.end(), arr.begin(), arr.end());
-	}
-
-	//cur_list.push_back(input.custCnt + 1);
-	//int N = cur_list.size() - 1;
-	int N = input.custCnt;
-
-	Vec<DisType> V(N + 1, DisInf);//距离数组
-	V[0] = 0;
-	Vec<int> P(N + 1); // 储存了连接该点的上一点
-	P[0] = 0;
-
-	for (int i = 1; i <= N; i++) {
-		P[i] = cur_list[i];//最开始所有点都没连上
-	}
-	//std::iota(P.begin(), P.end(), 0);
-
-	auto getDis = [&](int x, int y) ->DisType {
-		return input.disOf[reCusNo(x)][reCusNo(y)];
-	};
-
-
-	DisType time = 0;// 当前的时间
-	DisType cost = 0;// 当前的花费
-	DisType load = 0;// 当前的需求
-
-	for (int i = 1; i <= N; i++) {
-
-		time = 0;// 当前的时间
-		cost = 0;// 当前的花费
 		load = 0;
+		distance = 0;
+		for (int j = i + 1; j <= nbNodes && load <= vehCapacity; j++)
+		{
 
-		for (int j = i; j <= N; ++j) {
+			auto& clij = input.datas[cli[j]];
+			load += clij.DEMAND;
+			if (j == i + 1)
+				distance += input.disOf[0][clij.CUSTNO];
+			else
+				//distance += myData->cli[j - 1].dnext;
+				distance += j < nbNodes ? input.disOf[cli[j - 1]][cli[j]]:-1;
 
-			bool isFind = false;
-
-			if (i == j) {
-				//行程的开始
-				time += std::max<DisType>(input.datas[cur_list[j]].READYTIME, getDis(0, cur_list[j]));
-				time += input.datas[cur_list[j]].SERVICETIME; // 服务时间
-				time += getDis(0, cur_list[j]);
-
-				V[i] = std::min<DisType>(2 * getDis(0, cur_list[j]), V[i]);
-
-				cost += V[i];
-				//cost += 2 * getDis(0, cur_list[j]);
-				load += input.datas[cur_list[j]].DEMAND;
-			}
-			else {
-
-				DisType next_time = time - getDis(cur_list[j - 1], 0) + getDis(cur_list[j - 1], cur_list[j]);//到达下一个的时间
-				if (next_time > input.datas[cur_list[j]].DUEDATE) {
-					break;
-				}
-
-				time = std::max<DisType>(next_time, input.datas[cur_list[j]].READYTIME);
-				time += getDis(cur_list[j], 0);
-				cost =
-					cost - getDis(cur_list[j - 1], 0)
-					+ getDis(cur_list[j - 1], cur_list[j])
-					+ getDis(cur_list[j], 0);
-
-				load += input.datas[cur_list[j]].DEMAND;
-			}
-
-			if (time > input.datas[0].DUEDATE || load > input.Q) {
-				break;
-			}
-
-			if (load <= input.Q) {//假如满足容量约束和时间约束
-
-				if (V[cur_list[j]] > V[cur_list[i - 1]] + cost) {
-					V[cur_list[j]] = V[cur_list[i - 1]] + cost;//不断更新当前最短路
-					P[cur_list[j]] = cur_list[i - 1];
-				}
+			cost = distance + input.disOf[0][clij.CUSTNO];
+			if (potential[i] + cost < potential[j] && load <= vehCapacity)
+			{
+				potential[j] = potential[i] + cost;
+				pred[j] = i;
 			}
 		}
 	}
 
-	//Route route = new Route();
-	Vec<int> route;
-	Vec<Vec<int>> rtses;
-	int tmp = P[cur_list[N]];
-	int i = N;
-	while (i > 0) { // 将分割过的重新组成Solution
-
-		if (P[cur_list[i]] == tmp) {
-			route.push_back(cur_list[i]);
-		}
-		else {
-			tmp = P[cur_list[i]];
-			std::reverse(route.begin(), route.end());
-			rtses.push_back(route);
-			route = {};
-			route.push_back(cur_list[i]);
-		}
-		i--;
+	if (potential[nbNodes] > DisInf/10)
+	{
+		std::cout << "ERROR : no Split solution has been propagated until the last node" << std::endl;
+		throw std::string("ERROR : no Split solution has been propagated until the last node");
 	}
 
-	if (route.size() != 0) {
-		std::reverse(route.begin(), route.end());
-		rtses.push_back(route);
+	// Finally counting the number of routes using the pred structure (linear complexity) 
+	int solutionNbRoutes = 0;
+	int cour = nbNodes;
+	while (cour != 0)
+	{
+		cour = pred[cour];
+		solutionNbRoutes++;
 	}
 
-	#endif // 0
+	// And filling myData->solution in the good order (linear complexity) 
+	cour = nbNodes;
+	Vec<int> solution(solutionNbRoutes);
+	for (int i = solutionNbRoutes - 1; i >= 0; i--) {
+		cour = pred[cour];
+		solution[i] = cour + 1;
+	}
 
-	INFO("RoutesCost:",RoutesCost);
-	Solver sol;
-	sol.initByArr2(rtses);
-	DEBUG("rtses.size()", rtses.size());
-	INFO("sol.RoutesCost:", sol.RoutesCost);
-	INFO("sol.verify():", sol.verify());
+	Vec<Vec<int>>rtses;
+	int end = nbNodes;
+	for (int k = solutionNbRoutes - 1; k >= 0; k--)
+	{
+		Vec<int>rt;
+		int begin = pred[end];
+		for (int ii = begin; ii < end; ii++)
+			rt.push_back(cli[ii+1]);
+		end = begin;
+		rtses.push_back(rt);
+	}
 
-	return sol;
+	//INFO("-------------");
+	//Solver sol;
+	//sol.initByArr2(rtses);
+	//DEBUG("rtses.size()", rtses.size());
+	//INFO("r.routeCost:", r.routeCost);
+	//rReCalRCost(r);
+	//INFO("r.up:", r.routeCost);
+	//INFO("sol.RoutesCost:", sol.RoutesCost);
+	//DisType solutionCost = potential[nbNodes];
+	//INFO("solutionCost:", solutionCost);
+	if (rtses.size() > 1) {
+		INFO("111111:", 111111);
+	}
+
+	return rtses;
+
+	//return *this;
 }
 #endif // 0
 

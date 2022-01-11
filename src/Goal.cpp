@@ -184,13 +184,13 @@ bool Goal::perturbOnePop(int i) {
 		//尝试使用 100度的模拟退火进行扰动
 		//sclone.Simulatedannealing(0,100,100.0,globalCfg->ruinC_);
 		
-		int kind = myRand->pick(4);
-		if (kind <= 2) {
+		if (myRand->pick(2)==0) {
+			int kind = myRand->pick(4);
 			int clearEPkind = myRand->pick(6);
 			int ruinCusNum = std::min<int>(globalInput->custCnt/2, globalCfg->ruinC_);
 			sclone.perturbBaseRuin(kind, ruinCusNum, clearEPkind);
 		}
-		else if(kind ==3){
+		else{
 			int step = myRand->pick(sclone.input.custCnt * 0.2, sclone.input.custCnt*0.4);
 			sclone.patternAdjustment(step);
 			sclone.reCalRtsCostAndPen();
@@ -282,53 +282,66 @@ int Goal::gotoRNPop(int rn) {
 
 	Vec<int> kset = { 4,3,2,1,0 };
 
-	Vec<int> adSucceed;
+	Vec<int> popIsAlreadrn;
+
 	for (int i = 0; i < popSize; ++i) {
-		if (pool[i].rts.cnt == 0) {
-			pool[i].initSolution(kset[i]);
-			bool isAdj = pool[i].adjustRN(rn);
-			if (isAdj) {
-				pool[i].mRLLocalSearch(0, {});
-				bks->updateBKSAndPrint(pool[i]);
-				adSucceed.push_back(i);
-			}
-		}
-		else {
-			adSucceed.push_back(i);
+		if (pool[i].rts.cnt == rn) {
+			popIsAlreadrn.push_back(i);
 		}
 	}
-
-	if (adSucceed.size() == 0) {
-
-		for (int i = 0; i < popSize; ++i) {
-			pool[i] = ppool[poprnLowBound][i];
-			pool[i].adjustRN(rn);
-		}
+	if (popIsAlreadrn.size() == popSize) {
 		return rn;
 	}
-	else if (adSucceed.size() == popSize) {
-		return rn;
-	}
-	else if (adSucceed.size() < popSize) {
-		
-		int usei = 0;
 
-		INFO("dont get enough population");
+	if (rn == poprnLowBound) { //r如果是
+
+		int alreadyI = 0;
 
 		for (int i = 0; i < popSize; ++i) {
-
 			if (pool[i].rts.cnt != rn) {
-				pool[i] = pool[usei];
+				pool[i].initSolution(kset[i]);
+				bool isAdj = pool[i].adjustRN(rn);
+				if (isAdj) {
+					pool[i].mRLLocalSearch(0, {});
+					bks->updateBKSAndPrint(pool[i]);
+					popIsAlreadrn.push_back(i);
+				}
+				else {
+					#if CHECKING
+					lyhCheckTrue(popIsAlreadrn.size() > 0);
+					#endif // CHECKING
 
-				pool[i].patternAdjustment(globalInput->custCnt);
-				pool[i].reCalRtsCostAndPen();
-				bks->updateBKSAndPrint(pool[i]);
-
-				usei %= (usei + 1) % adSucceed.size();
+					INFO(popIsAlreadrn.size());
+					pool[i] = pool[popIsAlreadrn[alreadyI]];
+					pool[i].patternAdjustment(globalInput->custCnt);
+					++alreadyI;
+					alreadyI %= popSize;
+				}
+			}
+			else {
+				;
 			}
 		}
 		return rn;
 	}
+	else {
+
+		for (int i = 0; i < popSize; ++i) {
+			if (pool[i].rts.cnt == 0) {
+
+				//TODO[-1]:bug
+				pool[i] = ppool[poprnLowBound][i];
+				bool isAdj = pool[i].adjustRN(rn);
+
+				#if CHECKING
+				lyhCheckTrue(isAdj==true);
+				#endif // CHECKING
+				bks->updateBKSAndPrint(pool[i]);
+			}
+		}
+		return rn;
+	}
+
 	return -1;
 
 }
@@ -367,6 +380,59 @@ int Goal::callSimulatedannealing() {
 
 bool Goal::test() {
 
+	Solver sol;
+	sol.initSolution(0);
+	//srnbound.mRLLocalSearch(0, {});
+	for (;;) {
+		sol.patternAdjustment(1000);
+		sol.reCalRtsCostAndPen();
+
+		for (int i = 0; i < sol.rts.cnt; ++i) {
+			auto retRts = sol.splitSol(i);
+
+			if (retRts.size() > 1) {
+				
+				Route& r = sol.rts[i];
+				auto arr1 = sol.rPutCusInve(sol.rts[i]);
+				for (auto v : arr1) {
+					sol.rRemoveAtPos(r,v);
+				}
+
+				int removeId = sol.rts[i].routeID;
+				sol.removeOneRouteByRid(removeId);
+
+				for (auto& rt : retRts) {
+					int rid = -1;
+					for (int j = 0; j < sol.rts.posOf.size(); ++j) {
+						if (sol.rts.posOf[j] == -1) {
+							rid = j;
+							break;
+						}
+					}
+
+					if (rid == -1) {
+						rid = sol.rts.posOf.size();
+					}
+
+					Route r1 = sol.rCreateRoute(rid);
+					
+					for (int pt : rt) {
+						sol.rInsAtPosPre(r1, r1.tail, pt);
+					}
+
+					sol.rUpdateAvQfrom(r1, r1.head);
+					sol.rUpdateZvQfrom(r1, r1.tail);
+					sol.rts.push_back(r1);
+
+					sol.rNextDisp(sol.rts.getRouteByRid(r1.routeID));
+
+
+				}
+
+				sol.reCalRtsCostAndPen();
+			}
+		}
+	}
 	return true;
 }
 
@@ -406,23 +472,36 @@ int Goal::TwoAlgCombine() {
 	std::queue <int> rnOrderqu;
 
 	//int poprnUpBound = -1;
-	if (poprnLowBound <= globalCfg->lkhRN) {
-		for (int i = globalCfg->lkhRN + 3; i > std::max<int>(globalCfg->lkhRN - 3, poprnLowBound); --i) {
-			rnOrderqu.push(i);
-		}
-		//poprnUpBound = globalCfg->lkhRN + 3;
+	//if (poprnLowBound <= globalCfg->lkhRN) {
+	//	for (int i = globalCfg->lkhRN + 2; i > std::max<int>(globalCfg->lkhRN - 2, poprnLowBound); --i) {
+	//		rnOrderqu.push(i);
+	//	}
+	//	//poprnUpBound = globalCfg->lkhRN + 3;
+	//}
+	//else {
+
+	//for (int i = poprnLowBound + 2; i >= poprnLowBound; --i) {
+	//	rnOrderqu.push(i);
+	//}
+
+	for (int i = poprnLowBound; i <= poprnLowBound + 2; ++i) {
+		rnOrderqu.push(i);
 	}
-	else {
-		for (int i = poprnLowBound + 2; i >= poprnLowBound; --i) {
-			rnOrderqu.push(i);
-		}
 		//poprnUpBound = poprnLowBound + 2;
-	}
+	//}
 	
 	curSearchRN = gotoRNPop(rnOrderqu.front());
 	rnOrderqu.push(rnOrderqu.front());
 	rnOrderqu.pop();
 	
+
+	auto getNextRnSolGO = [&]() -> int {
+		int ret = rnOrderqu.front();
+		rnOrderqu.pop();
+		rnOrderqu.push(ret);
+		return ret;
+	};
+
 	#if DIMACSGO
 	while (true) {
 	#else
@@ -448,10 +527,8 @@ int Goal::TwoAlgCombine() {
 			plangoto = bks->bestSolFound.rts.cnt;
 		}
 		else {
-			if (contiNotDown % 10 == 0) {
-				plangoto = rnOrderqu.front();
-				rnOrderqu.pop();
-				rnOrderqu.push(plangoto);
+			if (contiNotDown % 5 == 0) {
+				plangoto = getNextRnSolGO();
 			}
 		}
 

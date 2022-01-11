@@ -62,11 +62,11 @@ static void printlnerr_(const T& firstArg, const Types&... args) {
 
 template<typename T>
 static void printve(T arr) {
-    std::cout << " ";
+    std::cout << "[ ";
     for (auto& i : arr) {
         std::cout << i << ",";
     }
-    std::cout << std::endl;
+    std::cout << "]" << std::endl;
 }
 
 template<typename T>

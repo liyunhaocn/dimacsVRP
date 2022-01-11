@@ -471,7 +471,6 @@ public:
 
 		int v = -1;
 		int w = -1;
-		Vec<int> ve;
 		int kind = -1;
 
 		DeltPen deltPen;
@@ -481,9 +480,7 @@ public:
 		}
 
 		TwoNodeMove(Vec<int> ve, int kind, DeltPen d) :
-			kind(kind), deltPen(d) {
-			this->ve = ve;
-		}
+			kind(kind), deltPen(d) {}
 
 		TwoNodeMove() :
 			v(0), w(0), kind(0) {
@@ -491,7 +488,6 @@ public:
 			deltPen.deltPtw = DisInf;
 			deltPen.PtwOnly = DisInf;
 			deltPen.PcOnly = DisInf;
-			ve.clear();
 		}
 
 		bool reSet() {
@@ -503,7 +499,6 @@ public:
 			deltPen.PtwOnly = DisInf;
 			deltPen.PcOnly = DisInf;
 			deltPen.deltCost = DisInf;
-			ve.clear();
 			return true;
 		}
 	};
@@ -799,7 +794,7 @@ public:
 
 	bool saveOutAsSintefFile(std::string opt = "");
 		
-	Solver splitSol();
+	Vec<Vec<int>> splitSol(int rIndex);
 
 	~Solver();
 

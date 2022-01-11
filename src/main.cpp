@@ -35,7 +35,7 @@ bool allocGlobalMem(int argc, char* argv[]) {
 
 	globalCfg->seed = std::time(nullptr) + std::clock();
 
-	//globalCfg->seed = 1641832760;
+	globalCfg->seed = 1641908196;
 
 	myRand = new Random(globalCfg->seed);
 	myRandX = new RandomX(globalCfg->seed);
@@ -87,8 +87,8 @@ int main(int argc, char* argv[])
 	hust::Goal goal;
 
 	//goal.callSimulatedannealing();
-	goal.TwoAlgCombine();
-	//goal.test();
+	//goal.TwoAlgCombine();
+	goal.test();
 
 	hust::deallocGlobalMem();
 
