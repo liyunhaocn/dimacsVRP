@@ -47,6 +47,7 @@ struct Configuration {
 
 	int Irand = 200;
 	int runTimer = 1800; //s
+	//int runTimer = 0; //s
 	int neiMoveKind = 16;
 
 	int Pwei0 = 1;

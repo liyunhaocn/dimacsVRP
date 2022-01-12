@@ -16,7 +16,7 @@ bool allocGlobalMem(int argc, char* argv[]) {
 //bool allocGlobalMem(std::string inpath) {
 
 	// ../Instances/Homberger/RC2_4_8.txt
-	// ../Instances/Solomon/R104.txt
+	// ../Instances/Solomon/C104.txt
 	// ../Instances/Solomon/RC201.txt
 	// ../Instances/Homberger/R1_8_3.txt
 	// ../Instances/Homberger/R1_10_1.txt
@@ -36,7 +36,7 @@ bool allocGlobalMem(int argc, char* argv[]) {
 
 	globalCfg->seed = std::time(nullptr) + std::clock();
 
-	//globalCfg->seed = 1641974472;
+	globalCfg->seed = 1642001428;
 
 	myRand = new Random(globalCfg->seed);
 	myRandX = new RandomX(globalCfg->seed);

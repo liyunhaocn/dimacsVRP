@@ -308,6 +308,7 @@ int Goal::gotoRNPop(int rn) {
 			int upRn = -1;
 			int sameNum = 0;
 			for (int i = rn + 1; i <= poprnUpBound; ++i) {
+
 				if (ppool[i][pIndex].rts.cnt > 0) {
 					if (myRand->pick(++sameNum) == 0) {
 						upRn = i;
@@ -327,6 +328,7 @@ int Goal::gotoRNPop(int rn) {
 				int downRn = -1;
 				int sameNum = 0;
 				for (int i = rn - 1; i >= poprnLowBound; --i) {
+
 					if (ppool[i][pIndex].rts.cnt > 0 ) {
 						if (myRand->pick(++sameNum) == 0) {
 							downRn = i;
@@ -425,13 +427,17 @@ Vec<int> Goal::getTheRangeMostHope() {
 	for (int peopleIndex = 0; peopleIndex < popSize; ++peopleIndex) {
 		auto& sol = poolt[peopleIndex];
 
+		if (sol.rts.cnt < 2) {
+			sol.adjustRN(5);
+		}
+
 		while (sol.rts.cnt > 2) {
 
+			soles[peopleIndex].push_back(sol);
 			bool isDel = sol.minimizeRN(sol.rts.cnt - 1);
 			if (!isDel) {
 				break;
 			}
-
 			//Vec<int> newCus;
 			//if (soles[peopleIndex].size() > 0) {
 			//	newCus = EAX::getDiffCusofPb(soles[peopleIndex].back(), sol);
@@ -442,8 +448,7 @@ Vec<int> Goal::getTheRangeMostHope() {
 			//else {
 			//	sol.mRLLocalSearch(0, {});
 			//}
-			soles[peopleIndex].push_back(sol);
-
+			
 			bks->updateBKSAndPrint(sol, " poolt[0] mRLS(0, {})");
 		}
 	}
@@ -454,8 +459,9 @@ Vec<int> Goal::getTheRangeMostHope() {
 		poprnUpBound = std::min<int>(poprnUpBound, soles[i].front().rts.cnt);
 		poprnLowBound = std::max<int>(poprnLowBound, soles[i].back().rts.cnt);
 	}
-	//poprnUpBound = std::min<int>(poprnLowBound + 20, poprnUpBound);
-	poprnUpBound = std::min<int>(poprnLowBound + 10, globalInput->custCnt);
+
+	poprnUpBound = std::min<int>(poprnLowBound + 20, globalInput->custCnt);
+	//poprnUpBound = std::min<int>(poprnLowBound + 10, globalInput->custCnt);
 
 	INFO("poprnLowBound:",poprnLowBound,"poprnUpBound:", poprnUpBound);
 
@@ -479,9 +485,9 @@ Vec<int> Goal::getTheRangeMostHope() {
 		}
 	}
 
-	for (int i =poprnLowBound ; i <= poprnUpBound; ++i) {
-		curSearchRN = gotoRNPop(i);
-	}
+	//for (int i =poprnLowBound ; i <= poprnUpBound; ++i) {
+	//	curSearchRN = gotoRNPop(i);
+	//}
 
 	Vec <int> rnOrderqu;
 	UnorderedSet<int> rnSet;
@@ -582,8 +588,16 @@ int Goal::TwoAlgCombine() {
 			int bksRN = bks->bestSolFound.rts.cnt;
 			if (curSearchRN != bksRN && bksRN >= poprnLowBound) {
 				plangoto = bks->bestSolFound.rts.cnt;
-				//rnOrderqu.clear();
-				rnOrderqu = { bksRN + 1 ,bksRN - 1 };
+				
+				if (bksRN == poprnUpBound) {
+					rnOrderqu = { bksRN - 2 ,bksRN - 1 };
+				}
+				else if (bksRN == poprnLowBound) {
+					rnOrderqu = { bksRN + 2 ,bksRN + 1 };
+				}
+				else {
+					rnOrderqu = { bksRN + 1 ,bksRN - 1 };
+				}
 				//myRand->shuffleVec(rnOrderqu);
 			}
 			else {
