@@ -524,7 +524,7 @@ bool Solver::rtsCheck() {
 	return true;
 }
 
-bool Solver::rReCalCusNumAndSetCusrIdWithHeadrId(Route& r) {
+void Solver::rReCalCusNumAndSetCusrIdWithHeadrId(Route& r) {
 
 	int pt = r.head;
 	r.rCustCnt = 0;
@@ -536,11 +536,9 @@ bool Solver::rReCalCusNumAndSetCusrIdWithHeadrId(Route& r) {
 		}
 		pt = customers[pt].next;
 	}
-
-	return true;
 }
 
-bool Solver::reCalRtsCostAndPen() {
+void Solver::reCalRtsCostAndPen() {
 
 	Pc = 0;
 	Ptw = 0;
@@ -560,8 +558,16 @@ bool Solver::reCalRtsCostAndPen() {
 		RoutesCost += r.routeCost;
 	}
 	penalty = alpha * Ptw + beta * Pc;
+}
 
-	return true;
+void Solver::reCalRtsCostSumCost() {
+
+	RoutesCost = 0;
+	for (int i = 0; i < rts.cnt; ++i) {
+		Route& r = rts[i];
+		rReCalRCost(r);
+		RoutesCost += r.routeCost;
+	}
 }
 
 CircleSector Solver::rGetCircleSector(Route& r) {
@@ -592,7 +598,7 @@ void Solver::sumRtsPen() {
 	Ptw = 0;
 	PtwNoWei = 0;
 
-	for (int i = 0; i < rts.size(); ++i) {
+	for (int i = 0; i < rts.cnt; ++i) {
 
 		Route& r = rts[i];
 		PtwNoWei += r.rPtw;
@@ -616,15 +622,6 @@ DisType Solver::updatePen(const DeltPen& delt) {
 	PtwNoWei += delt.PtwOnly;
 	penalty = alpha * Ptw + beta * Pc;
 	return penalty;
-}
-
-void Solver::reCalRtsCostSumCost() {
-
-	RoutesCost = 0;
-	for (int i = 0; i < rts.size(); ++i) {
-		rReCalRCost(rts[i]);
-		RoutesCost += rts[i].routeCost;
-	}
 }
 
 Solver::Position Solver::findBestPosInSol(int w) {
@@ -657,7 +654,7 @@ Solver::Position Solver::findBestPosInSol(int w) {
 		}
 	};
 
-	for (int i = 0; i < rts.size(); ++i) {
+	for (int i = 0; i < rts.cnt; ++i) {
 		//debug(i)
 		Route& rt = rts[i];
 
@@ -811,7 +808,7 @@ Solver::Position Solver::findBestPosInSolForInit(int w) {
 
 	Position bestPos;
 
-	for (int i = 0; i < rts.size(); ++i) {
+	for (int i = 0; i < rts.cnt; ++i) {
 		//debug(i)
 		Route& rt = rts[i];
 
@@ -1020,7 +1017,7 @@ bool Solver::initBySecOrder() {
 		}
 	}
 
-	for (int i = 0; i < rts.size(); ++i) {
+	for (int i = 0; i < rts.cnt; ++i) {
 		Route& r = rts[i];
 		rUpdateZvQfrom(r, r.tail);
 		rUpdateAQfrom(r, r.head);
@@ -1082,7 +1079,7 @@ bool Solver::initSortOrder(int kind) {
 		//saveOutAsSintefFile("k_" + std::to_string(kind));
 	}
 
-	for (int i = 0; i < rts.size(); ++i) {
+	for (int i = 0; i < rts.cnt; ++i) {
 		Route& r = rts[i];
 		rUpdateAvQfrom(r, r.head);
 		rUpdateZvQfrom(r, r.tail);
@@ -1147,7 +1144,7 @@ bool Solver::initMaxRoute() {
 
 	} while (!que1.empty());
 
-	for (int i = 0; i < rts.size(); ++i) {
+	for (int i = 0; i < rts.cnt; ++i) {
 		Route& r = rts[i];
 
 		rUpdateZvQfrom(r, r.tail);
@@ -1177,8 +1174,9 @@ bool Solver::initByArr2(Vec < Vec<int>> arr2) {
 		rUpdateZvQfrom(r, r.tail);
 		rts.push_back(r);
 	}
-	reCalRtsCostAndPen();
 	//sumRtsPen();
+	reCalRtsCostSumCost();
+	
 	return true;
 }
 
@@ -1251,9 +1249,10 @@ bool Solver::initSolution(int kind) {//5种
 		initByLKHBKS();
 	}
 	#endif // 0
+
 	reCalRtsCostAndPen();
 	INFO("init penalty:",penalty);
-	INFO("init rts.size():",rts.size());
+	INFO("init rts.size:",rts.cnt);
 	INFO("init rtcost:",RoutesCost);
 
 	return true;
@@ -5644,7 +5643,7 @@ bool Solver::resetConfRts() {
 	PtwConfRts.reSet();
 	PcConfRts.reSet();
 
-	for (int i = 0; i < rts.size(); ++i) {
+	for (int i = 0; i < rts.cnt; ++i) {
 		if (rts[i].rPtw > 0) {
 			PtwConfRts.ins(rts[i].routeID);
 		}
@@ -5770,7 +5769,7 @@ bool Solver::managerCusMem(Vec<int>& releaseNodes) {
 bool Solver::removeOneRouteByRid(int rId) {
 
 	if (rId == -1) {
-		int index = myRand->pick(rts.size());
+		int index = myRand->pick(rts.cnt);
 		rId = rts[index].routeID;
 	}
 
@@ -6709,7 +6708,8 @@ void Solver::perturbBasedejepool(int ruinCusNum) {
 	sumRtsPen();
 	bool isej = ejectLocalSearch();
 	if (isej) {
-		reCalRtsCostAndPen();
+		//TODO[-1]:这里去掉了
+		//reCalRtsCostAndPen();
 	}
 	else {
 		*this = clone;
@@ -7057,7 +7057,10 @@ int Solver::CVB2ruinLS(int ruinCusNum) {
 	if (cuses.size() > 0) {
 		mRLLocalSearch(1, cuses);
 	}
-	reCalRtsCostAndPen();
+
+	//TODO[-1]:这里去掉了reCalRtsCostAndPen
+	//reCalRtsCostAndPen();
+
 	if (RoutesCost < solClone.RoutesCost) {
 		++pcRuKind.data[perturbkind];
 		++pcCLKind.data[clearKind];
@@ -7094,7 +7097,7 @@ int Solver::Simulatedannealing(int kind,int iterMax, double temperature,int ruin
 			sStar.CVB2ruinLS(ruinNum);
 		}
 		
-		bks->updateBKSAndPrint(sStar);
+		bks->updateBKSAndPrint(sStar,"from ruin sStart");
 
 		DisType delt = temperature * log(double(myRand->pick(1, 100000)) / (double)100000);
 
@@ -7120,6 +7123,7 @@ bool Solver::patternAdjustment(int Irand) {
 		I1000 = Irand;
 	}
 
+	DisType beforeGamma = gamma;
 	int iter = 0;
 	gamma = 0;
 
@@ -7199,7 +7203,10 @@ bool Solver::patternAdjustment(int Irand) {
 	} while (++iter < I1000);
 
 	sumRtsPen();
-
+	if (beforeGamma == 1) {
+		reCalRtsCostSumCost();
+		gamma = beforeGamma;
+	}
 	return true;
 }
 
@@ -7789,6 +7796,8 @@ bool Solver::ejectLocalSearch() {
 	minEPcus = IntInf;
 	squIter += globalCfg->yearTabuLen + globalCfg->yearTabuRand;
 	int maxOfPval = -1;
+
+	DisType beforeGamma = gamma;
 	gamma = 0;
 
 	int EpCusNoDown = 1;
@@ -7916,14 +7925,16 @@ bool Solver::ejectLocalSearch() {
 		}
 	}
 
-	//debug(iter);
-
-
+	if (beforeGamma == 1) {
+		gamma = 1;
+		reCalRtsCostSumCost();
+	}
 	return (EPsize() == 0 && penalty == 0);
 }
 
-void Solver::minimizeRN(int ourTarget) {
+bool Solver::minimizeRN(int ourTarget) {
 
+	DisType beforeGamma = gamma;
 	gamma = 0;
 
 	while (rts.cnt > ourTarget) {
@@ -7938,57 +7949,96 @@ void Solver::minimizeRN(int ourTarget) {
 				break;
 			}
 			//saveOutAsSintefFile();
-			INFO("rts.size():",rts.size());
+			INFO("rts.cnt:",rts.cnt);
 		}
 		else {
 			*this = sclone;
 			break;
 		}
 	}
-	INFO("minRN,rts.size():",rts.size());
+
+	if (beforeGamma) {
+		gamma = beforeGamma;
+		reCalRtsCostSumCost();
+	}
+	if (rts.cnt == ourTarget) {
+		return true;
+	}
+	return false;
+	INFO("minRN,rts.cnt:",rts.cnt);
 }
 
 bool Solver::adjustRN(int ourTarget) {
 
+	auto getARidCanUsed = [&]() ->int {
+		int rId = -2;
+		for (int i = 0; i < rts.posOf.size(); ++i) {
+			if (rts.posOf[i] == -1) {
+				rId = i;
+				break;
+			}
+		}
+		if (rId == -2) {
+			rId = rts.posOf.size();
+		}
+		return rId;
+	};
+
+	auto findBestPosToSplit = [&](Route& r) -> int {
+		auto arr = rPutCusInve(r);
+		
+		int retv = -1;
+		DisType dis = DisInf;
+
+		for (int i = 0; i + 1 < arr.size(); ++i) {
+			int v = arr[i];
+			int vj = arr[i+1];
+			DisType delt = 0;
+			delt -= input.disOf[v][vj];
+			delt += input.disOf[0][v];
+			delt += input.disOf[0][vj];
+			if (delt < dis) {
+				dis = delt;
+				retv = v;
+			}
+		}
+		return retv;
+	};
+
 	if (rts.cnt > ourTarget) {
 		minimizeRN(ourTarget);
-		INFO("adjust rn rts.cnt:", rts.cnt);
+		INFO("minimizeRN adjust rn rts.cnt:", rts.cnt);
 	}
 	else if (rts.cnt < ourTarget) {
 		
 		while (rts.cnt < ourTarget) {
-			int rId = -2;
-			for (int i = 0; i < rts.posOf.size(); ++i) {
-				if (rts.posOf[i] == -1) {
-					rId = i;
-					break;
-				}
-			}
-			if (rId == -2) {
-				rId = rts.posOf.size();
-			}
 
-			Route r1 = rCreateRoute(rId);
-			int rIdChose = -1;
+			int rIndex = -1;
 			int choseNum = 0;
 			for (int i = 0; i < rts.cnt; ++i) {
 				if (rts[i].rCustCnt >= 2) {
 					if (myRand->pick(++choseNum) == 0) {
-						rIdChose = i;
+						rIndex = i;
 					}
 				}
 			}
-			
-			Route& r = rts[rIdChose];
+			int rId = getARidCanUsed();
+			Route r1 = rCreateRoute(rId);
+
+			Route& r = rts[rIndex];
+
+			int vsp = findBestPosToSplit(r);
 
 			auto arr = rPutCusInve(r);
 
-			//rSplit(r);
+			//INFO("vsp", vsp);
+			//printve(arr);
 
 			for (int i = 0; i < arr.size(); ++i) {
-				if (i % 2 == 0) {
-					rRemoveAtPos(r, arr[i]);
-					rInsAtPosPre(r1, r1.tail, arr[i]);
+				rRemoveAtPos(r, arr[i]);
+				rInsAtPosPre(r1, r1.tail, arr[i]);
+				if (arr[i] == vsp) {
+					break;
 				}
 			}
 
@@ -7996,17 +8046,23 @@ bool Solver::adjustRN(int ourTarget) {
 			rUpdateZvQfrom(r1, r1.tail);
 			rUpdateAvQfrom(r, r.head);
 			rUpdateZvQfrom(r, r.tail);
+			rReCalRCost(r);
+			rReCalRCost(r1);
 			rts.push_back(r1);
 
+			sumRtsCost();
 			sumRtsPen();
+			
 		}
-		INFO("adjust rn rts.cnt:", rts.cnt);
+		INFO("split adjust rn rts.cnt:", rts.cnt);
 	}
 	else {
 		INFO("no need adjust rn rts.cnt:", rts.cnt);
 	}
 	
-	reCalRtsCostAndPen();
+	//TODO[-1] 这里去掉了reCalRtsCostAndPen();
+	//reCalRtsCostAndPen();
+	
 	//TODO[0]:Lmax和ruinLmax的定义
 	globalCfg->ruinLmax = input.custCnt / rts.cnt;
 	//for (int i = 0; i < rts.cnt; ++i) {
@@ -8167,7 +8223,7 @@ bool Solver::mRLLocalSearch(int hasRange,Vec<int> newCus) {
 	beta = 1;
 	gamma = 1;
 
-	reCalRtsCostSumCost();
+	//reCalRtsCostSumCost();
 
 	TwoNodeMove MRLbestM;
 
@@ -8348,6 +8404,7 @@ bool Solver::mRLLocalSearch(int hasRange,Vec<int> newCus) {
 
 		sumRtsPen();
 		reCalRtsCostSumCost();
+
 		if (!(costafterplus == RoutesCost)) {
 			ERROR("costafterplus:", costafterplus);
 			ERROR("RoutesCost:", RoutesCost);
@@ -8369,14 +8426,10 @@ bool Solver::mRLLocalSearch(int hasRange,Vec<int> newCus) {
 		#endif // CHECKING
 
 	}
+
 	//TODO[5]:这个更新必须有 因为搜索工程中没有更新每一条路径的routeCost
 	reCalRtsCostSumCost();
 
-	//for (int i : newCus) {
-	//	std::cout << contricus[i] << " ";
-	//}
-	//std::cout << std::endl;
-	
 	return true;
 }
 
@@ -8393,7 +8446,7 @@ Output Solver::saveToOutPut() {
 	output.Pc = Pc;
 
 	output.rts.clear();
-	for (int i = 0; i < rts.size(); ++i) {
+	for (int i = 0; i < rts.cnt; ++i) {
 		output.rts.push_back(rPutCusInve(rts[i]));
 	}
 	output.state = state;
@@ -8403,7 +8456,7 @@ Output Solver::saveToOutPut() {
 
 bool Solver::printDimacs() {
 
-	for (int i = 0; i < rts.size(); ++i) {
+	for (int i = 0; i < rts.cnt; ++i) {
 		Route& r = rts[i];
 		printf("Route #%d:", i + 1);
 		int pt = customers[r.head].next;
@@ -8464,15 +8517,65 @@ bool Solver::saveOutAsSintefFile(std::string opt) {
 }
 
 #if 1
-Vec<Vec<int>> Solver::rSplit(Route& r) {
+
+struct ClientSplit
+{
+	DisType demand;
+	DisType serviceTime;
+	DisType d0_x;
+	DisType dx_0;
+	DisType dnext;
+	ClientSplit() : demand(0), serviceTime(0), d0_x(0), dx_0(0), dnext(0) {};
+};
+
+struct Trivial_Deque
+{
+	std::vector <int> myDeque; // Simply a vector structure to keep the elements of the queue
+	int indexFront; // Index of the front element
+	int indexBack; // Index of the back element
+	inline void pop_front() { indexFront++; } // Removes the front element of the queue D
+	inline void pop_back() { indexBack--; } // Removes the back element of the queue D
+	inline void push_back(int i) { indexBack++; myDeque[indexBack] = i; } // Appends a new element to the back of the queue D
+	inline int get_front() { return myDeque[indexFront]; }
+	inline int get_next_front() { return myDeque[indexFront + 1]; }
+	inline int get_back() { return myDeque[indexBack]; }
+	void reset(int firstNode) { myDeque[0] = firstNode; indexBack = 0; indexFront = 0; }
+	inline int size() { return indexBack - indexFront + 1; }
+
+	Trivial_Deque(int nbElements, int firstNode)
+	{
+		myDeque = std::vector <int>(nbElements);
+		myDeque[0] = firstNode;
+		indexBack = 0;
+		indexFront = 0;
+	}
+};
+
+DisType Solver::rSplit(Route& r, Vec<Vec<int>>& retRts) {
 	// 使用分割函数：跑一遍bellman-ford算法获得最优分割，实际上转化为从开始点到结束点的最短路划分问题
 
-	Vec<int> cli = {0};
 	auto arr = rPutCusInve(r);
-	cli.insert(cli.end(), arr.begin(), arr.end());
+	int nbClients = r.rCustCnt;
+	Vec < ClientSplit > cliSplit(nbClients + 1);
+
+	//auto sumDistance = Vec <DisType>(nbClients + 1);
+	//auto sumLoad = Vec <DisType>(nbClients + 1);
+	
+	for (int i = 1; i <= nbClients; i++)
+	{
+		cliSplit[i].demand = input.datas[arr[i - 1]].DEMAND;
+		cliSplit[i].serviceTime = input.datas[arr[i - 1]].SERVICETIME;
+		cliSplit[i].d0_x = input.disOf[0][arr[i - 1]];
+		cliSplit[i].dx_0 = input.disOf[arr[i - 1]][0];
+		if (i < nbClients) cliSplit[i].dnext = input.disOf[arr[i - 1]][arr[i]];
+		else cliSplit[i].dnext = -DisInf;
+		//else cliSplit[i].dnext = -1.e30;
+		//sumLoad[i] = sumLoad[i - 1] + cliSplit[i].demand;
+		//sumDistance[i] = sumDistance[i - 1] + cliSplit[i - 1].dnext;
+	}
 
 	//int nbNodes = input.custCnt;
-	int nbNodes = cli.size()-1;
+	int nbNodes = r.rCustCnt;
 	DisType vehCapacity = input.Q;
 	DisType load, distance, cost;
 
@@ -8495,16 +8598,15 @@ Vec<Vec<int>> Solver::rSplit(Route& r) {
 		for (int j = i + 1; j <= nbNodes && load <= vehCapacity; j++)
 		{
 
-			auto& clij = input.datas[cli[j]];
-			load += clij.DEMAND;
+			load += cliSplit[j].demand;
 			if (j == i + 1)
-				distance += input.disOf[0][clij.CUSTNO];
+				distance += cliSplit[j].d0_x;
 			else
-				//distance += myData->cli[j - 1].dnext;
-				distance += j < nbNodes ? input.disOf[cli[j - 1]][cli[j]]:-1;
+				distance += cliSplit[j - 1].dnext;
 
-			cost = distance + input.disOf[0][clij.CUSTNO];
-			if (potential[i] + cost < potential[j] && load <= vehCapacity)
+			cost = distance + cliSplit[j].dx_0;
+			//if (potential[i] + cost < potential[j]*1.1 && load <= vehCapacity)
+			if (potential[i] + cost < potential[j] + 20 && load <= vehCapacity)
 			{
 				potential[j] = potential[i] + cost;
 				pred[j] = i;
@@ -8518,7 +8620,6 @@ Vec<Vec<int>> Solver::rSplit(Route& r) {
 		throw std::string("ERROR : no Split solution has been propagated until the last node");
 	}
 
-	// Finally counting the number of routes using the pred structure (linear complexity) 
 	int solutionNbRoutes = 0;
 	int cour = nbNodes;
 	while (cour != 0)
@@ -8529,26 +8630,37 @@ Vec<Vec<int>> Solver::rSplit(Route& r) {
 
 	// And filling myData->solution in the good order (linear complexity) 
 	cour = nbNodes;
-	Vec<int> solution(solutionNbRoutes);
+	//Vec<int> solution(solutionNbRoutes);
 	for (int i = solutionNbRoutes - 1; i >= 0; i--) {
 		cour = pred[cour];
-		solution[i] = cour + 1;
+		//solution[i] = cour + 1;
 	}
 
-	Vec<Vec<int>>rtses;
 	int end = nbNodes;
 	for (int k = solutionNbRoutes - 1; k >= 0; k--)
 	{
 		Vec<int>rt;
 		int begin = pred[end];
 		for (int ii = begin; ii < end; ii++)
-			rt.push_back(cli[ii+1]);
+			rt.push_back(arr[ii]);
 		end = begin;
-		rtses.push_back(rt);
+		retRts.push_back(rt);
 	}
 
-	return rtses;
+	#if CHECKING
+	int spNum = 0;
+	for (auto& x : retRts) {
+		//printve(x);
+		spNum += x.size();
+}
 
+	if (arr.size() != spNum) {
+		ERROR("rtses.size():", retRts.size(), "arr.size():", arr.size(), "spNum", spNum);
+	}
+	#endif // CHECKING
+
+	//INFO("potential[nbClients]-r.routeCost:",potential[nbClients] - r.routeCost);
+	return potential[nbClients] - r.routeCost;
 	//return *this;
 }
 #endif // 0
@@ -8559,7 +8671,6 @@ BKS::BKS() {
 	bestSolFound.penalty = DisInf;
 	bestSolFound.RoutesCost = DisInf;
 	limitVal = globalCfg->lkhRL + globalCfg->lkhRL / 10;
-
 }
 
 void BKS::reSet() {
@@ -8568,6 +8679,14 @@ void BKS::reSet() {
 }
 
 bool BKS::updateBKSAndPrint(Solver& newSol, std::string opt) {
+
+	if (bksAtRn[newSol.rts.cnt] == 0) {
+		bksAtRn[newSol.rts.cnt] = newSol.RoutesCost;
+	}
+	else {
+		bksAtRn[newSol.rts.cnt] = 
+		std::min<DisType>(bksAtRn[newSol.rts.cnt], newSol.RoutesCost);
+	}
 
 	if (newSol.RoutesCost < bestSolFound.RoutesCost) {
 		auto lastRec = bestSolFound.RoutesCost;
@@ -8648,7 +8767,7 @@ bool saveBKStoCsvFile() {
 	auto lyhrl = sol.RoutesCost;
 	rgbData << lyhrl << ",";
 
-	rgbData << sol.rts.size() << ",";
+	rgbData << sol.rts.cnt << ",";
 
 	rgbData << gloalTimer->getRunTime() << ",";
 

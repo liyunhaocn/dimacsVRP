@@ -95,10 +95,6 @@ struct RTS {
 	Vec<int> posOf;
 	int cnt = 0;
 
-	int size() {
-		return cnt;
-	}
-
 	//RTS() {}
 		
 	RTS(int maxSize) {
@@ -595,9 +591,11 @@ public:
 
 	bool rtsCheck();
 
-	bool rReCalCusNumAndSetCusrIdWithHeadrId(Route& r);
+	void rReCalCusNumAndSetCusrIdWithHeadrId(Route& r);
 
-	bool reCalRtsCostAndPen();
+	void reCalRtsCostAndPen();
+
+	void reCalRtsCostSumCost();
 
 	CircleSector rGetCircleSector(Route& r);
 
@@ -607,8 +605,6 @@ public:
 
 	DisType updatePen(const DeltPen& delt);
 
-	void reCalRtsCostSumCost();
-		
 	Position findBestPosInSol(int w);
 
 	Position findBestPosInSolForInit(int w);
@@ -776,7 +772,7 @@ public:
 		
 	bool resetSol();
 
-	void minimizeRN(int ourTarget);
+	bool minimizeRN(int ourTarget);
 
 	bool adjustRN(int ourTarget);
 
@@ -794,7 +790,7 @@ public:
 
 	bool saveOutAsSintefFile(std::string opt = "");
 		
-	Vec<Vec<int>> rSplit(Route& r);
+	DisType rSplit(Route& r,Vec<Vec<int>>& retRts);
 
 	~Solver();
 
@@ -805,7 +801,8 @@ struct BKS {
 
 	Solver bestSolFound;
 	DisType limitVal = DisInf;
-
+	UnorderedMap<int,DisType> bksAtRn;
+	
 	BKS();
 
 	void reSet();

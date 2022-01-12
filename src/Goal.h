@@ -9,7 +9,8 @@ struct Goal {
 
 	Vec<Vec<bool>> eaxTabuTable;
 
-	int poprnLowBound = -1;
+	int poprnLowBound = 0;
+	int poprnUpBound = 0;
 
 	UnorderedMap<int, Vec<Solver>> ppool;
 	//Vec<Vec<Solver>> ppool;
@@ -18,13 +19,13 @@ struct Goal {
 
 	Goal();
 
-	DisType getMinRtCostInPool();
+	DisType getMinRtCostInPool(int rn);
 
 	DisType doTwoKindEAX(Solver& pa, Solver& pb, int kind);
 
 	bool perturbOnePop(int i);
 
-	int naMA();
+	int naMA(int rn);
 
 	//Vec<int> getNotTabuPaPb();
 	//Vec<int> getpairOfPaPb();
@@ -39,6 +40,7 @@ struct Goal {
 
 	int TwoAlgCombine();
 
+	Vec<int> getTheRangeMostHope();
 };
 
 

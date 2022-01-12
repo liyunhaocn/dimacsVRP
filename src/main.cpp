@@ -15,9 +15,9 @@ namespace hust {
 bool allocGlobalMem(int argc, char* argv[]) {
 //bool allocGlobalMem(std::string inpath) {
 
-	// ../Instances/Homberger/RC2_4_8.txt 3600 6989.4 0
-	// ../Instances/Solomon/R104.txt 1800 1261.8 1
-	// ../Instances/Solomon/RC201.txt 1800 1261.8 1
+	// ../Instances/Homberger/RC2_4_8.txt
+	// ../Instances/Solomon/R104.txt
+	// ../Instances/Solomon/RC201.txt
 	// ../Instances/Homberger/R1_8_3.txt
 	// ../Instances/Homberger/R1_10_1.txt
 	// ../Instances/Homberger/RC2_6_4.txt
@@ -28,6 +28,7 @@ bool allocGlobalMem(int argc, char* argv[]) {
 	//../Instances/Homberger/C1_4_2.txt 
 	//../Instances/Homberger/C2_10_6.txt 
 	//../Instances/Homberger/RC1_8_5.txt
+	//../Instances/Homberger/RC2_10_1.txt
 
 	globalCfg = new hust::Configuration();
 
@@ -35,7 +36,7 @@ bool allocGlobalMem(int argc, char* argv[]) {
 
 	globalCfg->seed = std::time(nullptr) + std::clock();
 
-	globalCfg->seed = 1641919874;
+	//globalCfg->seed = 1641974472;
 
 	myRand = new Random(globalCfg->seed);
 	myRandX = new RandomX(globalCfg->seed);

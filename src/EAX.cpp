@@ -332,7 +332,6 @@ bool EAX::applyCycles(const Vec<int>& cyclesIndexes, Solver& pc) {
 		applyOneCycle(index, pc);
 	}
 	return true;
-
 }
 
 bool updateBestPos(Solver::Position& ret,Solver::Position& temp) {
@@ -502,7 +501,6 @@ int EAX::removeSubring(Solver& pc) {
 		pc.rReCalCusNumAndSetCusrIdWithHeadrId(r);
 		pc.reCalRtsCostAndPen();
 
-
 	}
 
 	return subCyNum;
@@ -629,7 +627,6 @@ int EAX::doNaEAX(Solver& pa, Solver& pb, Solver& pc) {
 	pc.reCalRtsCostAndPen();
 		
 	//TODO[0]:这里考虑是否可以在没有子换的情况下再禁忌
-
 	if (globalCfg->abcyWinkacRate == 100) {
 		tabuCyIds.insert(choosecyIndex);
 	}

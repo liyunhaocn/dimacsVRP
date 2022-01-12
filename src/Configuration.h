@@ -64,7 +64,7 @@ struct Configuration {
 	//int yearTabuRand = 10;
 
 	// TODO[0]:看需不需要频繁构造 1000 stepC2_8_7 需要20s C1_6_6 需要6s
-	int ejectLSMaxIter = 500;
+	int ejectLSMaxIter = 100;
 
 	//int yearTabuLen = 20;
 	//int yearTabuRand = 10;
@@ -99,7 +99,7 @@ struct Configuration {
 	//(ruinLmax+1)/2
 	int ruinC_ = 15;
 
-	int ruinWinkacRate = 95; // 100
+	int ruinWinkacRate = 99; // 100
 	//TODO[-1]:为初始化设置了眨眼
 	int initWinkacRate = 99; // 100
 	int abcyWinkacRate = 100; // 100
