@@ -25,7 +25,7 @@ bool allocGlobalMem(int argc, char* argv[]) {
 	//../Instances/Solomon/R204.txt
 	//../Instances/Homberger/R2_2_4.txt 
 	//../Instances/Homberger/RC1_8_1.txt 
-	//../Instances/Homberger/C1_4_2.txt 
+	//../Instances/Homberger/C1_10_6.txt 
 	//../Instances/Homberger/C2_10_6.txt 
 	//../Instances/Homberger/RC1_8_5.txt
 	//../Instances/Homberger/RC2_10_1.txt
