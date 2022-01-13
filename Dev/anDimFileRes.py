@@ -16,22 +16,25 @@ def getOneFileInfo(path):
 
     contents = file_handle.readlines()
     
-    bks = 0.0
-    area = 0.0
+    bks = ""
+    area = ""
+    timeStr = ""
     for line in contents:
         arr = line.split(' ')
         # print(arr)
         firstPara = arr[0]
+        
         # print(firstPara)
         if isFloat(firstPara):
-            bks = float(firstPara)*10
+            bks = firstPara.replace(".","")
+            timeStr = arr[1].replace("\n","")
             # print(float(firstPara))
         else:
             if firstPara == "Primal":
-                area = float(arr[2])
+                area = arr[2].replace("\n","")
                 # print("area:",float(arr[2]))
 
-    return [bks,area]
+    return [bks,area,timeStr]
 
 # 遍历文件夹
 def getAllFilePath(file):
@@ -43,7 +46,6 @@ def getAllFilePath(file):
         # dirs 表示该文件夹下的子目录名list
         # files 表示该文件夹下的文件list
         # 遍历文件
-        
         for f in files:
             # print(os.path.join(root, f))
             ret.append(os.path.join(root, f))
@@ -69,8 +71,8 @@ def writecsv(path,data):
 
 if __name__ == '__main__':
     
-    paths = getAllFilePath(r"..\commitFile" )
-
+    paths = getAllFilePath(r"..\commitFile\run12")
+    # print("path",paths)
     mp = {}
 
     for ph in paths:
@@ -80,7 +82,8 @@ if __name__ == '__main__':
         # break
     
     for k,v in mp.items():
-        print([k,str(v[0]),str(v[1])])
-        writecsv("../Results/run10.csv",[[k,str(v[0]),str(v[1])]])
+        print([k,v[0],v[1],v[2]])
+        # break
+        writecsv("../Results/run12.csv",[[k,v[0],v[1],v[2]]])
 
 

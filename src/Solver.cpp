@@ -901,6 +901,7 @@ Solver::Position Solver::findBestPosForRuin(int w) {
 				ret = pos;
 			}
 			else if (pos.pen == ret.pen) {
+
 				if (pos.cost < ret.cost) {
 					// TODO[8]:眨眼率可以调 5%合适？
 					ret = pos;
@@ -5491,6 +5492,8 @@ Solver::TwoNodeMove Solver::getMovesRandomly
 	lyhCheckTrue(r.rPc > 0 || r.rPtw > 0);
 	#endif // CHECKING
 
+	
+
 	if (r.rPtw > 0) {
 
 		int pt = r.tail;
@@ -5502,8 +5505,15 @@ Solver::TwoNodeMove Solver::getMovesRandomly
 		}
 		
 		#if CHECKING
-		if (pt == r.head) {
+		if (pt == -1) {
 			ERROR("NO Ptw In R");
+			rtsCheck();
+			INFO("r.head:", r.head);
+			INFO("r.head:", r.tail);
+			rNextDisp(r);
+			ERROR(11111);
+			ERROR(11111);
+			std::cout << 211231 << std::endl;
 		}
 		#endif // CHECKING
 
@@ -5515,9 +5525,8 @@ Solver::TwoNodeMove Solver::getMovesRandomly
 			endNode = customers[pt].next;
 		}
 		
-		//auto arr = rPutCusInve(r);
-		//for (int v : arr ) {
-		for (int v = customers[r.head].next; v != endNode; v = customers[v].next) {
+		int v=customers[r.head].next;
+		for (; v != endNode; v = customers[v].next) {
 
 			int v_ = customers[v].pre;
 			int vj = customers[v].next;
@@ -5564,8 +5573,21 @@ Solver::TwoNodeMove Solver::getMovesRandomly
 				exchangevwEffectively(v);
 				outrelocateEffectively(v);
 			}
-			
 		}
+
+		#if CHECKING
+		if (v != endNode) {
+			rtsCheck();
+			INFO("v:", v);
+			INFO("endNode:", endNode);
+			INFO("r.head:", r.head);
+			INFO("r.head:", r.tail);
+			rNextDisp(r);
+			ERROR(11111);
+			ERROR(11111);
+			std::cout << 211231 << std::endl;
+		}
+		#endif // CHECKING
 	}
 	else {
 
@@ -7929,6 +7951,7 @@ bool Solver::ejectLocalSearch() {
 		gamma = 1;
 		reCalRtsCostSumCost();
 	}
+
 	return (EPsize() == 0 && penalty == 0);
 }
 
@@ -8060,18 +8083,6 @@ bool Solver::adjustRN(int ourTarget) {
 		INFO("no need adjust rn rts.cnt:", rts.cnt);
 	}
 	
-	//TODO[-1] 这里去掉了reCalRtsCostAndPen();
-	//reCalRtsCostAndPen();
-	
-	//TODO[0]:Lmax和ruinLmax的定义
-	globalCfg->ruinLmax = input.custCnt / rts.cnt;
-	//for (int i = 0; i < rts.cnt; ++i) {
-	//	globalCfg->ruinLmax = std::max<int>(globalCfg->ruinLmax,rts[i].rCustCnt);
-	//}
-	//globalCfg->ruinLmax = std::min<int>(globalCfg->ruinLmax,input.custCnt/rts.cnt);
-
-	globalCfg->ruinC_ = (globalCfg->ruinLmax + 1)/2;
-
 	if (rts.cnt == ourTarget) {
 		return true;
 	}
@@ -8227,12 +8238,12 @@ bool Solver::mRLLocalSearch(int hasRange,Vec<int> newCus) {
 
 	TwoNodeMove MRLbestM;
 
-	static Vec<int> moveKindOrder = { 0,1,2,3,4,5,6,7, 8,9,10,11,12,13,14,15};
+	static Vec<int> moveKindOrder = { 0,1,2,3,4,5,6,7, 8,/*9,10,*/ 11,/*12,*/13,/*14,*/15};
 
-	//static Vec<int> contribution(16, 0);
-	//Vec<int> contricus(input.custCnt + 1, 0);
-	//auto maxIt = std::max_element(contribution.begin(), contribution.end());
-	//for (auto& i : contribution) { i = (i>>1)+1; }
+	static Vec<int> contribution(16, 0);
+	Vec<int> contricus(input.custCnt + 1, 0);
+	auto maxIt = std::max_element(contribution.begin(), contribution.end());
+	for (auto& i : contribution) { i = (i>>1)+1; }
 	
 	//std::sort(moveKindOrder.begin(), moveKindOrder.end(), [&](int a, int b) {
 	//	return contribution[a] > contribution[b];
@@ -8268,14 +8279,18 @@ bool Solver::mRLLocalSearch(int hasRange,Vec<int> newCus) {
 		qu.push(i);
 	}
 
+	//auto& nei = globalCfg->mRLLocalSearchRange;
+	//Vec<int> bugOrder(nei[1]-nei[0]);
+	//std::iota(bugOrder.begin(), bugOrder.end(), nei[0]);
+
 	auto getMovesGivenRange = [&](int range) {
 
 		MRLbestM.reSet();
 		bool isFind = false;
 
-		//std::sort(moveKindOrder.begin(), moveKindOrder.end(), [&](int a, int b) {
-		//	return contribution[a] < contribution[b];
-		//});
+		std::sort(moveKindOrder.begin(), moveKindOrder.end(), [&](int a, int b) {
+			return contribution[a] < contribution[b];
+		});
 
 		myRand->shuffleVec(moveKindOrder);
 
@@ -8291,12 +8306,22 @@ bool Solver::mRLLocalSearch(int hasRange,Vec<int> newCus) {
 			if (customers[v].routeID == -1) {
 				continue;
 			}
-			for (int wpos = 0; wpos < range; ++wpos) {
+
+			//auto wposorder = myRandX->getMN(range, range);
+
+			int beg = 0;
+			if (range == globalCfg->mRLLocalSearchRange[1]) {
+				beg = globalCfg->mRLLocalSearchRange[0];
+			}
+			
+			for (int wpos = beg; wpos < range; ++wpos) {
 
 				//TODO[-1]:这里改成了addSTclose
 				//int w = input.allCloseOf[v][wpos];
 				int w = input.addSTclose[v][wpos];
 				//int w = input.sectorClose[v][wpos];
+
+
 				if (customers[w].routeID == -1) {
 					continue;
 				}
@@ -8362,7 +8387,7 @@ bool Solver::mRLLocalSearch(int hasRange,Vec<int> newCus) {
 		}
 
 		//++contricus[bestM.v];
-		//++contribution[bestM.kind];
+		++contribution[bestM.kind];
 
 		#if CHECKING
 		Vec<Vec<int>> oldRoutes;

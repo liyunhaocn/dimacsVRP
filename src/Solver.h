@@ -426,7 +426,7 @@ public:
 
 	DisType alpha = 1;
 	DisType beta = 1;
-	DisType gamma = 0;
+	DisType gamma = 1;
 
 	DisType RoutesCost = DisInf;
 

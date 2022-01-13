@@ -19,6 +19,8 @@ struct Goal {
 
 	Goal();
 
+	void updateppol(Solver& sol, int index);
+
 	DisType getMinRtCostInPool(int rn);
 
 	DisType doTwoKindEAX(Solver& pa, Solver& pb, int kind);

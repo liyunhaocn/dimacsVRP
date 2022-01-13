@@ -1812,6 +1812,7 @@ void Configuration::solveCommandLine(int argc, char* argv[]) {
 
 	if (argc >= 3) {
 		globalCfg->runTimer = std::stoi(argv[2], nullptr, 0);
+		//globalCfg->runTimer = 10;
 	}
 
 }
