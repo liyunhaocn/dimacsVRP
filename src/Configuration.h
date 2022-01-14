@@ -90,7 +90,7 @@ struct Configuration {
 	// mRLLocalSearchRange
 
 	//TODO[-1]:这里改成了40
-	Vec<int> mRLLocalSearchRange = { 10,50 };
+	Vec<int> mRLLocalSearchRange = { 10,40 };
 	//int mRLLSgetAllRange = 50;
 
 	// ruinLocalSearch
@@ -102,7 +102,7 @@ struct Configuration {
 	//(ruinLmax+1)/2
 	int ruinC_ = 15;
 
-	int ruinWinkacRate = 95; // 100
+	int ruinWinkacRate = 99; // 100
 	//TODO[-1]:为初始化设置了眨眼
 	int initWinkacRate = 99; // 100
 	int abcyWinkacRate = 100; // 100

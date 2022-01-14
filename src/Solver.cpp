@@ -1164,12 +1164,12 @@ bool Solver::initByArr2(Vec < Vec<int>> arr2) {
 
 		Route r = rCreateRoute(rid++);
 
-		printve(arr);
+		//printve(arr);
 
 		for (int cus : arr) {
 			rInsAtPosPre(r, r.tail, (cus));
 		}
-		rNextDisp(r);
+		//rNextDisp(r);
 
 		rUpdateAvQfrom(r, r.head);
 		rUpdateZvQfrom(r, r.tail);
@@ -7011,6 +7011,17 @@ int Solver::CVB2ClearEPAllowNewR(int kind) {
 		rReCalRCost(r);
 	}
 	sumRtsCost();
+
+	#if CHECKING
+	if (RoutesCost != verify()) {
+		printve(insRts);
+
+		ERROR(RoutesCost);
+		ERROR(verify());
+		ERROR(verify());
+	}
+	#endif // CHECKING
+
 	return 0;
 }
 
@@ -7071,6 +7082,8 @@ int Solver::CVB2ruinLS(int ruinCusNum) {
 	sumRtsCost();
 	sumRtsPen();
 
+	//reCalRtsCostAndPen();
+
 	int clearKind = pcCLKind.getIndexBasedData();
 
 	CVB2ClearEPAllowNewR(clearKind);
@@ -7097,6 +7110,12 @@ int Solver::Simulatedannealing(int kind,int iterMax, double temperature,int ruin
 	Solver s = *this;
 
 	int iter = 1;
+
+	double j0 = temperature;
+	double jf = 1;
+	double c = pow(jf / j0, 1 / double(iterMax));
+
+	temperature = j0;
 
 	while (++iter < iterMax){
 
@@ -7127,9 +7146,12 @@ int Solver::Simulatedannealing(int kind,int iterMax, double temperature,int ruin
 			s = sStar;
 		}
 
+		temperature *= c;
+
 		if (sStar.RoutesCost < pBest.RoutesCost) {
 			pBest = sStar;
 			iter = 1;
+			temperature = j0;
 		}
 	}
 
@@ -8219,6 +8241,8 @@ bool Solver::repair() {
 	//TODO[2][repair]:打印修复贡献
 	//printve(moveContribute);
 
+	reCalRtsCostAndPen();
+
 	if (penalty == 0) {
 		return true;
 	}
@@ -8288,11 +8312,11 @@ bool Solver::mRLLocalSearch(int hasRange,Vec<int> newCus) {
 		MRLbestM.reSet();
 		bool isFind = false;
 
+		//TODO[-1]:这里给邻域动作按照贡献排序了
 		std::sort(moveKindOrder.begin(), moveKindOrder.end(), [&](int a, int b) {
 			return contribution[a] < contribution[b];
 		});
-
-		myRand->shuffleVec(moveKindOrder);
+		//myRand->shuffleVec(moveKindOrder);
 
 		int n = qu.size();
 		for (int i = 0; i < n; ++i) {
@@ -8402,14 +8426,20 @@ bool Solver::mRLLocalSearch(int hasRange,Vec<int> newCus) {
 		DisType oldPcOnly = Pc;
 		DisType oldRcost = RoutesCost;
 
-		Route& rv = rts.getRouteByRid(customers[bestM.v].routeID);
-		Route& rw = rts.getRouteByRid(customers[bestM.w].routeID);
-		oldrv = rPutCusInve(rv);
-		oldrw = rPutCusInve(rw);
+		int rvid = customers[bestM.v].routeID;
+		int rwid = customers[bestM.w].routeID;
+
+		Route& rv1 = rts.getRouteByRid(rvid);
+		Route& rw1 = rts.getRouteByRid(rwid);
+		oldrv = rPutCusInve(rv1);
+		oldrw = rPutCusInve(rw1);
+
+		#endif // CHECKING
 
 		int rvId = customers[bestM.v].routeID;
 		int rwId = customers[bestM.w].routeID;
-		#endif // CHECKING
+		Route& rv = rts.getRouteByRid(rvId);
+		Route& rw = rts.getRouteByRid(rwId);
 
 		updateYearTable(bestM);
 
@@ -8419,11 +8449,27 @@ bool Solver::mRLLocalSearch(int hasRange,Vec<int> newCus) {
 
 		RoutesCost += bestM.deltPen.deltCost;
 
+		//TODO[-1]如果不更新下面两条路径的cost 会把没有更新的cost赋值给bks
+		rReCalRCost(rv);
+		rReCalRCost(rw);
+
 		#if DIMACSGO
 		bks->updateBKSAndPrint(*this);
 		#endif // DIMACSGO
 
 		#if CHECKING
+
+		for (int i = 0; i < rts.cnt; ++i) {
+			auto rold = rts[i].routeCost;
+			rReCalRCost(rts[i]);
+			if (rold != rts[i].routeCost) {
+				ERROR(rv.routeID);
+				ERROR(rw.routeID);
+				ERROR(rts[i].routeID);
+				ERROR(rts[i].routeID);
+			}
+		}
+
 		DisType penaltyafterupdatePen = penalty;
 		DisType costafterplus = RoutesCost;
 
@@ -8491,8 +8537,20 @@ bool Solver::printDimacs() {
 		}
 		printf("\n");
 	}
-	
-	//这里的倍数需要处理一下
+
+	//auto old = RoutesCost;
+	//RoutesCost = verify();
+	//if (old != RoutesCost) {
+	//	INFO(111111);
+	//}
+	#if CHECKING
+	if (RoutesCost < globalCfg->lkhRL) {
+		std::cout << (RoutesCost) << std::endl;
+		INFO(globalCfg->lkhRL);
+		INFO(111111);
+	}
+	#endif // CHECKING
+
 	printf("Cost %.1lf\n", double(RoutesCost) / 10);
 	fflush(stdout);
 	return true;
@@ -8713,7 +8771,19 @@ bool BKS::updateBKSAndPrint(Solver& newSol, std::string opt) {
 		std::min<DisType>(bksAtRn[newSol.rts.cnt], newSol.RoutesCost);
 	}
 
+	#if CHECKING
+	for (int i = 0; i < bks->bestSolFound.rts.cnt; ++i) {
+		auto rold = bks->bestSolFound.rts[i].routeCost;
+		bks->bestSolFound.rReCalRCost(bks->bestSolFound.rts[i]);
+		if (rold != bks->bestSolFound.rts[i].routeCost) {
+			ERROR(bks->bestSolFound.rts[i].routeID);
+			ERROR(bks->bestSolFound.rts[i].routeID);
+		}
+	}
+	#endif // CHECKING
+
 	if (newSol.RoutesCost < bestSolFound.RoutesCost) {
+
 		auto lastRec = bestSolFound.RoutesCost;
 		bestSolFound = newSol;
 		INFO("new bks cost:", bestSolFound.RoutesCost,
@@ -8721,10 +8791,12 @@ bool BKS::updateBKSAndPrint(Solver& newSol, std::string opt) {
 			bestSolFound.rts.cnt, "up:", 
 			lastRec - bestSolFound.RoutesCost, opt);
 
-		if (bestSolFound.RoutesCost < limitVal) {
+		if (bestSolFound.RoutesCost <= limitVal) {
+
 			if (globalCfg->cmdIsopt == 1 && bestSolFound.RoutesCost == globalCfg->lkhRL) {
 				saveBKStoCsvFile();
 			}
+
 			#if DIMACSGO
 			bks->bestSolFound.printDimacs();
 			#else
@@ -8790,6 +8862,7 @@ bool saveBKStoCsvFile() {
 	rgbData << globalCfg->cmdIsopt << ",";
 
 	auto lyhrl = sol.RoutesCost;
+	//auto lyhrl = sol.verify();
 	rgbData << lyhrl << ",";
 
 	rgbData << sol.rts.cnt << ",";

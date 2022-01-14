@@ -384,20 +384,22 @@ int Goal::callSimulatedannealing() {
 
 bool Goal::test() {
 
-	Solver sol;
-	sol.initSolution(0);
-	sol.minimizeRN(0);
+	Vec<Solver> poolt(1);
 
-	for (;;) {
-
-		sol.adjustRN(15);
-		sol.mRLLocalSearch(0,{});
-		auto beforerl = sol.verify();
-		auto beforern = sol.rts.cnt;
-		sol.adjustRN(16);
-		INFO("brforern:", beforern, "afterrn:", sol.rts.cnt, "beforeRL:", beforerl, "afterRL:", sol.RoutesCost, "ver after", sol.verify(), "sub:", sol.RoutesCost - beforerl);
-
+	poolt[0].initSolution(0);
+	poolt[0].mRLLocalSearch(0, {});
+	while (true)
+	{
+		globalCfg->ruinLmax = globalInput->custCnt / poolt[0].rts.cnt;
+		globalCfg->ruinC_ = (globalCfg->ruinLmax + 1);
+		poolt[0].Simulatedannealing(1, 30, 100.0, globalCfg->ruinC_);
+		poolt[0].patternAdjustment(50);
+		poolt[0].mRLLocalSearch(0, {});
+		bks->updateBKSAndPrint(poolt[0], " poolt[i] init");
 	}
+
+
+
 	return true;
 }
 
@@ -423,7 +425,9 @@ Vec<int> Goal::getTheRangeMostHope() {
 	for (int i = 0; i < popSize; ++i) {
 		poolt[i].initSolution(i);
 		poolt[i].mRLLocalSearch(0, {});
-		poolt[i].Simulatedannealing(1, 1000, 50.0, globalCfg->ruinC_);
+		globalCfg->ruinLmax = globalInput->custCnt / poolt[i].rts.cnt;
+		globalCfg->ruinC_ = (globalCfg->ruinLmax + 1);
+		poolt[i].Simulatedannealing(1, 1000, 100.0, globalCfg->ruinC_);
 		updateppol(poolt[i],i);
 		bks->updateBKSAndPrint(poolt[i], " poolt[i] init");
 	}
@@ -512,10 +516,17 @@ Vec<int> Goal::getTheRangeMostHope() {
 	Vec <int> rnOrderqu;
 	UnorderedSet<int> rnSet;
 
-	//for (int i = poprnLowBound + 1 ; i < std::min<int>(poprnUpBound, poprnLowBound + 5); ++i) {
-	//	curSearchRN = gotoRNPop(i);
-	//	naMA(curSearchRN);
-	//}
+	for (int i = poprnLowBound + 1 ; i < std::min<int>(poprnUpBound, poprnLowBound + 5); ++i) {
+		curSearchRN = gotoRNPop(i);
+		auto& pool = ppool[curSearchRN];
+		for (int i = 0; i < popSize; ++i) {
+			globalCfg->ruinLmax = globalInput->custCnt / pool[i].rts.cnt;
+			globalCfg->ruinC_ = (globalCfg->ruinLmax + 1);
+			pool[i].Simulatedannealing(0, 100, 100.0, globalCfg->ruinC_);
+			updateppol(pool[i], i);
+			bks->updateBKSAndPrint(pool[i], " pool[i] init");
+		}
+	}
 
 	#if 1
 	for (int i = poprnUpBound; i >= poprnLowBound; --i) {
@@ -541,6 +552,7 @@ Vec<int> Goal::getTheRangeMostHope() {
 	//		}
 	//	}
 	//}
+
 	return rnOrderqu;
 }
 
@@ -641,7 +653,7 @@ int Goal::TwoAlgCombine() {
 		//updateppol(sol, 0);
 
 		Solver clone = sol;
-		clone.Simulatedannealing(1, 50, 1.0, globalCfg->ruinC_);		
+		clone.Simulatedannealing(1, 100, 20.0, globalCfg->ruinC_);		
 		bks->updateBKSAndPrint(clone, " bks ruin simulate 1");
 		//updateppol(sol, 0);
 
@@ -649,12 +661,12 @@ int Goal::TwoAlgCombine() {
 		for (int i = 0; i < popSize; ++i) {
 			Solver& sol = pool[i];
 			Solver clone = sol;
-			clone.Simulatedannealing(0, 20, 1.0, globalCfg->ruinC_);
+			clone.Simulatedannealing(0, 50, 20.0, globalCfg->ruinC_);
 			bks->updateBKSAndPrint(clone, " pool sol simulate 0");
 			updateppol(sol, i);
 
 			clone = sol;
-			clone.Simulatedannealing(1, 20, 1.0, globalCfg->ruinC_);
+			clone.Simulatedannealing(1, 30, 20.0, globalCfg->ruinC_);
 			bks->updateBKSAndPrint(clone, " pool sol simulate 1");
 			if (clone.rts.cnt == sol.rts.cnt && clone.RoutesCost < sol.RoutesCost) {
 				++ruinUppoolNum;
