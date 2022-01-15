@@ -911,9 +911,10 @@ Solver::Position Solver::findBestPosForRuin(int w) {
 	};
 
 	auto& rtsIndexOrder = myRandX->getMN(rts.cnt, rts.cnt);
-	sort(rtsIndexOrder.begin(), rtsIndexOrder.end(), [&](int x, int y) {
-		return rts[x].rQ < rts[y].rQ;
-		});
+	myRand->shuffleVec(rtsIndexOrder);
+	//sort(rtsIndexOrder.begin(), rtsIndexOrder.end(), [&](int x, int y) {
+	//	return rts[x].rQ < rts[y].rQ;
+	//	});
 	//printve(rtsIndexOrder);
 	for (int i : rtsIndexOrder) {
 
@@ -926,6 +927,7 @@ Solver::Position Solver::findBestPosForRuin(int w) {
 		if (rPc > ret.pen) {
 			continue;
 		}
+
 		Vec<int> a = rPutCusInve(r);
 		a.push_back(r.tail);
 
@@ -8058,15 +8060,15 @@ bool Solver::adjustRN(int ourTarget) {
 		
 		while (rts.cnt < ourTarget) {
 
-			int rIndex = -1;
-			int choseNum = 0;
+			int rIndex = 0;
+			//int choseNum = 0;
+			//TODO[-1]:这里修改成了拆最长的路
 			for (int i = 0; i < rts.cnt; ++i) {
-				if (rts[i].rCustCnt >= 2) {
-					if (myRand->pick(++choseNum) == 0) {
-						rIndex = i;
-					}
+				if (rts[i].routeCost > rts[rIndex].routeCost) {
+					rIndex = i;
 				}
 			}
+
 			int rId = getARidCanUsed();
 			Route r1 = rCreateRoute(rId);
 

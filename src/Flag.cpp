@@ -22,6 +22,7 @@ extern int vdpi = vd2pi/2;
 extern int vd2fpi = vdpi/2;
 extern int vd4fpi = vd2fpi/2;
 extern int vd8fpi = vd4fpi/2;
+extern int vd16fpi = vd8fpi/2;
 
 // dimacs «10
 extern int disMul = 10;

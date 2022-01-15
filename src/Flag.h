@@ -9,7 +9,7 @@
 #include <iostream>
 #include <list>
 
-#define DIMACSGO 0
+#define DIMACSGO 1
 #define ATTRIBUTETABU 1
 
 #define CHECKING 0
@@ -57,6 +57,7 @@ extern int vdpi;
 extern int vd2fpi;
 extern int vd4fpi;
 extern int vd8fpi;
+extern int vd16fpi;
 
 
 extern int disMul;
