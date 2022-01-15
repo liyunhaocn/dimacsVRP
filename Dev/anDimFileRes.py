@@ -77,7 +77,7 @@ def solverOneInsbestToZip(ins,data):
 
     try:
         print("mindr:",mindr)
-        shutil.copy(mindr, r"..\Results\\{0}".format(mindr.split('\\')[3]))
+        shutil.copy(mindr, r"..\Final\\{0}".format(mindr.split('\\')[3]))
     except IOError as e:
         print("Unable to copy file. %s" % e)
         exit(1)
@@ -141,8 +141,8 @@ if __name__ == '__main__':
         # break
     for ins,data in mp.items():
         print(ins)
-        solverOneInsWriteCsv(ins,data)
-        # solverOneInsbestToZip(ins,data)
+        # solverOneInsWriteCsv(ins,data)
+        solverOneInsbestToZip(ins,data)
 
 
 
