@@ -398,8 +398,6 @@ bool Goal::test() {
 		bks->updateBKSAndPrint(poolt[0], " poolt[i] init");
 	}
 
-
-
 	return true;
 }
 

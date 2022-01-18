@@ -59,7 +59,7 @@ struct Configuration {
 	//bool breakRecord = 0;
 
 	int yearTabuLen = 10;
-	int yearTabuRand = 1;
+	int yearTabuRand = 10;
 
 	//int yearTabuLen = 10;
 	//int yearTabuRand = 10;
@@ -102,7 +102,7 @@ struct Configuration {
 	//(ruinLmax+1)/2
 	int ruinC_ = 15;
 
-	int ruinWinkacRate = 70; // 100
+	int ruinWinkacRate = 95; // 100
 	//TODO[-1]:为初始化设置了眨眼
 	int initWinkacRate = 99; // 100
 	int abcyWinkacRate = 100; // 100

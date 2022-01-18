@@ -76,6 +76,8 @@ bool deallocGlobalMem() {
 
 }//namespace hust
 
+#if 0
+				  
 std::string Trim(std::string& str)
 {
 	//str.find_first_not_of(" \t\r\n"),在字符串str中从索引0开始，返回首次不匹配"\t\r\n"的位置
@@ -181,7 +183,7 @@ void verCSVSol() {
 
 	}
 }
-
+#endif // 0
 
 int main(int argc, char* argv[])
 {
