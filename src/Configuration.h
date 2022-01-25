@@ -35,9 +35,10 @@ struct Configuration {
 
 	//int outNeiSize = 100;
 
-	int outNeiSize = 50;
+	int outNeiSize = 30;
 	double broaden = 1.2;
-	int broadenWhenPos_0 = 50;
+	//int broadenWhenPos_0 = 50;
+	int broadenWhenPos_0 = 20;
 
 	int weightUpStep = 1;
 
@@ -90,7 +91,7 @@ struct Configuration {
 	// mRLLocalSearchRange
 
 	//TODO[-1]:这里改成了40
-	Vec<int> mRLLocalSearchRange = { 10,50 };
+	Vec<int> mRLLocalSearchRange = { 10,30 };
 	//int mRLLSgetAllRange = 50;
 
 	// ruinLocalSearch

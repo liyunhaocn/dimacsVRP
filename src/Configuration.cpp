@@ -6,7 +6,7 @@
 #include "Utility.h"
 #include "Solver.h"
 
-namespace hust{
+namespace hust {
 
 void Configuration::show() {
 
