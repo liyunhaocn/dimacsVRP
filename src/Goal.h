@@ -42,7 +42,7 @@ struct Goal {
 
 	int TwoAlgCombine();
 
-	Vec<int> getTheRangeMostHope();
+	void getTheRangeMostHope();
 };
 
 

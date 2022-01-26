@@ -881,7 +881,7 @@ Solver::Position Solver::findBestPosInSolForInit(int w) {
 		}
 	}
 
-	if (bestPos.secDis > vd4fpi) {
+	if (bestPos.secDis > vd2fpi) {
 		return Position();
 	}
 
@@ -5500,7 +5500,8 @@ Solver::TwoNodeMove Solver::getMovesRandomly
 
 		int pt = r.tail;
 		while (pt != -1) {
-			if (customers[pt].avp > input.datas[pt].DUEDATE) {
+			//if (customers[pt].avp > input.datas[pt].DUEDATE) {
+			if (customers[pt].avp > customers[pt].zv) {
 				break;
 			}
 			pt = customers[pt].pre;

@@ -414,39 +414,39 @@ void Goal::updateppol(Solver& sol, int index) {
 	}
 };
 
-Vec<int> Goal::getTheRangeMostHope() {
+void Goal::getTheRangeMostHope() {
 
 	int popSize = globalCfg->popSize;
 
 	Vec<Solver> poolt(popSize);
 
 	for (int i = 0; i < popSize; ++i) {
-		poolt[i].initSolution(i);
+		poolt[i].initSolution(i%5);
 		poolt[i].mRLLocalSearch(0, {});
-		globalCfg->ruinLmax = globalInput->custCnt / poolt[i].rts.cnt;
+		//globalCfg->ruinLmax = globalInput->custCnt / poolt[i].rts.cnt;
 		//globalCfg->ruinC_ = (globalCfg->ruinLmax + 1);
-		poolt[i].Simulatedannealing(1, 1000, 100.0, globalCfg->ruinC_);
-		updateppol(poolt[i],i);
+		//poolt[i].Simulatedannealing(1, 100, 100.0, globalCfg->ruinC_);
+		//updateppol(poolt[i],i);
 		bks->updateBKSAndPrint(poolt[i], " poolt[i] init");
 	}
 	
 	Vec <Vec<Solver>> soles(popSize);
 	for (int peopleIndex = 0; peopleIndex < popSize; ++peopleIndex) {
 		auto& sol = poolt[peopleIndex];
+		soles[peopleIndex].push_back(sol);
+
 		//sol.Simulatedannealing(0, 100, 50.0, globalCfg->ruinC_);
-		if (sol.rts.cnt < 2) {
-			sol.adjustRN(5);
-		}
-
-		while (sol.rts.cnt > 2) {
-
-			soles[peopleIndex].push_back(sol);
-			bool isDel = sol.minimizeRN(sol.rts.cnt - 1);
-			if (!isDel) {
-				break;
-			}
-			bks->updateBKSAndPrint(sol, " poolt[0] mRLS(0, {})");
-		}
+		//if (sol.rts.cnt < 2) {
+		//	sol.adjustRN(5);
+		//}
+		//while (sol.rts.cnt > 2) {
+		//	soles[peopleIndex].push_back(sol);
+		//	bool isDel = sol.minimizeRN(sol.rts.cnt - 1);
+		//	if (!isDel) {
+		//		break;
+		//	}
+		//	bks->updateBKSAndPrint(sol, " poolt[0] mRLS(0, {})");
+		//}
 	}
 
 	poprnUpBound = IntInf;
@@ -543,7 +543,7 @@ Vec<int> Goal::getTheRangeMostHope() {
 	//	}
 	//}
 
-	return rnOrderqu;
+	return;
 }
 
 int Goal::TwoAlgCombine() {
@@ -551,22 +551,37 @@ int Goal::TwoAlgCombine() {
 	int popSize = globalCfg->popSize;
 
 	getTheRangeMostHope();
-	Vec<int> rnOrderqu;
 
 	auto getNextRnSolGO = [&]() -> int {
 
-		int bksRN = bks->bestSolFound.rts.cnt;
-		if (bksRN == poprnUpBound) {
-			rnOrderqu = { bksRN - 2 ,bksRN - 1 };
+		int plangoto = curSearchRN + 1;
+
+		//int bksRN = bks->bestSolFound.rts.cnt;
+		//if (curSearchRN != bksRN && bksRN >= poprnLowBound) {
+		//	plangoto = bks->bestSolFound.rts.cnt;
+		//}
+		//else {
+		//}
+
+		Vec<int> rnOrderqu;
+
+		if (plangoto > poprnUpBound) {
+			plangoto = poprnLowBound;
 		}
-		else if (bksRN == poprnLowBound) {
-			rnOrderqu = { bksRN + 2 ,bksRN + 1 };
-		}
-		else {
-			rnOrderqu = { bksRN + 1 ,bksRN - 1 };
-		}
-		rnOrderqu.push_back(myRand->pick(poprnLowBound,poprnUpBound+1));
-		myRand->shuffleVec(rnOrderqu);
+		return plangoto;
+
+		//int bksRN = bks->bestSolFound.rts.cnt;
+		//if (bksRN == poprnUpBound) {
+		//	rnOrderqu = { bksRN - 2 ,bksRN - 1 };
+		//}
+		//else if (bksRN == poprnLowBound) {
+		//	rnOrderqu = { bksRN + 2 ,bksRN + 1 };
+		//}
+		//else {
+		//	rnOrderqu = { bksRN + 1 ,bksRN - 1 };
+		//}
+		//rnOrderqu.push_back(myRand->pick(poprnLowBound,poprnUpBound+1));
+		//myRand->shuffleVec(rnOrderqu);
 
 		return rnOrderqu[myRand->pick(rnOrderqu.size())];
 	};
@@ -574,7 +589,9 @@ int Goal::TwoAlgCombine() {
 	DisType bksLastLoop = bks->bestSolFound.RoutesCost;
 	int contiNotDown = 1;
 
-	curSearchRN = bks->bestSolFound.rts.cnt;
+	curSearchRN = globalCfg->lkhRN;
+	//curSearchRN = bks->bestSolFound.rts.cnt;
+	//curSearchRN = poprnLowBound;
 	curSearchRN = gotoRNPop(curSearchRN);
 
 	#if DIMACSGO
@@ -611,17 +628,9 @@ int Goal::TwoAlgCombine() {
 
 		INFO("twoAlg contiNotDown:", contiNotDown,"curSearchRN:",curSearchRN);
 
-		if (contiNotDown % 3 == 0) {
-
-			int bksRN = bks->bestSolFound.rts.cnt;
-			if (curSearchRN != bksRN && bksRN >= poprnLowBound) {
-				plangoto = bks->bestSolFound.rts.cnt;
-				
-			}
-			else {
-				plangoto = getNextRnSolGO();
-			}
-		}
+		//if (contiNotDown % 2 == 0) {
+		//	plangoto = getNextRnSolGO();
+		//}
 
 		if (plangoto != -1) {
 			curSearchRN = gotoRNPop(plangoto);
