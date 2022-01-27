@@ -423,10 +423,12 @@ void Goal::getTheRangeMostHope() {
 	for (int i = 0; i < popSize; ++i) {
 		poolt[i].initSolution(i%5);
 		poolt[i].mRLLocalSearch(0, {});
-		//globalCfg->ruinLmax = globalInput->custCnt / poolt[i].rts.cnt;
-		//globalCfg->ruinC_ = (globalCfg->ruinLmax + 1);
-		//poolt[i].Simulatedannealing(1, 100, 100.0, globalCfg->ruinC_);
-		//updateppol(poolt[i],i);
+		if (i < 5) {
+			globalCfg->ruinLmax = globalInput->custCnt / poolt[i].rts.cnt;
+			globalCfg->ruinC_ = (globalCfg->ruinLmax + 1);
+			poolt[i].Simulatedannealing(1, 1000, 100.0, globalCfg->ruinC_);
+			updateppol(poolt[i], i);
+		}
 		bks->updateBKSAndPrint(poolt[i], " poolt[i] init");
 	}
 	
@@ -589,8 +591,8 @@ int Goal::TwoAlgCombine() {
 	DisType bksLastLoop = bks->bestSolFound.RoutesCost;
 	int contiNotDown = 1;
 
-	curSearchRN = globalCfg->lkhRN;
-	//curSearchRN = bks->bestSolFound.rts.cnt;
+	//curSearchRN = globalCfg->lkhRN;
+	curSearchRN = bks->bestSolFound.rts.cnt;
 	//curSearchRN = poprnLowBound;
 	curSearchRN = gotoRNPop(curSearchRN);
 
@@ -629,7 +631,7 @@ int Goal::TwoAlgCombine() {
 		INFO("twoAlg contiNotDown:", contiNotDown,"curSearchRN:",curSearchRN);
 
 		//if (contiNotDown % 2 == 0) {
-		//	plangoto = getNextRnSolGO();
+			plangoto = getNextRnSolGO();
 		//}
 
 		if (plangoto != -1) {
@@ -646,37 +648,34 @@ int Goal::TwoAlgCombine() {
 		globalRepairSquIter();
 		naMA(curSearchRN);
 		Solver& sol = bks->bestSolFound;
-		//Solver clone = sol;
-		//clone.Simulatedannealing(0, 40, 1.0, globalCfg->ruinC_);
-		//bks->updateBKSAndPrint(clone, " bks ruin simulate 0");
-		//updateppol(sol, 0);
-
 		Solver clone = sol;
-		clone.Simulatedannealing(1, 100, 50.0,2 * globalCfg->ruinC_);		
+		clone.Simulatedannealing(0, 300, 30.0, globalCfg->ruinC_);
+		bks->updateBKSAndPrint(clone, " bks ruin simulate 0");
+		updateppol(sol, 0);
+
+		clone = sol;
+		clone.Simulatedannealing(1, 300, 30.0,globalCfg->ruinC_);		
 		bks->updateBKSAndPrint(clone, " bks ruin simulate 1");
 		//updateppol(sol, 0);
 
-		int ruinUppoolNum = 0;
-		for (int i = 0; i < popSize; ++i) {
-			Solver& sol = pool[i];
-			Solver clone = sol;
-			clone.Simulatedannealing(0, 30, 50.0, 2 * globalCfg->ruinC_);
-			bks->updateBKSAndPrint(clone, " pool sol simulate 0");
-			updateppol(sol, i);
-
-			clone = sol;
-			clone.Simulatedannealing(1, 50, 50.0, 2 * globalCfg->ruinC_);
-			bks->updateBKSAndPrint(clone, " pool sol simulate 1");
-			if (clone.rts.cnt == sol.rts.cnt && clone.RoutesCost < sol.RoutesCost) {
-				++ruinUppoolNum;
-			}
-			//updateppol(sol, i);
-			
-		}
-
-		if (ruinUppoolNum >= 4) {
-			naMA(curSearchRN);
-		}
+		//int ruinUppoolNum = 0;
+		//for (int i = 0; i < popSize; ++i) {
+		//	Solver& sol = pool[i];
+		//	Solver clone = sol;
+		//	clone.Simulatedannealing(0, 30, 50.0, 2 * globalCfg->ruinC_);
+		//	bks->updateBKSAndPrint(clone, " pool sol simulate 0");
+		//	updateppol(sol, i);
+		//	clone = sol;
+		//	clone.Simulatedannealing(1, 50, 50.0, 2 * globalCfg->ruinC_);
+		//	bks->updateBKSAndPrint(clone, " pool sol simulate 1");
+		//	if (clone.rts.cnt == sol.rts.cnt && clone.RoutesCost < sol.RoutesCost) {
+		//		++ruinUppoolNum;
+		//	}
+		//	//updateppol(sol, i);
+		//}
+		//if (ruinUppoolNum >= 4) {
+		//	naMA(curSearchRN);
+		//}
 
 		INFO("perturbAllPop");
 		for (int i = 0; i < popSize; ++i) {
