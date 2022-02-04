@@ -336,7 +336,7 @@ bool EAX::applyCycles(const Vec<int>& cyclesIndexes, Solver& pc) {
 
 bool updateBestPos(Solver::Position& ret,Solver::Position& temp) {
 
-	//if (temp.cost + 2 * temp.pen < ret.cost + 2 * ret.pen) {
+	//if (temp.cost + temp.pen < ret.cost + ret.pen) {
 	//	ret = temp;
 	//	return true;
 	//}

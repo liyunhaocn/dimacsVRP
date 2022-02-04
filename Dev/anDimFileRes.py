@@ -90,7 +90,7 @@ def solverOneInsbestToZip(ins,data):
 
 def solverOneInsWriteCsv(ins,data):
 
-    allrun = ["run10","run11","run12","run13","run1401","run1402test","run1402","run1403"]
+    allrun = ["run10","run11","run12","run13","run1401","run1402test","run1402","run1403","run2601","run2701" ,"run3101"]
     order = []
     for i in range(len(allrun)):
         dr = allrun[i]
@@ -141,8 +141,8 @@ if __name__ == '__main__':
         # break
     for ins,data in mp.items():
         print(ins)
-        # solverOneInsWriteCsv(ins,data)
-        solverOneInsbestToZip(ins,data)
+        solverOneInsWriteCsv(ins,data)
+        # solverOneInsbestToZip(ins,data)
 
 
 

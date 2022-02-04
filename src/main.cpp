@@ -15,9 +15,9 @@ namespace hust {
 bool allocGlobalMem(int argc, char* argv[]) {
 //bool allocGlobalMem(std::string inpath) {
 
-	// ../Instances/Homberger/RC2_4_8.txt
+	// ../Instances/Homberger/R2_8_9.txt
 	// ../Instances/Solomon/R103.txt
-	// ../Instances/Solomon/RC201.txt
+	// ../Instances/Solomon/R210.txt
 	// ../Instances/Homberger/R1_10_10.txt
 	// ../Instances/Homberger/R1_6_8.txt
 	// ../Instances/Homberger/R1_2_2.txt
@@ -187,9 +187,6 @@ void verCSVSol() {
 
 int main(int argc, char* argv[])
 {
-	//verCSVSol();
-	//return 0;
-
 	//hust::INFO(sizeof(std::mt19937));
 	//hust::INFO(sizeof(hust::Solver));
 	//hust::INFO(sizeof(hust::Timer));

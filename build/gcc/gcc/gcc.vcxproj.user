@@ -5,7 +5,7 @@
     <DebuggerFlavor>LinuxWSLDebugger</DebuggerFlavor>
     <RemoteDebuggingTarget>WSL</RemoteDebuggingTarget>
     <RemoteDebuggerWorkingDirectory>$(SolutionDir)..\..\Dev</RemoteDebuggerWorkingDirectory>
-    <RemoteDebuggerCommandArguments>../Instances/Solomon/RC201.txt</RemoteDebuggerCommandArguments>
+    <RemoteDebuggerCommandArguments>../Instances/Homberger/R2_4_3.txt</RemoteDebuggerCommandArguments>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <DebuggerWorkingDirectory>$(SolutionDir)..\..\Dev</DebuggerWorkingDirectory>
@@ -13,6 +13,6 @@
     <RemoteDebuggingTarget>WSL</RemoteDebuggingTarget>
     <RemoteDebuggingMode>gdbserver</RemoteDebuggingMode>
     <RemoteDebuggerWorkingDirectory>$(SolutionDir)..\..\Dev</RemoteDebuggerWorkingDirectory>
-    <RemoteDebuggerCommandArguments>../Instances/Solomon/RC201.txt</RemoteDebuggerCommandArguments>
+    <RemoteDebuggerCommandArguments>../Instances/Homberger/R2_4_3.txt</RemoteDebuggerCommandArguments>
   </PropertyGroup>
 </Project>

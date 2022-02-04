@@ -881,7 +881,7 @@ Solver::Position Solver::findBestPosInSolForInit(int w) {
 		}
 	}
 
-	if (bestPos.secDis > vd2fpi) {
+	if (bestPos.secDis > vd4fpi) {
 		return Position();
 	}
 
@@ -5494,21 +5494,31 @@ Solver::TwoNodeMove Solver::getMovesRandomly
 	lyhCheckTrue(r.rPc > 0 || r.rPtw > 0);
 	#endif // CHECKING
 
-	
-
 	if (r.rPtw > 0) {
 
-		int pt = r.tail;
-		while (pt != -1) {
-			//if (customers[pt].avp > input.datas[pt].DUEDATE) {
+		Vec<int> arr = { r.head };
+		auto rcus = rPutCusInve(r);
+		arr.insert(arr.end(), rcus.begin(), rcus.end());
+		arr.push_back(r.tail);
+		int n = arr.size();
+
+		int endIndex = -1;
+		for (endIndex = n - 1; endIndex >= 0; --endIndex) {
+			int pt = arr[endIndex];
 			if (customers[pt].avp > customers[pt].zv) {
 				break;
 			}
-			pt = customers[pt].pre;
 		}
+
+		int begIndex = 1;
+
+		if (endIndex == n-1) {
+			--endIndex;
+		}
+		begIndex = 1;
 		
 		#if CHECKING
-		if (pt == -1) {
+		if (endIndex < 1) {
 			ERROR("NO Ptw In R");
 			rtsCheck();
 			INFO("r.head:", r.head);
@@ -5520,64 +5530,57 @@ Solver::TwoNodeMove Solver::getMovesRandomly
 		}
 		#endif // CHECKING
 
-		int endNode = -1;
-		if (pt == r.tail) {
-			endNode = pt;
-		}
-		else {
-			endNode = customers[pt].next;
-		}
-		
-		int v=customers[r.head].next;
-		for (; v != endNode; v = customers[v].next) {
-
-			int v_ = customers[v].pre;
-			int vj = customers[v].next;
-			int maxL = std::max<int>(5, r.rCustCnt / 5);
-
+		Vec<int> outNoUseIndexes;
+		for (int i = 1; i <= endIndex; ++i) {
+			int v = arr[i];
+			int v_ = arr[i - 1];
+			int vj = arr[i + 1];
 			if (customers[v_].TW_X + customers[vj].TWX_ == r.rPtw) {
-
-				//TODO[-1]:这里改了啊 修复程序
-				int wbegin = v;
-				int preStep = myRand->pick(1, maxL + 1);
-
-				for (int i = 0; i < preStep; ++i) {
-					wbegin = customers[wbegin].pre;
-					if (wbegin > input.custCnt) {
-						break;
-					}
-				}
-				wbegin = customers[wbegin].next;
-
-				for (int i = 0; i < maxL; ++i) {
-					wbegin = customers[wbegin].next;
-					if (wbegin > input.custCnt) {
-						break;
-					}
-					if (wbegin != v) {
-
-						TwoNodeMove m4(v, wbegin, 4, inrelocatevv_(v, wbegin, 1));
-						updateBestM(m4, bestM);
-
-						TwoNodeMove m8(v, wbegin, 8, exchangevw(v, wbegin, 1));
-						updateBestM(m8, bestM);
-
-						TwoNodeMove m13(v, wbegin, 13, outrelocatevvjTowwj(v, wbegin, 1));
-						updateBestM(m13, bestM);
-
-						TwoNodeMove m15(v, wbegin, 15, reversevw(v, wbegin));
-						updateBestM(m15, bestM);
-					}
-				}
+				outNoUseIndexes.push_back(i);
 			}
 			else {
-
 				_2optEffectively(v);
 				exchangevwEffectively(v);
 				outrelocateEffectively(v);
 			}
 		}
 
+		if (outNoUseIndexes.size() > 0 && outNoUseIndexes.back() != n - 2) {
+			outNoUseIndexes.push_back(n-2);
+		}
+
+		for (int i = 0; i + 1 < outNoUseIndexes.size(); ++i) {
+			
+			int maxL = 5;
+			int vIndex = outNoUseIndexes[i];
+
+			maxL = std::min<int>(maxL, outNoUseIndexes[i + 1] - outNoUseIndexes[i]);
+			for (int j = 1; j <= maxL; ++j) {
+
+				int v = arr[vIndex];
+				int w = arr[vIndex + j];
+
+				TwoNodeMove m4(v, w, 4, inrelocatevv_(v, w, 1));
+				updateBestM(m4, bestM);
+
+				TwoNodeMove m8(v, w, 8, exchangevw(v, w, 1));
+				updateBestM(m8, bestM);
+
+				TwoNodeMove m13(v, w, 13, outrelocatevvjTowwj(v, w, 1));
+				updateBestM(m13, bestM);
+
+				TwoNodeMove m15(v, w, 15, reversevw(v, w));
+				updateBestM(m15, bestM);
+			}
+		}
+		
+		//for (int i = 1; i + 1 < n; ++i) {
+		//	int v = arr[i];
+		//	_2optEffectively(v);
+		//	exchangevwEffectively(v);
+		//	outrelocateEffectively(v);
+		//}
+		
 		#if CHECKING
 		if (v != endNode) {
 			rtsCheck();
@@ -6574,8 +6577,22 @@ Vec<int> Solver::ruinGetRuinCusByRound(int ruinCusNum) {
 
 Vec<int> Solver::ruinGetRuinCusByRandOneR(int ruinCusNum) {
 
+	UnorderedSet<int> s;
 	Route& r = rts[myRand->pick(rts.cnt)];
 	auto arr = rPutCusInve(r);
+	for (int i : arr) {
+		s.insert(i);
+	}
+	for (int i : arr) {
+		for (int wpos = 0; wpos < 1; ++wpos) {
+			int w = input.addSTclose[i][wpos];
+			if (customers[w].routeID != -1) {
+				s.insert(w);
+			}
+		}
+	}
+	arr.clear();
+	arr = putEleInVec(s);
 	return arr;
 }
 
@@ -7037,6 +7054,7 @@ int Solver::CVB2ruinLS(int ruinCusNum) {
 	ruinKmax = std::max<int>(1, ruinKmax);
 
 	static ProbControl pcRuKind(4);
+	//static ProbControl pcRuKind(3);
 	static ProbControl pcCLKind(6);
 
 	Solver solClone = *this;
@@ -7091,7 +7109,9 @@ int Solver::CVB2ruinLS(int ruinCusNum) {
 
 	CVB2ClearEPAllowNewR(clearKind);
 
-	auto cuses = EAX::getDiffCusofPb(solClone, *this);
+	//auto cuses = EAX::getDiffCusofPb(solClone, *this);
+	//TODO[-1]:这里改正了ruinCus
+	auto cuses = ruinCus;
 	if (cuses.size() > 0) {
 		mRLLocalSearch(1, cuses);
 	}
@@ -7106,6 +7126,10 @@ int Solver::CVB2ruinLS(int ruinCusNum) {
 	return true;
 }
 
+int Solver::splitLS() {
+	return 0;
+}
+
 //0 表示不可以增加新路，1表示可以增加新路
 int Solver::Simulatedannealing(int kind,int iterMax, double temperature,int ruinNum) {
 
@@ -7117,7 +7141,6 @@ int Solver::Simulatedannealing(int kind,int iterMax, double temperature,int ruin
 	double j0 = temperature;
 	double jf = 1;
 	double c = pow(jf / j0, 1 / double(iterMax));
-
 	temperature = j0;
 
 	while (++iter < iterMax){
@@ -7154,7 +7177,7 @@ int Solver::Simulatedannealing(int kind,int iterMax, double temperature,int ruin
 		if (sStar.RoutesCost < pBest.RoutesCost) {
 			pBest = sStar;
 			iter = 1;
-			temperature = j0;
+			//temperature = j0;
 		}
 	}
 
@@ -7997,7 +8020,7 @@ bool Solver::minimizeRN(int ourTarget) {
 				break;
 			}
 			//saveOutAsSintefFile();
-			INFO("rts.cnt:",rts.cnt);
+			//INFO("rts.cnt:",rts.cnt);
 		}
 		else {
 			*this = sclone;
@@ -8013,7 +8036,7 @@ bool Solver::minimizeRN(int ourTarget) {
 		return true;
 	}
 	return false;
-	INFO("minRN,rts.cnt:",rts.cnt);
+	//INFO("minRN,rts.cnt:",rts.cnt);
 }
 
 bool Solver::adjustRN(int ourTarget) {
@@ -8055,25 +8078,30 @@ bool Solver::adjustRN(int ourTarget) {
 
 	if (rts.cnt > ourTarget) {
 		minimizeRN(ourTarget);
-		INFO("minimizeRN adjust rn rts.cnt:", rts.cnt);
+		//INFO("minimizeRN adjust rn rts.cnt:", rts.cnt);
 	}
 	else if (rts.cnt < ourTarget) {
 		
 		while (rts.cnt < ourTarget) {
 
-			int rIndex = 0;
+			int index = 0;
 			//int choseNum = 0;
-			//TODO[-1]:这里修改成了拆最长的路
+			//TODO[-1]:这里修改成了顾客平均间距最大的
 			for (int i = 0; i < rts.cnt; ++i) {
-				if (rts[i].routeCost > rts[rIndex].routeCost) {
-					rIndex = i;
+				Route& ri = rts[i];
+				Route& rIndex = rts[index];
+
+				//if (ri.routeCost/ri.rCustCnt > rIndex.routeCost/ rIndex.rCustCnt) {
+				//if (ri.routeCost*rIndex.rCustCnt > rIndex.routeCost* ri.rCustCnt) {
+				if (ri.routeCost > rIndex.routeCost) {
+					index = i;
 				}
 			}
 
 			int rId = getARidCanUsed();
 			Route r1 = rCreateRoute(rId);
 
-			Route& r = rts[rIndex];
+			Route& r = rts[index];
 
 			int vsp = findBestPosToSplit(r);
 
@@ -8102,10 +8130,10 @@ bool Solver::adjustRN(int ourTarget) {
 			sumRtsPen();
 			
 		}
-		INFO("split adjust rn rts.cnt:", rts.cnt);
+		//INFO("split adjust rn rts.cnt:", rts.cnt);
 	}
 	else {
-		INFO("no need adjust rn rts.cnt:", rts.cnt);
+		//INFO("no need adjust rn rts.cnt:", rts.cnt);
 	}
 	
 	if (rts.cnt == ourTarget) {
@@ -8317,7 +8345,7 @@ bool Solver::mRLLocalSearch(int hasRange,Vec<int> newCus) {
 
 		//TODO[-1]:这里给邻域动作按照贡献排序了
 		std::sort(moveKindOrder.begin(), moveKindOrder.end(), [&](int a, int b) {
-			return contribution[a] < contribution[b];
+			return contribution[a] > contribution[b];
 		});
 		//myRand->shuffleVec(moveKindOrder);
 
@@ -8456,12 +8484,9 @@ bool Solver::mRLLocalSearch(int hasRange,Vec<int> newCus) {
 		rReCalRCost(rv);
 		rReCalRCost(rw);
 
-		#if DIMACSGO
 		bks->updateBKSAndPrint(*this);
-		#endif // DIMACSGO
-
+		
 		#if CHECKING
-
 		for (int i = 0; i < rts.cnt; ++i) {
 			auto rold = rts[i].routeCost;
 			rReCalRCost(rts[i]);
@@ -8603,7 +8628,6 @@ bool Solver::saveOutAsSintefFile(std::string opt) {
 }
 
 #if 1
-
 struct ClientSplit
 {
 	DisType demand;
@@ -8756,7 +8780,7 @@ Solver::~Solver() {};
 BKS::BKS() {
 	bestSolFound.penalty = DisInf;
 	bestSolFound.RoutesCost = DisInf;
-	limitVal = globalCfg->lkhRL + globalCfg->lkhRL / 10;
+	lastPrCost = DisInf;
 }
 
 void BKS::reSet() {
@@ -8785,6 +8809,8 @@ bool BKS::updateBKSAndPrint(Solver& newSol, std::string opt) {
 	}
 	#endif // CHECKING
 
+	bool ret = false;
+
 	if (newSol.RoutesCost < bestSolFound.RoutesCost) {
 
 		auto lastRec = bestSolFound.RoutesCost;
@@ -8793,22 +8819,32 @@ bool BKS::updateBKSAndPrint(Solver& newSol, std::string opt) {
 			"time:" + std::to_string(gloalTimer->getRunTime()), "rn:", 
 			bestSolFound.rts.cnt, "up:", 
 			lastRec - bestSolFound.RoutesCost, opt);
+		ret = true;
 
-		if (bestSolFound.RoutesCost <= limitVal) {
-
-			if (globalCfg->cmdIsopt == 1 && bestSolFound.RoutesCost == globalCfg->lkhRL) {
-				saveBKStoCsvFile();
-			}
-
-			#if DIMACSGO
-			bks->bestSolFound.printDimacs();
-			#else
-			#endif // DIMACSGO
+		if (globalCfg->cmdIsopt == 1 && bestSolFound.RoutesCost == globalCfg->lkhRL) {
+			saveBKStoCsvFile();
 		}
-		
-		return true;
 	}
-	return false;
+
+#if DIMACSGO
+
+	Timer::TimePoint pt = Timer::Clock::now();
+	auto ms = Timer::durationInMillisecond(lastPrintTp, pt);
+
+	if (ms.count() >= 1 && bks->bestSolFound.RoutesCost < lastPrCost) {
+		
+		bks->bestSolFound.printDimacs();
+		lastPrCost = bks->bestSolFound.RoutesCost;
+		lastPrintTp = Timer::Clock::now();
+	}
+
+#endif // DIMACSGo
+
+	return ret;
+}
+
+void BKS::resetBksAtRn() {
+	bksAtRn.clear();
 }
 
 bool saveBKStoCsvFile() {

@@ -29,17 +29,14 @@
 #if DIMACSGO
 
 #define INFO(...);
-#define DEBUG(...);
-
-//#define INFO(...) println_("[INFO]:",## __VA_ARGS__);
-//#define DEBUG(...) println_("[DEBUG]:",## __VA_ARGS__);
 
 #else
 
 #define INFO(...) println_("[INFO]:",## __VA_ARGS__);
-#define DEBUG(...) println_("[DEBUG]:",## __VA_ARGS__);
+
 #endif // DIMACSGO
 
+#define DEBUG(...) println_("[DEBUG]:",## __VA_ARGS__);
 #define ERROR(...) printlnerr_("[ERROR]:",## __VA_ARGS__);
 
 namespace hust {

@@ -25,7 +25,7 @@ struct Goal {
 
 	DisType doTwoKindEAX(Solver& pa, Solver& pb, int kind);
 
-	bool perturbOnePop(int i);
+	bool perturbOneSol(Solver& sol);
 
 	int naMA(int rn);
 

@@ -35,11 +35,6 @@ struct Configuration {
 
 	//int outNeiSize = 100;
 
-	int outNeiSize = 30;
-	double broaden = 1.2;
-	//int broadenWhenPos_0 = 50;
-	int broadenWhenPos_0 = 20;
-
 	int weightUpStep = 1;
 
 	int squGrea0AC = 1;
@@ -71,9 +66,11 @@ struct Configuration {
 	//int yearTabuLen = 20;
 	//int yearTabuRand = 10;
 
-	int popSize = 50;
+	int popSize = 20;
+	int popSizeMax = 20;
 	//int repairExitStep = 50;
-	int repairExitStep = 10;
+	int repairExitStep = 5;
+
 	int initFindPosPqSize = 20;
 	int findBestPosForRuinPqSize = 10;
 	int findBestPosInSolPqSize = 64;//64
@@ -91,7 +88,13 @@ struct Configuration {
 	// mRLLocalSearchRange
 
 	//TODO[-1]:这里改成了40
-	Vec<int> mRLLocalSearchRange = { 10,30 };
+
+	int outNeiSize = 40;
+	double broaden = 1.2;
+	//int broadenWhenPos_0 = 50;
+	int broadenWhenPos_0 = 20;
+
+	Vec<int> mRLLocalSearchRange = { 10,40 };
 	//int mRLLSgetAllRange = 50;
 
 	// ruinLocalSearch
@@ -103,7 +106,7 @@ struct Configuration {
 	//(ruinLmax+1)/2
 	int ruinC_ = 15;
 
-	int ruinWinkacRate = 95; // 100
+	int ruinWinkacRate = 99; // 100
 	//TODO[-1]:为初始化设置了眨眼
 	int initWinkacRate = 99; // 100
 	int abcyWinkacRate = 100; // 100

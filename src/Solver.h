@@ -746,6 +746,8 @@ public:
 	int ruinLocalSearchNotNewR(int ruinCusNum);
 		
 	int CVB2ruinLS(int ruinCusNum);
+
+	int splitLS();
 	
 	int CVB2ClearEPAllowNewR(int kind);
 
@@ -800,16 +802,17 @@ public:
 struct BKS {
 
 	Solver bestSolFound;
-	DisType limitVal = DisInf;
+	DisType lastPrCost = DisInf;
 	UnorderedMap<int,DisType> bksAtRn;
-	
+	Timer::TimePoint lastPrintTp;
+
 	BKS();
 
 	void reSet();
 
 	bool updateBKSAndPrint(Solver& newSol, std::string opt = "");
 	
-	//bool justPrint();
+	void resetBksAtRn();
 
 };
 
