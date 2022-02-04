@@ -294,6 +294,7 @@ int Goal::gotoRNPop(int rn) {
 	//globalCfg->ruinC_ = (globalCfg->ruinLmax + 1)/2;
 	//globalCfg->ruinC_ = (globalCfg->ruinLmax + 1);
 	//globalCfg->ruinC_ = 15;
+	globalCfg->ruinC_ = std::max<int>(globalCfg->ruinC_, (globalCfg->ruinLmax + 1) / 2);
 
 	auto& pool = ppool[rn];
 	int popSize = globalCfg->popSize;
@@ -321,10 +322,15 @@ int Goal::gotoRNPop(int rn) {
 				}
 			}
 		}
-
-		sol = ppool[downRn][pIndex];
-		isAdj = sol.adjustRN(rn);
-
+		if (downRn == rn) {
+			perturbOneSol(ppool[downRn][pIndex]);
+			isAdj = true;
+		}
+		else {
+			sol = ppool[downRn][pIndex];
+			isAdj = sol.adjustRN(rn);
+		}
+		
 		if (!isAdj) {
 
 			for (int i = rn - 1; i >= poprnLowBound; --i) {
@@ -336,6 +342,8 @@ int Goal::gotoRNPop(int rn) {
 					}
 				}
 			}
+			sol = ppool[downRn][pIndex];
+			isAdj = sol.adjustRN(rn);
 		}
 		updateppol(sol, pIndex);
 		bks->updateBKSAndPrint(sol, "adjust from cur + ls");
@@ -404,7 +412,7 @@ void Goal::getTheRangeMostHope() {
 	for (int i = 0; i < popSize; ++i) {
 		poolt[i].initSolution( i%4);
 		
-		if (i < 4 ) {
+		if (i < 2 ) {
 			poolt[i].mRLLocalSearch(0, {});
 			globalCfg->ruinLmax = globalInput->custCnt / poolt[i].rts.cnt;
 			//globalCfg->ruinC_ = (globalCfg->ruinLmax + 1);
@@ -456,7 +464,6 @@ void Goal::getTheRangeMostHope() {
 	}
 
 	poprnUpBound = std::min<int>(poprnLowBound + 10, globalInput->custCnt);
-
 	poprnUpBound = std::max<int>(poprnUpBound,bks->bestSolFound.rts.cnt);
 	poprnLowBound = std::min<int>(poprnLowBound,bks->bestSolFound.rts.cnt);
 
@@ -511,62 +518,62 @@ void Goal::getTheRangeMostHope() {
 	}
 
 	//for (int i = poprnUpBound ; i >= poprnLowBound; --i) {
-	//for (int i = poprnLowBound  ; i <= poprnUpBound; ++i) {
-	//	curSearchRN = gotoRNPop(i);
-	//}
-
-	// globalCfg->popSize = globalCfg->popSizeMax;
-	globalCfg->popSize = 3;
-
-	//for (int rn = poprnUpBound ; rn >= poprnLowBound; --rn) {
-	for (int rn = poprnLowBound; rn <= poprnUpBound; ++rn) {
-		curSearchRN = gotoRNPop(rn);
-		naMA(curSearchRN);
-		//for (int index = 0; index < globalCfg->popSize; ++index) {
-		//	Solver& sol = ppool[rn][index];
-		//	Solver clone = sol;
-		//	clone.Simulatedannealing(0, 10, 50.0, globalCfg->ruinC_);
-		//	bks->updateBKSAndPrint(clone, " pool sol simulate 0");
-		//	updateppol(sol, index);
-		//	clone = sol;
-		//	clone.Simulatedannealing(1, 10, 50.0, globalCfg->ruinC_);
-		//	bks->updateBKSAndPrint(clone, " pool sol simulate 1");
-		//	updateppol(sol, index);
-		//}
-		
+	for (int i = poprnLowBound  ; i <= poprnUpBound; ++i) {
+		curSearchRN = gotoRNPop(i);
 	}
+
+	//// globalCfg->popSize = globalCfg->popSizeMax;
+	//globalCfg->popSize = 3;
+	////for (int rn = poprnUpBound ; rn >= poprnLowBound; --rn) {
+	//for (int rn = poprnLowBound; rn <= poprnUpBound; ++rn) {
+	//	curSearchRN = gotoRNPop(rn);
+	//	naMA(curSearchRN);
+	//}
 }
 
 int Goal::TwoAlgCombine() {
 
 	getTheRangeMostHope();
 
-	DisType bksLastLoop = bks->bestSolFound.RoutesCost;
-	int contiNotDown = 1;
-
 	std::queue<int>qunext;
-	std::unordered_set<int> rnsearched;
 
 	int iterFillqu = 0;
 
+	globalCfg->popSize = 5;
+
 	auto fillqu = [&]() -> void {
 
-		Vec<int> rns(poprnUpBound - poprnLowBound + 1);
-		Vec<DisType> avgrl(poprnUpBound + 1, 0);
+		//Vec<int> rns(poprnUpBound - poprnLowBound + 1);
 
-		for (int rn = poprnLowBound; rn < poprnUpBound; ++rn) {
-			for (int i = 0; i < globalCfg->popSize; ++i) {
-				avgrl[rn] += ppool[rn][i].RoutesCost;
-			}
+		//Vec<DisType> avgrl(poprnUpBound + 1, 0);
+		//for (int rn = poprnLowBound; rn < poprnUpBound; ++rn) {
+		//	for (int i = 0; i < globalCfg->popSize; ++i) {
+		//		avgrl[rn] += ppool[rn][i].RoutesCost;
+		//	}
+		//}
+		UnorderedSet<int> s = { poprnLowBound };
+		if (poprnLowBound + 1 <= poprnUpBound) {
+			s.insert(poprnLowBound + 1);
 		}
 
-		std::iota(rns.begin(), rns.end(), poprnLowBound);
+		if (poprnLowBound + 2 <= poprnUpBound) {
+			s.insert(poprnLowBound + 2);
+		}
+		s.insert(bks->bestSolFound.rts.cnt);
+		s.insert(poprnUpBound);
+
+		Vec<int> rns = putEleInVec(s);
+		//std::iota(rns.begin(), rns.end(), poprnLowBound);
+		//std::sort(rns.begin(), rns.end(), [&](int x, int y) {
+		//	return avgrl[x] < avgrl[y];
+		//});
+
 		std::sort(rns.begin(), rns.end(), [&](int x, int y) {
-			return avgrl[x] < avgrl[y];
+			return bks->bksAtRn[x] < bks->bksAtRn[y];
 		});
 
 		int n = rns.size();
-		for (int i = 0; i < std::min<int>(n, 3); ++i) {
+		for (int i = 0; i < n ; ++i) {
 		//for (int i = 0; i < 3; ++i) {
 			qunext.push(rns[i]);
 		}
@@ -578,29 +585,12 @@ int Goal::TwoAlgCombine() {
 	
 	auto getNextRnSolGO = [&]() -> int {
 
-		int nextrn = bks->bestSolFound.rts.cnt;
-		for (int i = 0; i < globalCfg->popSize; ++i) {
-			perturbOneSol(ppool[nextrn][i]);
-		}
-
-		globalCfg->popSize *= 3;
-		globalCfg->popSize = std::min<int>(globalCfg->popSize, globalCfg->popSizeMax);
-		return nextrn;
-
 		if(qunext.size() == 0) {
+
 			fillqu();
 
-			for (int rn : rnsearched) {
-				for (int i = 0; i < globalCfg->popSize; ++i) {
-					perturbOneSol(ppool[rn][i]);
-				}
-			}
-
-			INFO("perturbAllPop");
-			globalCfg->popSize *= 3;
+			globalCfg->popSize += 2;
 			globalCfg->popSize = std::min<int>(globalCfg->popSize, globalCfg->popSizeMax);
-
-			rnsearched.clear();
 
 		}
 
@@ -614,15 +604,14 @@ int Goal::TwoAlgCombine() {
 
 		int ret = qunext.front();
 		qunext.pop();
-		rnsearched.insert(ret);
 		return ret;
-
 	};
 
-	int rn = getNextRnSolGO();
-	curSearchRN = gotoRNPop(rn);
+	int rnn = getNextRnSolGO();
+	curSearchRN = gotoRNPop(rnn);
 
-	rnsearched.insert(curSearchRN);
+	DisType bksLastLoop = bks->bestSolFound.RoutesCost;
+	int contiNotDown = 1;
 
 	#if DIMACSGO
 	while (true) {
@@ -639,23 +628,11 @@ int Goal::TwoAlgCombine() {
 			saveBKStoCsvFile();
 		}
 
-		if (bks->bksAtRn[curSearchRN] <= bks->bestSolFound.RoutesCost) {
-		//if (bks->bksAtRn[curSearchRN] < bksLastLoop) {
-			if (bksLastLoop != bks->bksAtRn[curSearchRN]) {
-				contiNotDown = 1;
-			}
-			else {
-				++contiNotDown;
-			}
+		int plangoto = getNextRnSolGO();
+		if (contiNotDown >= 2) {
+			plangoto = getNextRnSolGO();
 		}
-		else {
-			++contiNotDown;
-		}
-
-		bksLastLoop = bks->bksAtRn[curSearchRN];
-
-		int	plangoto = getNextRnSolGO();
-
+		
 		if (plangoto != -1) {
 			curSearchRN = gotoRNPop(plangoto);
 			if (curSearchRN == plangoto) {
@@ -666,7 +643,6 @@ int Goal::TwoAlgCombine() {
 			}
 		}
 		
-
 		INFO("curSearchRN:", curSearchRN);
 
 		auto& pool = ppool[curSearchRN];
@@ -680,11 +656,11 @@ int Goal::TwoAlgCombine() {
 			int index =arr[i];
 			Solver& sol = pool[index];
 			Solver clone = sol;
-			clone.Simulatedannealing(0, 50, 50.0, globalCfg->ruinC_);
+			clone.Simulatedannealing(0, 50, 30.0, globalCfg->ruinC_);
 			bks->updateBKSAndPrint(clone, " pool sol simulate 0");
 			updateppol(sol, index);
 			clone = sol;
-			clone.Simulatedannealing(1, 50, 50.0, globalCfg->ruinC_);
+			clone.Simulatedannealing(1, 50, 30.0, globalCfg->ruinC_);
 			bks->updateBKSAndPrint(clone, " pool sol simulate 1");
 			updateppol(sol, i);
 		}
@@ -698,6 +674,23 @@ int Goal::TwoAlgCombine() {
 		bks->updateBKSAndPrint(clone, " bks ruin simulate 1");
 		updateppol(sol, 0);
 
+		//INFO("perturbAllPop");
+		//for (int i = 0; i < globalCfg->popSize; ++i) {
+		//	perturbOneSol(pool[i]);
+		//}
+		if (bks->bksAtRn[curSearchRN] <= bks->bestSolFound.RoutesCost) {
+			//if (bks->bksAtRn[curSearchRN] < bksLastLoop) {
+			if (bksLastLoop != bks->bksAtRn[curSearchRN]) {
+				contiNotDown = 1;
+			}
+			else {
+				++contiNotDown;
+			}
+		}
+		else {
+			++contiNotDown;
+		}
+		bksLastLoop = bks->bksAtRn[curSearchRN];
 	}
 
 	bks->bestSolFound.printDimacs();

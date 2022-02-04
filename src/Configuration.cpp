@@ -40,8 +40,6 @@ void Configuration::repairByCusCnt(int cusCnt) {
 	patternAdjustmentNnei = std::min<int>(cusCnt-1, patternAdjustmentNnei);
 	patternAdjustmentGetM = std::min<int>(cusCnt-1, patternAdjustmentGetM);
 
-	naRepairGetMovesNei = std::min<int>(cusCnt-1, naRepairGetMovesNei);
-
 	//mRLLocalSearchRange = { 10,50 };
 	mRLLocalSearchRange[0] = std::min<int>(cusCnt-1, mRLLocalSearchRange[0]);
 	mRLLocalSearchRange[1] = std::min<int>(cusCnt-1, mRLLocalSearchRange[1]);

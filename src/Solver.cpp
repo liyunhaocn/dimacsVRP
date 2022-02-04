@@ -66,20 +66,22 @@ Solver::Solver(const Solver& s) :
 
 Solver& Solver::operator = (const Solver& s) {
 
-	this->customers = s.customers;
-	this->rts = s.rts;
-	this->PtwConfRts = s.PtwConfRts;
-	this->PcConfRts = s.PcConfRts;
-	this->penalty = s.penalty;
-	this->Ptw = s.Ptw;
-	this->PtwNoWei = s.PtwNoWei;
-	this->alpha = s.alpha;
-	this->beta = s.beta;
-	this->gamma = s.gamma;
-	this->Pc = s.Pc;
-	this->RoutesCost = s.RoutesCost;
-	this->EPr = s.EPr;
+	if (this != &s) {
 
+		this->customers = s.customers;
+		this->rts = s.rts;
+		this->PtwConfRts = s.PtwConfRts;
+		this->PcConfRts = s.PcConfRts;
+		this->penalty = s.penalty;
+		this->Ptw = s.Ptw;
+		this->PtwNoWei = s.PtwNoWei;
+		this->alpha = s.alpha;
+		this->beta = s.beta;
+		this->gamma = s.gamma;
+		this->Pc = s.Pc;
+		this->RoutesCost = s.RoutesCost;
+		this->EPr = s.EPr;
+	}
 	return *this;
 }
 
@@ -881,7 +883,7 @@ Solver::Position Solver::findBestPosInSolForInit(int w) {
 		}
 	}
 
-	if (bestPos.secDis > vd4fpi) {
+	if (bestPos.secDis > vd2fpi) {
 		return Position();
 	}
 
@@ -6583,14 +6585,14 @@ Vec<int> Solver::ruinGetRuinCusByRandOneR(int ruinCusNum) {
 	for (int i : arr) {
 		s.insert(i);
 	}
-	for (int i : arr) {
-		for (int wpos = 0; wpos < 1; ++wpos) {
-			int w = input.addSTclose[i][wpos];
-			if (customers[w].routeID != -1) {
-				s.insert(w);
-			}
-		}
-	}
+	//for (int i : arr) {
+	//	for (int wpos = 0; wpos < 1; ++wpos) {
+	//		int w = input.addSTclose[i][wpos];
+	//		if (customers[w].routeID != -1) {
+	//			s.insert(w);
+	//		}
+	//	}
+	//}
 	arr.clear();
 	arr = putEleInVec(s);
 	return arr;
@@ -7109,9 +7111,9 @@ int Solver::CVB2ruinLS(int ruinCusNum) {
 
 	CVB2ClearEPAllowNewR(clearKind);
 
-	//auto cuses = EAX::getDiffCusofPb(solClone, *this);
+	auto cuses = EAX::getDiffCusofPb(solClone, *this);
 	//TODO[-1]:这里改正了ruinCus
-	auto cuses = ruinCus;
+	//auto cuses = ruinCus;
 	if (cuses.size() > 0) {
 		mRLLocalSearch(1, cuses);
 	}

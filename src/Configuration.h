@@ -33,8 +33,6 @@ struct Configuration {
 	int squMaxContiIter = 199;
 	int squIterStepUp = 10;
 
-	//int outNeiSize = 100;
-
 	int weightUpStep = 1;
 
 	int squGrea0AC = 1;
@@ -52,13 +50,8 @@ struct Configuration {
 	int minKmax = 2;
 	int maxKmax = 4;
 
-	//bool breakRecord = 0;
-
 	int yearTabuLen = 10;
 	int yearTabuRand = 10;
-
-	//int yearTabuLen = 10;
-	//int yearTabuRand = 10;
 
 	// TODO[0]:看需不需要频繁构造 1000 stepC2_8_7 需要20s C1_6_6 需要6s
 	int ejectLSMaxIter = 200;
@@ -82,18 +75,13 @@ struct Configuration {
 	int patternAdjustmentNnei = 60;
 	int patternAdjustmentGetM = 10;
 
-	//naRepairGetMoves
-	int naRepairGetMovesNei = 50;
-
 	// mRLLocalSearchRange
-
 	//TODO[-1]:这里改成了40
 
-	int outNeiSize = 40;
 	double broaden = 1.2;
 	//int broadenWhenPos_0 = 50;
 	int broadenWhenPos_0 = 20;
-
+	int outNeiSize = 40;
 	Vec<int> mRLLocalSearchRange = { 10,40 };
 	//int mRLLSgetAllRange = 50;
 
@@ -109,7 +97,7 @@ struct Configuration {
 	int ruinWinkacRate = 99; // 100
 	//TODO[-1]:为初始化设置了眨眼
 	int initWinkacRate = 99; // 100
-	int abcyWinkacRate = 100; // 100
+	int abcyWinkacRate = 99; // 100
 
 	void show();
 
