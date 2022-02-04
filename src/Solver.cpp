@@ -883,7 +883,7 @@ Solver::Position Solver::findBestPosInSolForInit(int w) {
 		}
 	}
 
-	if (bestPos.secDis > vd2fpi) {
+	if (bestPos.secDis > vd4fpi) {
 		return Position();
 	}
 
@@ -7055,8 +7055,8 @@ int Solver::CVB2ruinLS(int ruinCusNum) {
 	ruinKmax = std::min<int>(rts.cnt, ruinKmax);
 	ruinKmax = std::max<int>(1, ruinKmax);
 
-	static ProbControl pcRuKind(4);
-	//static ProbControl pcRuKind(3);
+	//static ProbControl pcRuKind(4);
+	static ProbControl pcRuKind(3);
 	static ProbControl pcCLKind(6);
 
 	Solver solClone = *this;
@@ -7126,10 +7126,6 @@ int Solver::CVB2ruinLS(int ruinCusNum) {
 		++pcCLKind.data[clearKind];
 	}
 	return true;
-}
-
-int Solver::splitLS() {
-	return 0;
 }
 
 //0 表示不可以增加新路，1表示可以增加新路
@@ -8041,42 +8037,82 @@ bool Solver::minimizeRN(int ourTarget) {
 	//INFO("minRN,rts.cnt:",rts.cnt);
 }
 
-bool Solver::adjustRN(int ourTarget) {
+Solver::Position Solver::findBestPosToSplit(Route& r) {
 
-	auto getARidCanUsed = [&]() ->int {
-		int rId = -2;
-		for (int i = 0; i < rts.posOf.size(); ++i) {
-			if (rts.posOf[i] == -1) {
-				rId = i;
+	auto arr = rPutCusInve(r);
+
+	Position ret;
+
+	for (int i = 0; i + 1 < arr.size(); ++i) {
+		int v = arr[i];
+		int vj = arr[i + 1];
+		DisType delt = 0;
+		delt -= input.disOf[v][vj];
+		delt += input.disOf[0][v];
+		delt += input.disOf[0][vj];
+		if (delt < ret.cost) {
+			ret.cost = delt;
+			ret.pos = v;
+		}
+	}
+	return ret;
+};
+
+int Solver::getARidCanUsed(){
+
+	int rId = -2;
+	for (int i = 0; i < rts.posOf.size(); ++i) {
+		if (rts.posOf[i] == -1) {
+			rId = i;
+			break;
+		}
+	}
+	if (rId == -2) {
+		rId = rts.posOf.size();
+	}
+	return rId;
+};
+
+int Solver::splitLS() {
+
+	for (int i = 0; i < rts.cnt; ++i) {
+
+		Route& r = rts[i];
+		Position vsp = findBestPosToSplit(r);
+
+		if (vsp.cost > 0) {
+			continue;
+		}
+
+		auto arr = rPutCusInve(r);
+
+		int rId = getARidCanUsed();
+		Route r1 = rCreateRoute(rId);
+
+		for (int i = 0; i < arr.size(); ++i) {
+			rRemoveAtPos(r, arr[i]);
+			rInsAtPosPre(r1, r1.tail, arr[i]);
+			if (arr[i] == vsp.pos) {
 				break;
 			}
 		}
-		if (rId == -2) {
-			rId = rts.posOf.size();
-		}
-		return rId;
-	};
 
-	auto findBestPosToSplit = [&](Route& r) -> int {
-		auto arr = rPutCusInve(r);
-		
-		int retv = -1;
-		DisType dis = DisInf;
+		rUpdateAvQfrom(r1, r1.head);
+		rUpdateZvQfrom(r1, r1.tail);
+		rUpdateAvQfrom(r, r.head);
+		rUpdateZvQfrom(r, r.tail);
+		rReCalRCost(r);
+		rReCalRCost(r1);
+		rts.push_back(r1);
 
-		for (int i = 0; i + 1 < arr.size(); ++i) {
-			int v = arr[i];
-			int vj = arr[i+1];
-			DisType delt = 0;
-			delt -= input.disOf[v][vj];
-			delt += input.disOf[0][v];
-			delt += input.disOf[0][vj];
-			if (delt < dis) {
-				dis = delt;
-				retv = v;
-			}
-		}
-		return retv;
-	};
+		sumRtsCost();
+		sumRtsPen();
+	}
+
+	return 0;
+}
+
+bool Solver::adjustRN(int ourTarget) {
 
 	if (rts.cnt > ourTarget) {
 		minimizeRN(ourTarget);
@@ -8105,7 +8141,7 @@ bool Solver::adjustRN(int ourTarget) {
 
 			Route& r = rts[index];
 
-			int vsp = findBestPosToSplit(r);
+			auto vsp = findBestPosToSplit(r);
 
 			auto arr = rPutCusInve(r);
 
@@ -8115,7 +8151,7 @@ bool Solver::adjustRN(int ourTarget) {
 			for (int i = 0; i < arr.size(); ++i) {
 				rRemoveAtPos(r, arr[i]);
 				rInsAtPosPre(r1, r1.tail, arr[i]);
-				if (arr[i] == vsp) {
+				if (arr[i] == vsp.pos) {
 					break;
 				}
 			}
@@ -8145,6 +8181,7 @@ bool Solver::adjustRN(int ourTarget) {
 		return false;
 	}
 }
+
 #if 0
 Solver::TwoNodeMove Solver::naRepairGetMoves(std::function<bool(TwoNodeMove& t, TwoNodeMove& bestM)>updateBestM) {
 

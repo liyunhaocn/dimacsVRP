@@ -189,7 +189,7 @@ bool Goal::perturbOneSol(Solver& sol) {
 			sclone.perturbBaseRuin(kind, ruinCusNum, clearEPkind);
 		}
 		else{
-			int step = myRand->pick(sclone.input.custCnt * 0.2, sclone.input.custCnt * 0.4);
+			int step = myRand->pick(sclone.input.custCnt * 0.2, sclone.input.custCnt * 0.3);
 			sclone.patternAdjustment(step);
 		}
 		 
@@ -291,10 +291,10 @@ int Goal::gotoRNPop(int rn) {
 	
 	//TODO[0]:Lmax和ruinLmax的定义
 	globalCfg->ruinLmax = globalInput->custCnt / rn;
-	//globalCfg->ruinC_ = (globalCfg->ruinLmax + 1)/2;
+	globalCfg->ruinC_ = (globalCfg->ruinLmax + 1)/2;
 	//globalCfg->ruinC_ = (globalCfg->ruinLmax + 1);
 	//globalCfg->ruinC_ = 15;
-	globalCfg->ruinC_ = std::max<int>(globalCfg->ruinC_, (globalCfg->ruinLmax + 1) / 2);
+	//globalCfg->ruinC_ = std::max<int>(globalCfg->ruinC_, (globalCfg->ruinLmax + 1) / 2);
 
 	auto& pool = ppool[rn];
 	int popSize = globalCfg->popSize;
@@ -411,12 +411,12 @@ void Goal::getTheRangeMostHope() {
 
 	for (int i = 0; i < popSize; ++i) {
 		poolt[i].initSolution( i%4);
-		
-		if (i < 2 ) {
+		poolt[i].adjustRN(poolt[i].rts.cnt+10);
+		if (i < 4 ) {
 			poolt[i].mRLLocalSearch(0, {});
 			globalCfg->ruinLmax = globalInput->custCnt / poolt[i].rts.cnt;
 			//globalCfg->ruinC_ = (globalCfg->ruinLmax + 1);
-			poolt[i].Simulatedannealing(1, 500, 100.0, globalCfg->ruinC_);
+			poolt[i].Simulatedannealing(1, 500, 50.0, globalCfg->ruinC_);
 			//poolt[i].Simulatedannealing(1, 2, 50.0, 1);
 			updateppol(poolt[i], i);
 		}
@@ -424,7 +424,6 @@ void Goal::getTheRangeMostHope() {
 	}
 	
 	bks->resetBksAtRn();
-
 	Vec <Vec<Solver>> soles(popSize);
 
 	int glbound = IntInf;
@@ -463,7 +462,7 @@ void Goal::getTheRangeMostHope() {
 		poprnLowBound = std::min<int>(poprnLowBound, soles[i].back().rts.cnt);
 	}
 
-	poprnUpBound = std::min<int>(poprnLowBound + 10, globalInput->custCnt);
+	poprnUpBound = std::min<int>(poprnLowBound + 15, globalInput->custCnt);
 	poprnUpBound = std::max<int>(poprnUpBound,bks->bestSolFound.rts.cnt);
 	poprnLowBound = std::min<int>(poprnLowBound,bks->bestSolFound.rts.cnt);
 
@@ -562,11 +561,23 @@ int Goal::TwoAlgCombine() {
 		s.insert(bks->bestSolFound.rts.cnt);
 		s.insert(poprnUpBound);
 
-		Vec<int> rns = putEleInVec(s);
+		//Vec<int> rns = putEleInVec(s);
 		//std::iota(rns.begin(), rns.end(), poprnLowBound);
 		//std::sort(rns.begin(), rns.end(), [&](int x, int y) {
 		//	return avgrl[x] < avgrl[y];
 		//});
+
+		Vec<int> rns;
+		int bksRN = bks->bestSolFound.rts.cnt;
+		if (bksRN == poprnUpBound) {
+			rns = { bksRN - 2 ,bksRN - 1 };
+		}
+		else if (bksRN == poprnLowBound) {
+			rns = { bksRN + 2 ,bksRN + 1 };
+		}
+		else {
+			rns = { bksRN + 1 ,bksRN - 1 };
+		}
 
 		std::sort(rns.begin(), rns.end(), [&](int x, int y) {
 			return bks->bksAtRn[x] < bks->bksAtRn[y];
@@ -578,12 +589,22 @@ int Goal::TwoAlgCombine() {
 			qunext.push(rns[i]);
 		}
 
+		for (int rn : rns) {
+			auto& pool = ppool[rn];
+			int pn = pool.size();
+			for (int i = 0; i +1 < pn; ++i) {
+				int rdi = myRand->pick(i+1,pn);
+				std::swap(pool[i], pool[rdi]);
+			}
+		}
 		//if (iterFillqu + 2 < n) {
 		//	++iterFillqu;
 		//}
 	};
 	
 	auto getNextRnSolGO = [&]() -> int {
+
+		//return bks->bestSolFound.rts.cnt;
 
 		if(qunext.size() == 0) {
 
@@ -628,22 +649,9 @@ int Goal::TwoAlgCombine() {
 			saveBKStoCsvFile();
 		}
 
-		int plangoto = getNextRnSolGO();
-		if (contiNotDown >= 2) {
-			plangoto = getNextRnSolGO();
-		}
-		
-		if (plangoto != -1) {
-			curSearchRN = gotoRNPop(plangoto);
-			if (curSearchRN == plangoto) {
-				INFO("jump succeed curSearchRN", curSearchRN);
-			}
-			else {
-				INFO("jump fail curSearchRN", curSearchRN, "plangoto:", plangoto);
-			}
-		}
-		
 		INFO("curSearchRN:", curSearchRN);
+
+		bksLastLoop = bks->bksAtRn[curSearchRN];
 
 		auto& pool = ppool[curSearchRN];
 		globalRepairSquIter();
@@ -674,23 +682,39 @@ int Goal::TwoAlgCombine() {
 		bks->updateBKSAndPrint(clone, " bks ruin simulate 1");
 		updateppol(sol, 0);
 
-		//INFO("perturbAllPop");
-		//for (int i = 0; i < globalCfg->popSize; ++i) {
-		//	perturbOneSol(pool[i]);
-		//}
-		if (bks->bksAtRn[curSearchRN] <= bks->bestSolFound.RoutesCost) {
-			//if (bks->bksAtRn[curSearchRN] < bksLastLoop) {
-			if (bksLastLoop != bks->bksAtRn[curSearchRN]) {
-				contiNotDown = 1;
-			}
-			else {
-				++contiNotDown;
-			}
+		//clone = sol;
+		//clone.splitLS();
+		//bks->updateBKSAndPrint(clone, " bks splitLS");
+		//updateppol(sol, 0);
+
+		//======
+		INFO("perturbAllPop");
+		for (int i = 0; i < globalCfg->popSize; ++i) {
+			perturbOneSol(pool[i]);
+		}
+		//if (bks->bksAtRn[curSearchRN] <= bks->bestSolFound.RoutesCost) {
+		if (bks->bksAtRn[curSearchRN] < bksLastLoop) {
+			contiNotDown = 1;
 		}
 		else {
 			++contiNotDown;
 		}
-		bksLastLoop = bks->bksAtRn[curSearchRN];
+		
+
+		int plangoto = -1;
+		if (contiNotDown >= 2) {
+			plangoto = getNextRnSolGO();
+		}
+
+		if (plangoto != -1) {
+			curSearchRN = gotoRNPop(plangoto);
+			if (curSearchRN == plangoto) {
+				INFO("jump succeed curSearchRN", curSearchRN);
+			}
+			else {
+				INFO("jump fail curSearchRN", curSearchRN, "plangoto:", plangoto);
+			}
+		}
 	}
 
 	bks->bestSolFound.printDimacs();

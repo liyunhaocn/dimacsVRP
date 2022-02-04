@@ -59,8 +59,8 @@ struct Configuration {
 	//int yearTabuLen = 20;
 	//int yearTabuRand = 10;
 
-	int popSize = 20;
-	int popSizeMax = 20;
+	int popSize = 50;
+	int popSizeMax = 50;
 	//int repairExitStep = 50;
 	int repairExitStep = 5;
 

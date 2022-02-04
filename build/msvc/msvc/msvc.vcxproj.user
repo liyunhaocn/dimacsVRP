@@ -3,17 +3,17 @@
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <LocalDebuggerWorkingDirectory>$(SolutionDir)..\..\Dev</LocalDebuggerWorkingDirectory>
     <DebuggerFlavor>WindowsLocalDebugger</DebuggerFlavor>
-    <LocalDebuggerCommandArguments>../Instances/Homberger/RC1_10_1.txt</LocalDebuggerCommandArguments>
+    <LocalDebuggerCommandArguments>../Instances/Homberger/R2_6_1.txt</LocalDebuggerCommandArguments>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='O0|x64'">
     <LocalDebuggerWorkingDirectory>$(SolutionDir)..\..\Dev</LocalDebuggerWorkingDirectory>
     <DebuggerFlavor>WindowsLocalDebugger</DebuggerFlavor>
-    <LocalDebuggerCommandArguments>../Instances/Homberger/RC1_10_1.txt</LocalDebuggerCommandArguments>
+    <LocalDebuggerCommandArguments>../Instances/Homberger/R2_6_1.txt</LocalDebuggerCommandArguments>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <LocalDebuggerWorkingDirectory>$(SolutionDir)..\..\Dev</LocalDebuggerWorkingDirectory>
     <DebuggerFlavor>WindowsLocalDebugger</DebuggerFlavor>
-    <LocalDebuggerCommandArguments>../Instances/Homberger/RC1_10_1.txt</LocalDebuggerCommandArguments>
+    <LocalDebuggerCommandArguments>../Instances/Homberger/R2_6_1.txt</LocalDebuggerCommandArguments>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <LocalDebuggerWorkingDirectory>$(SolutionDir)..\..\Dev</LocalDebuggerWorkingDirectory>

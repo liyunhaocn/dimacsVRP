@@ -747,6 +747,10 @@ public:
 		
 	int CVB2ruinLS(int ruinCusNum);
 
+	Position findBestPosToSplit(Route& r);
+	
+	int getARidCanUsed();
+	
 	int splitLS();
 	
 	int CVB2ClearEPAllowNewR(int kind);
