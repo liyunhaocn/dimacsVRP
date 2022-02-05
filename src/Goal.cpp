@@ -411,9 +411,15 @@ void Goal::getTheRangeMostHope() {
 
 	for (int i = 0; i < popSize; ++i) {
 		poolt[i].initSolution( i%4);
+		//DEBUG("poolt[i].rts.cnt:", poolt[i].rts.cnt);
+		//DEBUG("globalInput->custCnt:", globalInput->custCnt);
 		poolt[i].adjustRN(poolt[i].rts.cnt+10);
+		//for (int j = 0; j < poolt[i].rts.cnt; ++j) {
+		//	DEBUG("poolt[i].rts[j].rCustCnt£º", poolt[i].rts[j].rCustCnt);
+		//}
+
 		if (i < 4 ) {
-			poolt[i].mRLLocalSearch(0, {});
+			//poolt[i].mRLLocalSearch(0, {});
 			globalCfg->ruinLmax = globalInput->custCnt / poolt[i].rts.cnt;
 			//globalCfg->ruinC_ = (globalCfg->ruinLmax + 1);
 			poolt[i].Simulatedannealing(1, 500, 50.0, globalCfg->ruinC_);

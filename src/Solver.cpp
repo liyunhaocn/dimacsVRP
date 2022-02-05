@@ -1464,9 +1464,9 @@ Solver::DeltPen Solver::_2optOpenvv_(int v, int w) { //0
 		getRcost();
 	}
 
-	if (bestM.deltPtw == DisInf) {
-		INFO(11111);
-	}
+	//if (bestM.deltPtw == DisInf) {
+	//	INFO(11111);
+	//}
 	return bestM;
 }
 
@@ -8122,7 +8122,7 @@ bool Solver::adjustRN(int ourTarget) {
 		
 		while (rts.cnt < ourTarget) {
 
-			int index = 0;
+			int index = -1;
 			//int choseNum = 0;
 			//TODO[-1]:这里修改成了顾客平均间距最大的
 			for (int i = 0; i < rts.cnt; ++i) {
@@ -8131,8 +8131,14 @@ bool Solver::adjustRN(int ourTarget) {
 
 				//if (ri.routeCost/ri.rCustCnt > rIndex.routeCost/ rIndex.rCustCnt) {
 				//if (ri.routeCost*rIndex.rCustCnt > rIndex.routeCost* ri.rCustCnt) {
-				if (ri.routeCost > rIndex.routeCost) {
-					index = i;
+				
+				if ( ri.rCustCnt>=2) {
+					if (index == -1) {
+						index = i;
+					}
+					else if (ri.routeCost > rIndex.routeCost) {
+						index = i;
+					}
 				}
 			}
 
