@@ -413,7 +413,8 @@ void Goal::getTheRangeMostHope() {
 		poolt[i].initSolution( i%4);
 		//DEBUG("poolt[i].rts.cnt:", poolt[i].rts.cnt);
 		//DEBUG("globalInput->custCnt:", globalInput->custCnt);
-		poolt[i].adjustRN(poolt[i].rts.cnt+10);
+		int adjBig = std::min<int>(globalInput->custCnt, poolt[i].rts.cnt + 10);
+		poolt[i].adjustRN(adjBig);
 		//for (int j = 0; j < poolt[i].rts.cnt; ++j) {
 		//	DEBUG("poolt[i].rts[j].rCustCnt£º", poolt[i].rts[j].rCustCnt);
 		//}
