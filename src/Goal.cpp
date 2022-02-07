@@ -291,7 +291,7 @@ int Goal::gotoRNPop(int rn) {
 	
 	//TODO[0]:Lmax和ruinLmax的定义
 	globalCfg->ruinLmax = globalInput->custCnt / rn;
-	globalCfg->ruinC_ = (globalCfg->ruinLmax + 1)/2;
+	//globalCfg->ruinC_ = (globalCfg->ruinLmax + 1)/2;
 	//globalCfg->ruinC_ = (globalCfg->ruinLmax + 1);
 	//globalCfg->ruinC_ = 15;
 	//globalCfg->ruinC_ = std::max<int>(globalCfg->ruinC_, (globalCfg->ruinLmax + 1) / 2);
@@ -423,7 +423,7 @@ void Goal::getTheRangeMostHope() {
 			//poolt[i].mRLLocalSearch(0, {});
 			globalCfg->ruinLmax = globalInput->custCnt / poolt[i].rts.cnt;
 			//globalCfg->ruinC_ = (globalCfg->ruinLmax + 1);
-			poolt[i].Simulatedannealing(1, 500, 50.0, globalCfg->ruinC_);
+			poolt[i].Simulatedannealing(1, 500, 100.0, globalCfg->ruinC_);
 			//poolt[i].Simulatedannealing(1, 2, 50.0, 1);
 			updateppol(poolt[i], i);
 		}
@@ -449,6 +449,7 @@ void Goal::getTheRangeMostHope() {
 		//}
 
 		glbound = std::min<int>(glbound, poolt[peopleIndex].rts.cnt);
+		//glbound = std::min<int>(glbound, poolt[0].rts.cnt);
 		int bound = peopleIndex == 0 ? 2 : glbound;
 		while (sol.rts.cnt > bound) {
 		//while (sol.rts.cnt > 2) {
@@ -517,9 +518,10 @@ void Goal::getTheRangeMostHope() {
 		if (sol.rts.cnt != poprnLowBound) {
 			int index = alreadyBound.front();
 			alreadyBound.pop();
+			alreadyBound.push(i);
 			alreadyBound.push(index);
 			sol = (index == popSize ? bks->bestSolFound : ppool[poprnLowBound][index]);
-			sol.patternAdjustment(globalInput->custCnt);
+			sol.patternAdjustment(100);
 		}
 	}
 
@@ -545,7 +547,7 @@ int Goal::TwoAlgCombine() {
 
 	int iterFillqu = 0;
 
-	globalCfg->popSize = 5;
+	globalCfg->popSize = 2;
 
 	auto fillqu = [&]() -> void {
 
@@ -557,16 +559,16 @@ int Goal::TwoAlgCombine() {
 		//		avgrl[rn] += ppool[rn][i].RoutesCost;
 		//	}
 		//}
-		UnorderedSet<int> s = { poprnLowBound };
-		if (poprnLowBound + 1 <= poprnUpBound) {
-			s.insert(poprnLowBound + 1);
-		}
+		//UnorderedSet<int> s = { poprnLowBound };
+		//if (poprnLowBound + 1 <= poprnUpBound) {
+		//	s.insert(poprnLowBound + 1);
+		//}
 
-		if (poprnLowBound + 2 <= poprnUpBound) {
-			s.insert(poprnLowBound + 2);
-		}
-		s.insert(bks->bestSolFound.rts.cnt);
-		s.insert(poprnUpBound);
+		//if (poprnLowBound + 2 <= poprnUpBound) {
+		//	s.insert(poprnLowBound + 2);
+		//}
+		//s.insert(bks->bestSolFound.rts.cnt);
+		//s.insert(poprnUpBound);
 
 		//Vec<int> rns = putEleInVec(s);
 		//std::iota(rns.begin(), rns.end(), poprnLowBound);
@@ -577,13 +579,13 @@ int Goal::TwoAlgCombine() {
 		Vec<int> rns;
 		int bksRN = bks->bestSolFound.rts.cnt;
 		if (bksRN == poprnUpBound) {
-			rns = { bksRN - 2 ,bksRN - 1 };
+			rns = { bksRN, bksRN - 1 ,bksRN - 2 };
 		}
 		else if (bksRN == poprnLowBound) {
-			rns = { bksRN + 2 ,bksRN + 1 };
+			rns = { bksRN, bksRN + 1 ,bksRN + 2 };
 		}
 		else {
-			rns = { bksRN + 1 ,bksRN - 1 };
+			rns = { bksRN,bksRN + 1 ,bksRN - 1 };
 		}
 
 		std::sort(rns.begin(), rns.end(), [&](int x, int y) {
@@ -617,7 +619,7 @@ int Goal::TwoAlgCombine() {
 
 			fillqu();
 
-			globalCfg->popSize += 2;
+			globalCfg->popSize *= 2;
 			globalCfg->popSize = std::min<int>(globalCfg->popSize, globalCfg->popSizeMax);
 
 		}
@@ -671,21 +673,21 @@ int Goal::TwoAlgCombine() {
 			int index =arr[i];
 			Solver& sol = pool[index];
 			Solver clone = sol;
-			clone.Simulatedannealing(0, 50, 30.0, globalCfg->ruinC_);
-			bks->updateBKSAndPrint(clone, " pool sol simulate 0");
-			updateppol(sol, index);
-			clone = sol;
-			clone.Simulatedannealing(1, 50, 30.0, globalCfg->ruinC_);
+			//clone.Simulatedannealing(0, 50, 30.0, globalCfg->ruinC_);
+			//bks->updateBKSAndPrint(clone, " pool sol simulate 0");
+			//updateppol(sol, index);
+			//clone = sol;
+			clone.Simulatedannealing(1, 100, 50.0, globalCfg->ruinC_);
 			bks->updateBKSAndPrint(clone, " pool sol simulate 1");
 			updateppol(sol, i);
 		}
 		Solver& sol = bks->bestSolFound;
 		Solver clone = sol;
-		clone.Simulatedannealing(0, 100, 100.0, globalCfg->ruinC_);
-		bks->updateBKSAndPrint(clone, " bks ruin simulate 0");
-		updateppol(sol, 0);
-		clone = sol;
-		clone.Simulatedannealing(1, 100, 100.0,globalCfg->ruinC_);
+		//clone.Simulatedannealing(0, 100, 100.0, globalCfg->ruinC_);
+		//bks->updateBKSAndPrint(clone, " bks ruin simulate 0");
+		//updateppol(sol, 0);
+		//clone = sol;
+		clone.Simulatedannealing(1, 500, 100.0,globalCfg->ruinC_);
 		bks->updateBKSAndPrint(clone, " bks ruin simulate 1");
 		updateppol(sol, 0);
 

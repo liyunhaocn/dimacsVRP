@@ -340,9 +340,9 @@ struct ProbControl {
 
         auto maxEleIter = std::max_element(data.begin(), data.end());
 
-        if ((*maxEleIter) * data.size() >= 10000) {
+        if ((*maxEleIter) * data.size() >= 200) {
             for (auto& i : data) {
-                i = (i >> 8) + 1;
+                i = 10;
             }
         }
 

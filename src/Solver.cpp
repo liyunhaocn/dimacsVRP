@@ -6558,8 +6558,12 @@ Vec<int> Solver::ruinGetRuinCusBySting(int ruinKmax, int ruinLmax) {
 
 Vec<int> Solver::ruinGetRuinCusByRound(int ruinCusNum) {
 
-	//ruinCusNum = myRand->pick(1, ruinCusNum+1);
-	ruinCusNum = std::min<int>(ruinCusNum,input.custCnt-1);
+	int left = std::max<int>(ruinCusNum * 0.7, 1);
+	int right = std::min<int>(input.custCnt - 1, ruinCusNum * 1.3);
+	ruinCusNum = myRand->pick(left, right + 1);
+
+	//=======
+	//ruinCusNum = std::min<int>(ruinCusNum,input.custCnt-1);
 
 	int v = myRand->pick(input.custCnt) + 1;
 
@@ -7138,7 +7142,7 @@ int Solver::Simulatedannealing(int kind,int iterMax, double temperature,int ruin
 
 	double j0 = temperature;
 	double jf = 1;
-	double c = pow(jf / j0, 1 / double(iterMax));
+	double c = pow(jf / j0, 1 / double(iterMax*3));
 	temperature = j0;
 
 	while (++iter < iterMax){
@@ -8407,15 +8411,20 @@ bool Solver::mRLLocalSearch(int hasRange,Vec<int> newCus) {
 				continue;
 			}
 
-			//auto wposorder = myRandX->getMN(range, range);
-
 			int beg = 0;
 			if (range == globalCfg->mRLLocalSearchRange[1]) {
 				beg = globalCfg->mRLLocalSearchRange[0];
 			}
-			
-			for (int wpos = beg; wpos < range; ++wpos) {
 
+			auto& wposorder = myRandX->getMN(range, range);
+			myRand->shuffleVec(wposorder);
+
+			for (int i = beg; i < range; ++i) {
+
+				int wpos = i;
+				if (beg == 0) {
+					wpos = wposorder[i];
+				}
 				//TODO[-1]:这里改成了addSTclose
 				//int w = input.allCloseOf[v][wpos];
 				int w = input.addSTclose[v][wpos];
