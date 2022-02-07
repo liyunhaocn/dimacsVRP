@@ -336,7 +336,7 @@ bool EAX::applyCycles(const Vec<int>& cyclesIndexes, Solver& pc) {
 
 bool updateBestPos(Solver::Position& ret,Solver::Position& temp) {
 
-	//if (temp.cost + temp.pen < ret.cost + ret.pen) {
+	//if (temp.cost + 0*temp.pen < ret.cost + 0*ret.pen) {
 	//	ret = temp;
 	//	return true;
 	//}
@@ -693,6 +693,8 @@ int EAX::doPrEAX(Solver& pa, Solver& pb, Solver& pc) {
 	
 	int putMax = numABCyUsed;
 	numABCyUsed = 2;
+
+	//numABCyUsed = myRand->pick(2, putMax+1);
 	for (int i = 3; i <= putMax; ++i) {
 		// TODO[-1]:这里可以调整 放置多少个abcy
 		if (myRand->pick(100) < 40) {

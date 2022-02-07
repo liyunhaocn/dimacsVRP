@@ -7142,7 +7142,7 @@ int Solver::Simulatedannealing(int kind,int iterMax, double temperature,int ruin
 
 	double j0 = temperature;
 	double jf = 1;
-	double c = pow(jf / j0, 1 / double(iterMax*3));
+	double c = pow(jf / j0, 1 / double(iterMax));
 	temperature = j0;
 
 	while (++iter < iterMax){
@@ -8131,16 +8131,12 @@ bool Solver::adjustRN(int ourTarget) {
 			//TODO[-1]:这里修改成了顾客平均间距最大的
 			for (int i = 0; i < rts.cnt; ++i) {
 				Route& ri = rts[i];
-				Route& rIndex = rts[index];
 
-				//if (ri.routeCost/ri.rCustCnt > rIndex.routeCost/ rIndex.rCustCnt) {
-				//if (ri.routeCost*rIndex.rCustCnt > rIndex.routeCost* ri.rCustCnt) {
-				
 				if ( ri.rCustCnt>=2) {
 					if (index == -1) {
 						index = i;
 					}
-					else if (ri.routeCost > rIndex.routeCost) {
+					else if (ri.routeCost > rts[index].routeCost) {
 						index = i;
 					}
 				}
@@ -8412,12 +8408,18 @@ bool Solver::mRLLocalSearch(int hasRange,Vec<int> newCus) {
 			}
 
 			int beg = 0;
-			if (range == globalCfg->mRLLocalSearchRange[1]) {
-				beg = globalCfg->mRLLocalSearchRange[0];
-			}
+			Vec<int> wposorder;
 
-			auto& wposorder = myRandX->getMN(range, range);
-			myRand->shuffleVec(wposorder);
+			if (range == globalCfg->mRLLocalSearchRange[0]) {
+				wposorder = myRandX->getMN(range, range);
+				myRand->shuffleVec(wposorder);
+			}
+			else if (range == globalCfg->mRLLocalSearchRange[1]) {
+				beg = globalCfg->mRLLocalSearchRange[0];
+				//int romRange = globalCfg->mRLLocalSearchRange[1] - globalCfg->mRLLocalSearchRange[0];
+				//wposorder = myRandX->getMN(romRange, romRange);
+				//myRand->shuffleVec(wposorder);
+			}
 
 			for (int i = beg; i < range; ++i) {
 
@@ -8425,11 +8427,12 @@ bool Solver::mRLLocalSearch(int hasRange,Vec<int> newCus) {
 				if (beg == 0) {
 					wpos = wposorder[i];
 				}
-				//TODO[-1]:这里改成了addSTclose
-				//int w = input.allCloseOf[v][wpos];
-				int w = input.addSTclose[v][wpos];
-				//int w = input.sectorClose[v][wpos];
+				//else {
+				//	wpos = wposorder[i-beg] + beg;
+				//}
 
+				//TODO[-1]:这里改成了addSTclose
+				int w = input.addSTclose[v][wpos];
 
 				if (customers[w].routeID == -1) {
 					continue;
@@ -8865,14 +8868,16 @@ bool BKS::updateBKSAndPrint(Solver& newSol, std::string opt) {
 
 	bool ret = false;
 
-	if (newSol.RoutesCost < bestSolFound.RoutesCost) {
+	if (newSol.RoutesCost <= bestSolFound.RoutesCost) {
 
 		auto lastRec = bestSolFound.RoutesCost;
+		if (newSol.RoutesCost < bestSolFound.RoutesCost) {
+			INFO("new bks cost:", bestSolFound.RoutesCost,
+				"time:" + std::to_string(gloalTimer->getRunTime()), "rn:",
+				bestSolFound.rts.cnt, "up:",
+				lastRec - bestSolFound.RoutesCost, opt);
+		} 
 		bestSolFound = newSol;
-		INFO("new bks cost:", bestSolFound.RoutesCost,
-			"time:" + std::to_string(gloalTimer->getRunTime()), "rn:", 
-			bestSolFound.rts.cnt, "up:", 
-			lastRec - bestSolFound.RoutesCost, opt);
 		ret = true;
 
 		if (globalCfg->cmdIsopt == 1 && bestSolFound.RoutesCost == globalCfg->lkhRL) {
@@ -8885,7 +8890,7 @@ bool BKS::updateBKSAndPrint(Solver& newSol, std::string opt) {
 	Timer::TimePoint pt = Timer::Clock::now();
 	auto ms = Timer::durationInMillisecond(lastPrintTp, pt);
 
-	if (ms.count() >= 1 && bks->bestSolFound.RoutesCost < lastPrCost) {
+	if (ms.count() >= 1 && bks->bestSolFound.RoutesCost <= lastPrCost) {
 		
 		bks->bestSolFound.printDimacs();
 		lastPrCost = bks->bestSolFound.RoutesCost;

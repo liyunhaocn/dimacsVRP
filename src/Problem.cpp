@@ -11,6 +11,19 @@ Input::Input() {
 	initInput();
 }
 
+void Input::sortSec() {
+	for (int v = 0; v <= custCnt; ++v) {
+
+		auto cmp = [&](const int a, const int b) {
+			return abs(datas[a].polarAngle - datas[v].polarAngle)
+				< abs(datas[b].polarAngle - datas[v].polarAngle);
+		};
+		//TODO[-1]:这里的排序比较浪费时间，去掉可以节省一般的初始化时间
+		auto& nums = sectorClose[v];
+		std::sort(nums.begin(), nums.end(), cmp);
+	}
+}
+
 bool Input::initInput() {
 
 	readDimacsInstance(globalCfg->inputPath);
@@ -68,7 +81,8 @@ bool Input::initInput() {
 			return abs(datas[a].polarAngle - datas[v].polarAngle)
 				< abs(datas[b].polarAngle - datas[v].polarAngle);
 		};
-		std::sort(nums.begin(), nums.end(), cmp);
+		//TODO[-1]:这里的排序比较浪费时间，去掉可以节省一般的初始化时间
+		//std::sort(nums.begin(), nums.end(), cmp);
 		sectorClose[v] = std::move(nums);
 	}
 

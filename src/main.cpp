@@ -197,7 +197,7 @@ int main(int argc, char* argv[])
 
 	hust::allocGlobalMem(argc,argv);
 	hust::Goal goal;
-
+	
 	//goal.callSimulatedannealing();
 	goal.TwoAlgCombine();
 	//goal.test();

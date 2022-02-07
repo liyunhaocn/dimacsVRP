@@ -156,7 +156,7 @@ struct Input {
 
 	bool readDimacsInstance(std::string& instanciaPath);
 
-	//bool readDimacsBKS();
+	void sortSec();
 
 };
 
