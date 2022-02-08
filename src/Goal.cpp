@@ -176,6 +176,19 @@ bool Goal::perturbOneSol(Solver& sol) {
 	//auto before = sol.RoutesCost;
 	Solver sclone = sol;
 	
+	//if (myRand->pick(3) == 0) {
+	//	sclone.resetSol();
+	//	sclone.initSolution(myRand->pick(4));
+	//	bool isadj = sclone.adjustRN(sol.rts.cnt);
+	//	if (isadj) {
+	//		sol = sclone;
+	//		return true;
+	//	}
+	//	else {
+	//		sclone = sol;
+	//	}
+	//}
+	
 	bool isPerOnePerson = false;
 	for (int i = 0; i < 10; ++i) {
 
@@ -657,7 +670,7 @@ int Goal::TwoAlgCombine() {
 		}
 	#endif // DIMACSGO
 		
-		if (gloalTimer->getRunTime() + 100 > globalCfg->runTimer) {
+		if (gloalTimer->getRunTime() + 30 > globalCfg->runTimer) {
 			saveBKStoCsvFile();
 		}
 
@@ -706,9 +719,11 @@ int Goal::TwoAlgCombine() {
 		}
 		//if (bks->bksAtRn[curSearchRN] <= bks->bestSolFound.RoutesCost) {
 		if (bks->bksAtRn[curSearchRN] < bksLastLoop) {
+			globalCfg->close10randorder = 0;
 			contiNotDown = 1;
 		}
 		else {
+			globalCfg->close10randorder = 1 ;
 			++contiNotDown;
 		}
 		

@@ -99,6 +99,8 @@ struct Configuration {
 	int initWinkacRate = 99; // 100
 	int abcyWinkacRate = 99; // 100
 
+	int close10randorder = 0;
+
 	void show();
 
 	void repairByCusCnt(int cusCnt);

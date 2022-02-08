@@ -6581,25 +6581,19 @@ Vec<int> Solver::ruinGetRuinCusByRound(int ruinCusNum) {
 	return runCus;
 }
 
-Vec<int> Solver::ruinGetRuinCusByRandOneR(int ruinCusNum) {
+Vec<int> Solver::ruinGetRuinCusByRand(int ruinCusNum) {
 
-	UnorderedSet<int> s;
-	Route& r = rts[myRand->pick(rts.cnt)];
-	auto arr = rPutCusInve(r);
-	for (int i : arr) {
-		s.insert(i);
+	int left = std::max<int>(ruinCusNum * 0.7, 1);
+	int right = std::min<int>(input.custCnt - 1, ruinCusNum * 1.3);
+	ruinCusNum = myRand->pick(left, right + 1);
+
+	auto& arr = myRandX->getMN(input.custCnt, ruinCusNum);
+	myRand->shuffleVec(arr);
+	Vec<int> ret;
+	for (int i = 0; i < ruinCusNum; ++i) {
+		ret.push_back(arr[i]+1);
 	}
-	//for (int i : arr) {
-	//	for (int wpos = 0; wpos < 1; ++wpos) {
-	//		int w = input.addSTclose[i][wpos];
-	//		if (customers[w].routeID != -1) {
-	//			s.insert(w);
-	//		}
-	//	}
-	//}
-	arr.clear();
-	arr = putEleInVec(s);
-	return arr;
+	return ret;
 }
 
 #if 0
@@ -6785,7 +6779,7 @@ bool Solver::doOneTimeRuinPer(int perturbkind,int ruinCusNum,int clearEPKind) {
 		ruinCus = ruinGetRuinCusBySting(ruinKmax, Lmax);
 	}
 	else if (perturbkind == 3) {
-		ruinCus = ruinGetRuinCusByRandOneR(ruinCusNum);
+		ruinCus = ruinGetRuinCusByRand(ruinCusNum);
 	}
 	else {
 		ERROR("no this kind of ruin");
@@ -7059,8 +7053,8 @@ int Solver::CVB2ruinLS(int ruinCusNum) {
 	ruinKmax = std::min<int>(rts.cnt, ruinKmax);
 	ruinKmax = std::max<int>(1, ruinKmax);
 
-	//static ProbControl pcRuKind(4);
-	static ProbControl pcRuKind(3);
+	static ProbControl pcRuKind(4);
+	//static ProbControl pcRuKind(3);
 	static ProbControl pcCLKind(6);
 
 	Solver solClone = *this;
@@ -7077,8 +7071,8 @@ int Solver::CVB2ruinLS(int ruinCusNum) {
 		ruinCus = ruinGetRuinCusBySting(ruinKmax, Lmax);
 	}
 	else if(perturbkind==3){
-		// TODO[-1]:加入一个删除整条路径的
-		ruinCus = ruinGetRuinCusByRandOneR(ruinCusNum);
+		// TODO[-1]:随机删除customers
+		ruinCus = ruinGetRuinCusByRand(ruinCusNum);
 	}
 	else {
 		ERROR("no this kind of ruin");
@@ -8342,9 +8336,8 @@ bool Solver::mRLLocalSearch(int hasRange,Vec<int> newCus) {
 
 	static Vec<int> contribution(16, 0);
 	Vec<int> contricus(input.custCnt + 1, 0);
-	auto maxIt = std::max_element(contribution.begin(), contribution.end());
-	for (auto& i : contribution) { i = (i>>1)+1; }
-	
+	//auto maxIt = std::max_element(contribution.begin(), contribution.end());
+	for (auto& i : contribution) { i = (i >> 2) + 1; }
 	//std::sort(moveKindOrder.begin(), moveKindOrder.end(), [&](int a, int b) {
 	//	return contribution[a] > contribution[b];
 	//});
@@ -8424,7 +8417,7 @@ bool Solver::mRLLocalSearch(int hasRange,Vec<int> newCus) {
 			for (int i = beg; i < range; ++i) {
 
 				int wpos = i;
-				if (beg == 0) {
+				if (beg == 0 && globalCfg->close10randorder==1) {
 					wpos = wposorder[i];
 				}
 				//else {
@@ -8872,10 +8865,10 @@ bool BKS::updateBKSAndPrint(Solver& newSol, std::string opt) {
 
 		auto lastRec = bestSolFound.RoutesCost;
 		if (newSol.RoutesCost < bestSolFound.RoutesCost) {
-			INFO("new bks cost:", bestSolFound.RoutesCost,
+			INFO("new bks cost:", newSol.RoutesCost,
 				"time:" + std::to_string(gloalTimer->getRunTime()), "rn:",
-				bestSolFound.rts.cnt, "up:",
-				lastRec - bestSolFound.RoutesCost, opt);
+				newSol.rts.cnt, "up:",
+				lastRec - newSol.RoutesCost, opt);
 		} 
 		bestSolFound = newSol;
 		ret = true;
@@ -8885,8 +8878,11 @@ bool BKS::updateBKSAndPrint(Solver& newSol, std::string opt) {
 		}
 	}
 
-#if DIMACSGO
+	if (gloalTimer->getRunTime() + 100 > globalCfg->runTimer) {
+		saveBKStoCsvFile();
+	}
 
+#if DIMACSGO
 	Timer::TimePoint pt = Timer::Clock::now();
 	auto ms = Timer::durationInMillisecond(lastPrintTp, pt);
 
@@ -8896,7 +8892,6 @@ bool BKS::updateBKSAndPrint(Solver& newSol, std::string opt) {
 		lastPrCost = bks->bestSolFound.RoutesCost;
 		lastPrintTp = Timer::Clock::now();
 	}
-
 #endif // DIMACSGo
 
 	return ret;

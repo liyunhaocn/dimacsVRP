@@ -1,0 +1,45 @@
+12th DIMACS Implementation Challenge: Vehicle Routing
+VRPTW track
+Controller version: December 13, 2021
+Competitor: HustSmart
+Ubuntu 21.04
+Intel(R) Xeon(R) CPU E5-2698 v3 @ 2.30GHz
+hostid: 10916887366929678835
+PassMark Single Thread Benchmark: 1981
+Time factor: 0.99 (baseline 2000)
+Instance: C2_6_8
+Standardized Time limit: 3600 secs
+Local Machine Time Limit: 3635 secs
+Base solution: 8034.070
+BKS: 7303.7
+Optimal: 0
+Thu 27 Jan 2022 01:46:39 AM CST
+timestamp: 1643219199
+Solution value, local machine time, standardized time
+8024.3 20.485 20.290
+8020.8 20.486 20.291
+8012.0 20.486 20.291
+8010.5 20.488 20.293
+8010.1 20.491 20.296
+8009.8 20.493 20.298
+8008.9 20.493 20.298
+8008.2 20.507 20.312
+8007.1 20.512 20.317
+7999.9 20.515 20.320
+7925.7 30.714 30.422
+7924.8 30.714 30.422
+7920.6 30.715 30.423
+7919.8 30.716 30.424
+7915.6 30.717 30.425
+7912.5 30.718 30.426
+7911.0 30.719 30.427
+7908.0 30.720 30.428
+7872.9 30.721 30.429
+7871.5 30.721 30.429
+7869.5 30.722 30.430
+7864.2 30.723 30.431
+7861.5 30.723 30.431
+7859.9 30.724 30.432
+7858.2 30.728 30.436
+7857.6 30.730 30.438
+Primal Integral: 7.6029314632

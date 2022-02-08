@@ -739,7 +739,7 @@ public:
 
 	Vec<int> ruinGetRuinCusByRound(int ruinCusNum);
 
-	Vec<int> ruinGetRuinCusByRandOneR(int ruinCusNum);
+	Vec<int> ruinGetRuinCusByRand(int ruinCusNum);
 		
 	Vec<int> ruinGetRuinCusBySec(int ruinCusNum);
 
