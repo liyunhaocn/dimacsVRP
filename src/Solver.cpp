@@ -6587,6 +6587,21 @@ Vec<int> Solver::ruinGetRuinCusByRand(int ruinCusNum) {
 	int right = std::min<int>(input.custCnt - 1, ruinCusNum * 1.3);
 	ruinCusNum = myRand->pick(left, right + 1);
 
+	//int v = myRand->pick(globalInput->custCnt)+1;
+	//ruinCusNum = 40;
+	//Vec<int> ret;
+	//ret.reserve(ruinCusNum);
+	//ret.push_back(v);
+
+	//for (int i = 0; i < ruinCusNum; ++i) {
+	//	int wpos = i;
+	//	int w = input.sectorClose[v][wpos];
+	//	if (customers[w].routeID != -1) {
+	//		ret.push_back(w);
+	//	}
+	//}
+	//return ret;
+
 	auto& arr = myRandX->getMN(input.custCnt, ruinCusNum);
 	myRand->shuffleVec(arr);
 	Vec<int> ret;
@@ -8426,6 +8441,7 @@ bool Solver::mRLLocalSearch(int hasRange,Vec<int> newCus) {
 
 				//TODO[-1]:这里改成了addSTclose
 				int w = input.addSTclose[v][wpos];
+				//int w = input.sectorClose[v][wpos];
 
 				if (customers[w].routeID == -1) {
 					continue;

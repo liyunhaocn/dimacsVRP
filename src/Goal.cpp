@@ -437,7 +437,7 @@ void Goal::getTheRangeMostHope() {
 			//poolt[i].Simulatedannealing(1, 2, 50.0, 1);
 			updateppol(poolt[i], i);
 			if (i == 0) {
-				globalInput->sortSec();
+				globalInput->initDetail();
 			}
 		}
 		bks->updateBKSAndPrint(poolt[i], " poolt[i] init");
@@ -631,7 +631,7 @@ int Goal::TwoAlgCombine() {
 		if(qunext.size() == 0) {
 
 			fillqu();
-			globalCfg->popSize *= 3;
+			globalCfg->popSize *= 2;
 			globalCfg->popSize = std::min<int>(globalCfg->popSize, globalCfg->popSizeMax);
 
 			if (globalCfg->popSize == globalCfg->popSizeMax) {
@@ -683,6 +683,16 @@ int Goal::TwoAlgCombine() {
 
 		naMA(curSearchRN);
 
+		//if (bks->bksAtRn[curSearchRN] <= bks->bestSolFound.RoutesCost) {
+		if (bks->bksAtRn[curSearchRN] < bksLastLoop) {
+			//globalCfg->close10randorder = 0;
+			contiNotDown = 1;
+		}
+		else {
+			//globalCfg->close10randorder = 1 ;
+			++contiNotDown;
+		}
+
 		int outpeopleNum = std::min<int>(5,globalCfg-> popSize);
 		auto& arr = myRandX->getMN(globalCfg->popSize, outpeopleNum);
 		for (int i = 0; i < outpeopleNum; ++i) {
@@ -702,11 +712,12 @@ int Goal::TwoAlgCombine() {
 		clone.Simulatedannealing(0, 100, 50.0, globalCfg->ruinC_);
 		bks->updateBKSAndPrint(clone, " bks ruin simulate 0");
 		updateppol(sol, 0);
+
 		clone = sol;
-		clone.Simulatedannealing(1, 500, 100.0,globalCfg->ruinC_);
+		clone.Simulatedannealing(1, 1000, 100.0, globalCfg->ruinC_);
 		bks->updateBKSAndPrint(clone, " bks ruin simulate 1");
 		updateppol(sol, 0);
-
+		
 		//clone = sol;
 		//clone.splitLS();
 		//bks->updateBKSAndPrint(clone, " bks splitLS");
@@ -717,16 +728,7 @@ int Goal::TwoAlgCombine() {
 		for (int i = 0; i < globalCfg->popSize; ++i) {
 			perturbOneSol(pool[i]);
 		}
-		//if (bks->bksAtRn[curSearchRN] <= bks->bestSolFound.RoutesCost) {
-		if (bks->bksAtRn[curSearchRN] < bksLastLoop) {
-			globalCfg->close10randorder = 0;
-			contiNotDown = 1;
-		}
-		else {
-			globalCfg->close10randorder = 1 ;
-			++contiNotDown;
-		}
-		
+
 		int plangoto = -1;
 		if (contiNotDown >= 2) {
 			plangoto = getNextRnSolGO();

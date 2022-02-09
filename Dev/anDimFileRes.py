@@ -90,7 +90,7 @@ def solverOneInsbestToZip(ins,data):
 
 def solverOneInsWriteCsv(ins,data):
 
-    allrun = ["run10","run12","run1403","run2601","run2701","run3101","run0602","run0701","run0801"]
+    allrun = ["run10","run12","run1403","run2601","run2701","run3101","run0602","run0701","run0801","ser09"]
     order = []
     for i in range(len(allrun)):
         dr = allrun[i]

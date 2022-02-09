@@ -156,8 +156,11 @@ struct Input {
 
 	bool readDimacsInstance(std::string& instanciaPath);
 
-	void sortSec();
+	void initDetail();
 
+	int partition(Vec<int>& arr, int start, int end, std::function<bool(int, int)>cmp);
+
+	void getTopKmin(Vec<int>& input, int k, std::function<bool(int, int)> cmp);
 };
 
 struct Output
