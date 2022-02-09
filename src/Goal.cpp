@@ -290,7 +290,7 @@ int Goal::gotoRNPop(int rn) {
 	//TODO[0]:Lmax和ruinLmax的定义
 	globalCfg->ruinLmax = globalInput->custCnt / rn;
 	//globalCfg->ruinC_ = (globalCfg->ruinLmax + 1)/2;
-	//globalCfg->ruinC_ = (globalCfg->ruinLmax + 1);
+	globalCfg->ruinC_ = (globalCfg->ruinLmax + 1);
 	//globalCfg->ruinC_ = 15;
 	//globalCfg->ruinC_ = std::max<int>(globalCfg->ruinC_, (globalCfg->ruinLmax + 1) / 2);
 
@@ -564,31 +564,6 @@ int Goal::TwoAlgCombine() {
 
 	auto fillqu = [&]() -> void {
 
-		//Vec<int> rns(poprnUpBound - poprnLowBound + 1);
-
-		//Vec<DisType> avgrl(poprnUpBound + 1, 0);
-		//for (int rn = poprnLowBound; rn < poprnUpBound; ++rn) {
-		//	for (int i = 0; i < globalCfg->popSize; ++i) {
-		//		avgrl[rn] += ppool[rn][i].RoutesCost;
-		//	}
-		//}
-		//UnorderedSet<int> s = { poprnLowBound };
-		//if (poprnLowBound + 1 <= poprnUpBound) {
-		//	s.insert(poprnLowBound + 1);
-		//}
-
-		//if (poprnLowBound + 2 <= poprnUpBound) {
-		//	s.insert(poprnLowBound + 2);
-		//}
-		//s.insert(bks->bestSolFound.rts.cnt);
-		//s.insert(poprnUpBound);
-
-		//Vec<int> rns = putEleInVec(s);
-		//std::iota(rns.begin(), rns.end(), poprnLowBound);
-		//std::sort(rns.begin(), rns.end(), [&](int x, int y) {
-		//	return avgrl[x] < avgrl[y];
-		//});
-
 		Vec<int> rns;
 		int bksRN = bks->bestSolFound.rts.cnt;
 		if (bksRN == poprnUpBound) {
@@ -632,7 +607,12 @@ int Goal::TwoAlgCombine() {
 
 			fillqu();
 			globalCfg->popSize *= 2;
-			globalCfg->popSize = std::min<int>(globalCfg->popSize, globalCfg->popSizeMax);
+			globalCfg->popSize %= globalCfg->popSizeMax;
+
+			if (globalCfg->popSize < 4) {
+				globalCfg->popSize = 4;
+			}
+			//globalCfg->popSize = std::min<int>(globalCfg->popSize, globalCfg->popSizeMax);
 
 			if (globalCfg->popSize == globalCfg->popSizeMax) {
 				globalCfg->outNeiSize = 50;
@@ -699,22 +679,22 @@ int Goal::TwoAlgCombine() {
 			int index =arr[i];
 			Solver& sol = pool[index];
 			Solver clone = sol;
-			clone.Simulatedannealing(0, 50, 50.0, globalCfg->ruinC_);
+			clone.Simulatedannealing(0, 50, 30.0, globalCfg->ruinC_);
 			bks->updateBKSAndPrint(clone, " pool sol simulate 0");
 			updateppol(sol, index);
 			clone = sol;
-			clone.Simulatedannealing(1, 50, 50.0, globalCfg->ruinC_);
+			clone.Simulatedannealing(1, 50, 30.0, globalCfg->ruinC_);
 			bks->updateBKSAndPrint(clone, " pool sol simulate 1");
 			updateppol(sol, i);
 		}
 		Solver& sol = bks->bestSolFound;
 		Solver clone = sol;
-		clone.Simulatedannealing(0, 100, 50.0, globalCfg->ruinC_);
+		clone.Simulatedannealing(0, 100, 30.0, globalCfg->ruinC_);
 		bks->updateBKSAndPrint(clone, " bks ruin simulate 0");
 		updateppol(sol, 0);
 
 		clone = sol;
-		clone.Simulatedannealing(1, 1000, 100.0, globalCfg->ruinC_);
+		clone.Simulatedannealing(1, 500, 30.0, globalCfg->ruinC_);
 		bks->updateBKSAndPrint(clone, " bks ruin simulate 1");
 		updateppol(sol, 0);
 		
@@ -722,7 +702,6 @@ int Goal::TwoAlgCombine() {
 		//clone.splitLS();
 		//bks->updateBKSAndPrint(clone, " bks splitLS");
 		//updateppol(sol, 0);
-
 		//======
 		INFO("perturbAllPop");
 		for (int i = 0; i < globalCfg->popSize; ++i) {
