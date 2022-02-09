@@ -7158,12 +7158,6 @@ int Solver::Simulatedannealing(int kind,int iterMax, double temperature,int ruin
 
 		auto sStar = s;
 
-		if (globalCfg->cmdIsopt == 1) {
-			if (bks->bestSolFound.RoutesCost == globalCfg->d15RecRL) {
-				break;
-			}
-		}
-
 		globalRepairSquIter();
 
 		if (kind == 0) {
@@ -8889,14 +8883,14 @@ bool BKS::updateBKSAndPrint(Solver& newSol, std::string opt) {
 		bestSolFound = newSol;
 		ret = true;
 
-		if (globalCfg->cmdIsopt == 1 && bestSolFound.RoutesCost == globalCfg->lkhRL) {
-			saveBKStoCsvFile();
-		}
+		//if (globalCfg->cmdIsopt == 1 && bestSolFound.RoutesCost == globalCfg->lkhRL) {
+		//	saveBKStoCsvFile();
+		//}
 	}
 
-	if (gloalTimer->getRunTime() + 100 > globalCfg->runTimer) {
-		saveBKStoCsvFile();
-	}
+	//if (gloalTimer->getRunTime() + 100 > globalCfg->runTimer) {
+	//	saveBKStoCsvFile();
+	//}
 
 #if DIMACSGO
 	Timer::TimePoint pt = Timer::Clock::now();
@@ -8915,100 +8909,6 @@ bool BKS::updateBKSAndPrint(Solver& newSol, std::string opt) {
 
 void BKS::resetBksAtRn() {
 	bksAtRn.clear();
-}
-
-bool saveBKStoCsvFile() {
-
-	static bool isPrinted = false;
-	if (isPrinted) {
-		return 0;
-	}
-	isPrinted = true;
-
-	MyString ms;
-	// 输出 tm 结构的各个组成部分
-	//std::string day = /*ms.LL_str(d.year) + */ms.LL_str(d.month) + ms.LL_str(d.day);
-
-	std::string type = "[dim]";
-
-	std::string path = type + __DATE__;
-	path += std::string(1, '_') + __TIME__;
-
-	for (auto& c : path) {
-		if (c == ' ' || c == ':') {
-			c = '_';
-		}
-	}
-
-	std::string pwe0 = ms.int_str(globalCfg->Pwei0);
-	std::string pwe1 = ms.int_str(globalCfg->Pwei1);
-	std::string minKmax = ms.int_str(globalCfg->minKmax);
-	std::string maxKmax = ms.int_str(globalCfg->maxKmax);
-
-	std::ofstream rgbData;
-	std::string wrPath = globalCfg->outputPath + "_" + path + ".csv";
-
-	bool isGood = false; {
-		std::ifstream f(wrPath.c_str());
-		isGood = f.good();
-	}
-
-	rgbData.open(wrPath, std::ios::app | std::ios::out);
-
-	if (!rgbData) {
-		INFO("output file open errno");
-		return false;
-	}
-	if (!isGood) {
-		rgbData << "ins,isopt,lyhrl,lyhrn,time,gap,lkhrn,lkhrl,d15rn,d15RL,sinrn,sinrl,narn,narl,rts,seed" << std::endl;
-	}
-
-	auto& sol = bks->bestSolFound;
-
-	Input& input = *globalInput;
-
-	rgbData << input.example << ",";
-	rgbData << globalCfg->cmdIsopt << ",";
-
-	auto lyhrl = sol.RoutesCost;
-	//auto lyhrl = sol.verify();
-	rgbData << lyhrl << ",";
-
-	rgbData << sol.rts.cnt << ",";
-
-	rgbData << gloalTimer->getRunTime() << ",";
-
-	rgbData << double((double)(lyhrl - globalCfg->lkhRL) / globalCfg->lkhRL) * 100 << ",";
-
-	rgbData << globalCfg->lkhRN << ",";
-	rgbData << globalCfg->lkhRL << ",";
-
-	rgbData << globalCfg->d15RecRN << ",";
-	rgbData << globalCfg->d15RecRL << ",";
-
-	rgbData << globalCfg->sintefRecRN << ",";
-	rgbData << globalCfg->sintefRecRL << ",";
-
-	rgbData << globalCfg->naRecRN << ",";
-	rgbData << globalCfg->naRecRL << ",";
-
-	for (int i = 0; i < sol.rts.cnt; ++i) {
-		rgbData << "Route  " << i + 1 << " : ";
-		Route& r = sol.rts[i];
-		auto cusArr = sol.rPutCusInve(r);
-		for (int c : cusArr) {
-			rgbData << c << " ";
-		}
-		rgbData << "| ";
-	}
-
-	rgbData << ",";
-	rgbData << globalCfg->seed;
-
-	rgbData << std::endl;
-	rgbData.close();
-
-	return true;
 }
 
 }

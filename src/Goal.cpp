@@ -290,7 +290,7 @@ int Goal::gotoRNPop(int rn) {
 	//TODO[0]:Lmax和ruinLmax的定义
 	globalCfg->ruinLmax = globalInput->custCnt / rn;
 	//globalCfg->ruinC_ = (globalCfg->ruinLmax + 1)/2;
-	globalCfg->ruinC_ = (globalCfg->ruinLmax + 1);
+	//globalCfg->ruinC_ = (globalCfg->ruinLmax + 1);
 	//globalCfg->ruinC_ = 15;
 	//globalCfg->ruinC_ = std::max<int>(globalCfg->ruinC_, (globalCfg->ruinLmax + 1) / 2);
 
@@ -560,7 +560,7 @@ int Goal::TwoAlgCombine() {
 
 	int iterFillqu = 0;
 
-	globalCfg->popSize = 4;
+	globalCfg->popSize = 8;
 
 	auto fillqu = [&]() -> void {
 
@@ -607,12 +607,7 @@ int Goal::TwoAlgCombine() {
 
 			fillqu();
 			globalCfg->popSize *= 2;
-			globalCfg->popSize %= globalCfg->popSizeMax;
-
-			if (globalCfg->popSize < 4) {
-				globalCfg->popSize = 4;
-			}
-			//globalCfg->popSize = std::min<int>(globalCfg->popSize, globalCfg->popSizeMax);
+			globalCfg->popSize = std::min<int>(globalCfg->popSize, globalCfg->popSizeMax);
 
 			if (globalCfg->popSize == globalCfg->popSizeMax) {
 				globalCfg->outNeiSize = 50;
@@ -639,21 +634,8 @@ int Goal::TwoAlgCombine() {
 	DisType bksLastLoop = bks->bestSolFound.RoutesCost;
 	int contiNotDown = 1;
 
-	#if DIMACSGO
 	while (true) {
-	#else
-	while (!gloalTimer->isTimeOut()) {
-		if (globalCfg->cmdIsopt == 1) {
-			if (bks->bestSolFound.RoutesCost == globalCfg->d15RecRL) {
-				break;
-			}
-		}
-	#endif // DIMACSGO
 		
-		if (gloalTimer->getRunTime() + 30 > globalCfg->runTimer) {
-			saveBKStoCsvFile();
-		}
-
 		INFO("curSearchRN:", curSearchRN);
 
 		bksLastLoop = bks->bksAtRn[curSearchRN];
@@ -679,22 +661,22 @@ int Goal::TwoAlgCombine() {
 			int index =arr[i];
 			Solver& sol = pool[index];
 			Solver clone = sol;
-			clone.Simulatedannealing(0, 50, 30.0, globalCfg->ruinC_);
+			clone.Simulatedannealing(0, 50, 50.0, globalCfg->ruinC_);
 			bks->updateBKSAndPrint(clone, " pool sol simulate 0");
 			updateppol(sol, index);
 			clone = sol;
-			clone.Simulatedannealing(1, 50, 30.0, globalCfg->ruinC_);
+			clone.Simulatedannealing(1, 50, 50.0, globalCfg->ruinC_);
 			bks->updateBKSAndPrint(clone, " pool sol simulate 1");
 			updateppol(sol, i);
 		}
 		Solver& sol = bks->bestSolFound;
 		Solver clone = sol;
-		clone.Simulatedannealing(0, 100, 30.0, globalCfg->ruinC_);
+		clone.Simulatedannealing(0, 100, 50.0, globalCfg->ruinC_);
 		bks->updateBKSAndPrint(clone, " bks ruin simulate 0");
 		updateppol(sol, 0);
 
 		clone = sol;
-		clone.Simulatedannealing(1, 500, 30.0, globalCfg->ruinC_);
+		clone.Simulatedannealing(1, 1000, 50.0, globalCfg->ruinC_);
 		bks->updateBKSAndPrint(clone, " bks ruin simulate 1");
 		updateppol(sol, 0);
 		
@@ -727,8 +709,7 @@ int Goal::TwoAlgCombine() {
 	bks->bestSolFound.printDimacs();
 
 	//TODO[-1]:如果提交求解器记得去掉
-	saveBKStoCsvFile();
-
+	
 	gloalTimer->disp();
 
 	return true;

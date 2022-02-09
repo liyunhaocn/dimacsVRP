@@ -15,19 +15,6 @@ struct Configuration {
 	std::string inputPath = "";
 	std::string outputPath = "../Results/";
 	
-	int lkhRN = -1;
-	DisType lkhRL = -1;
-	int cmdIsopt = -1;
-
-	int d15RecRN = 0;
-	DisType d15RecRL = 0;
-
-	int sintefRecRN = 0;
-	DisType sintefRecRL = 0;
-	//  TODO[lyh][0]:提交之前要去掉
-	int naRecRN = 0;
-	DisType naRecRL = 0;
-
 	int squContiIter = 100;
 	int squMinContiIter = 100;
 	int squMaxContiIter = 199;
