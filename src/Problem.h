@@ -161,6 +161,8 @@ struct Input {
 	int partition(Vec<int>& arr, int start, int end, std::function<bool(int, int)>cmp);
 
 	void getTopKmin(Vec<int>& input, int k, std::function<bool(int, int)> cmp);
+
+	void printHelpInfo();
 };
 
 struct Output

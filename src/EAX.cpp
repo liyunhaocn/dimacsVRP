@@ -637,6 +637,8 @@ int EAX::doNaEAX(Solver& pa, Solver& pb, Solver& pc) {
 	}
 	
 	if (pc.repair()) {
+
+		bks->updateBKSAndPrint(pc,"doNaEAX after repair");
 		if (pc.RoutesCost == pa.RoutesCost) {
 				
 			/*for (auto id : tabuCyIds) {
@@ -657,76 +659,65 @@ int EAX::doPrEAX(Solver& pa, Solver& pb, Solver& pc) {
 
 	//generateCycles();
 	repairSolNum = 0;
-
-	Vec<int> ret;
-
 	generSolNum = 1;
-
-	int cnt = 0;
-		
-	unionIndex = -1;
-
-	for (int i = 0; i < unionArr.size(); ++i) {
-		if (unionArr[i].size() >= 2) {
-			++cnt;
-			if (myRand->pick(cnt) == 0) {
-				unionIndex = i;
-			}
-			// TODO[0]:这里决定是否优先选择小的union
-			//break;
-		}
-	}
-
-	//printve(tabuUnionIds);
-	if (unionIndex == -1) {
-		return -1;
-	}
-
-	int firstCyIndex = unionArr[unionIndex][myRand->pick(unionArr[unionIndex].size())];
 
 	//TODO[lyh][001]:最多放置多少个abcycle[2,(abcyNum)/2],pick 是开区间
 	int abcyNum = abCycleSet.size();
+	static ProbControl probc(globalInput->custCnt/2);
 
-	int numABCyUsed = unionArr[unionIndex].size();
-	//numABCyUsed = std::min<int>(4, numABCyUsed);
-	numABCyUsed = std::min<int>(abcyNum / 2, numABCyUsed);
-	
-	int putMax = numABCyUsed;
-	numABCyUsed = 2;
+	//int numABCyUsed = 2;
+	int numABCyUsed = probc.getIndexBasedData(3) + 2;
+	//int numABCyUsed = probc.getIndexBasedData(std::min<int>(2,abcyNum / 2 + 1) ) + 2;
+	//int numABCyUsed = myRand->pick(2, abcyNum/2+1);
+	//int numABCyUsed = myRand->pick(2, 10);
+	numABCyUsed = std::min<int>(numABCyUsed, abcyNum-1);
 
-	//numABCyUsed = myRand->pick(2, putMax+1);
-	for (int i = 3; i <= putMax; ++i) {
-		// TODO[-1]:这里可以调整 放置多少个abcy
-		if (myRand->pick(100) < 40) {
-			numABCyUsed = i;
-		}
-		else {
-			break;
+	int uarrNum = unionArr.size();
+	Vec<int> unionIndexOrder;
+	for (int i = 0; i < uarrNum; ++i) {
+		if (unionArr[i].size() >= 2) {
+			unionIndexOrder.push_back(i);
 		}
 	}
-
-	ConfSet cyInUnion(abCycleSet.size());
-	for (int cy : unionArr[unionIndex]) {
-		cyInUnion.ins(cy);
+	if (unionIndexOrder.size() == 0) {
+		return -1;
 	}
+	myRand->shuffleVec(unionIndexOrder);
+
+
+	ConfSet cyInUnion(abcyNum);
 
 	Vec<int> eset;
-	std::queue<int> qu;
-	qu.push(firstCyIndex);
-	cyInUnion.removeVal(firstCyIndex);
 
-	while (eset.size() < numABCyUsed) {
-		auto tp = qu.front();
-		eset.push_back(tp);
-		qu.pop();
+	for (int uId : unionIndexOrder) {
 
-		auto adjs = abCyAdj[tp];
-		myRand->shuffleVec(adjs);
-		for (int ad : adjs) {
-			if (cyInUnion.pos[ad] >= 0) {
-				qu.push(ad);
-				cyInUnion.removeVal(ad);
+		//将一个并查集的所有abcyindex保存起来
+		for (int cy : unionArr[uId]) {
+			cyInUnion.ins(cy);
+		}
+
+		int firstCyIndex = cyInUnion.ve[myRand->pick(cyInUnion.cnt)];
+		std::queue<int> qu;
+		qu.push(firstCyIndex);
+		cyInUnion.removeVal(firstCyIndex);
+
+		while (eset.size() < numABCyUsed && qu.size() > 0) {
+			auto tp = qu.front();
+			eset.push_back(tp);
+			qu.pop();
+
+			auto adjs = abCyAdj[tp];
+			myRand->shuffleVec(adjs);
+			for (int ad : adjs) {
+				if (cyInUnion.pos[ad] >= 0) {
+					qu.push(ad);
+					cyInUnion.removeVal(ad);
+				}
 			}
+		}
+
+		if (eset.size() == numABCyUsed) {
+			break;
 		}
 	}
 
@@ -738,14 +729,14 @@ int EAX::doPrEAX(Solver& pa, Solver& pb, Solver& pc) {
 	removeSubring(pc);
 	pc.reCalRtsCostAndPen();
 
-	//static int all = 0;
-	//static int repair = 0;
-	//++all;
-		
 	if (pc.repair()) {
+
+		bks->updateBKSAndPrint(pc, "doPrEAX after repair");
+
+		++probc.data[numABCyUsed-2];
 		//++repair;
 		//INFO("all:", all, "repair:", repair,"abcyNum / 2:", abcyNum / 2,"numABCyUsed:", numABCyUsed);
-
+		
 		////TODO[0]:如果设置修复自回路使用眨眼的话，禁忌要在没有自回路的情况下禁忌
 		//if (numABCyUsed == unionArr[unionIndex].size()) {
 		//	tabuUnionIds.insert(unionIndex);

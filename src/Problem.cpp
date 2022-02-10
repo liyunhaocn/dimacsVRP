@@ -1764,6 +1764,33 @@ Input::Input() {
 	initInput();
 }
 
+void Input::printHelpInfo() {
+
+	int sintefRecRN = getSintefMinRN(example);
+	DisType sintefRecRL = getSintefRL(example) * disMul;
+	int naRecRN = getNagataInsData(example).minRN;
+	DisType naRecRL = getNagataInsData(example).minRL * disMul;
+
+	int d15RecRN = getD15InsData(example).minRN;
+	DisType d15RecRL = getD15InsData(example).minRL;
+
+	int lkhRN = getLKHInsData(example).minRN;
+	DisType lkhRL = getLKHInsData(example).minRL;
+	int cmdIsopt = getLKHInsData(example).isOpt;
+
+	INFO("cmdIsopt", cmdIsopt);
+	INFO("lkhRL:", lkhRL);
+	INFO("lkhRN:", lkhRN);
+
+	INFO("d15RecRN:", d15RecRN);
+	INFO("d15RecRL:", d15RecRL);
+
+	INFO("sintefRecRN:", sintefRecRN);
+	INFO("sintefRecRL:", sintefRecRL);
+	INFO("naRecRL:", naRecRL);
+	INFO("naRecRN:", naRecRN);
+}
+
 void Input::initDetail() {
 
 	for (int v = 0; v <= custCnt; ++v) {
@@ -1818,6 +1845,15 @@ void Input::initDetail() {
 			//if ((aLinkv && bLinkv) || (!aLinkv && !bLinkv)) {
 			//	return disOf[v][a] + datas[a].SERVICETIME <
 			//		disOf[v][b] + datas[b].SERVICETIME;
+			//}
+			//else {
+			//	return aLinkv ? true : false;
+			//}
+			
+			//int aLinkv = canLinkNode(a, v);
+			//int bLinkv = canLinkNode(b, v);
+			//if ((aLinkv && bLinkv) || (!aLinkv && !bLinkv)) {
+			//	return disOf[v][a] < disOf[v][b] ;
 			//}
 			//else {
 			//	return aLinkv ? true : false;

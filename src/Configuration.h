@@ -46,10 +46,11 @@ struct Configuration {
 	//int yearTabuLen = 20;
 	//int yearTabuRand = 10;
 
-	int popSize = 50;
+	int popSize = 4;
+	int popSizeMin = 4;
 	int popSizeMax = 50;
 	//int repairExitStep = 50;
-	int repairExitStep = 5;
+	int repairExitStep = 10;
 
 	int initFindPosPqSize = 20;
 	int findBestPosForRuinPqSize = 10;
@@ -80,10 +81,12 @@ struct Configuration {
 	int ruinLmax = 20;
 	//(ruinLmax+1)/2
 	int ruinC_ = 15;
+	int ruinC_Min = 15;
+	int ruinC_Max = 25;
 
-	int ruinWinkacRate = 99; // 100
+	int ruinWinkacRate = 97; // 100
 	//TODO[-1]:为初始化设置了眨眼
-	int initWinkacRate = 99; // 100
+	int initWinkacRate = 97; // 100
 	int abcyWinkacRate = 99; // 100
 
 	int close10randorder = 0;

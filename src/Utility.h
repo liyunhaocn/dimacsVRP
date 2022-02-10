@@ -328,33 +328,37 @@ struct ProbControl {
     Vec<int> sum;
 
     ProbControl(int maxSize) {
-        data.resize(maxSize, 10);
+        data.resize(maxSize, 2);
         sum.resize(maxSize, 0);
     }
 
     void resetData() {
-        std::fill(data.begin(), data.end(), 10);
+        std::fill(data.begin(), data.end(), 2);
     }
 
-    int getIndexBasedData() {
+    int getIndexBasedData(int maxN = -1) {
 
-        auto maxEleIter = std::max_element(data.begin(), data.end());
+        int n = data.size();
+        if (maxN != -1) {
+            n = maxN;
+        }
 
-        if ((*maxEleIter) * data.size() >= 200) {
+        auto maxEleIter = std::max_element(data.begin(), data.begin()+n);
+
+        if ((*maxEleIter) >= 40) {
             for (auto& i : data) {
-                i = 10;
+                i = (i >> 2) + 2;
             }
         }
 
-        int n = data.size();
         sum[0] = data[0];
         for (int i = 1; i < n; ++i) {
             sum[i] = sum[i - 1] + data[i];
         }
 
-        int allSum = sum.back();
+        int allSum = sum[n-1];
         int rd = myRand->pick(1, allSum + 1);
-        auto index = std::lower_bound(sum.begin(), sum.end(), rd) - sum.begin();
+        auto index = std::lower_bound(sum.begin(), sum.begin() + n, rd) - sum.begin();
         return index;
     }
 };

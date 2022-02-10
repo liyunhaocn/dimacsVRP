@@ -7123,10 +7123,9 @@ int Solver::CVB2ruinLS(int ruinCusNum) {
 	int clearKind = pcCLKind.getIndexBasedData();
 
 	CVB2ClearEPAllowNewR(clearKind);
+	bks->updateBKSAndPrint(*this, "out and in");
 
 	auto cuses = EAX::getDiffCusofPb(solClone, *this);
-	//TODO[-1]:这里改正了ruinCus
-	//auto cuses = ruinCus;
 	if (cuses.size() > 0) {
 		mRLLocalSearch(1, cuses);
 	}
@@ -7165,7 +7164,6 @@ int Solver::Simulatedannealing(int kind,int iterMax, double temperature,int ruin
 			sStar.ruinLocalSearchNotNewR(ruinNum);
 		}
 		else if (kind == 1) {
-			//sStar.CVB2ruinLS(globalCfg->ruinC_);
 			sStar.CVB2ruinLS(ruinNum);
 		}
 		
@@ -8587,7 +8585,13 @@ bool Solver::mRLLocalSearch(int hasRange,Vec<int> newCus) {
 	}
 
 	//TODO[5]:这个更新必须有 因为搜索工程中没有更新每一条路径的routeCost
-	reCalRtsCostSumCost();
+	sumRtsCost();
+	//auto rc = RoutesCost;
+	//reCalRtsCostSumCost();
+	//if (rc != RoutesCost) {
+	//	DEBUG(rc);
+	//	DEBUG(RoutesCost);
+	//}
 
 	return true;
 }
@@ -8871,15 +8875,20 @@ bool BKS::updateBKSAndPrint(Solver& newSol, std::string opt) {
 
 	bool ret = false;
 
+	
 	if (newSol.RoutesCost <= bestSolFound.RoutesCost) {
 
+#if DIMACSGO
+#else
 		auto lastRec = bestSolFound.RoutesCost;
 		if (newSol.RoutesCost < bestSolFound.RoutesCost) {
 			INFO("new bks cost:", newSol.RoutesCost,
 				"time:" + std::to_string(gloalTimer->getRunTime()), "rn:",
 				newSol.rts.cnt, "up:",
 				lastRec - newSol.RoutesCost, opt);
-		} 
+		}
+#endif // DIMACSGO
+
 		bestSolFound = newSol;
 		ret = true;
 
