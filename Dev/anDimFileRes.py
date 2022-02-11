@@ -90,7 +90,7 @@ def solverOneInsbestToZip(ins,data):
 
 def solverOneInsWriteCsv(ins,data):
 
-    allrun = ["run1103"]
+    # allrun = ["run1103"]
     # allrun = ["run10","run12","run1403","run2601","run2701","run3101","run0602","run0701","run0801","run1002","run1103"]
 
     order = []
@@ -130,7 +130,8 @@ if __name__ == '__main__':
     # info = getOneFileInfo(r"..\commitFile\run1103\DIMACS-VRPTW-HustSmart-C101.out")
     # print("info:",info)
 
-    paths = getAllFilePath(r"..\commitFile\run1103")
+    # paths = getAllFilePath(r"..\commitFile\run1103")
+    paths = getAllFilePath(r"..\commitFile")
     
     mp = {}
 
