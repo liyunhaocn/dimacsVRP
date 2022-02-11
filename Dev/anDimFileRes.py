@@ -90,7 +90,9 @@ def solverOneInsbestToZip(ins,data):
 
 def solverOneInsWriteCsv(ins,data):
 
-    allrun = ["run10","run12","run1403","run2601","run2701","run3101","run0602","run0701","run0801","run1002"]
+    allrun = ["run1103"]
+    # allrun = ["run10","run12","run1403","run2601","run2701","run3101","run0602","run0701","run0801","run1002","run1103"]
+
     order = []
     for i in range(len(allrun)):
         dr = allrun[i]
@@ -109,13 +111,11 @@ def solverOneInsWriteCsv(ins,data):
         if float(one["area"]) < min1:
             min1 = float(one["area"])
             mindr = one["path"]
-        print(one)
         writeline.append(one["bks"])
         writeline.append(one["area"])
         writeline.append(one["time"])
         writeline.append(one["path"])
     
-    print("mindr:",mindr)
     writeline.append(mindr)
     writeline.append(min1)
     writeline = [ins] + writeline
@@ -124,12 +124,18 @@ def solverOneInsWriteCsv(ins,data):
 
 if __name__ == '__main__':
     
-    paths = getAllFilePath(r"..\commitFile")
+    # for root, dirs, files in os.walk(r"..\commitFile"):
+    #     print(dirs)
+
+    # info = getOneFileInfo(r"..\commitFile\run1103\DIMACS-VRPTW-HustSmart-C101.out")
+    # print("info:",info)
+
+    paths = getAllFilePath(r"..\commitFile\run1103")
     
     mp = {}
 
-    # for root, dirs, files in os.walk(r"..\commitFile"):
-    #     print(dirs)
+    # for ph in paths:
+    #     print(ph)
 
     for ph in paths:
         ins = ph.split("DIMACS-VRPTW-HustSmart-")[1].split(".out")[0]
@@ -140,9 +146,8 @@ if __name__ == '__main__':
         # print(info)
         # break
     for ins,data in mp.items():
-        print(ins)
+        print("data:",data)
         solverOneInsWriteCsv(ins,data)
-        # solverOneInsbestToZip(ins,data)
 
 
 

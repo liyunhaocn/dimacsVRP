@@ -369,7 +369,8 @@ void Goal::getTheRangeMostHope() {
 	
 	if (globalInput->custCnt < sol.rts.cnt * 20 ) {
 		globalCfg->popSizeMin = 2;
-		globalCfg->popSizeMax = 20;
+		//globalCfg->popSizeMax = 20;
+		globalCfg->popSizeMax = 50;
 		globalCfg->popSize = globalCfg->popSizeMin;
 	}
 
