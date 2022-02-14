@@ -16,6 +16,7 @@ bool allocGlobalMem(int argc, char* argv[]) {
 //bool allocGlobalMem(std::string inpath) {
 
 	// ../Instances/Homberger/R2_8_9.txt
+	// ../Instances/Homberger/RC1_10_1.txt
 	// ../Instances/Homberger/RC1_10_5.txt
 	// ../Instances/Solomon/R103.txt
 	// ../Instances/Solomon/R210.txt

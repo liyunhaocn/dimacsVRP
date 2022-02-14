@@ -69,20 +69,21 @@ struct Configuration {
 	double broaden = 1.2;
 	//int broadenWhenPos_0 = 50;
 	int broadenWhenPos_0 = 20;
-	int outNeiSize = 40;
-	Vec<int> mRLLocalSearchRange = { 10,40 };
+	int outNeiSize = 50;
+	int neiSizeMin = 30;
+	Vec<int> mRLLocalSearchRange = { 10,30 };
 	//int mRLLSgetAllRange = 50;
 
 	// ruinLocalSearch
 	int ruinLocalSearchNextNeiBroad = 5;
 
-	int ruinSplitRate = 25; // %100 means ruinSplitRate%
+	int ruinSplitRate = 0; // %100 means ruinSplitRate%
 	
 	int ruinLmax = 20;
 	//(ruinLmax+1)/2
 	int ruinC_ = 15;
 	int ruinC_Min = 15;
-	int ruinC_Max = 25;
+	int ruinC_Max = 55;
 
 	int ruinWinkacRate = 97; // 100
 	//TODO[-1]:为初始化设置了眨眼

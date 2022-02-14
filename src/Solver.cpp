@@ -918,6 +918,7 @@ Solver::Position Solver::findBestPosForRuin(int w) {
 	//	return rts[x].rQ < rts[y].rQ;
 	//	});
 	//printve(rtsIndexOrder);
+
 	for (int i : rtsIndexOrder) {
 
 		Route& r = rts[i];
@@ -976,6 +977,10 @@ Solver::Position Solver::findBestPosForRuin(int w) {
 			updatePool(posTemp);
 
 		}
+	}
+
+	if (ret.cost > input.disOf[0][w] * 2) {
+		return Position();
 	}
 	return ret;
 }
@@ -6350,12 +6355,35 @@ void Solver::ruinClearEP(int kind) {
 		EPrRemoveAtPos(pt);
 		//++P[pt];
 		auto bestFitPos = findBestPosForRuin(pt);
-		Route& r = rts[bestFitPos.rIndex];
-		insRts.insert(r.routeID);
-		rInsAtPos(r, bestFitPos.pos, pt);
-		rUpdateAvQfrom(r, pt);
-		rUpdateZvQfrom(r, pt);
 
+		if (bestFitPos.rIndex == -1) {
+			int rid = -1;
+
+			for (int i = 0; i < rts.posOf.size(); ++i) {
+				if (rts.posOf[i] == -1) {
+					rid = i;
+					break;
+				}
+			}
+
+			if (rid == -1) {
+				rid = rts.posOf.size();
+			}
+
+			Route r1 = rCreateRoute(rid);
+			rInsAtPosPre(r1, r1.tail, pt);
+			rUpdateAvQfrom(r1, r1.head);
+			rUpdateZvQfrom(r1, r1.tail);
+			rts.push_back(r1);
+			insRts.insert(rid);
+		}
+		else {
+			Route& r = rts[bestFitPos.rIndex];
+			insRts.insert(r.routeID);
+			rInsAtPos(r, bestFitPos.pos, pt);
+			rUpdateAvQfrom(r, pt);
+			rUpdateZvQfrom(r, pt);
+		}
 	}
 
 	sumRtsPen();
@@ -6395,7 +6423,6 @@ Vec<int> Solver::ruinGetRuinCusBySting(int ruinKmax, int ruinLmax) {
 
 	int ruinK = myRand->pick(1, ruinKmax + 1);
 	
-
 	int v = myRand->pick(1, input.custCnt + 1);
 	UnorderedSet<int> rIdSet;
 	UnorderedSet<int> begCusSet;
@@ -6535,11 +6562,6 @@ Vec<int> Solver::ruinGetRuinCusBySting(int ruinKmax, int ruinLmax) {
 			//eArr.push_back(a[strbeg + frontStr + t + i]);
 		}
 
-		//INFO("m:",m);
-		//INFO("t:",t);
-		//printve(a);
-		//printve(farr);
-		//printve(eArr);
 	};
 	#endif
 
@@ -6611,63 +6633,20 @@ Vec<int> Solver::ruinGetRuinCusByRand(int ruinCusNum) {
 	return ret;
 }
 
-#if 0
-Vec<int> Solver::ruinGetRuinCusBySec(int ruinCusNum) {
+Vec<int> Solver::ruinGetRuinCusByRandOneR(int ruinCusNum) {
 
-	ruinCusNum = myRand->pick(1, ruinCusNum * 2 + 1);
-
-	Vec<CircleSector> secs(rts.cnt);
-	for (int i = 0; i < rts.cnt; ++i) {
-		secs[i] = rGetCircleSector(rts[i]);
-	}
-
-	Vec<int> rOrder(rts.cnt, 0);
-	std::iota(rOrder.begin(), rOrder.end(), 0);
-	myRand->shuffleVec(rOrder);
-
-	int rti = 0;
-	int rtj = 0;
-
-	for (int i = 0; i < rts.cnt; ++i) {
-		rti = rOrder[i];
-		bool isbreak = false;
-		for (int j = i + 1; j < rts.cnt; ++j) {
-			rtj = rOrder[j];
-			bool is = CircleSector::overlap(secs[rti], secs[rtj]);
-			if (is) {
-				isbreak = true;
-				break;
-			}
-		}
-		if (isbreak) {
-			break;
-		}
-	}
-
-	auto vei = rPutCusInve(rts[rti]);
-
-	Vec<int> cusArr;
-
-	for (int v : vei) {
-		int vAngle = input.datas[v].polarAngle;
-		if (cusArr.size() < ruinCusNum && secs[rti].isEnclosed(vAngle)
-			&& secs[rtj].isEnclosed(vAngle)) {
-			cusArr.push_back(v);
-		}
-	}
-
-	auto vej = rPutCusInve(rts[rtj]);
-	for (int v : vej) {
-		int vAngle = input.datas[v].polarAngle;
-		if (cusArr.size() < ruinCusNum && secs[rti].isEnclosed(vAngle)
-			&& secs[rtj].isEnclosed(vAngle)) {
-			cusArr.push_back(v);
-		}
-	}
-	return cusArr;
+	//int index = 0;
+	//for (int i = 1; i < rts.cnt; ++i) {
+	//	if (rts[i].rCustCnt < rts[index].rCustCnt) {
+	//		index = i;
+	//	}
+	//}
+	int index = myRand->pick(rts.cnt);
+	Route& r = rts[index];
+	auto arr = rPutCusInve(r);
+	return arr;
 }
 
-#else
 Vec<int> Solver::ruinGetRuinCusBySec(int ruinCusNum) {
 
 	//ruinCusNum = myRand->pick(1, ruinCusNum+1);
@@ -6736,7 +6715,6 @@ Vec<int> Solver::ruinGetRuinCusBySec(int ruinCusNum) {
 	
 	return cusArr;
 }
-#endif // 0
 
 void Solver::perturbBasedejepool(int ruinCusNum) {
 
@@ -6774,7 +6752,7 @@ void Solver::perturbBasedejepool(int ruinCusNum) {
 	
 }
 
-bool Solver::doOneTimeRuinPer(int perturbkind,int ruinCusNum,int clearEPKind) {
+bool Solver::doOneTimeRuinPer(int perturbkind, int ruinCusNum, int clearEPKind) {
 
 	Vec<int> ruinCus;
 	if (perturbkind == 0) {
@@ -6783,18 +6761,21 @@ bool Solver::doOneTimeRuinPer(int perturbkind,int ruinCusNum,int clearEPKind) {
 	else if (perturbkind == 1) {
 		ruinCus = ruinGetRuinCusBySec(ruinCusNum);
 	}
-	else if(perturbkind==2){
-		
+	else if (perturbkind == 2) {
+
 		int avgLen = input.custCnt / rts.cnt;
 		int Lmax = std::min<int>(globalCfg->ruinLmax, avgLen);
 		int ruinKmax = 4 * ruinCusNum / (1 + Lmax) - 1;
-		ruinKmax = std::min<int>(rts.cnt, ruinKmax);
+		ruinKmax = std::min<int>(rts.cnt-1, ruinKmax);
 		ruinKmax = std::max<int>(1, ruinKmax);
 
 		ruinCus = ruinGetRuinCusBySting(ruinKmax, Lmax);
 	}
 	else if (perturbkind == 3) {
 		ruinCus = ruinGetRuinCusByRand(ruinCusNum);
+	}
+	else if (perturbkind == 4) {
+		ruinCus = ruinGetRuinCusByRandOneR(ruinCusNum);
 	}
 	else {
 		ERROR("no this kind of ruin");
@@ -6867,41 +6848,27 @@ bool Solver::perturbBaseRuin(int perturbkind, int ruinCusNum,int clearEPKind) {
 		}
 	}
 	
-	//static int all = 0;
-	//static int sam = 0;
-	//static int suc = 0;
-	//static int pen = 0;
-	//static int rep = 0;
-	//static int nre = 0;
-
-	//++all;
-	//INFO("i:",i,"all:", all, "sam : ", sam, "suc : ", suc, "pen : ", pen, "rep : ", rep, "nre : ", nre,"ruinCusNum : ", ruinCusNum);
-	
 	if (perSuc) {
-		//++suc;
 		return true;
 	}
 	else {
-		// TODO[-1]:修复还是需要的
-		//return false;
 
-		if (hasPenMinSol) { //生成了有惩罚的解
-			//++pen;
+		if (hasPenMinSol) { 
 			
 			if (penMinSol.repair()) {
-				//++rep;
+
 				*this = penMinSol;
 				return true;
 			}
 			else {
-				//++nre;
+
 				*this = pClone;
 				return false;
 			}
 
 		}
-		else {// 生成了10个相同的解
-			//++sam;
+		else {
+
 			return false;
 		}
 	} 
@@ -7062,13 +7029,7 @@ int Solver::CVB2ClearEPAllowNewR(int kind) {
 
 int Solver::CVB2ruinLS(int ruinCusNum) {
 
-	int avgLen = input.custCnt / rts.cnt;
-	int Lmax = std::min<int>(globalCfg->ruinLmax, avgLen);
-	int ruinKmax = 4 * ruinCusNum / (1 + Lmax) - 1;
-	ruinKmax = std::min<int>(rts.cnt, ruinKmax);
-	ruinKmax = std::max<int>(1, ruinKmax);
-
-	static ProbControl pcRuKind(4);
+	static ProbControl pcRuKind(5);
 	//static ProbControl pcRuKind(3);
 	static ProbControl pcCLKind(6);
 
@@ -7083,11 +7044,20 @@ int Solver::CVB2ruinLS(int ruinCusNum) {
 		ruinCus = ruinGetRuinCusBySec(ruinCusNum);
 	}
 	else if (perturbkind == 2) {
+		int avgLen = input.custCnt / rts.cnt;
+		int Lmax = std::min<int>(globalCfg->ruinLmax, avgLen);
+		int ruinKmax = 4 * ruinCusNum / (1 + Lmax) - 1;
+		//TODO[-1]:!!!!!!
+		ruinKmax = std::min<int>(rts.cnt - 1, ruinKmax);
+		ruinKmax = std::max<int>(1, ruinKmax);
 		ruinCus = ruinGetRuinCusBySting(ruinKmax, Lmax);
 	}
 	else if(perturbkind==3){
 		// TODO[-1]:随机删除customers
 		ruinCus = ruinGetRuinCusByRand(ruinCusNum);
+	}
+	else if (perturbkind == 4) {
+		ruinCus = ruinGetRuinCusByRandOneR(ruinCusNum);
 	}
 	else {
 		ERROR("no this kind of ruin");

@@ -119,19 +119,6 @@ bool Goal::perturbOneSol(Solver& sol) {
 	//auto before = sol.RoutesCost;
 	Solver sclone = sol;
 	
-	//if (myRand->pick(3) == 0) {
-	//	sclone.resetSol();
-	//	sclone.initSolution(myRand->pick(4));
-	//	bool isadj = sclone.adjustRN(sol.rts.cnt);
-	//	if (isadj) {
-	//		sol = sclone;
-	//		return true;
-	//	}
-	//	else {
-	//		sclone = sol;
-	//	}
-	//}
-	
 	bool isPerOnePerson = false;
 	for (int i = 0; i < 10; ++i) {
 
@@ -139,7 +126,7 @@ bool Goal::perturbOneSol(Solver& sol) {
 		//sclone.Simulatedannealing(0,100,100.0,globalCfg->ruinC_);
 		
 		if (myRand->pick(2)==0) {
-			int kind = myRand->pick(4);
+			int kind = myRand->pick(5);
 			int clearEPkind = myRand->pick(6);
 			int ruinCusNum = std::min<int>(globalInput->custCnt/2, globalCfg->ruinC_);
 			sclone.perturbBaseRuin(kind, ruinCusNum, clearEPkind);
@@ -262,6 +249,7 @@ int Goal::gotoRNPop(int rn) {
 				}
 			}
 		}
+
 		if (downRn == rn) {
 			perturbOneSol(ppool[downRn][pIndex]);
 			isAdj = true;
@@ -364,7 +352,11 @@ void Goal::getTheRangeMostHope() {
 	}
 	
 	globalCfg->ruinLmax = globalInput->custCnt / sol.rts.cnt;
-	//globalCfg->ruinC_ = (globalCfg->ruinLmax + 1);
+	globalCfg->ruinC_ = (globalCfg->ruinLmax + 1);
+	
+	int& mRLLocalSearchRange1 = globalCfg->mRLLocalSearchRange[1];
+	mRLLocalSearchRange1 = 40;
+
 	sol.Simulatedannealing(1, 500, 100.0, globalCfg->ruinC_);
 	
 	if (globalInput->custCnt < sol.rts.cnt * 20 ) {
@@ -406,6 +398,8 @@ void Goal::getTheRangeMostHope() {
 	}
 	
 	bks->resetBksAtRn();
+	mRLLocalSearchRange1 = globalCfg->neiSizeMin;
+
 	Vec <Vec<Solver>> soles(globalCfg->popSizeMax);
 
 	int glbound = IntInf;
@@ -425,7 +419,7 @@ void Goal::getTheRangeMostHope() {
 
 		glbound = std::min<int>(glbound, poolt[peopleIndex].rts.cnt);
 		//glbound = std::min<int>(glbound, poolt[0].rts.cnt);
-		int bound = peopleIndex == 0 ? 2 : glbound;
+		int bound = (peopleIndex == 0 ? 2 : glbound);
 		while (sol.rts.cnt > bound) {
 		//while (sol.rts.cnt > 2) {
 			soles[peopleIndex].push_back(sol);
@@ -505,13 +499,6 @@ void Goal::getTheRangeMostHope() {
 		curSearchRN = gotoRNPop(i);
 	}
 
-	//// globalCfg->popSize = globalCfg->popSizeMax;
-	//globalCfg->popSize = 3;
-	////for (int rn = poprnUpBound ; rn >= poprnLowBound; --rn) {
-	//for (int rn = poprnLowBound; rn <= poprnUpBound; ++rn) {
-	//	curSearchRN = gotoRNPop(rn);
-	//	naMA(curSearchRN);
-	//}
 }
 
 int Goal::TwoAlgCombine() {
@@ -556,9 +543,7 @@ int Goal::TwoAlgCombine() {
 				std::swap(pool[i], pool[rdi]);
 			}
 		}
-		//if (iterFillqu + 2 < n) {
-		//	++iterFillqu;
-		//}
+
 	};
 	
 	auto getNextRnSolGO = [&]() -> int {
@@ -577,9 +562,18 @@ int Goal::TwoAlgCombine() {
 				globalCfg->mRLLocalSearchRange[1] = 50;
 			}
 
-			globalCfg->ruinC_ += 2;
+			int delt = (globalInput->custCnt / bks->bestSolFound.rts.cnt )+1;
+			delt /= 2;
+
+			globalCfg->ruinC_ += delt;
 			if (globalCfg->ruinC_ > globalCfg->ruinC_Max) {
 				globalCfg->ruinC_ = globalCfg->ruinC_Min;
+			}
+
+			int& mRLLocalSearchRange1 = globalCfg->mRLLocalSearchRange[1];
+			mRLLocalSearchRange1 += 5;
+			if (mRLLocalSearchRange1 > 50 ) {
+				mRLLocalSearchRange1 = globalCfg->neiSizeMin;
 			}
 		}
 
@@ -605,7 +599,12 @@ int Goal::TwoAlgCombine() {
 
 	while (true) {
 		
-		INFO("curSearchRN:", curSearchRN,"popSize:",globalCfg->popSize);
+		int& neiSize = globalCfg->mRLLocalSearchRange[1];
+
+		INFO("curSearchRN:", curSearchRN,
+			"popSize:",globalCfg->popSize,
+			"globalCfg->ruinC_:", globalCfg->ruinC_,
+			"neiSize:", neiSize);
 
 		bksLastLoop = bks->bksAtRn[curSearchRN];
 
@@ -640,16 +639,6 @@ int Goal::TwoAlgCombine() {
 		bks->updateBKSAndPrint(clone, " bks ruin simulate 1");
 		updateppol(sol, 0);
 		
-		//clone = sol;
-		//clone.splitLS();
-		//bks->updateBKSAndPrint(clone, " bks splitLS");
-		//updateppol(sol, 0);
-		//======
-		//INFO("perturbAllPop");
-		//for (int i = 0; i < globalCfg->popSize; ++i) {
-		//	perturbOneSol(pool[i]);
-		//}
-
 		if (bks->bksAtRn[curSearchRN] < bksLastLoop) {
 			//globalCfg->close10randorder = 0;
 			contiNotDown = 1;

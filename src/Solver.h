@@ -741,6 +741,8 @@ public:
 
 	Vec<int> ruinGetRuinCusByRand(int ruinCusNum);
 		
+	Vec<int> ruinGetRuinCusByRandOneR(int ruinCusNum);
+
 	Vec<int> ruinGetRuinCusBySec(int ruinCusNum);
 
 	int ruinLocalSearchNotNewR(int ruinCusNum);

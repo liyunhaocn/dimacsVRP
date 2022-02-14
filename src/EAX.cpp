@@ -676,7 +676,7 @@ int EAX::doPrEAX(Solver& pa, Solver& pb, Solver& pc) {
 	int numABCyUsed = 2;
 	for (int i = 3; i <= putMax; ++i) {
 		// TODO[-1]:这里可以调整 放置多少个abcy
-		if (myRand->pick(100) < 40) {
+		if (myRand->pick(100) < 30) {
 			numABCyUsed = i;
 		}
 		else {
