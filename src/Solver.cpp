@@ -883,7 +883,7 @@ Solver::Position Solver::findBestPosInSolForInit(int w) {
 		}
 	}
 
-	if (bestPos.secDis > vd4fpi) {
+	if (bestPos.secDis > vd4fpi || bestPos.cost > input.disOf[0][w] * 2) {
 		return Position();
 	}
 

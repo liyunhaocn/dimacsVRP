@@ -360,16 +360,17 @@ void Goal::getTheRangeMostHope() {
 	sol.Simulatedannealing(1, 500, 100.0, globalCfg->ruinC_);
 	
 	if (globalInput->custCnt < sol.rts.cnt * 20 ) {
+		//short route
 		globalCfg->popSizeMin = 2;
-		//globalCfg->popSizeMax = 20;
-		globalCfg->popSizeMax = 50;
+		globalCfg->popSizeMax = 4;
 		globalCfg->popSize = globalCfg->popSizeMin;
+		globalCfg->neiSizeMax = 25;
 	}
 	else {//long route
 		globalCfg->popSizeMin = 4;
-		//globalCfg->popSizeMax = 20;
-		globalCfg->popSizeMax = 50;
+		globalCfg->popSizeMax = 60;
 		globalCfg->popSize = globalCfg->popSizeMin;
+		globalCfg->neiSizeMax = 40;
 	}
 
 	Vec<Solver> poolt(globalCfg->popSizeMax);
@@ -412,10 +413,6 @@ void Goal::getTheRangeMostHope() {
 		if (sol.rts.cnt < 2) {
 			sol.adjustRN(5);
 		}
-
-		//if (peopleIndex >= 10) {
-		//	continue;
-		//}
 
 		glbound = std::min<int>(glbound, poolt[peopleIndex].rts.cnt);
 		//glbound = std::min<int>(glbound, poolt[0].rts.cnt);
@@ -554,13 +551,8 @@ int Goal::TwoAlgCombine() {
 
 			fillqu();
 
-			globalCfg->popSize *= 2;
+			globalCfg->popSize *= 3;
 			globalCfg->popSize = std::min<int>(globalCfg->popSize, globalCfg->popSizeMax);
-
-			if (globalCfg->popSize == globalCfg->popSizeMax) {
-				globalCfg->outNeiSize = 50;
-				globalCfg->mRLLocalSearchRange[1] = 50;
-			}
 
 			int delt = (globalInput->custCnt / bks->bestSolFound.rts.cnt )+1;
 			delt /= 2;
@@ -572,9 +564,8 @@ int Goal::TwoAlgCombine() {
 
 			int& mRLLocalSearchRange1 = globalCfg->mRLLocalSearchRange[1];
 			mRLLocalSearchRange1 += 5;
-			if (mRLLocalSearchRange1 > 50 ) {
-				mRLLocalSearchRange1 = globalCfg->neiSizeMin;
-			}
+			mRLLocalSearchRange1 = std::min<int>(globalCfg->neiSizeMax, mRLLocalSearchRange1);
+
 		}
 
 		INFO("globalCfg->popSize:", globalCfg->popSize);

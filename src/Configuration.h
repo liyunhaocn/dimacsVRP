@@ -70,7 +70,9 @@ struct Configuration {
 	//int broadenWhenPos_0 = 50;
 	int broadenWhenPos_0 = 20;
 	int outNeiSize = 50;
+
 	int neiSizeMin = 30;
+	int neiSizeMax = 50;
 	Vec<int> mRLLocalSearchRange = { 10,30 };
 	//int mRLLSgetAllRange = 50;
 

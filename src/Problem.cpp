@@ -1832,13 +1832,13 @@ void Input::initDetail() {
 			//return disOf[v][a] + datas[a].SERVICETIME <
 			//	disOf[v][b] + datas[b].SERVICETIME;
 
-			if (disOf[a][v] == disOf[b][v]) {
-				return datas[a].DUEDATE < datas[b].DUEDATE;
-			}
-			else {
-				return disOf[a][v] < disOf[b][v];
-			}
-			return true;
+			//if (disOf[a][v] == disOf[b][v]) {
+			//	return datas[a].DUEDATE < datas[b].DUEDATE;
+			//}
+			//else {
+			//	return disOf[a][v] < disOf[b][v];
+			//}
+			//return true;
 
 			//int aLinkv = canLinkNode(a, v);
 			//int bLinkv = canLinkNode(b, v);
@@ -1850,14 +1850,14 @@ void Input::initDetail() {
 			//	return aLinkv ? true : false;
 			//}
 			
-			//int aLinkv = canLinkNode(a, v);
-			//int bLinkv = canLinkNode(b, v);
-			//if ((aLinkv && bLinkv) || (!aLinkv && !bLinkv)) {
-			//	return disOf[v][a] < disOf[v][b] ;
-			//}
-			//else {
-			//	return aLinkv ? true : false;
-			//}
+			int aLinkv = canLinkNode(a, v);
+			int bLinkv = canLinkNode(b, v);
+			if ((aLinkv && bLinkv) || (!aLinkv && !bLinkv)) {
+				return disOf[v][a] < disOf[v][b] ;
+			}
+			else {
+				return aLinkv ? true : false;
+			}
 
 		};
 
