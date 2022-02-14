@@ -145,7 +145,7 @@ bool Goal::perturbOneSol(Solver& sol) {
 			sclone.perturbBaseRuin(kind, ruinCusNum, clearEPkind);
 		}
 		else{
-			int step = myRand->pick(sclone.input.custCnt * 0.2, sclone.input.custCnt * 0.4);
+			int step = myRand->pick(sclone.input.custCnt * 0.2, sclone.input.custCnt * 0.3);
 			sclone.patternAdjustment(step);
 		}
 		 
@@ -562,19 +562,14 @@ int Goal::TwoAlgCombine() {
 
 			fillqu();
 
-			if (globalCfg->popSize == globalCfg->popSizeMax) {
-				globalCfg->popSize = globalCfg->popSizeMin;
-			}
-			else {
-				globalCfg->popSize *= 3;
-				globalCfg->popSize = std::min<int>(globalCfg->popSize, globalCfg->popSizeMax);
+			globalCfg->popSize *= 3;
+			globalCfg->popSize = std::min<int>(globalCfg->popSize, globalCfg->popSizeMax);
 
-				if (globalCfg->popSize == globalCfg->popSizeMax) {
-					globalCfg->outNeiSize = 50;
-					globalCfg->mRLLocalSearchRange[1] = 50;
-				}
+			if (globalCfg->popSize == globalCfg->popSizeMax) {
+				globalCfg->outNeiSize = 50;
+				globalCfg->mRLLocalSearchRange[1] = 50;
 			}
-			
+
 			globalCfg->ruinC_ += 2;
 			if (globalCfg->ruinC_ > globalCfg->ruinC_Max) {
 				globalCfg->ruinC_ = globalCfg->ruinC_Min;
@@ -614,18 +609,20 @@ int Goal::TwoAlgCombine() {
 
 		int outpeopleNum = std::min<int>(5,globalCfg-> popSize);
 		auto& arr = myRandX->getMN(globalCfg->popSize, outpeopleNum);
+
 		for (int i = 0; i < outpeopleNum; ++i) {
-			int index =arr[i];
+			int index = arr[i];
 			Solver& sol = pool[index];
 			Solver clone = sol;
-			//clone.Simulatedannealing(0, 50, 50.0, globalCfg->ruinC_);
+			//clone.Simulatedannealing(0, 50, 30.0, globalCfg->ruinC_);
 			//bks->updateBKSAndPrint(clone, " pool sol simulate 0");
 			//updateppol(sol, index);
 			//clone = sol;
-			clone.Simulatedannealing(1, 100, 30.0, globalCfg->ruinC_);
+			clone.Simulatedannealing(1, 100, 50.0, globalCfg->ruinC_);
 			bks->updateBKSAndPrint(clone, " pool sol simulate 1");
-			//updateppol(sol, i);
+			updateppol(sol, i);
 		}
+
 		Solver& sol = bks->bestSolFound;
 		Solver clone = sol;
 		//clone.Simulatedannealing(0, 100, 50.0, globalCfg->ruinC_);

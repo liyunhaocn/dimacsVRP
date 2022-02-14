@@ -7150,7 +7150,7 @@ int Solver::Simulatedannealing(int kind,int iterMax, double temperature,int ruin
 
 	double j0 = temperature;
 	double jf = 1;
-	double c = pow(jf / j0, 1 / double(iterMax));
+	double c = pow(jf / j0, 1 / double(iterMax * 3));
 	temperature = j0;
 
 	while (++iter < iterMax){
@@ -8344,7 +8344,7 @@ bool Solver::mRLLocalSearch(int hasRange,Vec<int> newCus) {
 	static Vec<int> contribution(16, 0);
 	Vec<int> contricus(input.custCnt + 1, 0);
 	//auto maxIt = std::max_element(contribution.begin(), contribution.end());
-	for (auto& i : contribution) { i = (i >> 2) + 1; }
+	for (auto& i : contribution) { i = (i >> 1) + 1; }
 	//std::sort(moveKindOrder.begin(), moveKindOrder.end(), [&](int a, int b) {
 	//	return contribution[a] > contribution[b];
 	//});
@@ -8410,7 +8410,7 @@ bool Solver::mRLLocalSearch(int hasRange,Vec<int> newCus) {
 			int beg = 0;
 			Vec<int> wposorder;
 
-			if (range == globalCfg->mRLLocalSearchRange[0]) {
+			if (range == globalCfg->mRLLocalSearchRange[0] && globalCfg->close10randorder == 1) {
 				wposorder = myRandX->getMN(range, range);
 				myRand->shuffleVec(wposorder);
 			}
@@ -8892,14 +8892,7 @@ bool BKS::updateBKSAndPrint(Solver& newSol, std::string opt) {
 		bestSolFound = newSol;
 		ret = true;
 
-		//if (globalCfg->cmdIsopt == 1 && bestSolFound.RoutesCost == globalCfg->lkhRL) {
-		//	saveBKStoCsvFile();
-		//}
 	}
-
-	//if (gloalTimer->getRunTime() + 100 > globalCfg->runTimer) {
-	//	saveBKStoCsvFile();
-	//}
 
 #if DIMACSGO
 	Timer::TimePoint pt = Timer::Clock::now();

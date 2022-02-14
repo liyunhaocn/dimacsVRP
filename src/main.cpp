@@ -60,7 +60,10 @@ bool allocGlobalMem(int argc, char* argv[]) {
 	bks = new BKS();
 	gloalTimer = new Timer(globalCfg->runTimer);
 
+#if DIMACSGO
+#else
 	globalInput->printHelpInfo();
+#endif // DIMACSGO
 
 	return true;
 }

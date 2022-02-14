@@ -50,7 +50,7 @@ struct Configuration {
 	int popSizeMin = 4;
 	int popSizeMax = 50;
 	//int repairExitStep = 50;
-	int repairExitStep = 10;
+	int repairExitStep = 5;
 
 	int initFindPosPqSize = 20;
 	int findBestPosForRuinPqSize = 10;
