@@ -85,7 +85,7 @@ struct Configuration {
 	//(ruinLmax+1)/2
 	int ruinC_ = 15;
 	int ruinC_Min = 15;
-	int ruinC_Max = 55;
+	int ruinC_Max = 35;
 
 	int ruinWinkacRate = 97; // 100
 	//TODO[-1]:为初始化设置了眨眼

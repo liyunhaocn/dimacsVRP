@@ -118,7 +118,19 @@ bool Goal::perturbOneSol(Solver& sol) {
 
 	//auto before = sol.RoutesCost;
 	Solver sclone = sol;
-	
+
+	//if (myRand->pick(4) == 0) {
+	//	Solver sclone1 = sol;
+	//	sclone1.resetSol();
+	//	sclone1.initSolution(myRand->pick(5));
+	//	bool isadj = sclone1.adjustRN(sol.rts.cnt);
+	//	if (isadj) {
+	//		sclone1.mRLLocalSearch(0, {});
+	//		sol = sclone1;
+	//		return true;
+	//	}
+	//}
+
 	bool isPerOnePerson = false;
 	for (int i = 0; i < 10; ++i) {
 
@@ -126,13 +138,13 @@ bool Goal::perturbOneSol(Solver& sol) {
 		//sclone.Simulatedannealing(0,100,100.0,globalCfg->ruinC_);
 		
 		if (myRand->pick(2)==0) {
-			int kind = myRand->pick(5);
+			int perkind = myRand->pick(5);
 			int clearEPkind = myRand->pick(6);
 			int ruinCusNum = std::min<int>(globalInput->custCnt/2, globalCfg->ruinC_);
-			sclone.perturbBaseRuin(kind, ruinCusNum, clearEPkind);
+			sclone.perturbBaseRuin(perkind, ruinCusNum, clearEPkind);
 		}
 		else{
-			int step = myRand->pick(sclone.input.custCnt * 0.2, sclone.input.custCnt * 0.3);
+			int step = myRand->pick(sclone.input.custCnt * 0.2, sclone.input.custCnt * 0.4);
 			sclone.patternAdjustment(step);
 		}
 		 
@@ -362,7 +374,7 @@ void Goal::getTheRangeMostHope() {
 	if (globalInput->custCnt < sol.rts.cnt * 20 ) {
 		//short route
 		globalCfg->popSizeMin = 2;
-		globalCfg->popSizeMax = 4;
+		globalCfg->popSizeMax = 6;
 		globalCfg->popSize = globalCfg->popSizeMin;
 		globalCfg->neiSizeMax = 25;
 	}
