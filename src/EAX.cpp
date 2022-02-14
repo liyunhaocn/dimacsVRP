@@ -663,14 +663,26 @@ int EAX::doPrEAX(Solver& pa, Solver& pb, Solver& pc) {
 
 	//TODO[lyh][001]:最多放置多少个abcycle[2,(abcyNum)/2],pick 是开区间
 	int abcyNum = abCycleSet.size();
-	static ProbControl probc(globalInput->custCnt/2);
 
-	//int numABCyUsed = 2;
-	int numABCyUsed = probc.getIndexBasedData(3) + 2;
-	//int numABCyUsed = probc.getIndexBasedData(std::min<int>(2,abcyNum / 2 + 1) ) + 2;
-	//int numABCyUsed = myRand->pick(2, abcyNum/2+1);
-	//int numABCyUsed = myRand->pick(2, 10);
-	numABCyUsed = std::min<int>(numABCyUsed, abcyNum-1);
+	//static ProbControl probc(globalInput->custCnt/2);
+	////int numABCyUsed = 2;
+	//int numABCyUsed = probc.getIndexBasedData(3) + 2;
+	////int numABCyUsed = probc.getIndexBasedData(std::min<int>(2,abcyNum / 2 + 1) ) + 2;
+	////int numABCyUsed = myRand->pick(2, abcyNum/2+1);
+	////int numABCyUsed = myRand->pick(2, 10);
+	//numABCyUsed = std::min<int>(numABCyUsed, abcyNum-1);
+
+	int putMax = abcyNum/2;
+	int numABCyUsed = 2;
+	for (int i = 3; i <= putMax; ++i) {
+		// TODO[-1]:这里可以调整 放置多少个abcy
+		if (myRand->pick(100) < 40) {
+			numABCyUsed = i;
+		}
+		else {
+			break;
+		}
+	}
 
 	int uarrNum = unionArr.size();
 	Vec<int> unionIndexOrder;
@@ -733,14 +745,7 @@ int EAX::doPrEAX(Solver& pa, Solver& pb, Solver& pc) {
 
 		bks->updateBKSAndPrint(pc, "doPrEAX after repair");
 
-		++probc.data[numABCyUsed-2];
-		//++repair;
-		//INFO("all:", all, "repair:", repair,"abcyNum / 2:", abcyNum / 2,"numABCyUsed:", numABCyUsed);
-		
-		////TODO[0]:如果设置修复自回路使用眨眼的话，禁忌要在没有自回路的情况下禁忌
-		//if (numABCyUsed == unionArr[unionIndex].size()) {
-		//	tabuUnionIds.insert(unionIndex);
-		//}
+		//++probc.data[numABCyUsed-2];
 
 		if (pc.RoutesCost == pa.RoutesCost) {
 			//debug("same after repair");

@@ -373,9 +373,16 @@ void Goal::getTheRangeMostHope() {
 		globalCfg->popSizeMax = 50;
 		globalCfg->popSize = globalCfg->popSizeMin;
 	}
+	else {//long route
+		globalCfg->popSizeMin = 4;
+		//globalCfg->popSizeMax = 20;
+		globalCfg->popSizeMax = 50;
+		globalCfg->popSize = globalCfg->popSizeMin;
+	}
 
 	Vec<Solver> poolt(globalCfg->popSizeMax);
 	poolt[0] = sol;
+	updateppol(sol, 0);
 	globalInput->initDetail();
 
 	for (int i = 1; i < globalCfg->popSizeMax; ++i) {
@@ -562,7 +569,7 @@ int Goal::TwoAlgCombine() {
 
 			fillqu();
 
-			globalCfg->popSize *= 3;
+			globalCfg->popSize *= 2;
 			globalCfg->popSize = std::min<int>(globalCfg->popSize, globalCfg->popSizeMax);
 
 			if (globalCfg->popSize == globalCfg->popSizeMax) {
