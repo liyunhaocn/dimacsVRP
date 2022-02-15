@@ -9,7 +9,7 @@
 #include <iostream>
 #include <list>
 
-#define DIMACSGO 0
+#define DIMACSGO 1
 #define ATTRIBUTETABU 1
 
 #define CHECKING 0
