@@ -74,16 +74,19 @@ public:
 
 	Route& operator = (const Route& r) {
 
-		this->routeID = r.routeID;
-		this->rCustCnt = r.rCustCnt;
-		this->rQ = r.rQ;
-		this->head = r.head;
-		this->tail = r.tail;
+		if (this != &r) {
 
-		this->rPc = r.rPc;
-		this->rPtw = r.rPtw;
-		this->rWeight = r.rWeight;
-		this->routeCost = r.routeCost;
+			this->routeID = r.routeID;
+			this->rCustCnt = r.rCustCnt;
+			this->rQ = r.rQ;
+			this->head = r.head;
+			this->tail = r.tail;
+
+			this->rPc = r.rPc;
+			this->rPtw = r.rPtw;
+			this->rWeight = r.rWeight;
+			this->routeCost = r.routeCost;
+		}
 		return *this;
 	}
 
@@ -108,9 +111,11 @@ struct RTS {
 	}
 
 	RTS& operator = (const RTS& r) {
-		cnt = r.cnt;
-		ve = r.ve;
-		posOf = r.posOf;
+		if (this != &r) {
+			cnt = r.cnt;
+			ve = r.ve;
+			posOf = r.posOf;
+		}
 		return *this;
 	}
 
@@ -212,9 +217,11 @@ struct ConfSet {
 	}
 
 	ConfSet& operator = (const ConfSet& cs) {
-		cnt = cs.cnt;
-		ve = cs.ve;
-		pos = cs.pos;
+		if (this != &cs) {
+			this->cnt = cs.cnt;
+			this->ve = cs.ve;
+			this->pos = cs.pos;
+		}
 		return *this;
 	}
 
@@ -225,9 +232,11 @@ struct ConfSet {
 	}
 
 	ConfSet& operator = (ConfSet&& cs) noexcept {
-		cnt = std::move(cs.cnt);
-		ve = std::move(cs.ve);
-		pos = std::move(cs.pos);
+		if (this != &cs) {
+			this->cnt = std::move(cs.cnt);
+			this->ve = std::move(cs.ve);
+			this->pos = std::move(cs.pos);
+		}
 		return *this;
 	}
 
@@ -363,16 +372,22 @@ public:
 	}
 
 	RandomX& operator = (RandomX&& rhs) noexcept {
-		this->mpLLArr = std::move(rhs.mpLLArr);
-		this->maxRange = rhs.maxRange;
-		this->rgen = rhs.rgen;
+
+		if (this != &rhs) {
+			this->mpLLArr = std::move(rhs.mpLLArr);
+			this->maxRange = rhs.maxRange;
+			this->rgen = rhs.rgen;
+		}
 		return *this;
 	}
 
 	RandomX& operator = (const RandomX& rhs) {
-		this->mpLLArr = rhs.mpLLArr;
-		this->maxRange = rhs.maxRange;
-		this->rgen = rhs.rgen;
+
+		if (this != &rhs) {
+			this->mpLLArr = rhs.mpLLArr;
+			this->maxRange = rhs.maxRange;
+			this->rgen = rhs.rgen;
+		}
 		return *this;
 	}
 

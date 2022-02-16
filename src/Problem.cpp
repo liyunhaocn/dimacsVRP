@@ -1759,7 +1759,6 @@ static InsData getD15InsData(std::string ins) {
 	return InsData{};
 }
 
-
 Input::Input() {
 	initInput();
 }

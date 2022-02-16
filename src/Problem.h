@@ -169,8 +169,8 @@ struct Output
 {
 	Vec<Vec<int>> rts;
 	Vec<int> EP;
-	LL PtwNoWei = -1;
-	LL Pc =-1;
+	DisType PtwNoWei = -1;
+	DisType Pc =-1;
 	int minEP = -1;
 	DisType state = -1;
 	double runTime = 0.0;

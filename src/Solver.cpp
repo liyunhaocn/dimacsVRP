@@ -5588,19 +5588,6 @@ Solver::TwoNodeMove Solver::getMovesRandomly
 		//	outrelocateEffectively(v);
 		//}
 		
-		#if CHECKING
-		if (v != endNode) {
-			rtsCheck();
-			INFO("v:", v);
-			INFO("endNode:", endNode);
-			INFO("r.head:", r.head);
-			INFO("r.head:", r.tail);
-			rNextDisp(r);
-			ERROR(11111);
-			ERROR(11111);
-			std::cout << 211231 << std::endl;
-		}
-		#endif // CHECKING
 	}
 	else {
 
@@ -8605,13 +8592,6 @@ bool Solver::printDimacs() {
 	//if (old != RoutesCost) {
 	//	INFO(111111);
 	//}
-	#if CHECKING
-	if (RoutesCost < globalCfg->lkhRL) {
-		std::cout << (RoutesCost) << std::endl;
-		INFO(globalCfg->lkhRL);
-		INFO(111111);
-	}
-	#endif // CHECKING
 
 	printf("Cost %.1lf\n", double(RoutesCost) / 10);
 	fflush(stdout);

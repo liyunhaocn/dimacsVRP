@@ -119,18 +119,6 @@ bool Goal::perturbOneSol(Solver& sol) {
 	//auto before = sol.RoutesCost;
 	Solver sclone = sol;
 
-	//if (myRand->pick(4) == 0) {
-	//	Solver sclone1 = sol;
-	//	sclone1.resetSol();
-	//	sclone1.initSolution(myRand->pick(5));
-	//	bool isadj = sclone1.adjustRN(sol.rts.cnt);
-	//	if (isadj) {
-	//		sclone1.mRLLocalSearch(0, {});
-	//		sol = sclone1;
-	//		return true;
-	//	}
-	//}
-
 	bool isPerOnePerson = false;
 	for (int i = 0; i < 10; ++i) {
 
@@ -144,7 +132,7 @@ bool Goal::perturbOneSol(Solver& sol) {
 			sclone.perturbBaseRuin(perkind, ruinCusNum, clearEPkind);
 		}
 		else{
-			int step = myRand->pick(sclone.input.custCnt * 0.2, sclone.input.custCnt * 0.4);
+			int step = myRand->pick(sclone.input.custCnt * 0.2, sclone.input.custCnt * 0.3);
 			sclone.patternAdjustment(step);
 		}
 		 
@@ -364,14 +352,14 @@ void Goal::getTheRangeMostHope() {
 	}
 	
 	globalCfg->ruinLmax = globalInput->custCnt / sol.rts.cnt;
-	globalCfg->ruinC_ = (globalCfg->ruinLmax + 1);
+	//globalCfg->ruinC_ = (globalCfg->ruinLmax + 1);
 	
 	int& mRLLocalSearchRange1 = globalCfg->mRLLocalSearchRange[1];
 	mRLLocalSearchRange1 = 40;
 
 	sol.Simulatedannealing(1, 500, 100.0, globalCfg->ruinC_);
 	
-	if (globalInput->custCnt < sol.rts.cnt * 20 ) {
+	if (globalInput->custCnt < sol.rts.cnt * 25 ) {
 		//short route
 		globalCfg->popSizeMin = 2;
 		globalCfg->popSizeMax = 6;
@@ -380,9 +368,9 @@ void Goal::getTheRangeMostHope() {
 	}
 	else {//long route
 		globalCfg->popSizeMin = 4;
-		globalCfg->popSizeMax = 60;
+		globalCfg->popSizeMax = 50;
 		globalCfg->popSize = globalCfg->popSizeMin;
-		globalCfg->neiSizeMax = 40;
+		globalCfg->neiSizeMax = 20;
 	}
 
 	Vec<Solver> poolt(globalCfg->popSizeMax);
@@ -391,7 +379,9 @@ void Goal::getTheRangeMostHope() {
 	globalInput->initDetail();
 
 	for (int i = 1; i < globalCfg->popSizeMax; ++i) {
-		poolt[i].initSolution(i%4);
+		//int kind = (i == 4 ? 4 : i % 4);
+		int kind = (i % 4);
+		poolt[i].initSolution(kind);
 		//poolt[i].initSolution(1);
 		//DEBUG("poolt[i].rts.cnt:", poolt[i].rts.cnt);
 		//DEBUG("globalInput->custCnt:", globalInput->custCnt);
@@ -399,7 +389,7 @@ void Goal::getTheRangeMostHope() {
 
 		poolt[i].adjustRN(adjBig);
 
-		if (i < 4 ) {
+		if (i <= 4 ) {
 			//poolt[i].mRLLocalSearch(0, {});
 			globalCfg->ruinLmax = globalInput->custCnt / poolt[i].rts.cnt;
 			//globalCfg->ruinC_ = (globalCfg->ruinLmax + 1);
@@ -566,17 +556,17 @@ int Goal::TwoAlgCombine() {
 			globalCfg->popSize *= 3;
 			globalCfg->popSize = std::min<int>(globalCfg->popSize, globalCfg->popSizeMax);
 
-			int delt = (globalInput->custCnt / bks->bestSolFound.rts.cnt )+1;
-			delt /= 2;
-
-			globalCfg->ruinC_ += delt;
+			globalCfg->ruinC_ += 3;
 			if (globalCfg->ruinC_ > globalCfg->ruinC_Max) {
 				globalCfg->ruinC_ = globalCfg->ruinC_Min;
 			}
 
 			int& mRLLocalSearchRange1 = globalCfg->mRLLocalSearchRange[1];
 			mRLLocalSearchRange1 += 5;
-			mRLLocalSearchRange1 = std::min<int>(globalCfg->neiSizeMax, mRLLocalSearchRange1);
+			if (mRLLocalSearchRange1 > globalCfg->neiSizeMax) {
+				mRLLocalSearchRange1 = globalCfg->neiSizeMin;
+			}
+			//mRLLocalSearchRange1 = std::min<int>(globalCfg->neiSizeMax, mRLLocalSearchRange1);
 
 		}
 

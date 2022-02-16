@@ -92,7 +92,7 @@ def solverOneInsWriteCsv(ins,data):
 
     # allrun = ["run1103"]
     allrun = ["run10","run12","run1403","run2601","run2701","run3101","run0602"
-    ,"run0701","run0801","run1002","run1103","run1201","run1401","run1401ser"]
+    ,"run0701","run0801","run1002","run1103","run1201","run1401","run1401ser","run1501"]
 
     order = []
     for i in range(len(allrun)):
