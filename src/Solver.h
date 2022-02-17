@@ -159,13 +159,21 @@ struct RTS {
 			return false;
 		}
 
-		int id = ve[index].routeID;
+		if (index != cnt - 1) {
+			int id = ve[index].routeID;
 
-		int cnt_1_id = ve[cnt - 1].routeID;
-		posOf[cnt_1_id] = index;
-		posOf[id] = -1;
-		ve[index] = ve[cnt - 1];
-		cnt--;
+			int cnt_1_id = ve[cnt - 1].routeID;
+			posOf[cnt_1_id] = index;
+			posOf[id] = -1;
+			ve[index] = ve[cnt - 1];
+			cnt--;
+		}
+		else {
+			int id = ve[index].routeID;
+			posOf[id] = -1;
+			cnt--;
+		}
+		
 		return true;
 	}
 
@@ -225,20 +233,9 @@ struct ConfSet {
 		return *this;
 	}
 
-	ConfSet(ConfSet&& cs) noexcept {
-		cnt = std::move(cs.cnt);
-		ve = std::move(cs.ve);
-		pos = std::move(cs.pos);
-	}
+	ConfSet(ConfSet&& cs) noexcept = delete;
 
-	ConfSet& operator = (ConfSet&& cs) noexcept {
-		if (this != &cs) {
-			this->cnt = std::move(cs.cnt);
-			this->ve = std::move(cs.ve);
-			this->pos = std::move(cs.pos);
-		}
-		return *this;
-	}
+	ConfSet& operator = (ConfSet&& cs) noexcept = delete;
 
 	bool reSet() {
 
@@ -247,10 +244,6 @@ struct ConfSet {
 			pos[ve[i]] = -1;
 			ve[i] = -1;
 		}
-
-		/*for (int i = 0; i < pos.size(); ++i) {
-			pos[i] = -1;
-		}*/
 
 		cnt = 0;
 		return true;
@@ -371,25 +364,9 @@ public:
 		return ve;
 	}
 
-	RandomX& operator = (RandomX&& rhs) noexcept {
+	RandomX& operator = (RandomX&& rhs) noexcept = delete;
 
-		if (this != &rhs) {
-			this->mpLLArr = std::move(rhs.mpLLArr);
-			this->maxRange = rhs.maxRange;
-			this->rgen = rhs.rgen;
-		}
-		return *this;
-	}
-
-	RandomX& operator = (const RandomX& rhs) {
-
-		if (this != &rhs) {
-			this->mpLLArr = rhs.mpLLArr;
-			this->maxRange = rhs.maxRange;
-			this->rgen = rhs.rgen;
-		}
-		return *this;
-	}
+	RandomX& operator = (const RandomX& rhs) = delete;
 
 	Generator rgen;
 };
@@ -813,8 +790,6 @@ public:
 
 	bool saveOutAsSintefFile(std::string opt = "");
 		
-	DisType rSplit(Route& r,Vec<Vec<int>>& retRts);
-
 	~Solver();
 
 public:

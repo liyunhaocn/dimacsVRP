@@ -119,7 +119,8 @@ bool EAX::generateCycles() {
 	}
 
 	Vec<Vec<int>> cusVisitTime(eaxCusCnt + 1);
-	cusVisitTime.reserve(eaxRCnt * 2);
+	//TODO[-1]bug!!!!!
+	//cusVisitTime.reserve(eaxRCnt * 2);
 	for (int i = 1; i <= eaxCusCnt; ++i) {
 		cusVisitTime[i].reserve(4);
 	}

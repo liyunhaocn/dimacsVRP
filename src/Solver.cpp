@@ -6873,7 +6873,7 @@ int Solver::ruinLocalSearchNotNewR(int ruinCusNum) {
 
 	auto solclone = *this;
 
-	static ProbControl pcRuinkind(4);
+	static ProbControl pcRuinkind(5);
 	static ProbControl pcClEPkind(6);
 	
 	int retState = 0;
@@ -8587,12 +8587,6 @@ bool Solver::printDimacs() {
 		printf("\n");
 	}
 
-	//auto old = RoutesCost;
-	//RoutesCost = verify();
-	//if (old != RoutesCost) {
-	//	INFO(111111);
-	//}
-
 	printf("Cost %.1lf\n", double(RoutesCost) / 10);
 	fflush(stdout);
 	return true;
@@ -8640,154 +8634,6 @@ bool Solver::saveOutAsSintefFile(std::string opt) {
 
 	return true;
 }
-
-#if 1
-struct ClientSplit
-{
-	DisType demand;
-	DisType serviceTime;
-	DisType d0_x;
-	DisType dx_0;
-	DisType dnext;
-	ClientSplit() : demand(0), serviceTime(0), d0_x(0), dx_0(0), dnext(0) {};
-};
-
-struct Trivial_Deque
-{
-	std::vector <int> myDeque; // Simply a vector structure to keep the elements of the queue
-	int indexFront; // Index of the front element
-	int indexBack; // Index of the back element
-	inline void pop_front() { indexFront++; } // Removes the front element of the queue D
-	inline void pop_back() { indexBack--; } // Removes the back element of the queue D
-	inline void push_back(int i) { indexBack++; myDeque[indexBack] = i; } // Appends a new element to the back of the queue D
-	inline int get_front() { return myDeque[indexFront]; }
-	inline int get_next_front() { return myDeque[indexFront + 1]; }
-	inline int get_back() { return myDeque[indexBack]; }
-	void reset(int firstNode) { myDeque[0] = firstNode; indexBack = 0; indexFront = 0; }
-	inline int size() { return indexBack - indexFront + 1; }
-
-	Trivial_Deque(int nbElements, int firstNode)
-	{
-		myDeque = std::vector <int>(nbElements);
-		myDeque[0] = firstNode;
-		indexBack = 0;
-		indexFront = 0;
-	}
-};
-
-DisType Solver::rSplit(Route& r, Vec<Vec<int>>& retRts) {
-	// 使用分割函数：跑一遍bellman-ford算法获得最优分割，实际上转化为从开始点到结束点的最短路划分问题
-
-	auto arr = rPutCusInve(r);
-	int nbClients = r.rCustCnt;
-	Vec < ClientSplit > cliSplit(nbClients + 1);
-
-	//auto sumDistance = Vec <DisType>(nbClients + 1);
-	//auto sumLoad = Vec <DisType>(nbClients + 1);
-	
-	for (int i = 1; i <= nbClients; i++)
-	{
-		cliSplit[i].demand = input.datas[arr[i - 1]].DEMAND;
-		cliSplit[i].serviceTime = input.datas[arr[i - 1]].SERVICETIME;
-		cliSplit[i].d0_x = input.disOf[0][arr[i - 1]];
-		cliSplit[i].dx_0 = input.disOf[arr[i - 1]][0];
-		if (i < nbClients) cliSplit[i].dnext = input.disOf[arr[i - 1]][arr[i]];
-		else cliSplit[i].dnext = -DisInf;
-		//else cliSplit[i].dnext = -1.e30;
-		//sumLoad[i] = sumLoad[i - 1] + cliSplit[i].demand;
-		//sumDistance[i] = sumDistance[i - 1] + cliSplit[i - 1].dnext;
-	}
-
-	//int nbNodes = input.custCnt;
-	int nbNodes = r.rCustCnt;
-	DisType vehCapacity = input.Q;
-	DisType load, distance, cost;
-
-	// Initialization of the structures
-	auto potential = Vec<DisType> (nbNodes + 1);
-	auto pred = Vec <int> (nbNodes + 1);
-
-	for (int i = 0; i < nbNodes + 1; i++)
-	{
-		potential[i] = DisInf;
-		pred[i] = -1;
-	}
-	potential[0] = 0;
-
-	// Split algorithm here
-	for (int i = 0; i < nbNodes; i++)
-	{
-		load = 0;
-		distance = 0;
-		for (int j = i + 1; j <= nbNodes && load <= vehCapacity; j++)
-		{
-
-			load += cliSplit[j].demand;
-			if (j == i + 1)
-				distance += cliSplit[j].d0_x;
-			else
-				distance += cliSplit[j - 1].dnext;
-
-			cost = distance + cliSplit[j].dx_0;
-			//if (potential[i] + cost < potential[j]*1.1 && load <= vehCapacity)
-			if (potential[i] + cost < potential[j] + 20 && load <= vehCapacity)
-			{
-				potential[j] = potential[i] + cost;
-				pred[j] = i;
-			}
-		}
-	}
-
-	if (potential[nbNodes] > DisInf/10)
-	{
-		std::cout << "ERROR : no Split solution has been propagated until the last node" << std::endl;
-		throw std::string("ERROR : no Split solution has been propagated until the last node");
-	}
-
-	int solutionNbRoutes = 0;
-	int cour = nbNodes;
-	while (cour != 0)
-	{
-		cour = pred[cour];
-		solutionNbRoutes++;
-	}
-
-	// And filling myData->solution in the good order (linear complexity) 
-	cour = nbNodes;
-	//Vec<int> solution(solutionNbRoutes);
-	for (int i = solutionNbRoutes - 1; i >= 0; i--) {
-		cour = pred[cour];
-		//solution[i] = cour + 1;
-	}
-
-	int end = nbNodes;
-	for (int k = solutionNbRoutes - 1; k >= 0; k--)
-	{
-		Vec<int>rt;
-		int begin = pred[end];
-		for (int ii = begin; ii < end; ii++)
-			rt.push_back(arr[ii]);
-		end = begin;
-		retRts.push_back(rt);
-	}
-
-	#if CHECKING
-	int spNum = 0;
-	for (auto& x : retRts) {
-		//printve(x);
-		spNum += x.size();
-}
-
-	if (arr.size() != spNum) {
-		ERROR("rtses.size():", retRts.size(), "arr.size():", arr.size(), "spNum", spNum);
-	}
-	#endif // CHECKING
-
-	//INFO("potential[nbClients]-r.routeCost:",potential[nbClients] - r.routeCost);
-	return potential[nbClients] - r.routeCost;
-	//return *this;
-}
-#endif // 0
 
 Solver::~Solver() {};
 

@@ -20,7 +20,7 @@ bool allocGlobalMem(int argc, char* argv[]) {
 	// ../Instances/Homberger/RC1_10_5.txt
 	// ../Instances/Solomon/R103.txt
 	// ../Instances/Solomon/R210.txt
-	// ../Instances/Homberger/R1_10_10.txt
+	// ../Instances/Homberger/RC2_6_6.txt
 	// ../Instances/Homberger/R1_6_8.txt
 	// ../Instances/Homberger/R1_2_2.txt
 	// ../Instances/Homberger/RC2_6_4.txt
@@ -43,6 +43,7 @@ bool allocGlobalMem(int argc, char* argv[]) {
 	globalCfg->seed = 1644871234;
 
 	INFO("globalCfg->seed:", globalCfg->seed);
+	INFO("argc:", argc);
 
 	myRand = new Random(globalCfg->seed);
 	myRandX = new RandomX(globalCfg->seed);
@@ -104,6 +105,5 @@ int main(int argc, char* argv[])
 
 	hust::deallocGlobalMem();
 
-	getchar();
 	return 0;
 }

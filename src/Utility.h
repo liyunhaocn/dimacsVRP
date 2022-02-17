@@ -191,7 +191,7 @@ protected:
     int pickCount;
 };
 
-class Timer {
+struct Timer {
 public:
 
     using Millisecond = std::chrono::milliseconds;
@@ -336,12 +336,9 @@ struct ProbControl {
         std::fill(data.begin(), data.end(), 2);
     }
 
-    int getIndexBasedData(int maxN = -1) {
+    int getIndexBasedData() {
 
         int n = data.size();
-        if (maxN != -1) {
-            n = maxN;
-        }
 
         auto maxEleIter = std::max_element(data.begin(), data.begin()+n);
 

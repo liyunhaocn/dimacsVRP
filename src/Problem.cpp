@@ -2037,7 +2037,6 @@ bool Input::readDimacsInstance(std::string& instanciaPath) {
 
 	char name[64];
 	
-
 	fscanf(file, "%s\n", name);
 	this->example = std::string(name);
 	fscanf(file, "%*[^\n]\n");
