@@ -1190,52 +1190,6 @@ bool Solver::initByArr2(Vec < Vec<int>> arr2) {
 	return true;
 }
 
-#if 0
-
-bool Solver::initBySolFile(std::string bksPath) {
-
-	std::ifstream myfile(bksPath);
-	if (!myfile.is_open()) {
-		ERROR("globalCfg->inputPath:", globalCfg->inputPath);
-		ERROR("fail to open initBySolFile,bksPath:", bksPath);
-		return false;
-	}
-
-	std::string t;
-	int rn = 0;
-
-	Vec<Vec<int>> rArr2;
-
-	while (std::getline(myfile, t)) {
-		if (t.find("Route #") != std::string::npos) {
-			int mao = t.find(":");
-			t = t.substr(mao + 2);
-
-			std::stringstream ss;
-			ss << t;
-
-			std::string st;
-
-			Vec<int> rArr;
-			while (std::getline(ss, st, ' ')) {
-				//debug(st);
-				int c = std::stoi(st);
-				rArr.push_back(c);
-			}
-			rArr2.push_back(rArr);
-			//INFO("t:",t);
-			++rn;
-		}
-		else if (t.find("Cost ") != std::string::npos) {
-			t = t.substr(5);
-		}
-	}
-	initByArr2(rArr2);
-	myfile.close();
-	return true;
-}
-#endif // 0
-
 bool Solver::initSolution(int kind) {//5种
 
 	if (kind == 0) {
@@ -6344,18 +6298,7 @@ void Solver::ruinClearEP(int kind) {
 		auto bestFitPos = findBestPosForRuin(pt);
 
 		if (bestFitPos.rIndex == -1) {
-			int rid = -1;
-
-			for (int i = 0; i < rts.posOf.size(); ++i) {
-				if (rts.posOf[i] == -1) {
-					rid = i;
-					break;
-				}
-			}
-
-			if (rid == -1) {
-				rid = rts.posOf.size();
-			}
+			int rid = getARidCanUsed();
 
 			Route r1 = rCreateRoute(rid);
 			rInsAtPosPre(r1, r1.tail, pt);
@@ -6972,19 +6915,8 @@ int Solver::CVB2ClearEPAllowNewR(int kind) {
 		}
 		else {
 
-			int rid = -1;
+			int rid = getARidCanUsed();
 			
-			for (int i=0; i < rts.posOf.size(); ++i) {
-				if (rts.posOf[i] == -1) {
-					rid = i;
-					break;
-				}
-			}
-
-			if (rid == -1) {
-				rid = rts.posOf.size();
-			}
-
 			Route r1 = rCreateRoute(rid);
 			rInsAtPosPre(r1, r1.tail, pt);
 			rUpdateAvQfrom(r1, r1.head);
@@ -8365,32 +8297,19 @@ bool Solver::mRLLocalSearch(int hasRange,Vec<int> newCus) {
 			}
 
 			int beg = 0;
-			Vec<int> wposorder;
 
-			if (range == globalCfg->mRLLocalSearchRange[0] && globalCfg->close10randorder == 1) {
-				wposorder = myRandX->getMN(range, range);
-				myRand->shuffleVec(wposorder);
+			if (range == globalCfg->mRLLocalSearchRange[0]) {
 			}
 			else if (range == globalCfg->mRLLocalSearchRange[1]) {
 				beg = globalCfg->mRLLocalSearchRange[0];
-				//int romRange = globalCfg->mRLLocalSearchRange[1] - globalCfg->mRLLocalSearchRange[0];
-				//wposorder = myRandX->getMN(romRange, romRange);
-				//myRand->shuffleVec(wposorder);
 			}
 
 			for (int i = beg; i < range; ++i) {
 
 				int wpos = i;
-				if (beg == 0 && globalCfg->close10randorder==1) {
-					wpos = wposorder[i];
-				}
-				//else {
-				//	wpos = wposorder[i-beg] + beg;
-				//}
 
 				//TODO[-1]:这里改成了addSTclose
 				int w = input.addSTclose[v][wpos];
-				//int w = input.sectorClose[v][wpos];
 
 				if (customers[w].routeID == -1) {
 					continue;
