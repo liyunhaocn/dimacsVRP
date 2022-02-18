@@ -8591,7 +8591,7 @@ bool BKS::updateBKSAndPrint(Solver& newSol, std::string opt) {
 	bool ret = false;
 
 	
-	if (newSol.RoutesCost <= bestSolFound.RoutesCost) {
+	if (newSol.RoutesCost <= bestSolFound.RoutesCost && newSol.rts.cnt <= globalInput->vehicleCnt) {
 
 #if DIMACSGO
 #else

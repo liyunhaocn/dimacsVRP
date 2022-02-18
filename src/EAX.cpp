@@ -16,6 +16,14 @@ EAX::EAX(Solver& pa, Solver& pb) :paPriE(2 * (pa.input.custCnt + pa.rts.cnt+1)),
 	//visited = Vec<bool>(cusCnt+1,0);
 	this->supportNumNodes = this->eaxCusCnt + 1;
 
+#if CHECKING
+	if (pa.rts.cnt != pb.rts.cnt) {
+		ERROR(pa.rts.cnt);
+		ERROR(pb.rts.cnt);
+		ERROR(pa.rts.cnt != pb.rts.cnt);
+	}
+#endif // CHECKING
+
 	classifyEdges(pa, pb);
 };
 

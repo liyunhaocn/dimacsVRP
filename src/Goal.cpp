@@ -243,7 +243,7 @@ int Goal::gotoRNPop(int rn) {
 		return rn;
 	}
 
-	for (int pIndex = 0; pIndex < globalCfg->popSizeMax; ++pIndex) {
+	for (int pIndex = 0; pIndex < globalCfg->popSize; ++pIndex) {
 
 		auto& sol = pool[pIndex];
 		//if (sol.rts.cnt != rn) {
@@ -263,8 +263,25 @@ int Goal::gotoRNPop(int rn) {
 			}
 		}
 
+#if CHECKING
+		if (downRn == -1) {
+			ERROR("downRn:", downRn);
+			ERROR("rn:", rn);
+		}
+#endif // CHECKING
+
 		if (downRn == rn) {
-			perturbOneSol(ppool[downRn][pIndex]);
+
+#if CHECKING
+			if (sol.rts.cnt != rn) {
+				ERROR("sol.rts.cnt != rn");
+				ERROR("sol.rts.cnt:", sol.rts.cnt);
+				ERROR("rn:",rn);
+				ERROR("rn:",rn);
+			}
+#endif // CHECKING
+
+			sol.patternAdjustment(100);
 			isAdj = true;
 		}
 		else {
@@ -278,7 +295,17 @@ int Goal::gotoRNPop(int rn) {
 			sol = ppool[poprnLowBound][pIndex];
 			isAdj = sol.adjustRN(rn);
 		}
-		
+
+#if CHECKING
+		if (sol.rts.cnt != rn) {
+			ERROR("downRn:", downRn);
+			ERROR("isAdj:", isAdj);
+			ERROR("rn:", rn);
+			ERROR("sol.rts.cnt:", sol.rts.cnt);
+			ERROR("sol.rts.cnt:", sol.rts.cnt);
+		}
+#endif // CHECKING
+
 		updateppol(sol, pIndex);
 		bks->updateBKSAndPrint(sol, "adjust from cur + ls");
 	//}
@@ -501,11 +528,12 @@ void Goal::getTheRangeMostHope() {
 		}
 	}
 
-
+	globalCfg->popSize = globalCfg->popSizeMax;
 	//for (int i = poprnUpBound ; i >= poprnLowBound; --i) {
 	for (int i = poprnLowBound  ; i <= poprnUpBound; ++i) {
 		curSearchRN = gotoRNPop(i);
 	}
+	globalCfg->popSize = globalCfg->popSizeMin;
 }
 
 int Goal::TwoAlgCombine() {
@@ -604,12 +632,11 @@ int Goal::TwoAlgCombine() {
 			if (ppool[rn][i].rts.cnt != rn) {
 				ERROR("rn:", rn);
 				ERROR("i:", i);
+				ERROR("i:", i);
 			}
 		}
 	}
 #endif // CHECKING
-
-
 
 	while (true) {
 		
@@ -665,11 +692,9 @@ int Goal::TwoAlgCombine() {
 		updateppol(sol, 0);
 		
 		if (bks->bksAtRn[curSearchRN] < bksLastLoop) {
-			//globalCfg->close10randorder = 0;
 			contiNotDown = 1;
 		}
 		else {
-			//globalCfg->close10randorder = 1 ;
 			++contiNotDown;
 		}
 
