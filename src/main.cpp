@@ -40,9 +40,9 @@ bool allocGlobalMem(int argc, char* argv[]) {
 
 	globalCfg->seed = std::time(0) + std::clock();
 
-	globalCfg->seed = 1645192521;
+	//globalCfg->seed = 1645192521;
 
-	//globalCfg->seed = 16451888456;
+	//globalCfg->seed = 1645198678;
 
 	ERROR("globalCfg->seed:", globalCfg->seed);
 	INFO("argc:", argc);

@@ -243,7 +243,7 @@ int Goal::gotoRNPop(int rn) {
 		return rn;
 	}
 
-	for (int pIndex = 0; pIndex < globalCfg->popSize; ++pIndex) {
+	for (int pIndex = 0; pIndex < globalCfg->popSizeMax; ++pIndex) {
 
 		auto& sol = pool[pIndex];
 		//if (sol.rts.cnt != rn) {
@@ -270,22 +270,15 @@ int Goal::gotoRNPop(int rn) {
 		else {
 			sol = ppool[downRn][pIndex];
 			isAdj = sol.adjustRN(rn);
+			
 		}
-		
+
 		if (!isAdj) {
 
-			for (int i = rn - 1; i >= poprnLowBound; --i) {
-
-				if (ppool[i][pIndex].rts.cnt == i) {
-					if (ppool[i][pIndex].RoutesCost < minRc) {
-						minRc = ppool[i][pIndex].RoutesCost;
-						downRn = i;
-					}
-				}
-			}
-			sol = ppool[downRn][pIndex];
+			sol = ppool[poprnLowBound][pIndex];
 			isAdj = sol.adjustRN(rn);
 		}
+		
 		updateppol(sol, pIndex);
 		bks->updateBKSAndPrint(sol, "adjust from cur + ls");
 	//}
@@ -508,11 +501,11 @@ void Goal::getTheRangeMostHope() {
 		}
 	}
 
+
 	//for (int i = poprnUpBound ; i >= poprnLowBound; --i) {
 	for (int i = poprnLowBound  ; i <= poprnUpBound; ++i) {
 		curSearchRN = gotoRNPop(i);
 	}
-
 }
 
 int Goal::TwoAlgCombine() {
@@ -605,8 +598,32 @@ int Goal::TwoAlgCombine() {
 	DisType bksLastLoop = bks->bestSolFound.RoutesCost;
 	int contiNotDown = 1;
 
+#if CHECKING
+	for (int rn = poprnLowBound; rn <= poprnUpBound; ++rn) {
+		for (int i = 0; i < globalCfg->popSizeMax; ++i) {
+			if (ppool[rn][i].rts.cnt != rn) {
+				ERROR("rn:", rn);
+				ERROR("i:", i);
+			}
+		}
+	}
+#endif // CHECKING
+
+
+
 	while (true) {
 		
+#if CHECKING
+		for (int rn = poprnLowBound; rn <= poprnUpBound; ++rn) {
+			for (int i = 0; i < globalCfg->popSizeMax; ++i) {
+				if (ppool[rn][i].rts.cnt != rn) {
+					ERROR("rn:", rn);
+					ERROR("i:", i);
+				}
+			}
+		}
+#endif // CHECKING
+
 		int& neiSize = globalCfg->mRLLocalSearchRange[1];
 
 		INFO("curSearchRN:", curSearchRN,

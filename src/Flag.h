@@ -12,7 +12,7 @@
 #define DIMACSGO 1
 #define ATTRIBUTETABU 1
 
-#define CHECKING 1
+#define CHECKING 0
 
 #define lyhCheckTrue(x) {				\
 	if(!(x) ){							\
