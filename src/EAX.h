@@ -6,7 +6,7 @@
 
 namespace hust {
 
-class EAX
+struct EAX
 {
 public:
 
@@ -17,10 +17,10 @@ public:
 		int b = -1;
 		Edge() :a(-1), b(-1) {}
 		Edge(int aa, int bb) :a(aa), b(bb) {}
+		~Edge() {}
 	};
 
-	struct RichEdge
-	{
+	struct RichEdge {
 
 		int index = -1; // 在存储空间的 ID
 		Edge e;
@@ -65,7 +65,7 @@ public:
 	int supportNumNodes = -1;
 
 	int richEdgeCurSize = 0; // `richEdges` 下一次分配的 ID
-	Vec<RichEdge> richEdges; // 存储双亲所有边信息
+	Vec<RichEdge> richEdges = {}; // 存储双亲所有边信息
 	Vec<Vec<int>> adjEdgeTable; // 当前 GAB 中每个节点的邻接rich edge列表
 
 	// 映射 `code` 到 `richEdges` 的 ID
@@ -118,17 +118,6 @@ public:
 
 	int removeSubring(Solver& pc);
 
-	struct SolScore
-	{
-		int deleABCost = 0;
-		int subcyNum = 0;
-		DisType pen = 0;
-		DisType cost = 0;
-	};
-
-	//Vec<bool> 
-	Vec<int> getRepartOrder(Vec<SolScore>& solScores);
-
 	UnorderedSet<int> getCusInOneCycle(int cyIndex);
 
 	bool isInter(const UnorderedSet<int>& a, const UnorderedSet<int>& b);
@@ -142,6 +131,7 @@ public:
 	static int getabCyNum(Solver& pa, Solver& pb);
 	
 	static Vec<int> getDiffCusofPb(Solver& pa, Solver& pb);
+
 };
 
 }

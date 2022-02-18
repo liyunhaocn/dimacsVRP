@@ -168,6 +168,19 @@ int Goal::naMA(int rn) { // 1 代表更新了最优解 0表示没有
 			int pbIndex = ords[(i + 1) % globalCfg->popSize];
 			Solver& pa = pool[paIndex];
 			Solver& pb = pool[pbIndex];
+
+#if CHECKING
+			if (pa.verify() < 0) {
+				ERROR("pa.verify():",pa.verify())
+			}
+
+			if (pb.verify() < 0) {
+				ERROR("pb.verify():",pb.verify())
+			}
+#endif // CHECKING
+
+			
+
 			doTwoKindEAX(pa, pb, 0);
 		}
 		
@@ -377,6 +390,8 @@ void Goal::getTheRangeMostHope() {
 	poolt[0] = sol;
 	updateppol(sol, 0);
 	globalInput->initDetail();
+
+	//exit(0);
 
 	for (int i = 1; i < globalCfg->popSizeMax; ++i) {
 		//int kind = (i == 4 ? 4 : i % 4);

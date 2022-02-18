@@ -6,15 +6,15 @@
 
 namespace hust {
 
-EAX::EAX(Solver& pa, Solver& pb) :paPriE(2 * (pa.input.custCnt + pa.rts.cnt)), pbPriE(2 * (pb.input.custCnt + pb.rts.cnt)) {
+EAX::EAX(Solver& pa, Solver& pb) :paPriE(2 * (pa.input.custCnt + pa.rts.cnt+1)), pbPriE(2 * (pb.input.custCnt + pb.rts.cnt+1)) {
 
 	this->eaxCusCnt = pa.input.custCnt;
 	this->eaxRCnt = pa.rts.cnt;
 
-	richEdges = Vec<RichEdge>(2 * (this->eaxCusCnt + 1 + this->eaxRCnt - 1));
-	adjEdgeTable = Vec<Vec<int>>(this->eaxCusCnt + 1, Vec<int>());
+	this->richEdges = Vec<RichEdge>(2 * (this->eaxCusCnt + 1 + this->eaxRCnt));
+	this->adjEdgeTable = Vec<Vec<int>>(this->eaxCusCnt + 1, Vec<int>());
 	//visited = Vec<bool>(cusCnt+1,0);
-	supportNumNodes = this->eaxCusCnt + 1;
+	this->supportNumNodes = this->eaxCusCnt + 1;
 
 	classifyEdges(pa, pb);
 };
@@ -105,6 +105,15 @@ bool EAX::classifyEdges(Solver& pa, Solver& pb) {
 			adjEdgeTable[re.e.b].push_back(re.index);
 		}
 	}
+
+	#if CHECKING
+	if (paPriE.cnt != pbPriE.cnt) {
+		ERROR("paPriE.cnt != pbPriE.cnt:", paPriE.cnt != pbPriE.cnt);
+		ERROR("pa.rts.cnt:", pa.rts.cnt);
+		ERROR("pb.rts.cnt:", pb.rts.cnt);
+	}
+	#endif // CHECKING
+
 	return true;
 }
 
@@ -195,6 +204,10 @@ bool EAX::generateCycles() {
 		#if CHECKING
 		else {
 			INFO("lastEdge: is not pa pb");
+		}
+
+		if (reIndex == -1) {
+			INFO("reIndex == -1");
 		}
 		#endif // CHECKING
 
@@ -507,24 +520,6 @@ int EAX::removeSubring(Solver& pc) {
 	return subCyNum;
 }
 
-Vec<int> EAX::getRepartOrder(Vec<SolScore>& solScores) {
-
-	Vec<int> repairOrder(generSolNum, 0);
-	auto cmp = [&](int a, int b) ->bool {
-		//if (solScores[a].subcyNum == solScores[b].subcyNum) {
-		return solScores[a].cost + solScores[a].pen <
-			solScores[b].cost + solScores[b].pen;
-		//}
-		//else {
-		//	return solScores[a].subcyNum < solScores[b].subcyNum;
-		//}
-		//return true;
-	};
-	std::iota(repairOrder.begin(), repairOrder.end(), 0);
-	std::sort(repairOrder.begin(), repairOrder.end(), cmp);
-	return repairOrder;
-}
-
 UnorderedSet<int> EAX::getCusInOneCycle(int cyIndex) {
 
 	auto& reSet = abCycleSet[cyIndex];
@@ -771,36 +766,23 @@ int EAX::getabCyNum(Solver& pa, Solver& pb) {
 
 Vec<int> EAX::getDiffCusofPb(Solver& pa, Solver& pb) {
 
-	UnorderedSet<int> s;
-	EAX et(pa, pb);
-
-	for (int i = 0; i < et.pbPriE.cnt; ++i) {
-		int index = et.pbPriE.ve[i];
-		s.insert(et.richEdges[index].e.a);
-		s.insert(et.richEdges[index].e.b);
-	}
-
 	Vec<int> ret;
-	for (int c : s) {
-		ret.push_back(c);
-	}
-	return ret;
+	for (int c = 1; c <= globalInput->custCnt; ++c) {
 
-	//UnorderedSet<int> ss;
-	//for (int c : s) {
-	//	ss.insert(c);
-	//	for (int i = 0; i < 5; ++i) {
-	//		int w = globalInput->addSTclose[c][i];
-	//		if (pb.customers[w].routeID!=-1) {
-	//			ss.insert(w);
-	//		}
-	//	}
-	//}
-	//Vec<int> ret;
-	//for (int c : ss) {
-	//	ret.push_back(c);
-	//}
-	//return ret;
+		int pacnext = pa.customers[c].next > globalInput->custCnt ? 0 : pa.customers[c].next;
+		int pbcnext = pb.customers[c].next > globalInput->custCnt ? 0 : pb.customers[c].next;
+
+		int pacpre = pa.customers[c].pre > globalInput->custCnt ? 0 : pa.customers[c].pre;
+		int pbcpre = pb.customers[c].pre > globalInput->custCnt ? 0 : pb.customers[c].pre;
+
+		if (pacnext == pbcnext && pacpre == pbcpre) {}
+		else {
+			ret.push_back(c);
+		}
+	}
+	myRand->shuffleVec(ret);
+	
+	return ret;
 
 }
 

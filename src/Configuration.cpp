@@ -51,6 +51,10 @@ void Configuration::solveCommandLine(int argc, char* argv[]) {
 		globalCfg->runTimer = std::stoi(argv[2], nullptr, 0);
 		//globalCfg->runTimer = 100;
 	}
+	
+	if (argc >= 4) {
+		globalCfg->seed = std::stol(argv[3], nullptr, 0);
+	}
 
 }
 
