@@ -55,7 +55,6 @@ static void printlnerr_() { std::cerr << std::endl; }
 template<typename T, typename ... Types>
 static void printlnerr_(const T& firstArg, const Types&... args) {
 
-    //cout << "size of args: " << sizeof...(args) << endl;
     std::cerr << firstArg << " ";
     printlnerr_(args...);
 }

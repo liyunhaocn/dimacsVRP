@@ -8613,10 +8613,10 @@ bool BKS::updateBKSAndPrint(Solver& newSol, std::string opt) {
 	Timer::TimePoint pt = Timer::Clock::now();
 	auto ms = Timer::durationInMillisecond(lastPrintTp, pt);
 
-	if (ms.count() >= 1 && bks->bestSolFound.RoutesCost < lastPrCost) {
+	if (ms.count() >= 1 && bestSolFound.RoutesCost < lastPrCost) {
 		
-		bks->bestSolFound.printDimacs();
-		lastPrCost = bks->bestSolFound.RoutesCost;
+		bestSolFound.printDimacs();
+		lastPrCost = bestSolFound.RoutesCost;
 		lastPrintTp = Timer::Clock::now();
 	}
 #endif // DIMACSGo

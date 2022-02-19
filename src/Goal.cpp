@@ -390,7 +390,7 @@ void Goal::getTheRangeMostHope() {
 	int& mRLLocalSearchRange1 = globalCfg->mRLLocalSearchRange[1];
 	mRLLocalSearchRange1 = 40;
 
-	sol.Simulatedannealing(1, 500, 100.0, globalCfg->ruinC_);
+	sol.Simulatedannealing(1, 1000, 100.0, globalCfg->ruinC_);
 	
 	if (globalInput->custCnt < sol.rts.cnt * 25 ) {
 		//short route
@@ -403,7 +403,7 @@ void Goal::getTheRangeMostHope() {
 		globalCfg->popSizeMin = 4;
 		globalCfg->popSizeMax = 50;
 		globalCfg->popSize = globalCfg->popSizeMin;
-		globalCfg->neiSizeMax = 20;
+		globalCfg->neiSizeMax = 35;
 	}
 
 	Vec<Solver> poolt(globalCfg->popSizeMax);
@@ -414,8 +414,8 @@ void Goal::getTheRangeMostHope() {
 	//exit(0);
 
 	for (int i = 1; i < globalCfg->popSizeMax; ++i) {
-		//int kind = (i == 4 ? 4 : i % 4);
-		int kind = (i % 4);
+		int kind = (i == 4 ? 4 : i % 4);
+		//int kind = (i % 4);
 		poolt[i].initSolution(kind);
 		//poolt[i].initSolution(1);
 		//DEBUG("poolt[i].rts.cnt:", poolt[i].rts.cnt);

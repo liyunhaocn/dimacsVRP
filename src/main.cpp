@@ -38,18 +38,20 @@ bool allocGlobalMem(int argc, char* argv[]) {
 
 	globalCfg->solveCommandLine(argc, argv);
 
-	globalCfg->seed = std::time(0) + std::clock();
-
+	if (globalCfg->seed == -1) {
+		globalCfg->seed = std::time(0) + std::clock();
+	}
+	
 	//globalCfg->seed = 1645192521;
 	//globalCfg->seed = 1645199481;
-
-	ERROR("globalCfg->seed:", globalCfg->seed);
-	INFO("argc:", argc);
 
 	myRand = new Random(globalCfg->seed);
 	myRandX = new RandomX(globalCfg->seed);
 
 	globalInput = new Input();
+
+	ERROR("globalCfg->seed:", globalCfg->seed, " ins:", globalInput->example);
+	INFO("argc:", argc);
 
 	globalCfg->addHelpInfo();
 
