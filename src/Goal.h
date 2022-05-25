@@ -40,6 +40,8 @@ struct Goal {
 
 	bool test();
 
+	bool experOnMinRN();
+
 	int TwoAlgCombine();
 
 	void getTheRangeMostHope();

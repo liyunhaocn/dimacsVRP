@@ -361,6 +361,18 @@ bool Goal::test() {
 	return true;
 }
 
+bool Goal::experOnMinRN() {
+	//globalInput->initDetail();
+
+	Solver sol;
+	sol.initSolution(0);
+	
+	int target = hust::globalInput->sintefRecRN;
+	sol.minimizeRN(target);
+
+	return true;
+}
+
 void Goal::updateppol(Solver& sol, int index) {
 	int tar = sol.rts.cnt;
 

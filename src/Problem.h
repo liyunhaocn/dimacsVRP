@@ -134,6 +134,18 @@ struct Input {
 	Vec<Data> datas;
 	int Qbound = -1;
 
+	int sintefRecRN =-1;
+	DisType sintefRecRL = -1;
+	int naRecRN = -1;
+	DisType naRecRL = -1;
+
+	int d15RecRN = -1;
+	DisType d15RecRL = -1;
+
+	int lkhRN = -1;
+	DisType lkhRL = -1;
+	int cmdIsopt = -1;
+
 	Vec<Vec<DisType>> disOf;
 
 	//// disOf[v][w] 表示w和v之间的距离

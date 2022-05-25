@@ -103,8 +103,10 @@ int main(int argc, char* argv[])
 	hust::Goal goal;
 	
 	//goal.callSimulatedannealing();
-	goal.TwoAlgCombine();
+	//goal.TwoAlgCombine();
+	
 	//goal.test();
+	goal.experOnMinRN();
 
 	hust::deallocGlobalMem();
 

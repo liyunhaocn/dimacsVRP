@@ -1761,21 +1761,10 @@ static InsData getD15InsData(std::string ins) {
 
 Input::Input() {
 	initInput();
+	initDetail();
 }
 
 void Input::printHelpInfo() {
-
-	int sintefRecRN = getSintefMinRN(example);
-	DisType sintefRecRL = getSintefRL(example) * disMul;
-	int naRecRN = getNagataInsData(example).minRN;
-	DisType naRecRL = getNagataInsData(example).minRL * disMul;
-
-	int d15RecRN = getD15InsData(example).minRN;
-	DisType d15RecRL = getD15InsData(example).minRL;
-
-	int lkhRN = getLKHInsData(example).minRN;
-	DisType lkhRL = getLKHInsData(example).minRL;
-	int cmdIsopt = getLKHInsData(example).isOpt;
 
 	INFO("cmdIsopt", cmdIsopt);
 	INFO("lkhRL:", lkhRL);
@@ -1913,6 +1902,18 @@ void Input::initDetail() {
 			}
 		}
 	}
+
+	sintefRecRN = getSintefMinRN(example);
+	sintefRecRL = getSintefRL(example) * disMul;
+	naRecRN = getNagataInsData(example).minRN;
+	naRecRL = getNagataInsData(example).minRL * disMul;
+
+	d15RecRN = getD15InsData(example).minRN;
+	d15RecRL = getD15InsData(example).minRL;
+
+	lkhRN = getLKHInsData(example).minRN;
+	lkhRL = getLKHInsData(example).minRL;
+	cmdIsopt = getLKHInsData(example).isOpt;
 }
 
 bool Input::initInput() {

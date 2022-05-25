@@ -7765,7 +7765,8 @@ bool Solver::ejectLocalSearch() {
 	int EpCusNoDown = 1;
 	int iter = 1;
 
-	while (iter < globalCfg->ejectLSMaxIter) {
+	//while (iter < globalCfg->ejectLSMaxIter) {
+	while (!gloalTimer->isTimeOut()) {
 		//while (1) {
 
 		++iter;
@@ -7908,11 +7909,12 @@ bool Solver::minimizeRN(int ourTarget) {
 		std::fill(input.P.begin(), input.P.end(), 1);
 		bool isDelete = ejectLocalSearch();
 		if (isDelete) {
+
+			//saveOutAsSintefFile();
+			INFO("rts.cnt:", rts.cnt);
 			if (rts.cnt == input.Qbound) {
 				break;
 			}
-			//saveOutAsSintefFile();
-			//INFO("rts.cnt:",rts.cnt);
 		}
 		else {
 			*this = sclone;
