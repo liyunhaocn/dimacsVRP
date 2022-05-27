@@ -92,6 +92,20 @@ struct Configuration {
 	int initWinkacRate = 97; // 100
 	int abcyWinkacRate = 99; // 100
 
+
+	// 
+	int sintefRecRN = -1;
+	DisType sintefRecRL = -1;
+	int naRecRN = -1;
+	DisType naRecRL = -1;
+
+	int d15RecRN = -1;
+	DisType d15RecRL = -1;
+
+	int lkhRN = -1;
+	DisType lkhRL = -1;
+	int cmdIsopt = -1;
+
 	void show();
 
 	void repairByCusCnt(int cusCnt);

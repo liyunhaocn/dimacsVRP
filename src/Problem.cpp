@@ -1766,17 +1766,17 @@ Input::Input() {
 
 void Input::printHelpInfo() {
 
-	INFO("cmdIsopt", cmdIsopt);
-	INFO("lkhRL:", lkhRL);
-	INFO("lkhRN:", lkhRN);
+	INFO("cmdIsopt", globalCfg->cmdIsopt);
+	INFO("lkhRL:", globalCfg->lkhRL);
+	INFO("lkhRN:", globalCfg->lkhRN);
 
-	INFO("d15RecRN:", d15RecRN);
-	INFO("d15RecRL:", d15RecRL);
+	INFO("d15RecRN:", globalCfg->d15RecRN);
+	INFO("d15RecRL:", globalCfg->d15RecRL);
 
-	INFO("sintefRecRN:", sintefRecRN);
-	INFO("sintefRecRL:", sintefRecRL);
-	INFO("naRecRL:", naRecRL);
-	INFO("naRecRN:", naRecRN);
+	INFO("sintefRecRN:", globalCfg->sintefRecRN);
+	INFO("sintefRecRL:", globalCfg->sintefRecRL);
+	INFO("naRecRL:", globalCfg->naRecRL);
+	INFO("naRecRN:", globalCfg->naRecRN);
 }
 
 void Input::initDetail() {
@@ -1903,17 +1903,17 @@ void Input::initDetail() {
 		}
 	}
 
-	sintefRecRN = getSintefMinRN(example);
-	sintefRecRL = getSintefRL(example) * disMul;
-	naRecRN = getNagataInsData(example).minRN;
-	naRecRL = getNagataInsData(example).minRL * disMul;
+	globalCfg->sintefRecRN = getSintefMinRN(example);
+	globalCfg->sintefRecRL = getSintefRL(example) * disMul;
+	globalCfg->naRecRN = getNagataInsData(example).minRN;
+	globalCfg->naRecRL = getNagataInsData(example).minRL * disMul;
 
-	d15RecRN = getD15InsData(example).minRN;
-	d15RecRL = getD15InsData(example).minRL;
+	globalCfg->d15RecRN = getD15InsData(example).minRN;
+	globalCfg->d15RecRL = getD15InsData(example).minRL;
 
-	lkhRN = getLKHInsData(example).minRN;
-	lkhRL = getLKHInsData(example).minRL;
-	cmdIsopt = getLKHInsData(example).isOpt;
+	globalCfg->lkhRN = getLKHInsData(example).minRN;
+	globalCfg->lkhRL = getLKHInsData(example).minRL;
+	globalCfg->cmdIsopt = getLKHInsData(example).isOpt;
 }
 
 bool Input::initInput() {
