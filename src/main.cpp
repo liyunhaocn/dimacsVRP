@@ -10,6 +10,8 @@
 #include "Goal.h"
 #include "Utility.h"
 
+#include "Util/Arr2D.h"
+
 namespace hust {
 
 bool allocGlobalMem(int argc, char* argv[]) {
@@ -60,8 +62,7 @@ bool allocGlobalMem(int argc, char* argv[]) {
 	// TODO[lyh][0]:一定要记得globalCfg用cusCnt合法化一下
 	globalCfg->repairByCusCnt(globalInput->custCnt);
 
-	yearTable = new Vec<Vec<int>>
-		(globalInput->custCnt + 1, Vec<int>(globalInput->custCnt + 1, 0));
+	yearTable = new hust::util::Array2D<int> (globalInput->custCnt + 1, globalInput->custCnt + 1, 0);
 
 	bks = new BKS();
 	gloalTimer = new Timer(globalCfg->runTimer);
@@ -88,6 +89,24 @@ bool deallocGlobalMem() {
 }
 
 }//namespace hust
+
+void testArray2() {
+
+	hust::util::Array2D<int> a(2, 4, 0);
+	for (int i = 0; i < a.size2(); ++i) {
+		a[0][i] = 9 - i;
+		a[1][i] = 5 - i;
+	}
+
+	std::sort(a[1], a[1] + a.size2());
+
+	for (int i = 0; i < a.size1(); ++i) {
+		for (int j = 0; j < a.size2(); ++j) {
+			std::cout << a[i][j] << " ";
+		}
+		std::cout << std::endl;
+	}
+}
 
 int main(int argc, char* argv[])
 {

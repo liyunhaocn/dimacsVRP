@@ -5,6 +5,9 @@
       <UniqueIdentifier>{67DA6AB6-F800-4c08-8B7A-83BB121AAD01}</UniqueIdentifier>
       <Extensions>rc;ico;cur;bmp;dlg;rc2;rct;bin;rgs;gif;jpg;jpeg;jpe;resx;tiff;tif;png;wav;mfcribbon-ms</Extensions>
     </Filter>
+    <Filter Include="src\Util">
+      <UniqueIdentifier>{19d4cc32-77a4-49b6-90ed-9e60b6608c64}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\..\..\src\Configuration.cpp">
@@ -50,6 +53,18 @@
     </ClInclude>
     <ClInclude Include="..\..\..\src\Utility.h">
       <Filter>src</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\src\Util\Flag.h">
+      <Filter>src\Util</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\src\Util\Math.h">
+      <Filter>src\Util</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\src\Util\Arr2D.h">
+      <Filter>src\Util</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\src\Util\Exception.h">
+      <Filter>src\Util</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>

@@ -812,7 +812,7 @@ struct BKS {
 
 };
 
-bool saveBKStoCsvFile();
+bool saveSolutiontoCsvFile(Solver& sol);
 
 };
 

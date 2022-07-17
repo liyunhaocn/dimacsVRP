@@ -4,8 +4,8 @@
 /// note  : 1.	
 ////////////////////////////////
 
-#ifndef vrptwNew_UTILITY_H
-#define vrptwNew_UTILITY_H
+#ifndef CN_HUST_LYH_UTILITY_H
+#define CN_HUST_LYH_UTILITY_H
 
 #pragma warning(disable:4996)
 
@@ -362,4 +362,4 @@ struct ProbControl {
 }
 
 
-#endif // vrptwNew_UTILITY_H
+#endif // CN_HUST_LYH_UTILITY_H

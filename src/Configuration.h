@@ -92,8 +92,6 @@ struct Configuration {
 	int initWinkacRate = 97; // 100
 	int abcyWinkacRate = 99; // 100
 
-
-	// 
 	int sintefRecRN = -1;
 	DisType sintefRecRL = -1;
 	int naRecRN = -1;
@@ -105,6 +103,8 @@ struct Configuration {
 	int lkhRN = -1;
 	DisType lkhRL = -1;
 	int cmdIsopt = -1;
+
+	std::string tag = "";
 
 	void show();
 

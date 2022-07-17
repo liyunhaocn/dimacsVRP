@@ -51,6 +51,10 @@
     <ClInclude Include="..\..\..\src\Problem.h" />
     <ClInclude Include="..\..\..\src\Solver.h" />
     <ClInclude Include="..\..\..\src\Utility.h" />
+    <ClInclude Include="..\..\..\src\Util\Arr2D.h" />
+    <ClInclude Include="..\..\..\src\Util\Exception.h" />
+    <ClInclude Include="..\..\..\src\Util\Flag.h" />
+    <ClInclude Include="..\..\..\src\Util\Math.h" />
   </ItemGroup>
   <PropertyGroup Label="Globals">
     <ProjectGuid>{99c18e9d-0137-4c7e-a863-412f9f0505e9}</ProjectGuid>

@@ -4,6 +4,9 @@
     <Filter Include="src">
       <UniqueIdentifier>{6f7b5ed3-d1a6-4c17-b017-c6d7b78460cc}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Util">
+      <UniqueIdentifier>{94911e38-9024-4f8b-87bb-d8677fba2dac}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\..\..\src\Configuration.cpp">
@@ -49,6 +52,18 @@
     </ClInclude>
     <ClInclude Include="..\..\..\src\Utility.h">
       <Filter>src</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\src\Util\Arr2D.h">
+      <Filter>Util</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\src\Util\Exception.h">
+      <Filter>Util</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\src\Util\Flag.h">
+      <Filter>Util</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\src\Util\Math.h">
+      <Filter>Util</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>

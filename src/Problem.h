@@ -10,6 +10,7 @@
 
 #include "Configuration.h"
 #include "Flag.h"
+#include "./Util/Arr2D.h"
 
 namespace hust {
 
@@ -134,19 +135,20 @@ struct Input {
 	Vec<Data> datas;
 	int Qbound = -1;
 
-	Vec<Vec<DisType>> disOf;
+	util::Array2D<DisType> disOf;
 
 	//// disOf[v][w] 表示w和v之间的距离
 	//Vec<Vec<int>> allCloseOf;
 	//// input.allCloseOf[v][wpos] 表示v的地理位置第wpos近的点
-	Vec<Vec<int>> addSTclose;
+	util::Array2D<int> addSTclose;
 
 	// input.addSTclose[v][wpos] 表示v的地理位置加上v的服务时间第wpos近的点
-	Vec<Vec<int>> addSTJIsxthcloseOf;
-	//表示v的地理位置加上v的服务时间作为排序依据 input.addSTJIsxthcloseOf[v][w],w是v的第几近
-	Vec<Vec<int>> iInNeicloseOfUnionNeiCloseOfI;
+	util::Array2D<int> addSTJIsxthcloseOf;
 
-	Vec<Vec<int>> sectorClose;
+	//表示v的地理位置加上v的服务时间作为排序依据 input.addSTJIsxthcloseOf[v][w],w是v的第几近
+	Vec< Vec<int> > iInNeicloseOfUnionNeiCloseOfI;
+
+	util::Array2D<int> sectorClose;
 
 	Vec<int> P;
 
@@ -158,11 +160,21 @@ struct Input {
 
 	void initDetail();
 
-	int partition(Vec<int>& arr, int start, int end, std::function<bool(int, int)>cmp);
+	int partition(int* arr, int start, int end, std::function<bool(int, int)>cmp);
 
-	void getTopKmin(Vec<int>& input, int k, std::function<bool(int, int)> cmp);
+	void getTopKmin(int* input,int n, int k, std::function<bool(int, int)> cmp);
 
 	void printHelpInfo();
+
+	inline DisType getDisof2(int a, int b) {
+		auto reCusNo = [=](int x) -> int {
+			return x <= custCnt ? x : 0;
+		};
+		a = reCusNo(a);
+		b = reCusNo(a);
+
+		return disOf.at(a,b);
+	}
 };
 
 struct Output

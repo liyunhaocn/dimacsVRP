@@ -33,7 +33,7 @@ extern unsigned Mod = 1000000007;
 
 extern Random* myRand = nullptr;
 extern RandomX* myRandX = nullptr;
-extern Vec<Vec<int>>* yearTable = nullptr;
+extern hust::util::Array2D<int>* yearTable = nullptr;
 extern Configuration* globalCfg = nullptr;
 extern Input* globalInput = nullptr;
 extern BKS* bks = nullptr;
@@ -43,9 +43,10 @@ extern int squIter = 1;
 void globalRepairSquIter() {
 	if (squIter * 10 > IntInf) {
 		squIter = 1;
-		for (auto& i : (*yearTable)) {
-			for (auto& j : i) {
-				j = 1;
+		auto& lhsyear = (*yearTable);
+		for (int i = 0; i < lhsyear.size1();++i) {
+			for (int j = 0; j < lhsyear.size2(); ++j) {
+				lhsyear[i][j] = 1;
 			}
 		}
 	}

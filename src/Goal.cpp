@@ -369,7 +369,7 @@ bool Goal::experOnMinRN() {
 	
 	int target = hust::globalCfg->sintefRecRN;
 	sol.minimizeRN(target);
-	saveBKStoCsvFile();
+	saveSolutiontoCsvFile(sol);
 
 	return true;
 }

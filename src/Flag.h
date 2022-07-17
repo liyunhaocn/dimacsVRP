@@ -9,6 +9,8 @@
 #include <iostream>
 #include <list>
 
+#include "Util/Arr2D.h"
+
 #define DIMACSGO 0
 #define ATTRIBUTETABU 1
 
@@ -73,7 +75,7 @@ struct Timer;
 extern Random* myRand;
 extern RandomX* myRandX;
 extern int squIter;
-extern Vec<Vec<int>>* yearTable;
+extern hust::util::Array2D<int>* yearTable;
 extern Configuration* globalCfg;
 extern Input* globalInput;
 extern BKS* bks;

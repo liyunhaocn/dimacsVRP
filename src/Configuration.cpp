@@ -42,18 +42,28 @@ void Configuration::repairByCusCnt(int cusCnt) {
 
 void Configuration::solveCommandLine(int argc, char* argv[]) {
 
-	if (argc >= 2) {
-		std::string inpath = argv[1];
-		globalCfg->inputPath = (inpath);
+	if (argc % 2 == 0 || argc < 3) {
+		std::cerr << "argc num is wrong" << std::endl;
+		exit(-1);
 	}
 
-	if (argc >= 3) {
-		globalCfg->runTimer = std::stoi(argv[2], nullptr, 0);
-		//globalCfg->runTimer = 100;
-	}
-	
-	if (argc >= 4) {
-		globalCfg->seed = std::stol(argv[3], nullptr, 0);
+	for (int i = 1; i < argc; i+=2) {
+		std::string argvstr = std::string(argv[i]);
+		if (argvstr == "-time") {
+			globalCfg->runTimer = std::stoi(argv[i+1], nullptr, 0);
+		}
+		else if (argvstr == "-ins") {
+			globalCfg->inputPath = std::string(argv[i + 1]);
+		}
+		else if (argvstr == "-seed") {
+			globalCfg->seed = std::stol(argv[i+1], nullptr, 0);
+		}
+		else if (argvstr == "-tag") {
+			globalCfg->tag = std::string(argv[i + 1]);
+		}
+		else {
+			std::cerr << "unknow argv" << std::endl;
+		}
 	}
 
 }

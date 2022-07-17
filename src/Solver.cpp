@@ -6023,8 +6023,8 @@ bool Solver::squeeze() {
 		return true;
 	};
 
-	//while (penalty > 0 && !lyhTimer.isTimeOut()) {
-	while (penalty > 0) {
+	while (penalty > 0 && !gloalTimer->isTimeOut()) {
+	//while (penalty > 0) {
 
 		TwoNodeMove bestM = getMovesRandomly(updateBestM);
 
@@ -8630,7 +8630,7 @@ void BKS::resetBksAtRn() {
 	bksAtRn.clear();
 }
 
-bool saveBKStoCsvFile() {
+bool saveSolutiontoCsvFile(Solver& sol) {
 
 	static bool isPrinted = false;
 	if (isPrinted) {
@@ -8645,13 +8645,14 @@ bool saveBKStoCsvFile() {
 	std::string type = "[dim]";
 
 	std::string path = type + __DATE__;
-	path += std::string(1, '_') + __TIME__;
+	//path += std::string(1, '_') + __TIME__;
 
 	for (auto& c : path) {
 		if (c == ' ' || c == ':') {
 			c = '_';
 		}
 	}
+	path += "t" + std::to_string(globalCfg->runTimer);
 
 	std::string pwe0 = ms.int_str(globalCfg->Pwei0);
 	std::string pwe1 = ms.int_str(globalCfg->Pwei1);
@@ -8675,8 +8676,6 @@ bool saveBKStoCsvFile() {
 	if (!isGood) {
 		rgbData << "ins,isopt,lyhrl,lyhrn,time,gap,lkhrn,lkhrl,d15rn,d15RL,sinrn,sinrl,narn,narl,rts,seed" << std::endl;
 	}
-
-	auto& sol = bks->bestSolFound;
 
 	Input& input = *globalInput;
 

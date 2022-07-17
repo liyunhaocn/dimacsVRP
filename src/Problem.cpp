@@ -1787,11 +1787,8 @@ void Input::initDetail() {
 			return abs(datas[a].polarAngle - datas[v].polarAngle)
 				< abs(datas[b].polarAngle - datas[v].polarAngle);
 		};
-		//TODO[-1]:这里的排序比较浪费时间，去掉可以节省一般的初始化时间
-		auto& nums = sectorClose[v];
-		std::sort(nums.begin(), nums.end(), cmp);
+		std::sort(sectorClose[v], sectorClose[v]+ sectorClose.size2(), cmp);
 	}
-
 
 	auto canlinkDir = [&](int v, int w) ->bool {
 
@@ -1849,20 +1846,18 @@ void Input::initDetail() {
 
 		};
 
-		std::sort(addSTclose[v].begin(), addSTclose[v].end(), cmp);
+		std::sort(addSTclose[v], addSTclose[v]+addSTclose.size2(), cmp);
 	}
 
-	addSTJIsxthcloseOf = Vec< Vec<int>>
-		(custCnt + 1, Vec<int>(custCnt + 1, -1));
+	addSTJIsxthcloseOf = util::Array2D<int> (custCnt + 1, custCnt + 1, -1);
 
 	for (int v = 0; v <= custCnt; ++v) {
-		for (std::size_t wpos = 0; wpos < addSTclose[v].size(); ++wpos) {
+		for (std::size_t wpos = 0; wpos < addSTclose.size2(); ++wpos) {
 			int w = addSTclose[v][wpos];
 			addSTJIsxthcloseOf[v][w] = wpos;
 		}
 	}
-
-	iInNeicloseOfUnionNeiCloseOfI = Vec< Vec<int> >(custCnt + 1);
+	
 	int deNeiSize = globalCfg->outNeiSize;
 	deNeiSize = std::min(custCnt - 1, deNeiSize);
 
@@ -1871,6 +1866,7 @@ void Input::initDetail() {
 	for (int i = 0; i < custCnt + 1; ++i) {
 		iInNeicloseOf[i].reserve(custCnt);
 	}
+
 	for (int v = 0; v <= custCnt; ++v) {
 		for (int wpos = 0; wpos < deNeiSize; ++wpos) {
 			int w = addSTclose[v][wpos];
@@ -1878,26 +1874,15 @@ void Input::initDetail() {
 		}
 	}
 
-	auto jIsxthcloseOf = Vec< Vec<int> >
-		(custCnt + 1, Vec<int>(custCnt + 1, -1));
+	iInNeicloseOfUnionNeiCloseOfI = Vec< Vec<int> >(custCnt + 1);
 
-	for (int i = 0; i <= custCnt; ++i) {
-		for (int j = 0; j < custCnt; ++j) {
-			jIsxthcloseOf[i][addSTclose[i][j]] = j;
-		}
-	}
-
-	iInNeicloseOfUnionNeiCloseOfI
-		= Vec<Vec<int>>(custCnt + 1);
 	for (std::size_t v = 0; v <= custCnt; ++v) {
 
 		iInNeicloseOfUnionNeiCloseOfI[v] = Vec<int>
-			(addSTclose[v].begin(), addSTclose[v].begin() + deNeiSize);
+			(addSTclose[v], addSTclose[v] + deNeiSize);
 
-		for (std::size_t wpos = 0; wpos < iInNeicloseOf[v].size(); ++wpos) {
-
-			int w = iInNeicloseOf[v][wpos];
-			if (jIsxthcloseOf[v][w] >= deNeiSize) {
+		for (int w : iInNeicloseOf[v]) {
+			if (addSTJIsxthcloseOf[v][w] >= deNeiSize) {
 				iInNeicloseOfUnionNeiCloseOfI[v].push_back(w);
 			}
 		}
@@ -1930,9 +1915,7 @@ bool Input::initInput() {
 		datas[i].CUSTNO = i;
 	}
 
-	disOf = Vec< Vec<DisType> >
-		(custCnt + 1, Vec<DisType>(custCnt + 1, 0));
-
+	disOf = util::Array2D <DisType>(custCnt + 1, custCnt + 1,DisType(0));
 
 	double sumq = 0;
 	for (int i = 1; i <= custCnt; ++i) {
@@ -1949,24 +1932,27 @@ bool Input::initInput() {
 		float精度最低，double较高，long double精度最高
 	*/
 
-	for (int i = 0; i <= custCnt + 1; ++i) {
+	for (int i = 0; i <= custCnt ; ++i) {
 		for (int j = i + 1; j <= custCnt; ++j) {
 			Data& d1 = datas[i];
 			Data& d2 = datas[j];
 			double dis = sqrt((d1.XCOORD - d2.XCOORD) * (d1.XCOORD - d2.XCOORD)
 				+ (d1.YCOORD - d2.YCOORD) * (d1.YCOORD - d2.YCOORD));
 
-			disOf[j][i] = disOf[i][j] = dis;
+			disOf[j][i] = disOf[i][j] = dis+0.5;
 		}
 	}
 
-	sectorClose = Vec< Vec<int>>(custCnt + 1, Vec<int>(0));
+	sectorClose = util::Array2D<int>(custCnt + 1, custCnt,0);
+
 	for (int v = 0; v <= custCnt; ++v) {
-		Vec<int> nums;
-		nums.reserve(custCnt + 1);
+
+		int idx = 0;
+
 		for (int pos = 0; pos <= custCnt; ++pos) {
 			if (pos != v) {
-				nums.push_back(pos);
+				sectorClose[v][idx] = pos;
+				++idx;
 			}
 		}
 		auto cmp = [&](const int a, const int b) {
@@ -1974,20 +1960,19 @@ bool Input::initInput() {
 				< abs(datas[b].polarAngle - datas[v].polarAngle);
 		};
 		//TODO[-1]:这里的排序比较浪费时间，去掉可以节省一般的初始化时间
-		//std::sort(nums.begin(), nums.end(), cmp);
-		sectorClose[v] = std::move(nums);
+		std::sort(sectorClose[v], sectorClose[v] + sectorClose.size2(), cmp);
 	}
 
-	addSTclose = Vec< Vec<int>>
-		(custCnt + 1, Vec<int>());
+	addSTclose = util::Array2D<int> (custCnt + 1, custCnt,0);
 
 	for (int v = 0; v <= custCnt; ++v) {
-		addSTclose[v].reserve(custCnt);
+
+		int idx = 0;
 		for (int w = 0; w <= custCnt; ++w) {
-			if (w == v) {
-				continue;
+			if (w != v) {
+				addSTclose[v][idx] = w;
+				++idx;
 			}
-			addSTclose[v].push_back(w);
 		}
 
 		auto cmp = [&](const int a, const int b) {
@@ -2017,9 +2002,9 @@ bool Input::initInput() {
 
 		};
 		//std::sort(addSTclose[v].begin(), addSTclose[v].end(), cmp);
-
-		getTopKmin(addSTclose[v],globalCfg->mRLLocalSearchRange[1],cmp);
-		std::sort(addSTclose[v].begin(), addSTclose[v].begin() + globalCfg->mRLLocalSearchRange[1], cmp);
+		
+		getTopKmin(addSTclose[v], addSTclose.size2(), globalCfg->mRLLocalSearchRange[1],cmp);
+		std::sort(addSTclose[v], addSTclose[v] + globalCfg->mRLLocalSearchRange[1], cmp);
 
 	}
 
@@ -2082,7 +2067,7 @@ bool Input::readDimacsInstance(std::string& instanciaPath) {
 	return true;
 }
 
-int Input::partition(Vec<int>& arr, int start, int end, std::function<bool(int, int)>cmp) {
+int Input::partition(int* arr, int start, int end, std::function<bool(int, int)>cmp) {
 	//int index = ( [start, end] (void)  //我试图利用随机法，但是这不是快排，外部输入不能保证end-start!=0，所以可能发生除零异常
 	//              {return random()%(end-start)+start;} )(); 
 	//std::swap(arr[start], arr[end]);
@@ -2100,9 +2085,9 @@ int Input::partition(Vec<int>& arr, int start, int end, std::function<bool(int, 
 	return small;
 }
 
-void Input::getTopKmin(Vec<int>& input, int k,std::function<bool(int,int)>cmp) {
+void Input::getTopKmin(int* input, int n, int k,std::function<bool(int,int)>cmp) {
 
-	const int size = input.size();
+	const int size = n;
 
 	if (size == 0 || k <= 0 || k > size)
 		return;
