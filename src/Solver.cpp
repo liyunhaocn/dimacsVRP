@@ -5696,6 +5696,22 @@ bool Solver::doEject(Vec<eOneRNode>& XSet) {
 		#endif // CHECKING
 	}
 
+	//Vec<int> runCus = ruinGetRuinCusByRound(5);
+	Vec<int> runCus = ruinGetRuinCusBySting(3,5);
+
+	Vec<int> rids;
+	for (int node : runCus) {
+		Route& r = rts.getRouteByRid(customers[node].routeID);
+		rRemoveAtPos(r, node);
+		EPpush_back(node);
+	}
+
+	for (int id : rids) {
+		Route& r = rts.getRouteByRid(id);
+		rUpdateAvQfrom(r, r.head);
+		rUpdateZvQfrom(r, r.tail);
+	}
+
 	resetConfRts();
 	sumRtsPen();
 
@@ -6356,6 +6372,10 @@ Vec<int> Solver::ruinGetRuinCusBySting(int ruinKmax, int ruinLmax) {
 	int ruinK = myRand->pick(1, ruinKmax + 1);
 	
 	int v = myRand->pick(1, input.custCnt + 1);
+	while (customers[v].routeID == -1) {
+		v = myRand->pick(input.custCnt) + 1;
+	}
+
 	UnorderedSet<int> rIdSet;
 	UnorderedSet<int> begCusSet;
 	rIdSet.insert(customers[v].routeID);
@@ -6520,6 +6540,9 @@ Vec<int> Solver::ruinGetRuinCusByRound(int ruinCusNum) {
 	//ruinCusNum = std::min<int>(ruinCusNum,input.custCnt-1);
 
 	int v = myRand->pick(input.custCnt) + 1;
+	while (customers[v].routeID == -1) {
+		v = myRand->pick(input.custCnt) + 1;
+	}
 
 	Vec<int> runCus;
 	runCus.reserve(ruinCusNum);
@@ -7759,7 +7782,7 @@ bool Solver::ejectLocalSearch() {
 
 	minEPcus = IntInf;
 	squIter += globalCfg->yearTabuLen + globalCfg->yearTabuRand;
-	int maxOfPval = -1;
+	int maxOfPval = 0;
 
 	DisType beforeGamma = gamma;
 	gamma = 0;
