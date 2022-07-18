@@ -167,11 +167,12 @@ struct Input {
 	void printHelpInfo();
 
 	inline DisType getDisof2(int a, int b) {
+
 		auto reCusNo = [=](int x) -> int {
 			return x <= custCnt ? x : 0;
 		};
 		a = reCusNo(a);
-		b = reCusNo(a);
+		b = reCusNo(b);
 
 		return disOf.at(a,b);
 	}

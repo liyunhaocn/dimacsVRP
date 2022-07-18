@@ -25,7 +25,7 @@ extern int vd8fpi = vd4fpi/2;
 extern int vd16fpi = vd8fpi/2;
 
 // dimacs «10
-extern int disMul = 10;
+extern int disMul = 10000;
 extern DisType DisInf = LLInf;
 
 //extern int disMul = 10000;

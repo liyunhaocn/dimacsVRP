@@ -1939,7 +1939,8 @@ bool Input::initInput() {
 			double dis = sqrt((d1.XCOORD - d2.XCOORD) * (d1.XCOORD - d2.XCOORD)
 				+ (d1.YCOORD - d2.YCOORD) * (d1.YCOORD - d2.YCOORD));
 
-			disOf[j][i] = disOf[i][j] = dis+0.5;
+			//disOf[j][i] = disOf[i][j] = dis+0.5;
+			disOf[j][i] = disOf[i][j] = ceil(dis);
 		}
 	}
 

@@ -534,10 +534,6 @@ public:
 
 	bool initEPr();
 
-	inline int reCusNo(int x) {
-		return x <= input.custCnt ? x : 0;
-	}
-
 	Solver();
 
 	Solver(const Solver& s);

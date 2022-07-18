@@ -285,7 +285,7 @@ DisType Solver::rUpdateAvfrom(Route& r, int vv) {
 	while (pt != -1) {
 
 		customers[pt].avp =
-			customers[pt].av = customers[ptpre].av + input.disOf[reCusNo(ptpre)][reCusNo(pt)] + input.datas[ptpre].SERVICETIME;
+			customers[pt].av = customers[ptpre].av + input.getDisof2(ptpre,pt) + input.datas[ptpre].SERVICETIME;
 
 		customers[pt].TW_X = customers[ptpre].TW_X;
 		customers[pt].TW_X += std::max<DisType>(customers[pt].avp - input.datas[pt].DUEDATE, 0);
@@ -336,7 +336,7 @@ bool Solver::rUpdateAvQfrom(Route& r, int vv) {
 	while (pt != -1) {
 
 		customers[pt].avp =
-			customers[pt].av = customers[ptpre].av + input.disOf[reCusNo(ptpre)][reCusNo(pt)] + input.datas[ptpre].SERVICETIME;
+			customers[pt].av = customers[ptpre].av + input.getDisof2(ptpre,pt) + input.datas[ptpre].SERVICETIME;
 
 		customers[pt].TW_X = customers[ptpre].TW_X;
 		customers[pt].TW_X += std::max<DisType>(customers[pt].avp - input.datas[pt].DUEDATE, 0);
@@ -375,7 +375,7 @@ DisType Solver::rUpdateZvfrom(Route& r, int vv) {
 	while (pt != -1) {
 
 		customers[pt].zvp =
-			customers[pt].zv = customers[ptnext].zv - input.disOf[reCusNo(pt)][reCusNo(ptnext)] - input.datas[pt].SERVICETIME;
+			customers[pt].zv = customers[ptnext].zv - input.getDisof2(pt,ptnext) - input.datas[pt].SERVICETIME;
 
 		customers[pt].TWX_ = customers[ptnext].TWX_;
 
@@ -423,7 +423,7 @@ void Solver::rUpdateZvQfrom(Route& r, int vv) {
 	while (pt != -1) {
 
 		customers[pt].zvp =
-			customers[pt].zv = customers[ptnext].zv - input.disOf[reCusNo(pt)][reCusNo(ptnext)] - input.datas[pt].SERVICETIME;
+			customers[pt].zv = customers[ptnext].zv - input.getDisof2(pt,ptnext) - input.datas[pt].SERVICETIME;
 
 		customers[pt].TWX_ = customers[ptnext].TWX_;
 
@@ -457,7 +457,7 @@ void Solver::rReCalRCost(Route& r) {
 	int ptnext = customers[pt].next;
 	r.routeCost = 0;
 	while (pt != -1 && ptnext != -1) {
-		r.routeCost += input.disOf[reCusNo(pt)][reCusNo(ptnext)];
+		r.routeCost += input.getDisof2(pt,ptnext);
 		pt = ptnext;
 		ptnext = customers[ptnext].next;
 	}
@@ -674,12 +674,12 @@ Solver::Position Solver::findBestPosInSol(int w) {
 			DisType rPtw = customers[v].TW_X;
 			rPtw += customers[vj].TWX_;
 
-			DisType awp = customers[v].av + input.datas[v].SERVICETIME + input.disOf[reCusNo(v)][reCusNo(w)];
+			DisType awp = customers[v].av + input.datas[v].SERVICETIME + input.getDisof2(v,w);
 			rPtw += std::max<DisType>(0, awp - input.datas[w].DUEDATE);
 			DisType aw =
 				awp <= input.datas[w].DUEDATE ? std::max<DisType>(input.datas[w].READYTIME, awp) : input.datas[w].DUEDATE;
 
-			DisType avjp = aw + input.datas[w].SERVICETIME + input.disOf[reCusNo(w)][reCusNo(vj)];
+			DisType avjp = aw + input.datas[w].SERVICETIME + input.getDisof2(w,vj);
 			rPtw += std::max<DisType>(0, avjp - input.datas[vj].DUEDATE);
 			DisType avj =
 				avjp <= input.datas[vj].DUEDATE ? std::max<DisType>(input.datas[vj].READYTIME, avjp) : input.datas[vj].DUEDATE;
@@ -687,9 +687,9 @@ Solver::Position Solver::findBestPosInSol(int w) {
 
 			rPtw = rPtw - oldrPtw;
 
-			DisType cost = input.disOf[reCusNo(w)][reCusNo(v)]
-				+ input.disOf[reCusNo(w)][reCusNo(vj)]
-				- input.disOf[reCusNo(vj)][reCusNo(v)];
+			DisType cost = input.getDisof2(w,v)
+				+ input.getDisof2(w,vj)
+				- input.getDisof2(vj,v);
 
 			int vre = v > input.custCnt ? 0 : v;
 			int vjre = vj > input.custCnt ? 0 : vj;
@@ -837,12 +837,12 @@ Solver::Position Solver::findBestPosInSolForInit(int w) {
 			rtPtw += customers[v].TW_X;
 			rtPtw += customers[vj].TWX_;
 
-			DisType awp = customers[v].av + input.datas[v].SERVICETIME + input.disOf[reCusNo(v)][reCusNo(w)];
+			DisType awp = customers[v].av + input.datas[v].SERVICETIME + input.getDisof2(v,w);
 			rtPtw += std::max<DisType>(0, awp - input.datas[w].DUEDATE);
 			DisType aw =
 				awp <= input.datas[w].DUEDATE ? std::max<DisType>(input.datas[w].READYTIME, awp) : input.datas[w].DUEDATE;
 
-			DisType avjp = aw + input.datas[w].SERVICETIME + input.disOf[reCusNo(w)][reCusNo(vj)];
+			DisType avjp = aw + input.datas[w].SERVICETIME + input.getDisof2(w,vj);
 			rtPtw += std::max<DisType>(0, avjp - input.datas[vj].DUEDATE);
 			DisType avj =
 				avjp <= input.datas[vj].DUEDATE ? std::max<DisType>(input.datas[vj].READYTIME, avjp) : input.datas[vj].DUEDATE;
@@ -866,9 +866,9 @@ Solver::Position Solver::findBestPosInSolForInit(int w) {
 				//else if (pt.secDis == bestPos.secDis) {
 
 					pt.cost =
-						input.disOf[reCusNo(w)][reCusNo(v)]
-						+ input.disOf[reCusNo(w)][reCusNo(vj)]
-						- input.disOf[reCusNo(vj)][reCusNo(v)];
+						input.getDisof2(w,v)
+						+ input.getDisof2(w,vj)
+						- input.getDisof2(vj,v);
 
 					if (pt.cost < bestPos.cost) {
 						if (myRand->pick(100) < globalCfg->initWinkacRate) {
@@ -883,7 +883,7 @@ Solver::Position Solver::findBestPosInSolForInit(int w) {
 		}
 	}
 
-	if (bestPos.secDis > vd4fpi || bestPos.cost > input.disOf[0][w] * 2) {
+	if (bestPos.secDis > vd4fpi || bestPos.cost > input.getDisof2(0,w) * 2) {
 		return Position();
 	}
 
@@ -946,12 +946,12 @@ Solver::Position Solver::findBestPosForRuin(int w) {
 			DisType rPtw = customers[v].TW_X;
 			rPtw += customers[vj].TWX_;
 
-			DisType awp = customers[v].av + input.datas[v].SERVICETIME + input.disOf[reCusNo(v)][reCusNo(w)];
+			DisType awp = customers[v].av + input.datas[v].SERVICETIME + input.getDisof2(v,w);
 			rPtw += std::max<DisType>(0, awp - input.datas[w].DUEDATE);
 			DisType aw =
 				awp <= input.datas[w].DUEDATE ? std::max<DisType>(input.datas[w].READYTIME, awp) : input.datas[w].DUEDATE;
 
-			DisType avjp = aw + input.datas[w].SERVICETIME + input.disOf[reCusNo(w)][reCusNo(vj)];
+			DisType avjp = aw + input.datas[w].SERVICETIME + input.getDisof2(w,vj);
 			rPtw += std::max<DisType>(0, avjp - input.datas[vj].DUEDATE);
 			DisType avj =
 				avjp <= input.datas[vj].DUEDATE ? std::max<DisType>(input.datas[vj].READYTIME, avjp) : input.datas[vj].DUEDATE;
@@ -960,10 +960,10 @@ Solver::Position Solver::findBestPosForRuin(int w) {
 			rPtw = rPtw - oldrPtw;
 
 			//TODO[-1]:这里的距离计算方式改变了
-			DisType cost = input.disOf[reCusNo(w)][reCusNo(v)]
-				+ input.disOf[reCusNo(w)][reCusNo(vj)]
-				- input.disOf[reCusNo(v)][reCusNo(vj)];
-			//int year = (*yearTable)[reCusNo(w)][reCusNo(v)] + (*yearTable)[reCusNo(w)][reCusNo(vj)];
+			DisType cost = input.getDisof2(w,v)
+				+ input.getDisof2(w,vj)
+				- input.getDisof2(v,vj);
+			//int year = (*yearTable)(w,v)] + (*yearTable)(w,vj)];
 			//year >>= 1;
 
 			Position posTemp;
@@ -979,7 +979,7 @@ Solver::Position Solver::findBestPosForRuin(int w) {
 		}
 	}
 
-	if (ret.cost > input.disOf[0][w] * 2) {
+	if (ret.cost > input.getDisof2(0,w) * 2) {
 		return Position();
 	}
 	return ret;
@@ -1044,7 +1044,7 @@ bool Solver::initSortOrder(int kind) {
 	std::iota(que1.begin(), que1.end(), 1);
 
 	auto cmp1 = [&](int x, int y) {
-		return input.disOf[0][x] > input.disOf[0][y];
+		return input.getDisof2(0,x) > input.getDisof2(0,y);
 	};
 
 	auto cmp2 = [&](int x, int y) {
@@ -1365,14 +1365,14 @@ Solver::DeltPen Solver::_2optOpenvv_(int v, int w) { //0
 		newwvPtw += customers[w].TW_X;
 		newwvPtw += customers[v].TWX_;
 
-		DisType avp = customers[w].av + input.datas[w].SERVICETIME + input.disOf[reCusNo(w)][reCusNo(v)];
+		DisType avp = customers[w].av + input.datas[w].SERVICETIME + input.getDisof2(w,v);
 		newwvPtw += std::max<DisType>(avp - customers[v].zv, 0);
 
 		// (v-) -> (w+)
 		DisType newv_wjPtw = 0;
 		newv_wjPtw += customers[v_].TW_X;
 		newv_wjPtw += customers[wj].TWX_;
-		DisType awjp = customers[v_].av + input.datas[v_].SERVICETIME + input.disOf[reCusNo(v_)][reCusNo(wj)];
+		DisType awjp = customers[v_].av + input.datas[v_].SERVICETIME + input.getDisof2(v_,wj);
 		newv_wjPtw += std::max<DisType>(awjp - customers[wj].zv, 0);
 
 		bestM.PtwOnly = newwvPtw + newv_wjPtw - rv.rPtw - rw.rPtw;
@@ -1402,11 +1402,11 @@ Solver::DeltPen Solver::_2optOpenvv_(int v, int w) { //0
 	auto getRcost = [&]() {
 
 		DisType delt = 0;
-		delt -= input.disOf[reCusNo(v_)][reCusNo(v)];
-		delt -= input.disOf[reCusNo(w)][reCusNo(wj)];
+		delt -= input.getDisof2(v_,v);
+		delt -= input.getDisof2(w,wj);
 
-		delt += input.disOf[reCusNo(w)][reCusNo(v)];
-		delt += input.disOf[reCusNo(v_)][reCusNo(wj)];
+		delt += input.getDisof2(w,v);
+		delt += input.getDisof2(v_,wj);
 		bestM.deltCost = delt * gamma;
 
 	};
@@ -1460,7 +1460,7 @@ Solver::DeltPen Solver::_2optOpenvvj(int v, int w) { //1
 
 		DisType awp = customers[v].av
 			+ input.datas[v].SERVICETIME
-			+ input.disOf[reCusNo(v)][reCusNo(w)];
+			+ input.getDisof2(v,w);
 
 		newwvPtw += std::max<DisType>(awp - customers[w].zv, 0);
 
@@ -1471,7 +1471,7 @@ Solver::DeltPen Solver::_2optOpenvvj(int v, int w) { //1
 		neww_vjPtw += customers[vj].TWX_;
 		DisType avjp = customers[w_].av
 			+ input.datas[w_].SERVICETIME
-			+ input.disOf[reCusNo(w_)][reCusNo(vj)];
+			+ input.getDisof2(w_,vj);
 		neww_vjPtw += std::max<DisType>(avjp - customers[vj].zv, 0);
 
 		bestM.PtwOnly = newwvPtw + neww_vjPtw - rv.rPtw - rw.rPtw;
@@ -1501,11 +1501,11 @@ Solver::DeltPen Solver::_2optOpenvvj(int v, int w) { //1
 	auto getRcost = [&]() {
 
 		DisType delt = 0;
-		delt -= input.disOf[reCusNo(v)][reCusNo(vj)];
-		delt -= input.disOf[reCusNo(w)][reCusNo(w_)];
+		delt -= input.getDisof2(v,vj);
+		delt -= input.getDisof2(w,w_);
 
-		delt += input.disOf[reCusNo(v)][reCusNo(w)];
-		delt += input.disOf[reCusNo(w_)][reCusNo(vj)];
+		delt += input.getDisof2(v,w);
+		delt += input.getDisof2(w_,vj);
 
 		bestM.deltCost = delt * gamma;
 
@@ -1570,7 +1570,7 @@ Solver::DeltPen Solver::outrelocatevToww_(int v, int w, int oneR) { //2
 
 			if (front == v) {
 
-				DisType avjp = customers[v_].av + input.datas[v_].SERVICETIME + input.disOf[reCusNo(v_)][reCusNo(vj)];
+				DisType avjp = customers[v_].av + input.datas[v_].SERVICETIME + input.getDisof2(v_,vj);
 
 				newvwPtw += std::max<DisType>(0, avjp - input.datas[vj].DUEDATE);
 				newvwPtw += customers[v_].TW_X;
@@ -1593,7 +1593,7 @@ Solver::DeltPen Solver::outrelocatevToww_(int v, int w, int oneR) { //2
 							break;
 						}
 
-						DisType aptp = lastav + input.datas[lastv].SERVICETIME + input.disOf[reCusNo(lastv)][reCusNo(pt)];
+						DisType aptp = lastav + input.datas[lastv].SERVICETIME + input.getDisof2(lastv,pt);
 						newvwPtw += std::max<DisType>(0, aptp - input.datas[pt].DUEDATE);
 
 						DisType apt = aptp > input.datas[pt].DUEDATE ? input.datas[pt].DUEDATE :
@@ -1605,13 +1605,13 @@ Solver::DeltPen Solver::outrelocatevToww_(int v, int w, int oneR) { //2
 					}
 				}
 
-				DisType avp = lastav + input.datas[lastv].SERVICETIME + input.disOf[reCusNo(lastv)][reCusNo(v)];
+				DisType avp = lastav + input.datas[lastv].SERVICETIME + input.getDisof2(lastv,v);
 				newvwPtw += std::max<DisType>(0, avp - input.datas[v].DUEDATE);
 
 				DisType av = avp > input.datas[v].DUEDATE ? input.datas[v].DUEDATE :
 					std::max<DisType>(avp, input.datas[v].READYTIME);
 
-				DisType awp = av + input.datas[v].SERVICETIME + input.disOf[reCusNo(v)][reCusNo(w)];
+				DisType awp = av + input.datas[v].SERVICETIME + input.getDisof2(v,w);
 				newvwPtw += std::max<DisType>(0, awp - customers[w].zv);
 
 				newvwPtw += customers[w].TWX_;
@@ -1619,7 +1619,7 @@ Solver::DeltPen Solver::outrelocatevToww_(int v, int w, int oneR) { //2
 			}
 			else if (front == w) {
 
-				DisType avp = customers[w_].av + input.datas[w_].SERVICETIME + input.disOf[reCusNo(w_)][reCusNo(v)];
+				DisType avp = customers[w_].av + input.datas[w_].SERVICETIME + input.getDisof2(w_,v);
 
 				newvwPtw += customers[w_].TW_X;
 				newvwPtw += std::max<DisType>(0, avp - input.datas[v].DUEDATE);
@@ -1630,7 +1630,7 @@ Solver::DeltPen Solver::outrelocatevToww_(int v, int w, int oneR) { //2
 				lastav = av;
 				lastv = v;
 
-				DisType awp = lastav + input.datas[v].SERVICETIME + input.disOf[reCusNo(v)][reCusNo(w)];
+				DisType awp = lastav + input.datas[v].SERVICETIME + input.getDisof2(v,w);
 
 				newvwPtw += std::max<DisType>(0, awp - input.datas[w].DUEDATE);
 
@@ -1644,7 +1644,7 @@ Solver::DeltPen Solver::outrelocatevToww_(int v, int w, int oneR) { //2
 
 				while (pt != -1) {
 
-					DisType aptp = lastav + input.datas[lastv].SERVICETIME + input.disOf[reCusNo(lastv)][reCusNo(pt)];
+					DisType aptp = lastav + input.datas[lastv].SERVICETIME + input.getDisof2(lastv,pt);
 					newvwPtw += std::max<DisType>(0, aptp - input.datas[pt].DUEDATE);
 
 					DisType apt = aptp > input.datas[pt].DUEDATE ? input.datas[pt].DUEDATE :
@@ -1659,7 +1659,7 @@ Solver::DeltPen Solver::outrelocatevToww_(int v, int w, int oneR) { //2
 					}
 				}
 
-				DisType avjp = lastav + input.datas[lastv].SERVICETIME + input.disOf[reCusNo(lastv)][reCusNo(vj)];
+				DisType avjp = lastav + input.datas[lastv].SERVICETIME + input.getDisof2(lastv,vj);
 				newvwPtw += std::max<DisType>(0, avjp - customers[vj].zv);
 				newvwPtw += customers[vj].TWX_;
 			}
@@ -1688,14 +1688,14 @@ Solver::DeltPen Solver::outrelocatevToww_(int v, int w, int oneR) { //2
 			newvwPtw += customers[w_].TW_X;
 			newvwPtw += customers[w].TWX_;
 
-			DisType avp = customers[w_].av + input.datas[w_].SERVICETIME + input.disOf[reCusNo(w_)][reCusNo(v)];
-			DisType zvp = customers[w].zv - input.disOf[reCusNo(w)][reCusNo(v)] - input.datas[v].SERVICETIME;
+			DisType avp = customers[w_].av + input.datas[w_].SERVICETIME + input.getDisof2(w_,v);
+			DisType zvp = customers[w].zv - input.getDisof2(w,v) - input.datas[v].SERVICETIME;
 			newvwPtw += std::max<DisType>(0, std::max<DisType>(avp, input.datas[v].READYTIME) - std::min<DisType>(input.datas[v].DUEDATE, zvp));
 
 			newv_vjPtw += customers[v_].TW_X;
 			newv_vjPtw += customers[vj].TWX_;
 
-			DisType avjp = customers[v_].av + input.datas[v_].SERVICETIME + input.disOf[reCusNo(v_)][reCusNo(vj)];
+			DisType avjp = customers[v_].av + input.datas[v_].SERVICETIME + input.getDisof2(v_,vj);
 			newv_vjPtw += std::max<DisType>(0, avjp - customers[vj].zv);
 
 			bestM.PtwOnly = newvwPtw + newv_vjPtw - rv.rPtw - rw.rPtw;
@@ -1725,13 +1725,13 @@ Solver::DeltPen Solver::outrelocatevToww_(int v, int w, int oneR) { //2
 		// inset v to w and (w-)
 
 		DisType delt = 0;
-		delt -= input.disOf[reCusNo(v)][reCusNo(vj)];
-		delt -= input.disOf[reCusNo(v)][reCusNo(v_)];
-		delt -= input.disOf[reCusNo(w)][reCusNo(w_)];
+		delt -= input.getDisof2(v,vj);
+		delt -= input.getDisof2(v,v_);
+		delt -= input.getDisof2(w,w_);
 
-		delt += input.disOf[reCusNo(v)][reCusNo(w_)];
-		delt += input.disOf[reCusNo(v)][reCusNo(w)];
-		delt += input.disOf[reCusNo(v_)][reCusNo(vj)];
+		delt += input.getDisof2(v,w_);
+		delt += input.getDisof2(v,w);
+		delt += input.getDisof2(v_,vj);
 
 		bestM.deltCost = delt * gamma;
 
@@ -1800,7 +1800,7 @@ Solver::DeltPen Solver::outrelocatevTowwj(int v, int w, int oneR) { //3
 
 			if (front == v) {
 
-				DisType avjp = customers[v_].av + input.datas[v_].SERVICETIME + input.disOf[reCusNo(v_)][reCusNo(vj)];
+				DisType avjp = customers[v_].av + input.datas[v_].SERVICETIME + input.getDisof2(v_,vj);
 
 				newvwPtw += std::max<DisType>(0, avjp - input.datas[vj].DUEDATE);
 				newvwPtw += customers[v_].TW_X;
@@ -1819,7 +1819,7 @@ Solver::DeltPen Solver::outrelocatevTowwj(int v, int w, int oneR) { //3
 					int pt = customers[vj].next;
 					while (pt != -1) {
 
-						DisType aptp = lastav + input.datas[lastv].SERVICETIME + input.disOf[reCusNo(lastv)][reCusNo(pt)];
+						DisType aptp = lastav + input.datas[lastv].SERVICETIME + input.getDisof2(lastv,pt);
 						newvwPtw += std::max<DisType>(0, aptp - input.datas[pt].DUEDATE);
 
 						DisType apt = aptp > input.datas[pt].DUEDATE ? input.datas[pt].DUEDATE :
@@ -1836,20 +1836,20 @@ Solver::DeltPen Solver::outrelocatevTowwj(int v, int w, int oneR) { //3
 					}
 				}
 
-				DisType avp = lastav + input.datas[lastv].SERVICETIME + input.disOf[reCusNo(lastv)][reCusNo(v)];
+				DisType avp = lastav + input.datas[lastv].SERVICETIME + input.getDisof2(lastv,v);
 				newvwPtw += std::max<DisType>(0, avp - input.datas[v].DUEDATE);
 
 				DisType av = avp > input.datas[v].DUEDATE ? input.datas[v].DUEDATE :
 					std::max<DisType>(avp, input.datas[v].READYTIME);
 
-				DisType awjp = av + input.datas[v].SERVICETIME + input.disOf[reCusNo(v)][reCusNo(wj)];
+				DisType awjp = av + input.datas[v].SERVICETIME + input.getDisof2(v,wj);
 				newvwPtw += std::max<DisType>(0, awjp - customers[wj].zv);
 				newvwPtw += customers[wj].TWX_;
 
 			}
 			else if (front == w) {
 
-				DisType avp = customers[w].av + input.datas[w].SERVICETIME + input.disOf[reCusNo(w)][reCusNo(v)];
+				DisType avp = customers[w].av + input.datas[w].SERVICETIME + input.getDisof2(w,v);
 
 				newvwPtw += customers[w].TW_X;
 				newvwPtw += std::max<DisType>(0, avp - input.datas[v].DUEDATE);
@@ -1857,7 +1857,7 @@ Solver::DeltPen Solver::outrelocatevTowwj(int v, int w, int oneR) { //3
 				DisType av = avp > input.datas[v].DUEDATE ? input.datas[v].DUEDATE :
 					std::max<DisType>(avp, input.datas[v].READYTIME);
 
-				DisType awjp = av + input.datas[v].SERVICETIME + input.disOf[reCusNo(v)][reCusNo(wj)];
+				DisType awjp = av + input.datas[v].SERVICETIME + input.getDisof2(v,wj);
 				newvwPtw += std::max<DisType>(0, awjp - input.datas[wj].DUEDATE);
 
 				DisType awj = awjp > input.datas[wj].DUEDATE ? input.datas[wj].DUEDATE :
@@ -1869,7 +1869,7 @@ Solver::DeltPen Solver::outrelocatevTowwj(int v, int w, int oneR) { //3
 				int pt = customers[lastv].next;
 				while (pt != -1) {
 
-					DisType aptp = lastav + input.datas[lastv].SERVICETIME + input.disOf[reCusNo(lastv)][reCusNo(pt)];
+					DisType aptp = lastav + input.datas[lastv].SERVICETIME + input.getDisof2(lastv,pt);
 					newvwPtw += std::max<DisType>(0, aptp - input.datas[pt].DUEDATE);
 
 					DisType apt = aptp > input.datas[pt].DUEDATE ? input.datas[pt].DUEDATE :
@@ -1884,7 +1884,7 @@ Solver::DeltPen Solver::outrelocatevTowwj(int v, int w, int oneR) { //3
 					}
 				}
 
-				DisType avjp = lastav + input.datas[lastv].SERVICETIME + input.disOf[reCusNo(lastv)][reCusNo(vj)];
+				DisType avjp = lastav + input.datas[lastv].SERVICETIME + input.getDisof2(lastv,vj);
 				newvwPtw += std::max<DisType>(0, avjp - customers[vj].zv);
 				newvwPtw += customers[vj].TWX_;
 
@@ -1901,15 +1901,15 @@ Solver::DeltPen Solver::outrelocatevTowwj(int v, int w, int oneR) { //3
 
 			newvwPtw += customers[w].TW_X;
 			newvwPtw += customers[wj].TWX_;
-			DisType avp = customers[w].av + input.datas[w].SERVICETIME + input.disOf[reCusNo(w)][reCusNo(v)];
-			DisType zvp = customers[wj].zv - input.disOf[reCusNo(wj)][reCusNo(v)] - input.datas[v].SERVICETIME;
+			DisType avp = customers[w].av + input.datas[w].SERVICETIME + input.getDisof2(w,v);
+			DisType zvp = customers[wj].zv - input.getDisof2(wj,v) - input.datas[v].SERVICETIME;
 			newvwPtw += std::max<DisType>(0, std::max<DisType>(avp, input.datas[v].READYTIME) - std::min<DisType>(input.datas[v].DUEDATE, zvp));
 
 			// insert v to (w,w-)
 			newv_vjPtw += customers[v_].TW_X;
 			newv_vjPtw += customers[vj].TWX_;
 
-			DisType avjp = customers[v_].av + input.datas[v_].SERVICETIME + input.disOf[reCusNo(v_)][reCusNo(vj)];
+			DisType avjp = customers[v_].av + input.datas[v_].SERVICETIME + input.getDisof2(v_,vj);
 			newv_vjPtw += std::max<DisType>(0, avjp - customers[vj].zv);
 
 			bestM.PtwOnly = newvwPtw + newv_vjPtw - rv.rPtw - rw.rPtw;
@@ -1939,13 +1939,13 @@ Solver::DeltPen Solver::outrelocatevTowwj(int v, int w, int oneR) { //3
 
 		// inset v to w and (w+)
 		DisType delt = 0;
-		delt -= input.disOf[reCusNo(v)][reCusNo(vj)];
-		delt -= input.disOf[reCusNo(v)][reCusNo(v_)];
-		delt -= input.disOf[reCusNo(w)][reCusNo(wj)];
+		delt -= input.getDisof2(v,vj);
+		delt -= input.getDisof2(v,v_);
+		delt -= input.getDisof2(w,wj);
 
-		delt += input.disOf[reCusNo(v)][reCusNo(w)];
-		delt += input.disOf[reCusNo(v)][reCusNo(wj)];
-		delt += input.disOf[reCusNo(v_)][reCusNo(vj)];
+		delt += input.getDisof2(v,w);
+		delt += input.getDisof2(v,wj);
+		delt += input.getDisof2(v_,vj);
 
 		bestM.deltCost = delt * gamma;
 
@@ -1976,7 +1976,7 @@ DisType Solver::getaRangeOffPtw(int twbegin, int twend) {
 	int pt = customers[ptpre].next;
 
 	for (; pt != -1;) {
-		DisType avp = lastav + input.datas[ptpre].SERVICETIME + input.disOf[reCusNo(ptpre)][reCusNo(pt)];
+		DisType avp = lastav + input.datas[ptpre].SERVICETIME + input.getDisof2(ptpre,pt);
 		newwvPtw += std::max<DisType>(0, avp - input.datas[pt].DUEDATE);
 		lastav = avp > input.datas[pt].DUEDATE ? input.datas[pt].DUEDATE :
 			std::max<DisType>(avp, input.datas[pt].READYTIME);
@@ -2075,14 +2075,14 @@ Solver::DeltPen Solver::inrelocatevv_(int v, int w, int oneR) { //4
 		else {
 			newwvPtw += customers[v_].TW_X;
 			newwvPtw += customers[v].TWX_;
-			DisType awp = customers[v_].av + input.datas[v_].SERVICETIME + input.disOf[reCusNo(v_)][reCusNo(w)];
-			DisType zwp = customers[v].zv - input.disOf[reCusNo(w)][reCusNo(v)] - input.datas[w].SERVICETIME;
+			DisType awp = customers[v_].av + input.datas[v_].SERVICETIME + input.getDisof2(v_,w);
+			DisType zwp = customers[v].zv - input.getDisof2(w,v) - input.datas[w].SERVICETIME;
 			newwvPtw += std::max<DisType>(0, std::max<DisType>(awp, input.datas[w].READYTIME) - std::min<DisType>(input.datas[w].DUEDATE, zwp));
 
 			// insert w to (v,v-)
 			neww_wjPtw += customers[w_].TW_X;
 			neww_wjPtw += customers[wj].TWX_;
-			DisType awjp = customers[w_].av + input.datas[w_].SERVICETIME + input.disOf[reCusNo(w_)][reCusNo(wj)];
+			DisType awjp = customers[w_].av + input.datas[w_].SERVICETIME + input.getDisof2(w_,wj);
 			neww_wjPtw += std::max<DisType>(0, awjp - customers[wj].zv);
 
 			bestM.PtwOnly = newwvPtw + neww_wjPtw - rv.rPtw - rw.rPtw;
@@ -2113,13 +2113,13 @@ Solver::DeltPen Solver::inrelocatevv_(int v, int w, int oneR) { //4
 
 		// inset w to v and (v-)
 		DisType delt = 0;
-		delt -= input.disOf[reCusNo(v)][reCusNo(v_)];
-		delt -= input.disOf[reCusNo(w)][reCusNo(w_)];
-		delt -= input.disOf[reCusNo(w)][reCusNo(wj)];
+		delt -= input.getDisof2(v,v_);
+		delt -= input.getDisof2(w,w_);
+		delt -= input.getDisof2(w,wj);
 
-		delt += input.disOf[reCusNo(w)][reCusNo(v)];
-		delt += input.disOf[reCusNo(w)][reCusNo(v_)];
-		delt += input.disOf[reCusNo(w_)][reCusNo(wj)];
+		delt += input.getDisof2(w,v);
+		delt += input.getDisof2(w,v_);
+		delt += input.getDisof2(w_,wj);
 
 		bestM.deltCost = delt * gamma;
 
@@ -2207,13 +2207,13 @@ Solver::DeltPen Solver::inrelocatevvj(int v, int w, int oneR) { //5
 
 			newwvPtw += customers[v].TW_X;
 			newwvPtw += customers[vj].TWX_;
-			DisType awp = customers[v].av + input.datas[v].SERVICETIME + input.disOf[reCusNo(v)][reCusNo(w)];
-			DisType zwp = customers[vj].zv - input.disOf[reCusNo(vj)][reCusNo(w)] - input.datas[w].SERVICETIME;
+			DisType awp = customers[v].av + input.datas[v].SERVICETIME + input.getDisof2(v,w);
+			DisType zwp = customers[vj].zv - input.getDisof2(vj,w) - input.datas[w].SERVICETIME;
 			newwvPtw += std::max<DisType>(0, std::max<DisType>(awp, input.datas[w].READYTIME) - std::min<DisType>(input.datas[w].DUEDATE, zwp));
 
 			neww_wjPtw += customers[w_].TW_X;
 			neww_wjPtw += customers[wj].TWX_;
-			DisType awjp = customers[w_].av + input.datas[w_].SERVICETIME + input.disOf[reCusNo(w_)][reCusNo(wj)];
+			DisType awjp = customers[w_].av + input.datas[w_].SERVICETIME + input.getDisof2(w_,wj);
 			neww_wjPtw += std::max<DisType>(0, awjp - customers[wj].zv);
 
 			bestM.PtwOnly = newwvPtw + neww_wjPtw - rv.rPtw - rw.rPtw;
@@ -2244,13 +2244,13 @@ Solver::DeltPen Solver::inrelocatevvj(int v, int w, int oneR) { //5
 
 		// insert w to (v,v+)
 		DisType delt = 0;
-		delt -= input.disOf[reCusNo(v)][reCusNo(vj)];
-		delt -= input.disOf[reCusNo(w)][reCusNo(w_)];
-		delt -= input.disOf[reCusNo(w)][reCusNo(wj)];
+		delt -= input.getDisof2(v,vj);
+		delt -= input.getDisof2(w,w_);
+		delt -= input.getDisof2(w,wj);
 
-		delt += input.disOf[reCusNo(w)][reCusNo(v)];
-		delt += input.disOf[reCusNo(w)][reCusNo(vj)];
-		delt += input.disOf[reCusNo(w_)][reCusNo(wj)];
+		delt += input.getDisof2(w,v);
+		delt += input.getDisof2(w,vj);
+		delt += input.getDisof2(w_,wj);
 
 		bestM.deltCost = delt * gamma;
 
@@ -2314,19 +2314,19 @@ Solver::DeltPen Solver::exchangevw(int v, int w, int oneR) { // 8
 				DisType av = 0;
 				newvPtw = 0;
 
-				DisType avp = customers[v__].av + input.datas[v__].SERVICETIME + input.disOf[reCusNo(v__)][reCusNo(v)];
+				DisType avp = customers[v__].av + input.datas[v__].SERVICETIME + input.getDisof2(v__,v);
 				newvPtw += std::max<DisType>(0, avp - input.datas[v].DUEDATE);
 				newvPtw += customers[v__].TW_X;
 				av = avp > input.datas[v].DUEDATE ? input.datas[v].DUEDATE :
 					std::max<DisType>(avp, input.datas[v].READYTIME);
 
-				DisType awp = av + input.datas[v].SERVICETIME + input.disOf[reCusNo(v)][reCusNo(w)];
+				DisType awp = av + input.datas[v].SERVICETIME + input.getDisof2(v,w);
 				newvPtw += std::max<DisType>(0, awp - input.datas[w].DUEDATE);
 
 				DisType aw = awp > input.datas[w].DUEDATE ? input.datas[w].DUEDATE :
 					std::max<DisType>(awp, input.datas[w].READYTIME);
 
-				DisType avjp = aw + input.datas[w].SERVICETIME + input.disOf[reCusNo(w)][reCusNo(vj)];
+				DisType avjp = aw + input.datas[w].SERVICETIME + input.getDisof2(w,vj);
 				newvPtw += std::max<DisType>(0, avjp - customers[vj].zv);
 				newvPtw += customers[vj].TWX_;
 
@@ -2344,19 +2344,19 @@ Solver::DeltPen Solver::exchangevw(int v, int w, int oneR) { // 8
 					DisType aw = 0;
 				newvPtw = 0;
 
-				DisType awp = customers[w__].av + input.datas[w__].SERVICETIME + input.disOf[reCusNo(w__)][reCusNo(w)];
+				DisType awp = customers[w__].av + input.datas[w__].SERVICETIME + input.getDisof2(w__,w);
 				newvPtw += std::max<DisType>(0, awp - input.datas[w].DUEDATE);
 				newvPtw += customers[w__].TW_X;
 				aw = awp > input.datas[w].DUEDATE ? input.datas[w].DUEDATE :
 					std::max<DisType>(awp, input.datas[w].READYTIME);
 
-				DisType avp = aw + input.datas[w].SERVICETIME + input.disOf[reCusNo(w)][reCusNo(v)];
+				DisType avp = aw + input.datas[w].SERVICETIME + input.getDisof2(w,v);
 				newvPtw += std::max<DisType>(0, avp - input.datas[v].DUEDATE);
 
 				DisType av = avp > input.datas[v].DUEDATE ? input.datas[v].DUEDATE :
 					std::max<DisType>(avp, input.datas[v].READYTIME);
 
-				DisType awjp = av + input.datas[v].SERVICETIME + input.disOf[reCusNo(v)][reCusNo(wj)];
+				DisType awjp = av + input.datas[v].SERVICETIME + input.getDisof2(v,wj);
 				newvPtw += std::max<DisType>(0, awjp - customers[wj].zv);
 				newvPtw += customers[wj].TWX_;
 
@@ -2399,10 +2399,10 @@ Solver::DeltPen Solver::exchangevw(int v, int w, int oneR) { // 8
 			newwPtw += customers[wj].TWX_;
 			newwPtw += customers[w_].TW_X;
 
-			DisType awp = customers[v_].av + input.datas[v_].SERVICETIME + input.disOf[reCusNo(v_)][reCusNo(w)];
-			DisType zwp = customers[vj].zv - input.datas[w].SERVICETIME - input.disOf[reCusNo(w)][reCusNo(vj)];
-			DisType avp = customers[w_].av + input.datas[w_].SERVICETIME + input.disOf[reCusNo(w_)][reCusNo(v)];
-			DisType zvp = customers[wj].zv - input.datas[v].SERVICETIME - input.disOf[reCusNo(wj)][reCusNo(v)];
+			DisType awp = customers[v_].av + input.datas[v_].SERVICETIME + input.getDisof2(v_,w);
+			DisType zwp = customers[vj].zv - input.datas[w].SERVICETIME - input.getDisof2(w,vj);
+			DisType avp = customers[w_].av + input.datas[w_].SERVICETIME + input.getDisof2(w_,v);
+			DisType zvp = customers[wj].zv - input.datas[v].SERVICETIME - input.getDisof2(wj,v);
 
 			newvPtw +=
 				std::max<DisType>(0, std::max<DisType>(awp, input.datas[w].READYTIME) - std::min<DisType>(input.datas[w].DUEDATE, zwp));
@@ -2446,32 +2446,32 @@ Solver::DeltPen Solver::exchangevw(int v, int w, int oneR) { // 8
 		if (v_ == w) {
 			// w-> v
 
-			delt -= input.disOf[reCusNo(v)][reCusNo(vj)];
-			delt -= input.disOf[reCusNo(w)][reCusNo(w_)];
+			delt -= input.getDisof2(v,vj);
+			delt -= input.getDisof2(w,w_);
 
-			delt += input.disOf[reCusNo(v)][reCusNo(w_)];
-			delt += input.disOf[reCusNo(w)][reCusNo(vj)];
+			delt += input.getDisof2(v,w_);
+			delt += input.getDisof2(w,vj);
 		}
 		else if (w_ == v) {
 
 			// v w
-			delt -= input.disOf[reCusNo(v)][reCusNo(v_)];
-			delt -= input.disOf[reCusNo(w)][reCusNo(wj)];
+			delt -= input.getDisof2(v,v_);
+			delt -= input.getDisof2(w,wj);
 
-			delt += input.disOf[reCusNo(v)][reCusNo(wj)];
-			delt += input.disOf[reCusNo(w)][reCusNo(v_)];
+			delt += input.getDisof2(v,wj);
+			delt += input.getDisof2(w,v_);
 		}
 		else {
 
-			delt -= input.disOf[reCusNo(v)][reCusNo(vj)];
-			delt -= input.disOf[reCusNo(v)][reCusNo(v_)];
-			delt -= input.disOf[reCusNo(w)][reCusNo(wj)];
-			delt -= input.disOf[reCusNo(w)][reCusNo(w_)];
+			delt -= input.getDisof2(v,vj);
+			delt -= input.getDisof2(v,v_);
+			delt -= input.getDisof2(w,wj);
+			delt -= input.getDisof2(w,w_);
 
-			delt += input.disOf[reCusNo(v)][reCusNo(wj)];
-			delt += input.disOf[reCusNo(v)][reCusNo(w_)];
-			delt += input.disOf[reCusNo(w)][reCusNo(v_)];
-			delt += input.disOf[reCusNo(w)][reCusNo(vj)];
+			delt += input.getDisof2(v,wj);
+			delt += input.getDisof2(v,w_);
+			delt += input.getDisof2(w,v_);
+			delt += input.getDisof2(w,vj);
 
 		}
 		bestM.deltCost = delt * gamma;
@@ -2649,8 +2649,8 @@ Solver::DeltPen Solver::exchangevvjw(int v, int w, int oneR) { // 11 2换1
 			newvPtw += customers[v_].TW_X;
 			newvPtw += customers[vjj].TWX_;
 
-			DisType awp = customers[v_].av + input.datas[v_].SERVICETIME + input.disOf[reCusNo(v_)][reCusNo(w)];
-			DisType zwp = customers[vjj].zv - input.datas[w].SERVICETIME - input.disOf[reCusNo(w)][reCusNo(vjj)];
+			DisType awp = customers[v_].av + input.datas[v_].SERVICETIME + input.getDisof2(v_,w);
+			DisType zwp = customers[vjj].zv - input.datas[w].SERVICETIME - input.getDisof2(w,vjj);
 			newvPtw +=
 				std::max<DisType>(0, std::max<DisType>(awp, input.datas[w].READYTIME) - std::min<DisType>(input.datas[w].DUEDATE, zwp));
 
@@ -2658,14 +2658,14 @@ Solver::DeltPen Solver::exchangevvjw(int v, int w, int oneR) { // 11 2换1
 			newwPtw += customers[w_].TW_X;
 			newwPtw += customers[wj].TWX_;
 
-			DisType avp = customers[w_].av + input.datas[w_].SERVICETIME + input.disOf[reCusNo(w_)][reCusNo(v)];
+			DisType avp = customers[w_].av + input.datas[w_].SERVICETIME + input.getDisof2(w_,v);
 
 			newwPtw += std::max<DisType>(0, avp - input.datas[v].DUEDATE);
 			DisType av =
 				avp > input.datas[v].DUEDATE ? input.datas[v].DUEDATE : std::max<DisType>(avp, input.datas[v].READYTIME);
 
-			DisType avjp = av + input.datas[v].SERVICETIME + input.disOf[reCusNo(v)][reCusNo(vj)];
-			DisType zvjp = customers[wj].zv - input.datas[vj].SERVICETIME - input.disOf[reCusNo(wj)][reCusNo(vj)];
+			DisType avjp = av + input.datas[v].SERVICETIME + input.getDisof2(v,vj);
+			DisType zvjp = customers[wj].zv - input.datas[vj].SERVICETIME - input.getDisof2(wj,vj);
 
 			newwPtw +=
 				std::max<DisType>(0, std::max<DisType>(avjp, input.datas[vj].READYTIME) - std::min<DisType>(input.datas[vj].DUEDATE, zvjp));
@@ -2705,35 +2705,35 @@ Solver::DeltPen Solver::exchangevvjw(int v, int w, int oneR) { // 11 2换1
 		DisType delt = 0;
 		if (v_ == w) {
 			// w - v vj
-			delt -= input.disOf[reCusNo(w)][reCusNo(v)];
-			delt -= input.disOf[reCusNo(w)][reCusNo(w_)];
-			delt -= input.disOf[reCusNo(vj)][reCusNo(vjj)];
+			delt -= input.getDisof2(w,v);
+			delt -= input.getDisof2(w,w_);
+			delt -= input.getDisof2(vj,vjj);
 			//w v vj -> v vj w
-			delt += input.disOf[reCusNo(w)][reCusNo(vj)];
-			delt += input.disOf[reCusNo(w)][reCusNo(vjj)];
-			delt += input.disOf[reCusNo(v)][reCusNo(w_)];
+			delt += input.getDisof2(w,vj);
+			delt += input.getDisof2(w,vjj);
+			delt += input.getDisof2(v,w_);
 		}
 		else if (w_ == vj) {
 			//v vj w -> w v vj
-			delt -= input.disOf[reCusNo(v)][reCusNo(v_)];
-			delt -= input.disOf[reCusNo(w)][reCusNo(wj)];
-			delt -= input.disOf[reCusNo(vj)][reCusNo(w)];
+			delt -= input.getDisof2(v,v_);
+			delt -= input.getDisof2(w,wj);
+			delt -= input.getDisof2(vj,w);
 
-			delt += input.disOf[reCusNo(w)][reCusNo(v_)];
-			delt += input.disOf[reCusNo(w)][reCusNo(v)];
-			delt += input.disOf[reCusNo(vj)][reCusNo(wj)];
+			delt += input.getDisof2(w,v_);
+			delt += input.getDisof2(w,v);
+			delt += input.getDisof2(vj,wj);
 		}
 		else {
 
-			delt -= input.disOf[reCusNo(vj)][reCusNo(vjj)];
-			delt -= input.disOf[reCusNo(v)][reCusNo(v_)];
-			delt -= input.disOf[reCusNo(w)][reCusNo(wj)];
-			delt -= input.disOf[reCusNo(w)][reCusNo(w_)];
+			delt -= input.getDisof2(vj,vjj);
+			delt -= input.getDisof2(v,v_);
+			delt -= input.getDisof2(w,wj);
+			delt -= input.getDisof2(w,w_);
 
-			delt += input.disOf[reCusNo(w)][reCusNo(v_)];
-			delt += input.disOf[reCusNo(w)][reCusNo(vjj)];
-			delt += input.disOf[reCusNo(v)][reCusNo(w_)];
-			delt += input.disOf[reCusNo(vj)][reCusNo(wj)];
+			delt += input.getDisof2(w,v_);
+			delt += input.getDisof2(w,vjj);
+			delt += input.getDisof2(v, w_);
+			delt += input.getDisof2(vj,wj);
 		}
 
 
@@ -2927,7 +2927,7 @@ Solver::DeltPen Solver::exchangevvjvjjwwj(int v, int w, int oneR) { // 9 3换2
 			newvPtw += customers[v_].TW_X;
 			newvPtw += customers[v3j].TWX_;
 
-			DisType awp = customers[v_].av + input.datas[v_].SERVICETIME + input.disOf[reCusNo(v_)][reCusNo(w)];
+			DisType awp = customers[v_].av + input.datas[v_].SERVICETIME + input.getDisof2(v_,w);
 
 			// (v-)->(w)->(w+)->(v3j)
 			newvPtw += std::max<DisType>(0, awp - input.datas[w].DUEDATE);
@@ -2935,8 +2935,8 @@ Solver::DeltPen Solver::exchangevvjvjjwwj(int v, int w, int oneR) { // 9 3换2
 			DisType aw =
 				awp > input.datas[w].DUEDATE ? input.datas[w].DUEDATE : std::max<DisType>(input.datas[w].READYTIME, awp);
 
-			DisType awjp = aw + input.datas[w].SERVICETIME + input.disOf[reCusNo(w)][reCusNo(wj)];
-			DisType zwjp = customers[v3j].zv - input.datas[wj].SERVICETIME - input.disOf[reCusNo(wj)][reCusNo(v3j)];
+			DisType awjp = aw + input.datas[w].SERVICETIME + input.getDisof2(w,wj);
+			DisType zwjp = customers[v3j].zv - input.datas[wj].SERVICETIME - input.getDisof2(wj,v3j);
 
 			newvPtw +=
 				std::max<DisType>(0, std::max<DisType>(awjp, input.datas[wj].READYTIME) - std::min<DisType>(input.datas[wj].DUEDATE, zwjp));
@@ -2945,21 +2945,21 @@ Solver::DeltPen Solver::exchangevvjvjjwwj(int v, int w, int oneR) { // 9 3换2
 			newwPtw += customers[w_].TW_X;
 			newwPtw += customers[wjj].TWX_;
 
-			DisType avp = customers[w_].av + input.datas[w_].SERVICETIME + input.disOf[reCusNo(w_)][reCusNo(v)];
+			DisType avp = customers[w_].av + input.datas[w_].SERVICETIME + input.getDisof2(w_,v);
 
 			newwPtw += std::max<DisType>(0, avp - input.datas[v].DUEDATE);
 			DisType av =
 				avp > input.datas[v].DUEDATE ? input.datas[v].DUEDATE : std::max<DisType>(avp, input.datas[v].READYTIME);
 
-			DisType avjp = av + input.datas[v].SERVICETIME + input.disOf[reCusNo(v)][reCusNo(vj)];
+			DisType avjp = av + input.datas[v].SERVICETIME + input.getDisof2(v,vj);
 
 			// (w-) -> (v) -> (vj) -> (vjj)-> (wjj)
-			DisType zvjjp = customers[wjj].zv - input.datas[vjj].SERVICETIME - input.disOf[reCusNo(wjj)][vjj];
+			DisType zvjjp = customers[wjj].zv - input.datas[vjj].SERVICETIME - input.getDisof2(wjj,vjj);
 
 			newwPtw += std::max<DisType>(0, input.datas[vjj].READYTIME - zvjjp);
 
 			DisType zvjj = zvjjp < input.datas[vjj].READYTIME ? input.datas[vjj].READYTIME : std::min<DisType>(input.datas[vjj].DUEDATE, zvjjp);
-			DisType zvjp = zvjj - input.disOf[reCusNo(vjj)][reCusNo(vj)] - input.datas[vj].SERVICETIME;
+			DisType zvjp = zvjj - input.getDisof2(vjj,vj) - input.datas[vj].SERVICETIME;
 
 			newwPtw +=
 				std::max<DisType>(0, std::max<DisType>(avjp, input.datas[vj].READYTIME) - std::min<DisType>(input.datas[vj].DUEDATE, zvjp));
@@ -2999,35 +2999,35 @@ Solver::DeltPen Solver::exchangevvjvjjwwj(int v, int w, int oneR) { // 9 3换2
 		DisType delt = 0;
 
 		if (v3j == w) {
-			delt -= input.disOf[reCusNo(vjj)][reCusNo(w)];
-			delt -= input.disOf[reCusNo(v)][reCusNo(v_)];
-			delt -= input.disOf[reCusNo(wj)][reCusNo(wjj)];
+			delt -= input.getDisof2(vjj,w);
+			delt -= input.getDisof2(v,v_);
+			delt -= input.getDisof2(wj,wjj);
 
-			delt += input.disOf[reCusNo(w)][reCusNo(v_)];
-			delt += input.disOf[reCusNo(wj)][reCusNo(v)];
-			delt += input.disOf[reCusNo(vjj)][reCusNo(wjj)];
+			delt += input.getDisof2(w,v_);
+			delt += input.getDisof2(wj,v);
+			delt += input.getDisof2(vjj,wjj);
 		}
 		else if (wj == v_) {
 			// (ww+) and v vj vjj and 
 
-			delt -= input.disOf[reCusNo(w)][reCusNo(w_)];
-			delt -= input.disOf[reCusNo(vjj)][reCusNo(v3j)];
-			delt -= input.disOf[reCusNo(wj)][reCusNo(v)];
+			delt -= input.getDisof2(w,w_);
+			delt -= input.getDisof2(vjj,v3j);
+			delt -= input.getDisof2(wj,v);
 
-			delt += input.disOf[reCusNo(vjj)][reCusNo(w)];
-			delt += input.disOf[reCusNo(v)][reCusNo(w_)];
-			delt += input.disOf[reCusNo(wj)][reCusNo(v3j)];
+			delt += input.getDisof2(vjj,w);
+			delt += input.getDisof2(v,w_);
+			delt += input.getDisof2(wj,v3j);
 		}
 		else {
-			delt -= input.disOf[reCusNo(vjj)][reCusNo(v3j)];
-			delt -= input.disOf[reCusNo(v)][reCusNo(v_)];
-			delt -= input.disOf[reCusNo(wj)][reCusNo(wjj)];
-			delt -= input.disOf[reCusNo(w)][reCusNo(w_)];
+			delt -= input.getDisof2(vjj,v3j);
+			delt -= input.getDisof2(v,v_);
+			delt -= input.getDisof2(wj,wjj);
+			delt -= input.getDisof2(w,w_);
 
-			delt += input.disOf[reCusNo(w)][reCusNo(v_)];
-			delt += input.disOf[reCusNo(wj)][reCusNo(v3j)];
-			delt += input.disOf[reCusNo(v)][reCusNo(w_)];
-			delt += input.disOf[reCusNo(vjj)][reCusNo(wjj)];
+			delt += input.getDisof2(w,v_);
+			delt += input.getDisof2(wj,v3j);
+			delt += input.getDisof2(v,w_);
+			delt += input.getDisof2(vjj,wjj);
 		}
 
 		bestM.deltCost = delt * gamma;
@@ -3187,8 +3187,8 @@ Solver::DeltPen Solver::exchangevvjvjjw(int v, int w, int oneR) { // 10 三换一
 			newvPtw += customers[v_].TW_X;
 			newvPtw += customers[v3j].TWX_;
 
-			DisType awp = customers[v_].av + input.datas[v_].SERVICETIME + input.disOf[reCusNo(v_)][reCusNo(w)];
-			DisType zwp = customers[v3j].zv - input.datas[w].SERVICETIME - input.disOf[reCusNo(w)][reCusNo(v3j)];
+			DisType awp = customers[v_].av + input.datas[v_].SERVICETIME + input.getDisof2(v_,w);
+			DisType zwp = customers[v3j].zv - input.datas[w].SERVICETIME - input.getDisof2(w,v3j);
 
 			newvPtw +=
 				std::max<DisType>(0, std::max<DisType>(awp, input.datas[w].READYTIME) - std::min<DisType>(input.datas[w].DUEDATE, zwp));
@@ -3197,21 +3197,21 @@ Solver::DeltPen Solver::exchangevvjvjjw(int v, int w, int oneR) { // 10 三换一
 			newwPtw += customers[w_].TW_X;
 			newwPtw += customers[wj].TWX_;
 
-			DisType avp = customers[w_].av + input.datas[w_].SERVICETIME + input.disOf[reCusNo(w_)][reCusNo(v)];
+			DisType avp = customers[w_].av + input.datas[w_].SERVICETIME + input.getDisof2(w_,v);
 
 			newwPtw += std::max<DisType>(0, avp - input.datas[v].DUEDATE);
 			DisType av =
 				avp > input.datas[v].DUEDATE ? input.datas[v].DUEDATE : std::max<DisType>(avp, input.datas[v].READYTIME);
 
-			DisType avjp = av + input.datas[v].SERVICETIME + input.disOf[reCusNo(v)][reCusNo(vj)];
+			DisType avjp = av + input.datas[v].SERVICETIME + input.getDisof2(v,vj);
 
 			// (w-) -> (v) -> (vj) -> (vjj)-> (wj)
-			DisType zvjjp = customers[wj].zv - input.datas[vjj].SERVICETIME - input.disOf[reCusNo(wj)][(vjj)];
+			DisType zvjjp = customers[wj].zv - input.datas[vjj].SERVICETIME - input.getDisof2(wj,vjj);
 
 			newwPtw += std::max<DisType>(0, input.datas[vjj].READYTIME - zvjjp);
 
 			DisType zvjj = zvjjp < input.datas[vjj].READYTIME ? input.datas[vjj].READYTIME : std::min<DisType>(input.datas[vjj].DUEDATE, zvjjp);
-			DisType zvjp = zvjj - input.disOf[reCusNo(vjj)][reCusNo(vj)] - input.datas[vj].SERVICETIME;
+			DisType zvjp = zvjj - input.getDisof2(vjj,vj) - input.datas[vj].SERVICETIME;
 
 			newwPtw +=
 				std::max<DisType>(0, std::max<DisType>(avjp, input.datas[vj].READYTIME) - std::min<DisType>(input.datas[vj].DUEDATE, zvjp));
@@ -3254,35 +3254,35 @@ Solver::DeltPen Solver::exchangevvjvjjw(int v, int w, int oneR) { // 10 三换一
 
 		if (v == wj) {
 			//w v vj vjj -> v vj vjj w
-			delt -= input.disOf[reCusNo(w)][reCusNo(v)];
-			delt -= input.disOf[reCusNo(w)][reCusNo(w_)];
-			delt -= input.disOf[reCusNo(vjj)][reCusNo(v3j)];
+			delt -= input.getDisof2(w,v);
+			delt -= input.getDisof2(w,w_);
+			delt -= input.getDisof2(vjj,v3j);
 
-			delt += input.disOf[reCusNo(w)][reCusNo(vjj)];
-			delt += input.disOf[reCusNo(w)][reCusNo(v3j)];
-			delt += input.disOf[reCusNo(v)][reCusNo(w_)];
+			delt += input.getDisof2(w,vjj);
+			delt += input.getDisof2(w,v3j);
+			delt += input.getDisof2(v,w_);
 		}
 		else if (w_ == vjj) {
 
 			//v vj vjj w -> w v vj vjj 
-			delt -= input.disOf[reCusNo(w)][reCusNo(vjj)];
-			delt -= input.disOf[reCusNo(w)][reCusNo(wj)];
-			delt -= input.disOf[reCusNo(v)][reCusNo(v_)];
+			delt -= input.getDisof2(w,vjj);
+			delt -= input.getDisof2(w,wj);
+			delt -= input.getDisof2(v,v_);
 
-			delt += input.disOf[reCusNo(w)][reCusNo(v)];
-			delt += input.disOf[reCusNo(w)][reCusNo(v_)];
-			delt += input.disOf[reCusNo(vjj)][reCusNo(wj)];
+			delt += input.getDisof2(w,v);
+			delt += input.getDisof2(w,v_);
+			delt += input.getDisof2(vjj,wj);
 		}
 		else {
-			delt -= input.disOf[reCusNo(vjj)][reCusNo(v3j)];
-			delt -= input.disOf[reCusNo(v)][reCusNo(v_)];
-			delt -= input.disOf[reCusNo(w)][reCusNo(wj)];
-			delt -= input.disOf[reCusNo(w)][reCusNo(w_)];
+			delt -= input.getDisof2(vjj,v3j);
+			delt -= input.getDisof2(v,v_);
+			delt -= input.getDisof2(w,wj);
+			delt -= input.getDisof2(w,w_);
 
-			delt += input.disOf[reCusNo(w)][reCusNo(v_)];
-			delt += input.disOf[reCusNo(w)][reCusNo(v3j)];
-			delt += input.disOf[reCusNo(v)][reCusNo(w_)];
-			delt += input.disOf[reCusNo(vjj)][reCusNo(wj)];
+			delt += input.getDisof2(w,v_);
+			delt += input.getDisof2(w,v3j);
+			delt += input.getDisof2(v,w_);
+			delt += input.getDisof2(vjj,wj);
 		}
 
 		bestM.deltCost = delt * gamma;
@@ -3384,16 +3384,16 @@ Solver::DeltPen Solver::outrelocatevvjTowwj(int v, int w, int oneR) {  //13 扔两
 			// w -> v -> vj -> (wj)
 
 			newwPtw += customers[w].TW_X;
-			DisType avp = customers[w].av + input.datas[w].SERVICETIME + input.disOf[reCusNo(w)][reCusNo(v)];
+			DisType avp = customers[w].av + input.datas[w].SERVICETIME + input.getDisof2(w,v);
 			newwPtw += std::max<DisType>(0, avp - input.datas[v].DUEDATE);
 
 			DisType av =
 				avp > input.datas[v].DUEDATE ? input.datas[v].DUEDATE : std::max<DisType>(input.datas[v].READYTIME, avp);
 
-			DisType avjp = av + input.datas[v].SERVICETIME + input.disOf[reCusNo(v)][reCusNo(vj)];
+			DisType avjp = av + input.datas[v].SERVICETIME + input.getDisof2(v,vj);
 
 			newwPtw += customers[wj].TWX_;
-			DisType zvjp = customers[wj].zv - input.disOf[reCusNo(wj)][reCusNo(vj)] - input.datas[vj].SERVICETIME;
+			DisType zvjp = customers[wj].zv - input.getDisof2(wj,vj) - input.datas[vj].SERVICETIME;
 			//}
 
 			newwPtw +=
@@ -3402,7 +3402,7 @@ Solver::DeltPen Solver::outrelocatevvjTowwj(int v, int w, int oneR) {  //13 扔两
 			// link v- and vjj
 			newvPtw += customers[v_].TW_X;
 			newvPtw += customers[vjj].TWX_;
-			DisType avjjp = customers[v_].av + input.datas[v_].SERVICETIME + input.disOf[reCusNo(v_)][reCusNo(vjj)];
+			DisType avjjp = customers[v_].av + input.datas[v_].SERVICETIME + input.getDisof2(v_,vjj);
 			newvPtw += std::max<DisType>(0, avjjp - customers[vjj].zv);
 
 			bestM.PtwOnly = newwPtw + newvPtw - rv.rPtw - rw.rPtw;
@@ -3441,13 +3441,13 @@ Solver::DeltPen Solver::outrelocatevvjTowwj(int v, int w, int oneR) {  //13 扔两
 
 		// outrelocate v vj To w wj
 		DisType delt = 0;
-		delt -= input.disOf[reCusNo(vj)][reCusNo(vjj)];
-		delt -= input.disOf[reCusNo(v)][reCusNo(v_)];
-		delt -= input.disOf[reCusNo(w)][reCusNo(wj)];
+		delt -= input.getDisof2(vj,vjj);
+		delt -= input.getDisof2(v,v_);
+		delt -= input.getDisof2(w,wj);
 
-		delt += input.disOf[reCusNo(v)][reCusNo(w)];
-		delt += input.disOf[reCusNo(vj)][reCusNo(wj)];
-		delt += input.disOf[reCusNo(v_)][reCusNo(vjj)];
+		delt += input.getDisof2(v,w);
+		delt += input.getDisof2(vj,wj);
+		delt += input.getDisof2(v_,vjj);
 
 		bestM.deltCost = delt * gamma;
 
@@ -3529,7 +3529,7 @@ Solver::DeltPen Solver::reversevw(int v, int w) {//15 翻转
 		int lastv = 0;
 
 		lastv = back;
-		DisType lastavp = customers[f_].av + input.datas[f_].SERVICETIME + input.disOf[reCusNo(f_)][reCusNo(back)];
+		DisType lastavp = customers[f_].av + input.datas[f_].SERVICETIME + input.getDisof2(f_,back);
 		newPtw += customers[f_].TW_X;
 		newPtw += std::max<DisType>(0, lastavp - input.datas[lastv].DUEDATE);
 		lastav = lastavp > input.datas[lastv].DUEDATE ? input.datas[lastv].DUEDATE :
@@ -3538,7 +3538,7 @@ Solver::DeltPen Solver::reversevw(int v, int w) {//15 翻转
 		int pt = customers[lastv].pre;
 		while (pt != -1) {
 
-			DisType aptp = lastav + input.datas[lastv].SERVICETIME + input.disOf[reCusNo(lastv)][reCusNo(pt)];
+			DisType aptp = lastav + input.datas[lastv].SERVICETIME + input.getDisof2(lastv,pt);
 			newPtw += std::max<DisType>(0, aptp - input.datas[pt].DUEDATE);
 
 			DisType apt = aptp > input.datas[pt].DUEDATE ? input.datas[pt].DUEDATE :
@@ -3551,7 +3551,7 @@ Solver::DeltPen Solver::reversevw(int v, int w) {//15 翻转
 			pt = customers[pt].pre;
 		}
 
-		DisType abjp = lastav + input.datas[lastv].SERVICETIME + input.disOf[reCusNo(lastv)][reCusNo(bj)];
+		DisType abjp = lastav + input.datas[lastv].SERVICETIME + input.getDisof2(lastv,bj);
 		newPtw += std::max<DisType>(0, abjp - customers[bj].zv);
 		newPtw += customers[bj].TWX_;
 
@@ -3569,11 +3569,11 @@ Solver::DeltPen Solver::reversevw(int v, int w) {//15 翻转
 
 		// outrelocate  v_ vTo w_ w 
 		DisType delt = 0;
-		delt -= input.disOf[reCusNo(front)][reCusNo(f_)];
-		delt -= input.disOf[reCusNo(back)][reCusNo(bj)];
+		delt -= input.getDisof2(front,f_);
+		delt -= input.getDisof2(back,bj);
 
-		delt += input.disOf[reCusNo(back)][reCusNo(f_)];
-		delt += input.disOf[reCusNo(front)][reCusNo(bj)];
+		delt += input.getDisof2(back,f_);
+		delt += input.getDisof2(front,bj);
 
 		bestM.deltCost = delt * gamma;
 
@@ -3608,7 +3608,7 @@ Solver::DeltPen Solver::_Nopt(Vec<int>& nodes) { //16 Nopt*
 		newwvPtw += vt > 0 ? customers[vt].TW_X : 0;
 		newwvPtw += wt > 0 ? customers[wt].TWX_ : 0;
 		DisType awp = (vt > 0 ? customers[vt].av + input.datas[vt].SERVICETIME : 0)
-			+ input.disOf[reCusNo(vt)][reCusNo(wt)];
+			+ input.getDisof2(vt,wt);
 
 		newwvPtw += std::max<DisType>(awp - (wt > 0 ? customers[wt].zv : input.datas[0].DUEDATE), 0);
 		newPtwNoWei += newwvPtw;
@@ -5249,7 +5249,7 @@ Solver::TwoNodeMove Solver::getMovesRandomly
 				continue;
 			}
 
-			//if (customers[w].av + input.datas[w].SERVICETIME + input.disOf[reCusNo(v)][reCusNo(w)] >= customers[v].avp) {
+			//if (customers[w].av + input.datas[w].SERVICETIME + input.getDisof2(v,w)] >= customers[v].avp) {
 			//	continue;
 			//}
 
@@ -5282,7 +5282,7 @@ Solver::TwoNodeMove Solver::getMovesRandomly
 				continue;
 			}
 
-			//if (customers[w].zv - input.disOf[reCusNo(v)][reCusNo(w)] - input.datas[v].SERVICETIME <= customers[v].zvp) {
+			//if (customers[w].zv - input.getDisof2(v,w)] - input.datas[v].SERVICETIME <= customers[v].zvp) {
 			//	continue;
 			//}
 
@@ -5303,8 +5303,8 @@ Solver::TwoNodeMove Solver::getMovesRandomly
 
 		double broaden = globalCfg->broaden;
 
-		//int devided = 7;
-		int devided = 4;
+		int devided = 7;
+		//int devided = 4;
 
 		if (vpos1 == 0) {
 			vpos1 += globalCfg->broadenWhenPos_0;
@@ -5402,7 +5402,9 @@ Solver::TwoNodeMove Solver::getMovesRandomly
 
 	auto outrelocateEffectively = [&](int v) {
 
-		int devided = 5;
+		int devided = 7;
+		//int devided = 5;
+
 		Vec<int>& relatedToV = input.iInNeicloseOfUnionNeiCloseOfI[v];
 
 		int N = relatedToV.size();
@@ -5826,7 +5828,7 @@ Solver::DeltPen Solver::getDeltIfRemoveOneNode(Route& r, int pt) {
 
 	DeltPen d;
 
-	DisType avnp = customers[pre].av + input.datas[pre].SERVICETIME + input.disOf[reCusNo(pre)][reCusNo(next)];
+	DisType avnp = customers[pre].av + input.datas[pre].SERVICETIME + input.getDisof2(pre,next);
 	d.PtwOnly = std::max<DisType>(0, avnp - customers[next].zv) + customers[next].TWX_ + customers[pre].TW_X;
 	d.PtwOnly = d.PtwOnly - r.rPtw;
 	d.PcOnly = std::max<DisType>(0, r.rQ - input.datas[pt].DEMAND - input.Q);
@@ -6253,7 +6255,7 @@ void Solver::ruinClearEP(int kind) {
 	};
 
 	auto cmp3 = [&](int a, int b) {
-		return input.disOf[a][0] < input.disOf[b][0];
+		return input.getDisof2(a,0) < input.getDisof2(b,0);
 	};
 	
 	auto cmp4 = [&](int a, int b) {
@@ -6864,7 +6866,7 @@ int Solver::CVB2ClearEPAllowNewR(int kind) {
 	};
 
 	auto cmp3 = [&](int a, int b) {
-		return input.disOf[a][0] < input.disOf[b][0];
+		return input.getDisof2(a,0) < input.getDisof2(b,0);
 	};
 
 	auto cmp4 = [&](int a, int b) {
@@ -7356,7 +7358,7 @@ Solver::eOneRNode Solver::ejectOneRouteOnlyP(Route& r, int kind, int Kmax) {
 
 		int pre = customers[v].pre;
 		DisType avp = customers[pre].av +
-			input.datas[pre].SERVICETIME + input.disOf[reCusNo(pre)][reCusNo(v)];
+			input.datas[pre].SERVICETIME + input.getDisof2(pre,v);
 		return avp;
 	};
 
@@ -7366,7 +7368,7 @@ Solver::eOneRNode Solver::ejectOneRouteOnlyP(Route& r, int kind, int Kmax) {
 
 		while (n != -1) {
 
-			customers[n].avp = customers[pre].av + input.datas[pre].SERVICETIME + input.disOf[reCusNo(pre)][reCusNo(n)];
+			customers[n].avp = customers[pre].av + input.datas[pre].SERVICETIME + input.getDisof2(pre,n);
 			customers[n].av = customers[n].avp > input.datas[n].DUEDATE ? input.datas[n].DUEDATE
 				: std::max<DisType>(customers[n].avp, input.datas[n].READYTIME);
 			customers[n].TW_X = std::max<DisType>(0, customers[n].avp - input.datas[n].DUEDATE);
@@ -7424,7 +7426,7 @@ Solver::eOneRNode Solver::ejectOneRouteOnlyP(Route& r, int kind, int Kmax) {
 		while (next != -1) {
 
 			//debug(pt)
-			DisType avnp = customers[pre].av + input.datas[pre].SERVICETIME + input.disOf[reCusNo(pre)][reCusNo(next)];
+			DisType avnp = customers[pre].av + input.datas[pre].SERVICETIME + input.getDisof2(pre,next);
 			ptw = std::max<DisType>(0, avnp - customers[next].zv) + customers[next].TWX_ + customers[pre].TW_X;
 
 			if (customers[pre].TW_X > 0) { // 剪枝 删除ik之后 前面的时间窗没有消除
@@ -7640,7 +7642,7 @@ Solver::eOneRNode Solver::ejectOneRouteMinPsumGreedy
 
 		int pre = customers[ctop].pre;
 		int nex = customers[ctop].next;
-		DisType avnp = customers[pre].av + input.datas[pre].SERVICETIME + input.disOf[reCusNo(pre)][reCusNo(nex)];
+		DisType avnp = customers[pre].av + input.datas[pre].SERVICETIME + input.getDisof2(pre,nex);
 		DisType ptw = std::max<DisType>(0, avnp - customers[nex].zv) + customers[nex].TWX_ + customers[pre].TW_X;
 
 		if (ptw < curPtw) {
@@ -7943,9 +7945,9 @@ Solver::Position Solver::findBestPosToSplit(Route& r) {
 		int v = arr[i];
 		int vj = arr[i + 1];
 		DisType delt = 0;
-		delt -= input.disOf[v][vj];
-		delt += input.disOf[0][v];
-		delt += input.disOf[0][vj];
+		delt -= input.getDisof2(v,vj);
+		delt += input.getDisof2(0,v);
+		delt += input.getDisof2(0,vj);
 		if (delt < ret.cost) {
 			ret.cost = delt;
 			ret.pos = v;

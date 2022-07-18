@@ -425,11 +425,9 @@ Solver::Position EAX::findBestPosRemoveSubtour(Solver& pc, int w, int wj, DisTyp
 			pc.customers[w].next = wj;
 			pc.customers[wj].pre = w;
 
-			DisType cost =
-				pc.input.disOf[pc.reCusNo(v)][pc.reCusNo(wj)]
-				+ pc.input.disOf[pc.reCusNo(w)][pc.reCusNo(vj)]
-				- pc.input.disOf[pc.reCusNo(v)][pc.reCusNo(vj)]
-				-pc.input.disOf[pc.reCusNo(w)][pc.reCusNo(wj)];
+			DisType cost = 
+				pc.input.getDisof2(v,wj) + pc.input.getDisof2(w,vj)
+				- pc.input.getDisof2(v,vj) -pc.input.getDisof2(w,wj);
 			//int year = (*yearTable)[reCusNo(w)][reCusNo(v)] + (*yearTable)[reCusNo(w)][reCusNo(vj)];
 			//year >>= 1;
 
