@@ -40,6 +40,8 @@
     <ClCompile Include="..\..\..\src\Flag.cpp" />
     <ClCompile Include="..\..\..\src\Goal.cpp" />
     <ClCompile Include="..\..\..\src\main.cpp" />
+    <ClCompile Include="..\..\..\src\MCP\CliqueSolver.cpp" />
+    <ClCompile Include="..\..\..\src\MCP\CliqueTsm.cpp" />
     <ClCompile Include="..\..\..\src\Problem.cpp" />
     <ClCompile Include="..\..\..\src\Solver.cpp" />
   </ItemGroup>
@@ -48,6 +50,9 @@
     <ClInclude Include="..\..\..\src\EAX.h" />
     <ClInclude Include="..\..\..\src\Flag.h" />
     <ClInclude Include="..\..\..\src\Goal.h" />
+    <ClInclude Include="..\..\..\src\MCP\Arr.h" />
+    <ClInclude Include="..\..\..\src\MCP\CliqueSolver.h" />
+    <ClInclude Include="..\..\..\src\MCP\Graph.h" />
     <ClInclude Include="..\..\..\src\Problem.h" />
     <ClInclude Include="..\..\..\src\Solver.h" />
     <ClInclude Include="..\..\..\src\Utility.h" />

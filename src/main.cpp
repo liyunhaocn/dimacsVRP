@@ -11,6 +11,7 @@
 #include "Utility.h"
 
 #include "Util/Arr2D.h"
+#include "MCP/CliqueSolver.h"
 
 namespace hust {
 
@@ -108,6 +109,107 @@ void testArray2() {
 	}
 }
 
+void printSln(const szx::tsm::Clique& sln) {
+	std::cout << "weight=" << sln.weight << std::endl;
+	std::cout << "clique=";
+	for (auto n = sln.nodes.begin(); n != sln.nodes.end(); ++n) {
+		std::cout << *n << " ";
+	}
+	std::cout << std::endl;
+}
+
+int getBound(int n ,szx::tsm::AdjMat am) {
+
+	szx::Arr<szx::tsm::Weight> weights(n, 1);
+	szx::tsm::Clique sln;
+	
+	if (szx::tsm::solveWeightedMaxClique(sln, am, weights)) {
+		return sln.nodes.size();
+		//printSln(sln);
+	}
+}
+
+int getOneBound(std::string ex) {
+
+	int argc = 3;
+
+	char a[100];
+	snprintf(a, 100, "../Instances/Homberger/%s.txt", ex.c_str());
+	char _sol[] = "./DLLSMA";
+	char _ins[] = "-ins";
+
+	char* argv[] = { _sol,_ins,a };
+	
+	hust::allocGlobalMem(argc, argv);
+	hust::Goal goal;
+
+	
+	int n = hust::globalInput->custCnt;
+
+	szx::tsm::AdjMat am(n, n);
+	for (int i = 0; i < n; ++i) {
+		for (int j = 0; j < n; ++j) {
+			am.at(i, j) = 0;
+		}
+	}
+
+	hust::Solver sol;
+	//sol.initSolution(4);
+
+	hust::Route r1 = sol.rCreateRoute(0);
+	sol.rts.push_back(r1);
+	hust::Route r2 = sol.rCreateRoute(1);
+	sol.rts.push_back(r2);
+
+	for (int v = 1; v <= n; ++v) {
+		for (int w = 1; w <= n; ++w) {
+
+			if (v == w) {
+				continue;
+			}
+
+			sol.rInsAtPosPre(r1, r1.tail, v);
+			sol.rInsAtPosPre(r1, r1.tail, w);
+			sol.rUpdateAvfrom(r1, r1.head);
+			sol.rUpdateZvfrom(r1, r1.tail);
+			//sol.rNextDisp(r1);
+			
+			bool is1 = r1.rPtw > 0;
+
+			sol.rRemoveAtPos(r1, v);
+			sol.rRemoveAtPos(r1, w);
+
+
+			sol.rInsAtPosPre(r2, r2.tail,w);
+			sol.rInsAtPosPre(r2, r2.tail, v);
+			sol.rUpdateAvfrom(r2, r2.head);
+			sol.rUpdateZvfrom(r2, r2.tail);
+			//sol.rNextDisp(r2);
+
+
+			sol.rRemoveAtPos(r2, v);
+			sol.rRemoveAtPos(r2, w);
+
+			bool is2 = r2.rPtw > 0;
+
+			if (is1 && is2 ) {
+				//INFO("r1.rPtw:",r1.rPtw,"v:",v,"w:",w);
+				am.at(v - 1, w - 1) = 1;
+				am.at(w - 1, v - 1) = 1;
+			}
+
+
+		}
+	}
+
+	int ret = getBound(n,am);
+	INFO("ret:{}",ret);
+
+	ret = ret == hust::globalCfg->sintefRecRN;
+	hust::deallocGlobalMem();
+	return ret;
+}
+
 int main(int argc, char* argv[])
 {
 	//hust::INFO(sizeof(std::mt19937));
@@ -117,6 +219,39 @@ int main(int argc, char* argv[])
 	//hust::INFO(sizeof(hust::Solver::input));
 	//hust::INFO(sizeof(hust::Solver::globalCfg));
 	//hust::INFO(sizeof(hust::Input));
+	std::vector<std::string> v1 = {"C1_","C2_", "R1_", "R2_","RC1_", "RC2_" };
+	std::vector<std::string> v2 = {"2_","4_", "6_", "8_","10_" };
+	std::vector<std::string> v3 = {"1","2", "3", "4","5","6","7", "8", "9","10" };
+
+	std::vector<std::string> s;
+
+	for (std::string x : v1) {
+		for (std::string y : v2) {
+			for (std::string z : v3) {
+				std::cout << (x + y + z) << std::endl;
+				int ret = getOneBound(x + y + z);
+				if (ret == 1) {
+					s.push_back(x+y+z);
+				}
+			}
+		}
+	}
+	for (auto& ss : s) {
+		INFO(ss);
+	}
+	//  [INFO] : C1_2_1
+	//	[INFO] : C1_4_1
+	//	[INFO] : C1_6_1
+	//	[INFO] : C1_8_1
+	//	[INFO] : C1_8_2
+	//	[INFO] : C1_10_1
+	//	[INFO] : R1_2_1
+	//	[INFO] : R1_4_1
+	//	[INFO] : R1_6_1
+	//	[INFO] : R1_8_1
+	//	[INFO] : R1_10_1
+	//	[INFO] : RC2_2_5
+	return 0;
 
 	hust::allocGlobalMem(argc,argv);
 	hust::Goal goal;

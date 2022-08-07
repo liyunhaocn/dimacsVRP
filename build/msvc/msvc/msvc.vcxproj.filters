@@ -8,6 +8,9 @@
     <Filter Include="src\Util">
       <UniqueIdentifier>{19d4cc32-77a4-49b6-90ed-9e60b6608c64}</UniqueIdentifier>
     </Filter>
+    <Filter Include="src\MCP">
+      <UniqueIdentifier>{f75e2dea-59a5-4667-baa6-0cde77e9160e}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\..\..\src\Configuration.cpp">
@@ -30,6 +33,12 @@
     </ClCompile>
     <ClCompile Include="..\..\..\src\Solver.cpp">
       <Filter>src</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\src\MCP\CliqueSolver.cpp">
+      <Filter>src\MCP</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\src\MCP\CliqueTsm.cpp">
+      <Filter>src\MCP</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -65,6 +74,15 @@
     </ClInclude>
     <ClInclude Include="..\..\..\src\Util\Exception.h">
       <Filter>src\Util</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\src\MCP\Arr.h">
+      <Filter>src\MCP</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\src\MCP\CliqueSolver.h">
+      <Filter>src\MCP</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\src\MCP\Graph.h">
+      <Filter>src\MCP</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>
