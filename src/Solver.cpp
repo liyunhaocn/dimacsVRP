@@ -5696,22 +5696,6 @@ bool Solver::doEject(Vec<eOneRNode>& XSet) {
 		#endif // CHECKING
 	}
 
-	//Vec<int> runCus = ruinGetRuinCusByRound(5);
-	Vec<int> runCus = ruinGetRuinCusBySting(3,5);
-
-	Vec<int> rids;
-	for (int node : runCus) {
-		Route& r = rts.getRouteByRid(customers[node].routeID);
-		rRemoveAtPos(r, node);
-		EPpush_back(node);
-	}
-
-	for (int id : rids) {
-		Route& r = rts.getRouteByRid(id);
-		rUpdateAvQfrom(r, r.head);
-		rUpdateZvQfrom(r, r.tail);
-	}
-
 	resetConfRts();
 	sumRtsPen();
 
@@ -7228,16 +7212,13 @@ Vec<Solver::eOneRNode> Solver::ejectFromPatialSol() {
 			}
 			else {
 
-				//if (retNode.ejeVe.size() > 1) {
-				//if (en.ejeVe.size()<=3) {
-
-					//bool s1 = en.getMaxEle() < retNode.getMaxEle();
-					// 
-				bool s3 = en.Psum * retNode.ejeVe.size() < retNode.Psum * en.ejeVe.size();
+				//bool s3 = en.Psum * retNode.ejeVe.size() < retNode.Psum * en.ejeVe.size();
 				bool s1 = en.Psum < retNode.Psum;
 				bool s2 = en.ejeVe.size() * en.Psum < retNode.Psum* retNode.ejeVe.size();
 
-				if (s1 && s2 && s3) {
+				//if (s1 && s2 && s3) {
+				//if (s1) {
+				if (s1 && s2) {
 					//if (satisfy1) {
 						/*deOut(en.Psum)debug(en.ejeVe.size())
 						deOut(retNode.Psum)debug(retNode.ejeVe.size())*/
@@ -7358,6 +7339,7 @@ Solver::eOneRNode Solver::ejectOneRouteOnlyP(Route& r, int kind, int Kmax) {
 		}
 		else {
 			if (etemp.Psum < noTabuN.Psum) {
+				//noTabuN = etemp;
 				if (etemp.ejeVe.size() * etemp.Psum < noTabuN.Psum * noTabuN.ejeVe.size()) {
 					//if (etemp.ejeVe.size() <= noTabuN.ejeVe.size()) {
 					noTabuN = etemp;
@@ -7809,7 +7791,7 @@ bool Solver::ejectLocalSearch() {
 
 				//globalCfg->minKmax = 1;
 				// 调整 minKmax 在1 2 之间切换
-				globalCfg->minKmax = 3 - globalCfg->minKmax;
+				//globalCfg->minKmax = 3 - globalCfg->minKmax;
 				INFO("globalCfg->minKmax:", globalCfg->minKmax);
 			}
 		}
@@ -7836,7 +7818,7 @@ bool Solver::ejectLocalSearch() {
 		if (maxOfPval >= 1000) {
 			maxOfPval = 0;
 			for (auto& i : input.P) {
-				i = i * 0.4 + 1;
+				i = i * 0.6 + 1;
 				maxOfPval = std::max<int>(maxOfPval, i);
 			}
 		}
@@ -7902,13 +7884,6 @@ bool Solver::ejectLocalSearch() {
 				int Irand = input.custCnt / EPr.rCustCnt / 4;
 				Irand = std::max<int>(Irand, 100);
 				patternAdjustment(Irand);
-				//system("pause");
-				//saveOutAsSintefFile();
-				//patternMakeBigBigger();
-				//system("pause");
-				//saveOutAsSintefFile();
-
-				//end our method 2
 			}
 		}
 	}
@@ -7926,7 +7901,7 @@ bool Solver::minimizeRN(int ourTarget) {
 	DisType beforeGamma = gamma;
 	gamma = 0;
 
-	while (rts.cnt > ourTarget) {
+	while (rts.cnt > ourTarget && !gloalTimer->isTimeOut()) {
 
 		Solver sclone = *this;
 		removeOneRouteByRid();
@@ -8667,9 +8642,10 @@ bool saveSolutiontoCsvFile(Solver& sol) {
 	// 输出 tm 结构的各个组成部分
 	//std::string day = /*ms.LL_str(d.year) + */ms.LL_str(d.month) + ms.LL_str(d.day);
 
-	std::string type = "[dim]";
+	std::string type = "";
 
 	std::string path = type + __DATE__;
+	
 	//path += std::string(1, '_') + __TIME__;
 
 	for (auto& c : path) {
@@ -8685,6 +8661,7 @@ bool saveSolutiontoCsvFile(Solver& sol) {
 	std::string maxKmax = ms.int_str(globalCfg->maxKmax);
 
 	std::ofstream rgbData;
+	path += globalCfg->tag;
 	std::string wrPath = globalCfg->outputPath + "_" + path + ".csv";
 
 	bool isGood = false; {

@@ -34,7 +34,7 @@ struct Configuration {
 	int Pwei0 = 1;
 	int Pwei1 = 2;
 
-	int minKmax = 2;
+	int minKmax = 1;
 	int maxKmax = 4;
 
 	int yearTabuLen = 10;

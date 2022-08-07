@@ -39,6 +39,19 @@ void Configuration::repairByCusCnt(int cusCnt) {
 	ruinC_ = std::min<int>(cusCnt - 1, ruinC_);
 }
 
+static std::string getHelpInfo() {
+	std::stringstream ss;
+	ss << "------------------- solver DLLSMA ------------------------------" << std::endl;
+	ss << "call solver by:" << std::endl;
+	ss << "./DLLSMA -ins instancePath " << std::endl;
+	ss << "[-time inputPath:string]" << std::endl;
+	ss << "[-seed seed:unsigned]" << std::endl;
+	ss << "[-pwei0 Pwei0:int]" << std::endl;
+	ss << "[-pwei1 Pwei1:int]" << std::endl;
+	ss << "[-tag tag:string]" << std::endl;
+	ss << "[-isbreak isBreak:int]" << std::endl;
+	return ss.str();
+}
 
 void Configuration::solveCommandLine(int argc, char* argv[]) {
 
@@ -61,8 +74,15 @@ void Configuration::solveCommandLine(int argc, char* argv[]) {
 		else if (argvstr == "-tag") {
 			globalCfg->tag = std::string(argv[i + 1]);
 		}
+		else if (argvstr == "-pwei0") {
+			globalCfg->Pwei0 = std::stoi(argv[i + 1], nullptr, 0);
+		}
+		else if (argvstr == "-pwei1") {
+			globalCfg->Pwei1 = std::stoi(argv[i + 1], nullptr, 0);
+		}
 		else {
-			std::cerr << "unknow argv" << std::endl;
+			std::cerr << "--------------unknow argv------------" << std::endl;
+			std::cerr << getHelpInfo() << std::endl;
 		}
 	}
 

@@ -5,7 +5,7 @@
     <DebuggerFlavor>LinuxWSLDebugger</DebuggerFlavor>
     <RemoteDebuggingTarget>WSL</RemoteDebuggingTarget>
     <RemoteDebuggerWorkingDirectory>$(SolutionDir)..\..\Dev</RemoteDebuggerWorkingDirectory>
-    <RemoteDebuggerCommandArguments>-ins ../Instances/Homberger/C1_6_6.txt -time 3600</RemoteDebuggerCommandArguments>
+    <RemoteDebuggerCommandArguments>-ins ../Instances/Homberger/C1_8_2.txt -time 3600</RemoteDebuggerCommandArguments>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <DebuggerWorkingDirectory>$(SolutionDir)..\..\Dev</DebuggerWorkingDirectory>
