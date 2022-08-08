@@ -636,7 +636,7 @@ Solver::Position Solver::findBestPosInSol(int w) {
 			bestPos = pos;
 		}
 		else if(pos.pen == bestPos.pen) {
-			if (pos.cost < bestPos.cost && myRand->pick(100)<99) {
+			if (pos.cost < bestPos.cost && myRand->pick(100)<95) {
 				bestPos = pos;
 			}
 		}
