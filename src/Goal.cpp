@@ -368,7 +368,13 @@ bool Goal::experOnMinRN() {
 	sol.initSolution(4);
 	
 	int target = hust::globalCfg->sintefRecRN;
-	sol.minimizeRN(target);
+	bool succeed = sol.minimizeRN(target);
+	if (succeed) {
+		INFO("succeed to delete");
+	}
+	else {
+		INFO("fail to delete");
+	}
 	saveSolutiontoCsvFile(sol);
 
 	return true;

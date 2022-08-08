@@ -22,10 +22,6 @@ struct Configuration {
 
 	int weightUpStep = 1;
 
-	int squGrea0AC = 1;
-	int squGrea0Range = 1;
-	int squRandomNeiSize = 5;
-
 	int Irand = 200;
 	int runTimer = 1800; //s
 	//int runTimer = 0; //s
@@ -52,9 +48,9 @@ struct Configuration {
 	//int repairExitStep = 50;
 	int repairExitStep = 5;
 
-	int initFindPosPqSize = 20;
-	int findBestPosForRuinPqSize = 10;
-	int findBestPosInSolPqSize = 64;//64
+	//int initFindPosPqSize = 20;
+	//int findBestPosForRuinPqSize = 10;
+	//int findBestPosInSolPqSize = 3;//64
 
 	int naEaxCh = 20;
 	//int naEaxCh = 20;
@@ -69,7 +65,7 @@ struct Configuration {
 	double broaden = 1.2;
 	//int broadenWhenPos_0 = 50;
 	int broadenWhenPos_0 = 20;
-	int outNeiSize = 50;
+	int outNeiSize = 70;
 
 	int neiSizeMin = 20;
 	int neiSizeMax = 50;

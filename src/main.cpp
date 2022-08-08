@@ -109,27 +109,7 @@ void testArray2() {
 	}
 }
 
-void printSln(const szx::tsm::Clique& sln) {
-	std::cout << "weight=" << sln.weight << std::endl;
-	std::cout << "clique=";
-	for (auto n = sln.nodes.begin(); n != sln.nodes.end(); ++n) {
-		std::cout << *n << " ";
-	}
-	std::cout << std::endl;
-}
-
-int getBound(int n ,szx::tsm::AdjMat am) {
-
-	szx::Arr<szx::tsm::Weight> weights(n, 1);
-	szx::tsm::Clique sln;
-	
-	if (szx::tsm::solveWeightedMaxClique(sln, am, weights)) {
-		return sln.nodes.size();
-		//printSln(sln);
-	}
-}
-
-int getOneBound(std::string ex) {
+std::vector<int> getOneBound(std::string ex) {
 
 	int argc = 3;
 
@@ -143,6 +123,7 @@ int getOneBound(std::string ex) {
 	hust::allocGlobalMem(argc, argv);
 	hust::Goal goal;
 
+	std::cout << ex <<", " << hust::globalCfg->sintefRecRN << std::endl;
 	
 	int n = hust::globalInput->custCnt;
 
@@ -202,12 +183,59 @@ int getOneBound(std::string ex) {
 		}
 	}
 
-	int ret = getBound(n,am);
-	INFO("ret:{}",ret);
+	int mqrn = -1;
+	szx::Arr<szx::tsm::Weight> weights(n, 1);
+	szx::tsm::Clique sln;
 
-	ret = ret == hust::globalCfg->sintefRecRN;
+	if (szx::tsm::solveWeightedMaxClique(sln, am, weights)) {
+		mqrn = sln.nodes.size();
+	}
+
+	int sinrn = hust::globalCfg->sintefRecRN;
+	int qbrn = hust::globalInput->Qbound;
+
 	hust::deallocGlobalMem();
-	return ret;
+
+	return { mqrn,sinrn,qbrn};
+}
+
+void getAllInstancesBound() {
+
+	std::vector<std::string> v1 = { "C1_","C2_", "R1_", "R2_","RC1_", "RC2_" };
+	std::vector<std::string> v2 = { "2_","4_", "6_", "8_","10_" };
+	std::vector<std::string> v3 = { "1","2", "3", "4","5","6","7", "8", "9","10" };
+
+	std::vector<std::string> s;
+
+	for (std::string x : v1) {
+		for (std::string y : v2) {
+			for (std::string z : v3) {
+				std::cout << (x + y + z) << std::endl;
+				auto ret = getOneBound(x + y + z);
+				if (ret[0] == ret[1]) {
+					s.push_back(x + y + z);
+				}
+			}
+		}
+	}
+
+	for (auto& ss : s) {
+		INFO(ss);
+	}
+
+	std::vector<std::string> instsReachBound = {
+		"C1_2_1", "C1_4_1",
+		"C1_6_1", "C1_8_1",
+		"C1_8_2", "C1_10_1",
+		"R1_2_1", "R1_4_1",
+		"R1_6_1", "R1_8_1",
+		"R1_10_1", "RC2_2_5" };
+
+	for (std::string ex : instsReachBound) {
+		auto rns = getOneBound(ex);
+		std::cout << ex << ", " << rns[0] << ", " << rns[1] << ", " << rns[2] << std::endl;
+		std::cout << "---------------" << std::endl;
+	}
 }
 
 int main(int argc, char* argv[])
@@ -219,39 +247,6 @@ int main(int argc, char* argv[])
 	//hust::INFO(sizeof(hust::Solver::input));
 	//hust::INFO(sizeof(hust::Solver::globalCfg));
 	//hust::INFO(sizeof(hust::Input));
-	std::vector<std::string> v1 = {"C1_","C2_", "R1_", "R2_","RC1_", "RC2_" };
-	std::vector<std::string> v2 = {"2_","4_", "6_", "8_","10_" };
-	std::vector<std::string> v3 = {"1","2", "3", "4","5","6","7", "8", "9","10" };
-
-	std::vector<std::string> s;
-
-	for (std::string x : v1) {
-		for (std::string y : v2) {
-			for (std::string z : v3) {
-				std::cout << (x + y + z) << std::endl;
-				int ret = getOneBound(x + y + z);
-				if (ret == 1) {
-					s.push_back(x+y+z);
-				}
-			}
-		}
-	}
-	for (auto& ss : s) {
-		INFO(ss);
-	}
-	//  [INFO] : C1_2_1
-	//	[INFO] : C1_4_1
-	//	[INFO] : C1_6_1
-	//	[INFO] : C1_8_1
-	//	[INFO] : C1_8_2
-	//	[INFO] : C1_10_1
-	//	[INFO] : R1_2_1
-	//	[INFO] : R1_4_1
-	//	[INFO] : R1_6_1
-	//	[INFO] : R1_8_1
-	//	[INFO] : R1_10_1
-	//	[INFO] : RC2_2_5
-	return 0;
 
 	hust::allocGlobalMem(argc,argv);
 	hust::Goal goal;

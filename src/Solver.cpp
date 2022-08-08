@@ -628,30 +628,16 @@ DisType Solver::updatePen(const DeltPen& delt) {
 
 Solver::Position Solver::findBestPosInSol(int w) {
 
-	Vec<Position> posPool = { Position(),Position(),Position(),Position(), };
-
-	// 惩罚最大的排在最前面
-	auto cmp = [&](const Position a, const Position& b) {
-		if (a.pen == b.pen) {
-			return  a.year < b.year;
-		}
-		else {
-			return a.pen < b.pen;
-		}
-	};
-
-	std::priority_queue<Position, Vec<Position>, decltype(cmp)> qu(cmp);
-	qu.push(Position());
+	Position bestPos;
 
 	auto updatePool = [&](Position& pos) {
 
-		if (pos.pen <= qu.top().pen) {
-			qu.push(pos);
-			if (qu.size() < globalCfg->findBestPosInSolPqSize) {
-				;
-			}
-			else {
-				qu.pop();
+		if (pos.pen < bestPos.pen) {
+			bestPos = pos;
+		}
+		else if(pos.pen == bestPos.pen) {
+			if (pos.cost < bestPos.cost && myRand->pick(100)<99) {
+				bestPos = pos;
 			}
 		}
 	};
@@ -710,92 +696,7 @@ Solver::Position Solver::findBestPosInSol(int w) {
 		}
 	}
 
-	int p0cnt = 1;
-	int p1cnt = 1;
-	int p2cnt = 1;
-	int p3cnt = 1;
-	//auto q = qu;
-
-	while (!qu.empty()) {
-
-		Position pos = qu.top();
-		qu.pop();
-
-		if (pos.pen == DisInf) {
-			continue;
-		}
-
-		if (pos.pen < posPool[0].pen) {
-			p0cnt = 1;
-			posPool[0] = pos;
-		}
-		else if (pos.pen == posPool[0].pen) {
-			++p0cnt;
-			if (myRand->pick(p0cnt) == 0) {
-				posPool[0] = pos;
-			}
-		}
-
-		if (pos.year < posPool[1].year) {
-			p1cnt = 1;
-			posPool[1] = pos;
-		}
-		else if (pos.year == posPool[1].year) {
-			++p1cnt;
-			if (myRand->pick(p1cnt) == 0) {
-				posPool[1] = pos;
-			}
-		}
-
-		if (pos.cost < posPool[2].cost) {
-			p2cnt = 1;
-			posPool[2] = pos;
-		}
-		else if (pos.cost == posPool[2].cost) {
-			++p2cnt;
-			if (myRand->pick(p2cnt) == 0) {
-				posPool[2] = pos;
-			}
-		}
-
-		if (posPool[3].rIndex == -1) {
-			posPool[3] = pos;
-		}
-		else {
-			Route& rpos = rts[pos.rIndex];
-			Route& rpool = rts[posPool[3].rIndex];
-
-			if (rpos.rCustCnt > rpool.rCustCnt) {
-				p3cnt = 1;
-				posPool[3] = pos;
-			}
-			else if (rpos.rCustCnt == rpool.rCustCnt) {
-				++p3cnt;
-				if (myRand->pick(p3cnt) == 0) {
-					posPool[3] = pos;
-				}
-			}
-		}
-	}
-
-	if (posPool[0].pen > 0) {
-		int index = myRand->pick(posPool.size());
-		return posPool[index];
-	}
-	else {
-		int cnt = 0;
-		Position retP;
-		for (int i = 0; i < posPool.size(); ++i) {
-			if (posPool[i].pen <= 0) {
-				++cnt;
-				if (myRand->pick(cnt) == 0) {
-					retP = posPool[i];
-				}
-			}
-		}
-		return retP;
-	}
-	return Position();
+	return bestPos;
 
 }
 
@@ -7139,7 +7040,6 @@ bool Solver::patternAdjustment(int Irand) {
 						d = estimatevw(kind, v, w, 0);
 					}
 
-					#if ATTRIBUTETABU
 					if (d.deltPc + d.deltPtw == 0) {
 						TwoNodeMove m(v, w, kind, d);
 						ret = m;
@@ -7147,9 +7047,6 @@ bool Solver::patternAdjustment(int Irand) {
 							return m;
 						}
 					}
-					#else
-
-					#endif // ATTRBUTETABU
 
 				}
 			}
@@ -7815,10 +7712,10 @@ bool Solver::ejectLocalSearch() {
 		input.P[top] += globalCfg->Pwei0;
 		maxOfPval = std::max<int>(input.P[top], maxOfPval);
 
-		if (maxOfPval >= 1000) {
+		if (maxOfPval >= 10000) {
 			maxOfPval = 0;
 			for (auto& i : input.P) {
-				i = i * 0.6 + 1;
+				i = i * 0.5 + 1;
 				maxOfPval = std::max<int>(maxOfPval, i);
 			}
 		}
@@ -7881,9 +7778,10 @@ bool Solver::ejectLocalSearch() {
 				}
 
 				doEject(XSet);
-				int Irand = input.custCnt / EPr.rCustCnt / 4;
-				Irand = std::max<int>(Irand, 100);
-				patternAdjustment(Irand);
+				//int Irand = input.custCnt / EPr.rCustCnt / 4;
+				//Irand = std::max<int>(Irand,400);
+				//patternAdjustment(Irand);
+				patternAdjustment(200);
 			}
 		}
 	}
@@ -8721,6 +8619,7 @@ bool saveSolutiontoCsvFile(Solver& sol) {
 	rgbData << std::endl;
 	rgbData.close();
 
+	INFO("write file succeed");
 	return true;
 }
 

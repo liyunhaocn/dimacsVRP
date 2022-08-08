@@ -12,8 +12,6 @@
 #include "Util/Arr2D.h"
 
 #define DIMACSGO 0
-#define ATTRIBUTETABU 1
-
 #define CHECKING 0
 
 #define lyhCheckTrue(x) {				\
