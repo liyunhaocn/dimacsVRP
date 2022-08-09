@@ -7130,6 +7130,11 @@ Vec<Solver::eOneRNode> Solver::ejectFromPatialSol() {
 		//debug(retNode.ejeVe.size())
 		//eOneRNode retNode = ejectOneRouteOnlyP(r, 2, globalCfg->maxKmax);
 		//auto en = ejectOneRouteMinPsumGreedy(r);
+		//bool s1 = en.Psum < retNode.Psum;
+		//bool s2 = en.ejeVe.size() * en.Psum < retNode.Psum* retNode.ejeVe.size();
+		//if (s1 && s2) {
+		//	retNode = en;
+		//}
 
 		if (retNode.ejeVe.size() == 0) {
 			retNode = ejectOneRouteMinPsumGreedy(r);
@@ -7509,7 +7514,7 @@ Solver::eOneRNode Solver::ejectOneRouteMinPsumGreedy
 	ret.Psum = 0;
 	Vec<int> R = rPutCusInve(r);
 
-	auto cmp = [&](const int& a, const int& b) ->bool {
+	auto cmpP = [&](const int& a, const int& b) ->bool {
 
 		if (input.P[a] == input.P[b]) {
 			/*return input.datas[a].DUEDATE - input.datas[a].READYTIME <
@@ -7521,8 +7526,18 @@ Solver::eOneRNode Solver::ejectOneRouteMinPsumGreedy
 		}
 		return false;
 	};
+	
+	auto cmpD = [&](const int& a, const int& b) ->bool {
+		if (input.datas[a].DEMAND == input.datas[b].DEMAND) {
+			return input.P[a] > input.P[b];
+		}
+		else {
+			return input.datas[a].DEMAND > input.datas[b].DEMAND;
+		}
+		return false;
+	};
 
-	std::priority_queue<int, Vec<int>, decltype(cmp)> qu(cmp);
+	std::priority_queue<int, Vec<int>, decltype(cmpD)> qu(cmpD);
 
 	for (const int& c : R) {
 		qu.push(c);

@@ -42,7 +42,7 @@ bool allocGlobalMem(int argc, char* argv[]) {
 	globalCfg->solveCommandLine(argc, argv);
 
 	if (globalCfg->seed == -1) {
-		globalCfg->seed = std::time(0) + std::clock();
+		globalCfg->seed = (std::time(0) % INT_MAX + std::clock()% INT_MAX)% INT_MAX;
 	}
 	
 	//globalCfg->seed = 1645192521;

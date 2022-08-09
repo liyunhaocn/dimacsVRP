@@ -295,7 +295,7 @@ struct RandomX {
 
 public:
 
-	using Generator = std::mt19937;
+	using Generator = hust::XorShift128;
 
 	RandomX(unsigned seed) : rgen(seed) { initMpLLArr(); }
 	RandomX() : rgen(generateSeed()) { initMpLLArr(); }
