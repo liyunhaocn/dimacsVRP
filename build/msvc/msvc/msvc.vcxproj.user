@@ -13,7 +13,7 @@
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <LocalDebuggerWorkingDirectory>$(SolutionDir)..\..\Dev</LocalDebuggerWorkingDirectory>
     <DebuggerFlavor>WindowsLocalDebugger</DebuggerFlavor>
-    <LocalDebuggerCommandArguments>-ins ../Instances/Homberger/C1_8_2.txt -time 3600</LocalDebuggerCommandArguments>
+    <LocalDebuggerCommandArguments>-ins ../Instances/Homberger/C2_4_8.txt -time 3600</LocalDebuggerCommandArguments>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <LocalDebuggerWorkingDirectory>$(SolutionDir)..\..\Dev</LocalDebuggerWorkingDirectory>

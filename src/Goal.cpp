@@ -365,7 +365,7 @@ bool Goal::experOnMinRN() {
 	//globalInput->initDetail();
 
 	Solver sol;
-	sol.initSolution(4);
+	sol.initSolution(3);
 	
 	int target = hust::globalCfg->sintefRecRN;
 	bool succeed = sol.minimizeRN(target);

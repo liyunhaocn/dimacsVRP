@@ -178,8 +178,6 @@ std::vector<int> getOneBound(std::string ex) {
 				am.at(v - 1, w - 1) = 1;
 				am.at(w - 1, v - 1) = 1;
 			}
-
-
 		}
 	}
 

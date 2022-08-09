@@ -630,13 +630,16 @@ Solver::Position Solver::findBestPosInSol(int w) {
 
 	Position bestPos;
 
+	int sameCnt = 0;
 	auto updatePool = [&](Position& pos) {
 
 		if (pos.pen < bestPos.pen) {
 			bestPos = pos;
+			sameCnt = 1;
 		}
 		else if(pos.pen == bestPos.pen) {
-			if (pos.cost < bestPos.cost && myRand->pick(100)<95) {
+			++sameCnt;
+			if (myRand->pick(sameCnt)==0) {
 				bestPos = pos;
 			}
 		}
@@ -695,7 +698,8 @@ Solver::Position Solver::findBestPosInSol(int w) {
 			vj = customers[vj].next;
 		}
 	}
-
+	//if(sameCnt>0)
+	//INFO("sameCnt:", sameCnt);
 	return bestPos;
 
 }
@@ -973,7 +977,8 @@ bool Solver::initSortOrder(int kind) {
 	for (int tp : que1) {
 
 		//Position bestP = findBestPosForRuin(tp);
-		Position bestP = findBestPosInSolForInit(tp);
+		//Position bestP = findBestPosInSolForInit(tp);
+		Position bestP = findBestPosInSol(tp);
 
 		if (bestP.rIndex != -1 && bestP.pen == 0) {
 			rInsAtPos(rts[bestP.rIndex], bestP.pos, tp);
@@ -1026,7 +1031,8 @@ bool Solver::initMaxRoute() {
 		for (int i = 0; i < que1.size(); ++i) {
 			int cus = que1[i];
 			//Position tPos = findBestPosForRuin(cus);
-			Position tPos = findBestPosInSolForInit(cus);
+			//Position tPos = findBestPosInSolForInit(cus);
+			Position tPos = findBestPosInSol(cus);
 
 			if (tPos.rIndex != -1 && tPos.pen == 0) {
 				if (tPos.cost < bestP.cost) {
@@ -6990,7 +6996,7 @@ int Solver::Simulatedannealing(int kind,int iterMax, double temperature,int ruin
 
 bool Solver::patternAdjustment(int Irand) {
 
-	int I1000 = myRand->pick(globalCfg->Irand);
+	int I1000 = myRand->pick(1,globalCfg->Irand);
 	if (Irand > 0) {
 		I1000 = Irand;
 	}
@@ -7114,8 +7120,8 @@ Vec<Solver::eOneRNode> Solver::ejectFromPatialSol() {
 				bool s2 = en.ejeVe.size() * en.Psum < retNode.Psum* retNode.ejeVe.size();
 
 				//if (s1 && s2 && s3) {
-				//if (s1) {
-				if (s1 && s2) {
+				if (s1) {
+				//if (s1 && s2) {
 					//if (satisfy1) {
 						/*deOut(en.Psum)debug(en.ejeVe.size())
 						deOut(retNode.Psum)debug(retNode.ejeVe.size())*/
@@ -7129,16 +7135,16 @@ Vec<Solver::eOneRNode> Solver::ejectFromPatialSol() {
 
 		//debug(retNode.ejeVe.size())
 		//eOneRNode retNode = ejectOneRouteOnlyP(r, 2, globalCfg->maxKmax);
-		//auto en = ejectOneRouteMinPsumGreedy(r);
-		//bool s1 = en.Psum < retNode.Psum;
-		//bool s2 = en.ejeVe.size() * en.Psum < retNode.Psum* retNode.ejeVe.size();
-		//if (s1 && s2) {
-		//	retNode = en;
-		//}
-
-		if (retNode.ejeVe.size() == 0) {
-			retNode = ejectOneRouteMinPsumGreedy(r);
+		auto en = ejectOneRouteMinPsumGreedy(r,retNode);
+		bool s1 = en.Psum < retNode.Psum;
+		bool s2 = en.ejeVe.size() * en.Psum < retNode.Psum* retNode.ejeVe.size();
+		if (s1 && s2) {
+			retNode = en;
 		}
+
+		//if (retNode.ejeVe.size() == 0) {
+		//	retNode = ejectOneRouteMinPsumGreedy(r);
+		//}
 		//else {
 
 		//	if (en.Psum < retNode.Psum) {
@@ -7241,11 +7247,11 @@ Solver::eOneRNode Solver::ejectOneRouteOnlyP(Route& r, int kind, int Kmax) {
 		}
 		else {
 			if (etemp.Psum < noTabuN.Psum) {
-				//noTabuN = etemp;
-				if (etemp.ejeVe.size() * etemp.Psum < noTabuN.Psum * noTabuN.ejeVe.size()) {
-					//if (etemp.ejeVe.size() <= noTabuN.ejeVe.size()) {
-					noTabuN = etemp;
-				}
+				noTabuN = etemp;
+				//if (etemp.ejeVe.size() * etemp.Psum < noTabuN.Psum * noTabuN.ejeVe.size()) {
+				//	//if (etemp.ejeVe.size() <= noTabuN.ejeVe.size()) {
+				//	noTabuN = etemp;
+				//}
 			}
 		}
 
@@ -7730,7 +7736,7 @@ bool Solver::ejectLocalSearch() {
 		if (maxOfPval >= 10000) {
 			maxOfPval = 0;
 			for (auto& i : input.P) {
-				i = i * 0.5 + 1;
+				i = i * 0.4 + 1;
 				maxOfPval = std::max<int>(maxOfPval, i);
 			}
 		}
@@ -7780,15 +7786,10 @@ bool Solver::ejectLocalSearch() {
 
 				for (eOneRNode& en : XSet) {
 					for (int c : en.ejeVe) {
-						/*int cpre = customers[c].pre > input.custCnt ? 0 : customers[c].pre;
-						int cnext = customers[c].next > input.custCnt ? 0 : customers[c].next;
-						(*yearTable)[cpre][c] = squIter + globalCfg->yearTabuLen + myRand->pick(globalCfg->yearTabuRand);
-						(*yearTable)[c][cnext] = squIter + globalCfg->yearTabuLen + myRand->pick(globalCfg->yearTabuRand);*/
+						
 						input.P[c] += globalCfg->Pwei1;
 						maxOfPval = std::max<DisType>(input.P[c], maxOfPval);
 
-						//P[c] += std::max<DisType>(log(P[c]), globalCfg->Pwei1);
-						//debug(std::max<DisType>(log(P[c]), globalCfg->Pwei1))
 					}
 				}
 
@@ -7796,7 +7797,7 @@ bool Solver::ejectLocalSearch() {
 				//int Irand = input.custCnt / EPr.rCustCnt / 4;
 				//Irand = std::max<int>(Irand,400);
 				//patternAdjustment(Irand);
-				patternAdjustment(200);
+				patternAdjustment();
 			}
 		}
 	}
