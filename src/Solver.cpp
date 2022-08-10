@@ -726,7 +726,7 @@ Solver::Position Solver::findBestPosInSolForInit(int w) {
 		int vj = customers[v].next;
 
 		DisType rtPc = std::max<DisType>(0, rt.rQ + input.datas[w].DEMAND - input.Q);
-		rtPc = rtPc - rt.rPc;
+		//rtPc = rtPc - rt.rPc;
 
 		if (rtPc > bestPos.pen) {
 			continue;
@@ -758,9 +758,14 @@ Solver::Position Solver::findBestPosInSolForInit(int w) {
 
 			rtPtw = rtPtw - rt.rPtw;
 
+			DisType cost = input.getDisof2(w, v)
+				+ input.getDisof2(w, vj)
+				- input.getDisof2(vj, v);
+
 			Position pt;
 			pt.pen = rtPtw + rtPc;
 			pt.pos = v;
+			pt.cost = cost;
 			pt.rIndex = i;
 			pt.secDis = secDis;
 
@@ -768,11 +773,6 @@ Solver::Position Solver::findBestPosInSolForInit(int w) {
 				bestPos = pt;
 			}
 			else if (pt.pen == bestPos.pen) {
-
-				pt.cost =
-					input.getDisof2(w,v)
-					+ input.getDisof2(w,vj)
-					- input.getDisof2(vj,v);
 
 				if (pt.cost < bestPos.cost) {
 					if (myRand->pick(100) < globalCfg->initWinkacRate) {
@@ -5372,14 +5372,14 @@ Solver::TwoNodeMove Solver::getMovesRandomly
 			outrelocateEffectively(v);
 			exchangevwEffectively(v);
 
-			int v_ = customers[v].pre;
-			int vj = customers[v].next;
+			//int v_ = customers[v].pre;
+			//int vj = customers[v].next;
 
 			//sectorArea(v);
 			//_3optEffectively(v);
 
 			int w = v;
-			int maxL = std::max<int>(6, r.rCustCnt / 5);
+			int maxL = std::max<int>(5, r.rCustCnt / 5);
 			//int maxL = 5;
 			//debug(r.rCustCnt)
 
@@ -6957,7 +6957,7 @@ bool Solver::patternAdjustment(int Irand) {
 	int iter = 0;
 	gamma = 0;
 
-	Vec<int> kindSet = { 0,1,6,7,/*8,9,10,2,3,4,5*/ };
+	Vec<int> kindSet = { 0,1,6,7,8,9,10,2,3,4,5 };
 
 	int N = globalCfg->patternAdjustmentNnei;
 	int m = std::min<int>(globalCfg->patternAdjustmentGetM, N);
@@ -7694,7 +7694,7 @@ bool Solver::ejectLocalSearch() {
 		input.P[top] += globalCfg->Pwei0;
 		maxOfPval = std::max<int>(input.P[top], maxOfPval);
 
-		if (maxOfPval >= 10000) {
+		if (maxOfPval >= 100) {
 			maxOfPval = 0;
 			for (auto& i : input.P) {
 				i = i * 0.5 + 1;

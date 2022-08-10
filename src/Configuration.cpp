@@ -85,7 +85,7 @@ void Configuration::solveCommandLine(int argc, char* argv[]) {
 			globalCfg->psizemulpsum = std::stoi(argv[i + 1], nullptr, 0);
 		}
 		else {
-			std::cerr << "--------------unknow argv------------" << std::endl;
+			std::cerr << "--------------unknow argv------------:"<< argvstr << std::endl;
 			std::cerr << getHelpInfo() << std::endl;
 		}
 	}
