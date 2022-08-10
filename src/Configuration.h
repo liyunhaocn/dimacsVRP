@@ -62,10 +62,10 @@ struct Configuration {
 	// mRLLocalSearchRange
 	//TODO[-1]:这里改成了40
 
-	double broaden = 1.2;
+	double broaden = 1.0;
 	//int broadenWhenPos_0 = 50;
 	int broadenWhenPos_0 = 20;
-	int outNeiSize = 70;
+	int outNeiSize = 50;
 
 	int neiSizeMin = 20;
 	int neiSizeMax = 50;
@@ -85,7 +85,7 @@ struct Configuration {
 
 	int ruinWinkacRate = 97; // 100
 	//TODO[-1]:为初始化设置了眨眼
-	int initWinkacRate = 97; // 100
+	int initWinkacRate = 80; // 100
 	int abcyWinkacRate = 99; // 100
 
 	int sintefRecRN = -1;
@@ -101,6 +101,8 @@ struct Configuration {
 	int cmdIsopt = -1;
 
 	std::string tag = "";
+
+	int psizemulpsum = 0;
 
 	void show();
 

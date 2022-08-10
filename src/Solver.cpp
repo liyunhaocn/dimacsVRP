@@ -639,7 +639,10 @@ Solver::Position Solver::findBestPosInSol(int w) {
 		}
 		else if(pos.pen == bestPos.pen) {
 			++sameCnt;
-			if (myRand->pick(sameCnt)==0) {
+			//if ( pos.cost < bestPos.cost && myRand->pick(100)<90) {
+			//	bestPos = pos;
+			//}
+			if (myRand->pick(sameCnt) == 0) {
 				bestPos = pos;
 			}
 		}
@@ -765,22 +768,17 @@ Solver::Position Solver::findBestPosInSolForInit(int w) {
 				bestPos = pt;
 			}
 			else if (pt.pen == bestPos.pen) {
-				//if (pt.secDis < bestPos.secDis) {
-				//	bestPos = pt;
-				//}
-				//else if (pt.secDis == bestPos.secDis) {
 
-					pt.cost =
-						input.getDisof2(w,v)
-						+ input.getDisof2(w,vj)
-						- input.getDisof2(vj,v);
+				pt.cost =
+					input.getDisof2(w,v)
+					+ input.getDisof2(w,vj)
+					- input.getDisof2(vj,v);
 
-					if (pt.cost < bestPos.cost) {
-						if (myRand->pick(100) < globalCfg->initWinkacRate) {
-							bestPos = pt;
-						}
+				if (pt.cost < bestPos.cost) {
+					if (myRand->pick(100) < globalCfg->initWinkacRate) {
+						bestPos = pt;
 					}
-				//}
+				}
 			}
 
 			v = vj;
@@ -788,7 +786,7 @@ Solver::Position Solver::findBestPosInSolForInit(int w) {
 		}
 	}
 
-	if (bestPos.secDis > vd4fpi || bestPos.cost > input.getDisof2(0,w) * 2) {
+	if (bestPos.cost > input.getDisof2(0,w) * 2) {
 		return Position();
 	}
 
@@ -977,8 +975,8 @@ bool Solver::initSortOrder(int kind) {
 	for (int tp : que1) {
 
 		//Position bestP = findBestPosForRuin(tp);
-		//Position bestP = findBestPosInSolForInit(tp);
-		Position bestP = findBestPosInSol(tp);
+		Position bestP = findBestPosInSolForInit(tp);
+		//Position bestP = findBestPosInSol(tp);
 
 		if (bestP.rIndex != -1 && bestP.pen == 0) {
 			rInsAtPos(rts[bestP.rIndex], bestP.pos, tp);
@@ -1031,8 +1029,8 @@ bool Solver::initMaxRoute() {
 		for (int i = 0; i < que1.size(); ++i) {
 			int cus = que1[i];
 			//Position tPos = findBestPosForRuin(cus);
-			//Position tPos = findBestPosInSolForInit(cus);
-			Position tPos = findBestPosInSol(cus);
+			Position tPos = findBestPosInSolForInit(cus);
+			//Position tPos = findBestPosInSol(cus);
 
 			if (tPos.rIndex != -1 && tPos.pen == 0) {
 				if (tPos.cost < bestP.cost) {
@@ -5156,7 +5154,7 @@ Solver::TwoNodeMove Solver::getMovesRandomly
 				continue;
 			}
 
-			//if (customers[w].av + input.datas[w].SERVICETIME + input.getDisof2(v,w)] >= customers[v].avp) {
+			//if (customers[w].av + input.datas[w].SERVICETIME + input.getDisof2(v,w) >= customers[v].avp) {
 			//	continue;
 			//}
 
@@ -5189,7 +5187,7 @@ Solver::TwoNodeMove Solver::getMovesRandomly
 				continue;
 			}
 
-			//if (customers[w].zv - input.getDisof2(v,w)] - input.datas[v].SERVICETIME <= customers[v].zvp) {
+			//if (customers[w].zv - input.getDisof2(v,w) - input.datas[v].SERVICETIME <= customers[v].zvp) {
 			//	continue;
 			//}
 
@@ -5239,17 +5237,17 @@ Solver::TwoNodeMove Solver::getMovesRandomly
 				TwoNodeMove m8(v, w, 8, exchangevw(v, w, 0));
 				updateBestM(m8, bestM);
 
-				/*TwoNodeMove m9(v, w, 9, exchangevvjvjjwwj(v, w));
-				updateBestM(m9,bestM);*/
+				TwoNodeMove m9(v, w, 9, exchangevvjvjjwwj(v, w,0));
+				updateBestM(m9,bestM);
 
-				/*TwoNodeMove m10(v, w, 10, exchangevvjvjjw(v, w));
-				updateBestM(m10,bestM);
+				//TwoNodeMove m10(v, w, 10, exchangevvjvjjw(v, w, 0));
+				//updateBestM(m10,bestM);
 
-				TwoNodeMove m11(v, w, 11, exchangevvjw(v, w));
-				updateBestM(m11,bestM);*/
+				TwoNodeMove m11(v, w, 11, exchangevvjw(v, w, 0));
+				updateBestM(m11,bestM);
 
-				/*TwoNodeMove m12(v, w, 12, exchangevwwj(v, w));
-				updateBestM(m12,bestM);*/
+				//TwoNodeMove m12(v, w, 12, exchangevwwj(v, w, 0));
+				//updateBestM(m12,bestM);
 			}
 		}
 
@@ -5291,17 +5289,17 @@ Solver::TwoNodeMove Solver::getMovesRandomly
 				TwoNodeMove m8(v, w, 8, exchangevw(v, w, 0));
 				updateBestM(m8, bestM);
 
-				/*TwoNodeMove m9(v, w, 9, exchangevvjvjjwwj(v, w));
-				updateBestM(m9,bestM);
+				//TwoNodeMove m9(v, w, 9, exchangevvjvjjwwj(v, w, 0));
+				//updateBestM(m9,bestM);
 
-				TwoNodeMove m10(v, w, 10, exchangevvjvjjw(v, w));
-				updateBestM(m10,bestM);*/
+				//TwoNodeMove m10(v, w, 10, exchangevvjvjjw(v, w, 0));
+				//updateBestM(m10,bestM);
 
-				/*TwoNodeMove m11(v, w, 11, exchangevvjw(v, w));
-				updateBestM(m11,bestM);*/
+				TwoNodeMove m11(v, w, 11, exchangevvjw(v, w, 0));
+				updateBestM(m11,bestM);
 
-				/*TwoNodeMove m12(v, w, 12, exchangevwwj(v, w));
-				updateBestM(m12,bestM);*/
+				//TwoNodeMove m12(v, w, 12, exchangevwwj(v, w, 0));
+				//updateBestM(m12,bestM);
 			}
 		}
 
@@ -5331,12 +5329,12 @@ Solver::TwoNodeMove Solver::getMovesRandomly
 
 				TwoNodeMove m2(v, w, 2, outrelocatevToww_(v, w, 0));
 				updateBestM(m2, bestM);
-				/*TwoNodeMove m14(v, w, 14, outrelocatevv_Toww_(v, w));
-				updateBestM(m14);*/
-				TwoNodeMove m3(v, w, 3, outrelocatevTowwj(v, w, 0));
-				updateBestM(m3, bestM);
-				/*TwoNodeMove m13(v, w, 13, outrelocatevvjTowwj(v, w));
-				updateBestM(m13,bestM);*/
+				TwoNodeMove m14(v, w, 14, outrelocatevv_Toww_(v, w, 0));
+				updateBestM(m14, bestM);
+				//TwoNodeMove m3(v, w, 3, outrelocatevTowwj(v, w,0));
+				//updateBestM(m3, bestM);
+				//TwoNodeMove m13(v, w, 13, outrelocatevvjTowwj(v, w, 0));
+				//updateBestM(m13,bestM);
 			}
 		}
 	};
@@ -5366,91 +5364,45 @@ Solver::TwoNodeMove Solver::getMovesRandomly
 
 	if (r.rPtw > 0) {
 
-		Vec<int> arr = { r.head };
-		auto rcus = rPutCusInve(r);
-		arr.insert(arr.end(), rcus.begin(), rcus.end());
-		arr.push_back(r.tail);
-		int n = arr.size();
-
-		int endIndex = -1;
-		for (endIndex = n - 1; endIndex >= 0; --endIndex) {
-			int pt = arr[endIndex];
-			if (customers[pt].avp > customers[pt].zv) {
-				break;
-			}
-		}
-
-		int begIndex = 1;
-
-		if (endIndex == n-1) {
-			--endIndex;
-		}
-		begIndex = 1;
+		Vec<int> ptwNodes = getPtwNodes(r,0);
 		
-		#if CHECKING
-		if (endIndex < 1) {
-			ERROR("NO Ptw In R");
-			rtsCheck();
-			INFO("r.head:", r.head);
-			INFO("r.head:", r.tail);
-			rNextDisp(r);
-			ERROR(11111);
-			ERROR(11111);
-			std::cout << 211231 << std::endl;
-		}
-		#endif // CHECKING
+		for (int v : ptwNodes) {
 
-		Vec<int> outNoUseIndexes;
-		for (int i = 1; i <= endIndex; ++i) {
-			int v = arr[i];
-			int v_ = arr[i - 1];
-			int vj = arr[i + 1];
-			if (customers[v_].TW_X + customers[vj].TWX_ == r.rPtw) {
-				outNoUseIndexes.push_back(i);
-			}
-			else {
-				_2optEffectively(v);
-				exchangevwEffectively(v);
-				outrelocateEffectively(v);
-			}
-		}
+			_2optEffectively(v);
+			outrelocateEffectively(v);
+			exchangevwEffectively(v);
 
-		if (outNoUseIndexes.size() > 0 && outNoUseIndexes.back() != n - 2) {
-			outNoUseIndexes.push_back(n-2);
-		}
+			int v_ = customers[v].pre;
+			int vj = customers[v].next;
 
-		for (int i = 0; i + 1 < outNoUseIndexes.size(); ++i) {
-			
-			int maxL = 5;
-			int vIndex = outNoUseIndexes[i];
+			//sectorArea(v);
+			//_3optEffectively(v);
 
-			maxL = std::min<int>(maxL, outNoUseIndexes[i + 1] - outNoUseIndexes[i]);
-			for (int j = 1; j <= maxL; ++j) {
+			int w = v;
+			int maxL = std::max<int>(6, r.rCustCnt / 5);
+			//int maxL = 5;
+			//debug(r.rCustCnt)
 
-				int v = arr[vIndex];
-				int w = arr[vIndex + j];
-
-				TwoNodeMove m4(v, w, 4, inrelocatevv_(v, w, 1));
-				updateBestM(m4, bestM);
+			for (int i = 1; i <= maxL; ++i) {
+				w = customers[w].next;
+				if (w > input.custCnt) {
+					break;
+				}
 
 				TwoNodeMove m8(v, w, 8, exchangevw(v, w, 1));
 				updateBestM(m8, bestM);
 
-				TwoNodeMove m13(v, w, 13, outrelocatevvjTowwj(v, w, 1));
-				updateBestM(m13, bestM);
+				if (i >= 2) {
+					TwoNodeMove m3(v, w, 3, outrelocatevTowwj(v, w, 1));
+					updateBestM(m3, bestM);
+				}
 
-				TwoNodeMove m15(v, w, 15, reversevw(v, w));
-				updateBestM(m15, bestM);
+				if (i >= 3) {
+					TwoNodeMove m15(v, w, 15, reversevw(v, w));
+					updateBestM(m15, bestM);
+				}
 			}
 		}
-		
-		//for (int i = 1; i + 1 < n; ++i) {
-		//	int v = arr[i];
-		//	_2optEffectively(v);
-		//	exchangevwEffectively(v);
-		//	outrelocateEffectively(v);
-		//}
-		
 	}
 	else {
 
@@ -5501,8 +5453,8 @@ Solver::TwoNodeMove Solver::getMovesRandomly
 				/*TwoNodeMove m9(v, w, 9, exchangevvjvjjwwj(v, w,0));
 				updateBestM(m9,bestM);*/
 
-				TwoNodeMove m10(v, w, 10, exchangevvjvjjw(v, w, 0));
-				updateBestM(m10, bestM);
+				//TwoNodeMove m10(v, w, 10, exchangevvjvjjw(v, w, 0));
+				//updateBestM(m10, bestM);
 
 				TwoNodeMove m11(v, w, 11, exchangevvjw(v, w, 0));
 				updateBestM(m11, bestM);
@@ -7104,7 +7056,7 @@ Vec<Solver::eOneRNode> Solver::ejectFromPatialSol() {
 
 		eOneRNode retNode;
 		int tKmax = globalCfg->minKmax;
-		//tKmax = globalCfg->maxKmax;
+		//int tKmax = globalCfg->maxKmax;
 
 		while (tKmax <= globalCfg->maxKmax) {
 
@@ -7116,49 +7068,51 @@ Vec<Solver::eOneRNode> Solver::ejectFromPatialSol() {
 			else {
 
 				//bool s3 = en.Psum * retNode.ejeVe.size() < retNode.Psum * en.ejeVe.size();
-				bool s1 = en.Psum < retNode.Psum;
-				bool s2 = en.ejeVe.size() * en.Psum < retNode.Psum* retNode.ejeVe.size();
 
-				//if (s1 && s2 && s3) {
-				if (s1) {
-				//if (s1 && s2) {
-					//if (satisfy1) {
-						/*deOut(en.Psum)debug(en.ejeVe.size())
-						deOut(retNode.Psum)debug(retNode.ejeVe.size())*/
-						//debug("satisfy12")
-					retNode = en;
+				if (globalCfg->psizemulpsum) {
+					bool s1 = en.Psum < retNode.Psum;
+					bool s2 = en.ejeVe.size() * en.Psum < retNode.Psum* retNode.ejeVe.size();
+					if (s1 && s2) {
+						retNode = en;
+					}
 				}
-				//}
+				else {
+					bool s1 = en.Psum < retNode.Psum;
+					if (s1) {
+						retNode = en;
+					}
+				}
 			}
 			++tKmax;
 		}
 
 		//debug(retNode.ejeVe.size())
 		//eOneRNode retNode = ejectOneRouteOnlyP(r, 2, globalCfg->maxKmax);
-		auto en = ejectOneRouteMinPsumGreedy(r,retNode);
-		bool s1 = en.Psum < retNode.Psum;
-		bool s2 = en.ejeVe.size() * en.Psum < retNode.Psum* retNode.ejeVe.size();
-		if (s1 && s2) {
-			retNode = en;
+		auto en = ejectOneRouteMinPsumGreedy(r, retNode);
+
+		if (globalCfg->psizemulpsum) {
+
+			bool s1 = en.Psum < retNode.Psum;
+			bool s2 = en.ejeVe.size() * en.Psum < retNode.Psum* retNode.ejeVe.size();
+
+			if (s1 && s2) {
+				//INFO("s1 && s2");
+				retNode = en;
+			}
+		}
+		else {
+
+			bool s1 = en.Psum < retNode.Psum;
+			if (s1) {
+				//INFO("s1");
+				retNode = en;
+			}
 		}
 
 		//if (retNode.ejeVe.size() == 0) {
-		//	retNode = ejectOneRouteMinPsumGreedy(r);
+		//	retNode = ejectOneRouteMinPsumGreedy(r, retNode);
 		//}
-		//else {
 
-		//	if (en.Psum < retNode.Psum) {
-		//		//bool satisfy2 = en.ejeVe.size() * en.Psum < retNode.Psum* retNode.ejeVe.size();
-		//		bool satisfy2 = en.ejeVe.size() > globalCfg->maxKmax;
-		//		//bool satisfy2 = true;
-		//		if (satisfy2) {
-		//			deOut(en.Psum)debug(en.ejeVe.size())
-		//			deOut(retNode.Psum)debug(retNode.ejeVe.size())
-		//			debug(satisfy2)
-		//			retNode = en;
-		//		}
-		//	}
-		//}
 
 		#if CHECKING
 		lyhCheckTrue(retNode.ejeVe.size() > 0);
@@ -7246,12 +7200,19 @@ Solver::eOneRNode Solver::ejectOneRouteOnlyP(Route& r, int kind, int Kmax) {
 			noTabuN = etemp;
 		}
 		else {
-			if (etemp.Psum < noTabuN.Psum) {
-				noTabuN = etemp;
-				//if (etemp.ejeVe.size() * etemp.Psum < noTabuN.Psum * noTabuN.ejeVe.size()) {
-				//	//if (etemp.ejeVe.size() <= noTabuN.ejeVe.size()) {
-				//	noTabuN = etemp;
-				//}
+
+			if (globalCfg->psizemulpsum) {
+				if (etemp.Psum < noTabuN.Psum) {
+					if (etemp.ejeVe.size() * etemp.Psum < noTabuN.Psum * noTabuN.ejeVe.size()) {
+						//if (etemp.ejeVe.size() <= noTabuN.ejeVe.size()) {
+						noTabuN = etemp;
+					}
+				}
+			}
+			else {
+				if (etemp.Psum < noTabuN.Psum) {
+					noTabuN = etemp;
+				}
 			}
 		}
 
@@ -7543,7 +7504,7 @@ Solver::eOneRNode Solver::ejectOneRouteMinPsumGreedy
 		return false;
 	};
 
-	std::priority_queue<int, Vec<int>, decltype(cmpD)> qu(cmpD);
+	std::priority_queue<int, Vec<int>, decltype(cmpP)> qu(cmpP);
 
 	for (const int& c : R) {
 		qu.push(c);
@@ -7736,7 +7697,7 @@ bool Solver::ejectLocalSearch() {
 		if (maxOfPval >= 10000) {
 			maxOfPval = 0;
 			for (auto& i : input.P) {
-				i = i * 0.4 + 1;
+				i = i * 0.5 + 1;
 				maxOfPval = std::max<int>(maxOfPval, i);
 			}
 		}

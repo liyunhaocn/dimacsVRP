@@ -50,6 +50,7 @@ static std::string getHelpInfo() {
 	ss << "[-pwei1 Pwei1:int]" << std::endl;
 	ss << "[-tag tag:string]" << std::endl;
 	ss << "[-isbreak isBreak:int]" << std::endl;
+	ss << "[-psizemulpsum psizemulpsum:int]" << std::endl;
 	return ss.str();
 }
 
@@ -79,6 +80,9 @@ void Configuration::solveCommandLine(int argc, char* argv[]) {
 		}
 		else if (argvstr == "-pwei1") {
 			globalCfg->Pwei1 = std::stoi(argv[i + 1], nullptr, 0);
+		}
+		else if (argvstr == "-psizemulpsum") {
+			globalCfg->psizemulpsum = std::stoi(argv[i + 1], nullptr, 0);
 		}
 		else {
 			std::cerr << "--------------unknow argv------------" << std::endl;
