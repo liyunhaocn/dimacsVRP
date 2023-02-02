@@ -31,7 +31,6 @@
     <ClCompile Include="..\..\..\src\EAX.cpp" />
     <ClCompile Include="..\..\..\src\Flag.cpp" />
     <ClCompile Include="..\..\..\src\Goal.cpp" />
-    <ClCompile Include="..\..\..\src\Individual.cpp" />
     <ClCompile Include="..\..\..\src\Main.cpp" />
     <ClCompile Include="..\..\..\src\MCP\CliqueSolver.cpp" />
     <ClCompile Include="..\..\..\src\MCP\CliqueTsm.cpp" />
@@ -41,7 +40,6 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\..\..\src\CommandLine.h" />
-    <ClInclude Include="..\..\..\src\Individual.h" />
     <ClInclude Include="..\..\..\src\LowerBoundOfRouteNum.h" />
     <ClInclude Include="..\..\..\src\Util_Arr2D.h" />
     <ClInclude Include="..\..\..\src\Algorithm_Parameters.h" />

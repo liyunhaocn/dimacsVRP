@@ -6,27 +6,7 @@
 
 namespace hust{
 
-bool Solver::initEPr() {
-
-	Route& r = EPr;
-	EPr = rCreateRoute(-1);
-
-	r.head = input->custCnt + 1;
-	r.tail = input->custCnt + 2;
-
-	customers[r.head].next = r.tail;
-	customers[r.tail].pre = r.head;
-
-	customers[r.head].routeID = -1;
-	customers[r.tail].routeID = -1;
-
-	return true;
-}
-
-Solver::Solver():
-	PtwConfRts(input->custCnt / 8),
-	PcConfRts(input->custCnt / 8),
-	rts(input->custCnt / 8) {}
+Solver::Solver(){}
 
 Solver::Solver(Input* input, Random* random, RandomX* randomx) :
 	input(input),
@@ -48,7 +28,6 @@ Solver::Solver(Input* input, Random* random, RandomX* randomx) :
 	Pc = 0;
 	//minEPSize = inf;
 	RoutesCost = DisInf;
-	initEPr();
 }
 
 Solver::Solver(const Solver& s) :
@@ -67,7 +46,6 @@ Solver::Solver(const Solver& s) :
 	this->alpha = s.alpha;
 	this->beta = s.beta;
 	this->gamma = s.gamma;
-	this->EPr = s.EPr;
 	this->RoutesCost = s.RoutesCost;
 }
 
@@ -87,7 +65,6 @@ Solver& Solver::operator = (const Solver& s) {
 		this->gamma = s.gamma;
 		this->Pc = s.Pc;
 		this->RoutesCost = s.RoutesCost;
-		this->EPr = s.EPr;
 	}
 	return *this;
 }
@@ -96,7 +73,7 @@ Solver& Solver::operator = (const Solver& s) {
 Route Solver::rCreateRoute(int id) {
 
 	Route r(id);
-	int index = (rts.cnt + 1) * 2 + input->custCnt + 1;
+	int index = input->custCnt + rts.cnt * 2 + 1;
 
 	while (index + 1 >= customers.size()) {
 		customers.push_back(customers[0]);
@@ -1078,6 +1055,7 @@ bool Solver::initMaxRoute() {
 	return true;
 }
 
+#if 0
 bool Solver::loadIndividual(const Individual* indiv) {
 
 	rts.reSet();
@@ -1147,6 +1125,7 @@ void Solver::exportIndividual(Individual* indiv) {
 	}
 	indiv->evaluateCompleteCost();
 }
+#endif
 
 bool Solver::initSolution(int kind) {//5种
 
@@ -1178,92 +1157,6 @@ bool Solver::initSolution(int kind) {//5种
 	INFO("init rtcost:",RoutesCost);
 
 	return true;
-}
-
-bool Solver::EPrReset() {
-
-	Route& r = EPr;
-	r.rCustCnt = 0; //没有计算仓库
-	//r.routeID = -1;
-	r.routeCost = 0;
-	r.rPc = 0;
-	r.rPtw = 0;
-	r.rWeight = 1;
-
-	int pt = r.head;
-	//debug(pt)
-	while (pt != -1) {
-		//debug(pt)
-		int ptnext = customers[pt].next;
-		customers[pt].reset();
-		pt = ptnext;
-	}
-
-	r.head = -1;
-	r.tail = -1;
-
-	return true;
-}
-
-bool Solver::EPrInsTail(int t) {
-
-	Route& r = EPr;
-	rInsAtPosPre(r, r.tail, t);
-
-	return true;
-}
-
-bool Solver::EPrInsHead(int t) {
-
-	Route& r = EPr;
-	rInsAtPos(r, r.head, t);
-
-	return true;
-}
-
-bool Solver::EPrInsAtPos(int pos, int node) {
-
-	Route& r = EPr;
-	rInsAtPos(r, pos, node);
-	return true;
-}
-
-bool Solver::EPpush_back(int v) {
-
-	rInsAtPosPre(EPr, EPr.tail, v);
-	return true;
-}
-
-int Solver::EPsize() {
-	return EPr.rCustCnt;
-}
-
-Vec<int> Solver::EPve() {
-
-	Vec<int>ret = rPutCusInve(EPr);
-	return ret;
-}
-
-bool Solver::EPrRemoveAtPos(int a) {
-	rRemoveAtPos(EPr, a);
-	return true;
-}
-
-bool Solver::EPremoveByVal(int val) {
-	rRemoveAtPos(EPr, val);
-	return true;
-}
-
-int Solver::EPrGetCusByIndex(int index) {
-
-	int pt = EPr.head;
-	pt = customers[pt].next;
-
-	while (pt > 0 && pt <= input->custCnt && index > 0) {
-		pt = customers[pt].next;
-		index--;
-	}
-	return pt;
 }
 
 DeltPen Solver::estimatevw(int kind, int v, int w, int oneR) {
@@ -5001,7 +4894,7 @@ bool Solver::doEject(Vec<eOneRNode>& XSet) {
 
 		for (int node : en.ejeVe) {
 			rRemoveAtPos(r, node);
-			EPpush_back(node);
+			EP.insert(node);
 		}
 		rUpdateAvQfrom(r, r.head);
 		rUpdateZvQfrom(r, r.tail);
@@ -5026,7 +4919,7 @@ bool Solver::doEject(Vec<eOneRNode>& XSet) {
 bool Solver::managerCusMem(Vec<int>& releaseNodes) {
 
 	//printve(releaseNodes);
-	int useEnd = input->custCnt + 2 + (rts.cnt + 1) * 2 + 1;
+	int useEnd = input->custCnt + (rts.cnt + 1) * 2 + 1;
 
 	for (int i : releaseNodes) {
 
@@ -5074,7 +4967,7 @@ bool Solver::removeOneRouteByRid(int rId) {
 	rts.removeIndex(rts.posOf[rId]);
 	
 	for (int pt : rtVe) {
-		EPpush_back(pt);
+		EP.insert(pt);
 	}
 
 	sumRtsPen();
@@ -5559,7 +5452,8 @@ void Solver::ruinClearEP(int kind) {
 
 	// 保存放入节点的路径，放入结束之后只更新这些路径的cost值
 	std::unordered_set<int> insRts;
-	Vec<int> EPArr = rPutCusInve(EPr);
+	
+	Vec<int> EPArr = EP.putElementInVector();
 
 	auto cmp1 = [&](int a, int b) {
 		return input->datas[a].DEMAND > input->datas[b].DEMAND;
@@ -5610,7 +5504,7 @@ void Solver::ruinClearEP(int kind) {
 	for (int i = 0; i < EPArr.size(); ++i) {
 		//for (int i = EPArr.size() - 1;i>=0;--i) {
 		int pt = EPArr[i];
-		EPrRemoveAtPos(pt);
+		EP.removeVal(pt);
 		//++P[pt];
 		auto bestFitPos = findBestPosForRuin(pt);
 
@@ -5983,7 +5877,7 @@ void Solver::perturbBasedejepool(int ruinCusNum) {
 		rIds.insert(r.routeID);
 		if (r.rCustCnt > 2) {
 			rRemoveAtPos(r, cus);
-			EPpush_back(cus);
+			EP.insert(cus);
 		}
 	}
 
@@ -6041,7 +5935,7 @@ bool Solver::doOneTimeRuinPer(int perturbkind, int ruinCusNum, int clearEPKind) 
 		rIds.insert(r.routeID);
 		if (r.rCustCnt > 2) {
 			rRemoveAtPos(r, cus);
-			EPpush_back(cus);
+			EP.insert(cus);
 		}
 	}
 
@@ -6177,7 +6071,7 @@ int Solver::ruinLocalSearchNotNewR(int ruinCusNum) {
 int Solver::CVB2ClearEPAllowNewR(int kind) {
 
 	std::unordered_set<int> insRts;
-	Vec<int> EPArr = rPutCusInve(EPr);
+	Vec<int> EPArr = EP.putElementInVector();
 
 	auto cmp1 = [&](int a, int b) {
 		return input->datas[a].DEMAND > input->datas[b].DEMAND;
@@ -6226,7 +6120,7 @@ int Solver::CVB2ClearEPAllowNewR(int kind) {
 	for (int i = 0; i < EPArr.size(); ++i) {
 		//for (int i = EPArr.size() - 1;i>=0;--i) {
 		int pt = EPArr[i];
-		EPrRemoveAtPos(pt);
+		EP.removeVal(pt);
 		//++P[pt];
 		auto bestPos = findBestPosForRuin(pt);
 		
@@ -6311,7 +6205,7 @@ int Solver::CVB2ruinLS(int ruinCusNum) {
 		Route& r = rts.getRouteByRid(customers[cus].routeID);
 		rIds.insert(r.routeID);
 		rRemoveAtPos(r, cus);
-		EPpush_back(cus);
+		EP.insert(cus);
 
 		if (r.rCustCnt == 0) {
 			if (rIds.count(r.routeID)>0) {
@@ -7048,19 +6942,18 @@ bool Solver::resetSol() {
 		rReset(rts[i]);
 	}
 	rts.reSet();
-	rReset(EPr);
-	initEPr();
+	EP.reSet();
 	return true;
 }
 
 bool Solver::EPNodesCanEasilyPut() {
 
-	for (int EPIndex = 0; EPIndex < EPsize();) {
+	for (int EPIndex = 0; EPIndex < EP.size();) {
 		#if CHECKING
 		DisType oldpenalty = PtwNoWei + Pc;
 		#endif // CHECKING
 
-		Vec<int> arr = EPve();
+		Vec<int> arr = EP.putElementInVector();
 		int top = arr[EPIndex];
 
 		Position bestP = findBestPosInSol(top);
@@ -7073,7 +6966,7 @@ bool Solver::EPNodesCanEasilyPut() {
 
 			input->P[top] += aps->Pwei0;
 			//EP(*yearTable)[top] = EPIter + aps->EPTabuStep + random->pick(aps->EPTabuRand);
-			EPremoveByVal(top);
+			EP.removeVal(top);
 
 			rInsAtPos(r, bestP.pos, top);
 			rUpdateAvQfrom(r, top);
@@ -7115,8 +7008,8 @@ bool Solver::ejectLocalSearch() {
 
 		EPNodesCanEasilyPut();
 
-		if (EPr.rCustCnt < minEPcus) {
-			minEPcus = EPr.rCustCnt;
+		if (EP.size() < minEPcus) {
+			minEPcus = EP.size();
 			EpCusNoDown = 1;
 		}
 		else {
@@ -7131,13 +7024,13 @@ bool Solver::ejectLocalSearch() {
 			}
 		}
 
-		minEPcus = std::min<int>(minEPcus, EPr.rCustCnt);
-		if (EPsize() == 0 && penalty == 0) {
+		minEPcus = std::min<int>(minEPcus, EP.size());
+		if (EP.size() == 0 && penalty == 0) {
 			//debug(iter);
 			break;
 		}
 
-		Vec<int> EPrVe = rPutCusInve(EPr);
+		Vec<int> EPrVe = EP.putElementInVector();
 		int top = EPrVe[random->pick(EPrVe.size())];
 
 		Position bestP = findBestPosInSol(top);
@@ -7145,7 +7038,7 @@ bool Solver::ejectLocalSearch() {
 		//Position bestP = findBestPosInSolForInit(top);
 
 		Route& r = rts[bestP.rIndex];
-		EPremoveByVal(top);
+		EP.removeVal(top);
 
 		input->P[top] += aps->Pwei0;
 		maxOfPval = std::max<int>(input->P[top], maxOfPval);
@@ -7224,7 +7117,7 @@ bool Solver::ejectLocalSearch() {
 		reCalRtsCostSumCost();
 	}
 
-	return (EPsize() == 0 && penalty == 0);
+	return (EP.size() == 0 && penalty == 0);
 }
 
 bool Solver::minimizeRN(int ourTarget) {
@@ -7812,7 +7705,7 @@ Output Solver::saveToOutPut() {
 	DisType state = verify();
 
 	output.runTime = timer->getRunTime();
-	output.EP = rPutCusInve(EPr);
+	output.EP = EP.putElementInVector();
 	output.minEP = minEPcus;
 	output.PtwNoWei = PtwNoWei;
 	output.Pc = Pc;

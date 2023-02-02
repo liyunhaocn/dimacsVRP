@@ -1,3 +1,4 @@
+
 #ifndef CN_HUST_LYH_SOLVER_H
 #define CN_HUST_LYH_SOLVER_H
 
@@ -9,7 +10,6 @@
 #include "Flag.h"
 #include "Util_Common.h"
 #include "Problem.h"
-#include "Individual.h"
 #include "YearTable.h"
 
 namespace hust {
@@ -100,8 +100,8 @@ struct RTS {
 	Vec<int> posOf;
 	int cnt = 0;
 
-	RTS() {}
-		
+	RTS() = default;
+
 	RTS(int maxSize) {
 		cnt = 0;
 		ve.reserve(maxSize);
@@ -139,9 +139,9 @@ struct RTS {
 
 	bool push_back(Route& r1) {
 
-		#if CHECKING
-		lyhCheckTrue(r1.routeID>=0);
-		#endif // CHECKING
+#if CHECKING
+		lyhCheckTrue(r1.routeID >= 0);
+#endif // CHECKING
 
 		if (r1.routeID >= posOf.size()) {
 			size_t newSize = posOf.size() + std::max<size_t>(r1.routeID + 1, posOf.size() / 2 + 1);
@@ -175,7 +175,7 @@ struct RTS {
 			posOf[id] = -1;
 			cnt--;
 		}
-		
+
 		return true;
 	}
 
@@ -213,7 +213,7 @@ struct ConfSet {
 	Vec<int> pos;
 	int cnt = 0;
 
-	ConfSet() = delete;
+	ConfSet() = default;
 	ConfSet(int maxSize) {
 		cnt = 0;
 		ve = Vec<int>(maxSize + 1, -1);
@@ -235,9 +235,12 @@ struct ConfSet {
 		return *this;
 	}
 
-	ConfSet(ConfSet&& cs) noexcept = delete;
+	ConfSet(ConfSet&& cs) noexcept = default;
+	ConfSet& operator = (ConfSet&& cs) noexcept = default;
 
-	ConfSet& operator = (ConfSet&& cs) noexcept = delete;
+	int size() {
+		return cnt;
+	}
 
 	bool reSet() {
 
@@ -253,9 +256,9 @@ struct ConfSet {
 
 	bool insert(int val) {
 
-		#if CHECKING
-		lyhCheckTrue(val>=0);
-		#endif // CHECKING
+#if CHECKING
+		lyhCheckTrue(val >= 0);
+#endif // CHECKING
 
 		if (val >= pos.size()) {
 			int newSize = pos.size() + std::max<int>(val + 1, pos.size() / 2 + 1);
@@ -271,6 +274,18 @@ struct ConfSet {
 		pos[val] = cnt;
 		++cnt;
 		return true;
+	}
+
+	Vec<int>putElementInVector() {
+		return Vec<int>(ve.begin(), ve.begin() + cnt);
+	}
+
+	int randomPeek(Random* random) {
+		if (cnt == 0) {
+			ERROR("container.cnt == 0");
+		}
+		int index = random->pick(cnt);
+		return ve[index];
 	}
 
 	bool removeVal(int val) {
@@ -407,13 +422,12 @@ public:
 	DisType RoutesCost = DisInf;
 
 	RTS rts;
+	ConfSet EP;
 
 	ConfSet PtwConfRts, PcConfRts;
 
 	//LL EPIter = 1;
 	int minEPcus = IntInf;
-
-	Route EPr;
 
 	AlgorithmParameters* aps = nullptr;
 	Random* random = nullptr;
@@ -423,7 +437,7 @@ public:
 	YearTable* yearTable = nullptr;
 
 	struct Position {
-		int rIndex =-1;
+		int rIndex = -1;
 		int pos = -1;
 		DisType pen = DisInf;
 		DisType cost = DisInf;
@@ -440,7 +454,7 @@ public:
 		int getMaxEle() {
 			int ret = -1;
 			for (int i : ejeVe) {
-				ret = std::max<int>(ret,i);
+				ret = std::max<int>(ret, i);
 			}
 			return ret;
 		}
@@ -463,11 +477,9 @@ public:
 		}
 	};
 
-	bool initEPr();
-	
 	Solver();
 
-	Solver(Input* input,Random*random ,RandomX* randomx);
+	Solver(Input* input, Random* random, RandomX* randomx);
 
 	Solver(const Solver& s);
 
@@ -521,7 +533,7 @@ public:
 	CircleSector rGetCircleSector(Route& r);
 
 	void sumRtsPen();
-		
+
 	void sumRtsCost();
 
 	DisType updatePen(const DeltPen& delt);
@@ -536,37 +548,16 @@ public:
 
 	bool initMaxRoute();
 
-	bool loadIndividual(const Individual* indiv);
+	//bool loadIndividual(const Individual* indiv);
+	//void exportIndividual(Individual* indiv);
 
-	void exportIndividual(Individual* indiv);
-
-	#if 0
+#if 0
 	bool initBySolFile(std::string bksPath);
 	bool initByDimacsBKS();
 	bool initByLKHBKS();
-	#endif // 0
+#endif // 0
 
 	bool initSolution(int kind);
-
-	bool EPrReset();
-
-	bool EPrInsTail(int t);
-
-	bool EPrInsHead(int t);
-
-	bool EPrInsAtPos(int pos, int node);
-
-	bool EPpush_back(int v);
-
-	int EPsize();
-
-	Vec<int> EPve();
-
-	bool EPrRemoveAtPos(int a);
-
-	bool EPremoveByVal(int val);
-
-	int EPrGetCusByIndex(int index);
 
 	DeltPen estimatevw(int kind, int v, int w, int oneR);
 
@@ -635,7 +626,7 @@ public:
 	bool managerCusMem(Vec<int>& releaseNodes);
 
 	bool removeOneRouteByRid(int rId = -1);
-		
+
 	DisType verify();
 
 	DeltPen getDeltIfRemoveOneNode(Route& r, int pt);
@@ -659,27 +650,27 @@ public:
 	Vec<int> ruinGetRuinCusByRound(int ruinCusNum);
 
 	Vec<int> ruinGetRuinCusByRand(int ruinCusNum);
-		
+
 	Vec<int> ruinGetRuinCusByRandOneR(int ruinCusNum);
 
 	Vec<int> ruinGetRuinCusBySec(int ruinCusNum);
 
 	int ruinLocalSearchNotNewR(int ruinCusNum);
-		
+
 	int CVB2ruinLS(int ruinCusNum);
 
 	Position findBestPosToSplit(Route& r);
-	
+
 	int getARidCanUsed();
-	
+
 	int splitLS();
-	
+
 	int CVB2ClearEPAllowNewR(int kind);
 
-	int Simulatedannealing(int kind,int iterMax, double temperature,int ruinNum);
+	int Simulatedannealing(int kind, int iterMax, double temperature, int ruinNum);
 
-	bool doOneTimeRuinPer(int perturbkind, int ruinCusNum,int clearEPKind);
-	
+	bool doOneTimeRuinPer(int perturbkind, int ruinCusNum, int clearEPKind);
+
 	bool perturbBaseRuin(int perturbkind, int ruinCusNum, int clearEPKind);
 
 	bool ejectLocalSearch();
@@ -696,27 +687,27 @@ public:
 
 	eOneRNode ejectOneRouteMinPsumGreedy
 	(Route& r, eOneRNode cutBranchNode = eOneRNode());
-		
+
 	bool resetSol();
 
 	bool minimizeRN(int ourTarget);
 
 	bool adjustRN(int ourTarget);
 
-	#if 0
+#if 0
 	TwoNodeMove naRepairGetMoves(std::function<bool(TwoNodeMove& t, TwoNodeMove& bestM)>updateBestM);
-	#endif // 0
+#endif // 0
 
 	bool repair();
 
-	bool mRLLocalSearch(int hasRange,Vec<int> newCus);
+	bool mRLLocalSearch(int hasRange, Vec<int> newCus);
 
 	Output saveToOutPut();
 
 	bool printDimacs();
 
-	bool saveOutAsSintefFile(std::string outputPath,std::string opt = "");
-		
+	bool saveOutAsSintefFile(std::string outputPath, std::string opt = "");
+
 	~Solver();
 
 public:
@@ -726,7 +717,7 @@ struct BKS {
 
 	Solver bestSolFound;
 	DisType lastPrCost = DisInf;
-	UnorderedMap<int,DisType> bksAtRn;
+	UnorderedMap<int, DisType> bksAtRn;
 	Timer::TimePoint lastPrintTp;
 	Timer* timer = nullptr;
 	BKS();
@@ -734,13 +725,9 @@ struct BKS {
 	void reSet();
 
 	bool updateBKSAndPrint(Solver& newSol, std::string opt = "");
-	
+
 	void resetBksAtRn();
-
 };
-
-bool saveSolutiontoCsvFile(Solver& sol);
-
-};
+}
 
 #endif // !CN_HUST_LYH_SOLVER_H

@@ -37,9 +37,6 @@
     <ClCompile Include="..\..\..\src\Main.cpp">
       <Filter>src</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\..\src\Individual.cpp">
-      <Filter>src</Filter>
-    </ClCompile>
     <ClCompile Include="..\..\..\src\YearTable.cpp">
       <Filter>src</Filter>
     </ClCompile>
@@ -82,9 +79,6 @@
       <Filter>src</Filter>
     </ClInclude>
     <ClInclude Include="..\..\..\src\LowerBoundOfRouteNum.h">
-      <Filter>src</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\..\src\Individual.h">
       <Filter>src</Filter>
     </ClInclude>
     <ClInclude Include="..\..\..\src\YearTable.h">

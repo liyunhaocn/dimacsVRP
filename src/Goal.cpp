@@ -386,7 +386,6 @@ bool Goal::experOnMinRN() {
 	else {
 		INFO("fail to delete");
 	}
-	saveSolutiontoCsvFile(sol);
 
 	return true;
 }
