@@ -4,7 +4,7 @@
 #include <functional>
 
 #include "Problem.h"
-#include "Utility.h"
+#include "Util_Common.h"
 
 namespace hust {
 
@@ -1759,24 +1759,24 @@ static InsData getD15InsData(std::string ins) {
 	return InsData{};
 }
 
-Input::Input() {
+Input::Input(CommandLine* commandLine,AlgorithmParameters* aps):
+	commandLine(commandLine),aps(aps) {
+
+	//std::string example = aps->inputPath;
+	//int txtPos = example.find(".txt");
+	//example = example.substr(0, txtPos);
+	//int slich = example.find("Homberger/");
+	//if (slich != -1) {
+	//	slich += 9;
+	//}
+	//else {
+	//	slich = example.find("Solomon/");
+	//	slich += 7;
+	//}
+	//example = example.substr(slich + 1);
+
 	initInput();
 	initDetail();
-}
-
-void Input::printHelpInfo() {
-
-	INFO("cmdIsopt", globalCfg->cmdIsopt);
-	INFO("lkhRL:", globalCfg->lkhRL);
-	INFO("lkhRN:", globalCfg->lkhRN);
-
-	INFO("d15RecRN:", globalCfg->d15RecRN);
-	INFO("d15RecRL:", globalCfg->d15RecRL);
-
-	INFO("sintefRecRN:", globalCfg->sintefRecRN);
-	INFO("sintefRecRL:", globalCfg->sintefRecRL);
-	INFO("naRecRL:", globalCfg->naRecRL);
-	INFO("naRecRN:", globalCfg->naRecRN);
 }
 
 void Input::initDetail() {
@@ -1858,7 +1858,7 @@ void Input::initDetail() {
 		}
 	}
 	
-	int deNeiSize = globalCfg->outNeiSize;
+	int deNeiSize = aps->outNeiSize;
 	deNeiSize = std::min(custCnt - 1, deNeiSize);
 
 	auto iInNeicloseOf = Vec< Vec<int> >
@@ -1888,22 +1888,22 @@ void Input::initDetail() {
 		}
 	}
 
-	globalCfg->sintefRecRN = getSintefMinRN(example);
-	globalCfg->sintefRecRL = getSintefRL(example) * disMul;
-	globalCfg->naRecRN = getNagataInsData(example).minRN;
-	globalCfg->naRecRL = getNagataInsData(example).minRL * disMul;
+	aps->sintefRecRN = getSintefMinRN(example);
+	aps->sintefRecRL = getSintefRL(example) * disMul;
+	aps->naRecRN = getNagataInsData(example).minRN;
+	aps->naRecRL = getNagataInsData(example).minRL * disMul;
 
-	globalCfg->d15RecRN = getD15InsData(example).minRN;
-	globalCfg->d15RecRL = getD15InsData(example).minRL;
+	aps->d15RecRN = getD15InsData(example).minRN;
+	aps->d15RecRL = getD15InsData(example).minRL;
 
-	globalCfg->lkhRN = getLKHInsData(example).minRN;
-	globalCfg->lkhRL = getLKHInsData(example).minRL;
-	globalCfg->cmdIsopt = getLKHInsData(example).isOpt;
+	aps->lkhRN = getLKHInsData(example).minRN;
+	aps->lkhRL = getLKHInsData(example).minRL;
+	aps->cmdIsopt = getLKHInsData(example).isOpt;
 }
 
 bool Input::initInput() {
 
-	readDimacsInstance(globalCfg->inputPath);
+	readDimacsInstance(commandLine->inputPath);
 	//readDimacsBKS();
 
 	P = Vec<int>(custCnt + 1, 1);
@@ -2004,8 +2004,8 @@ bool Input::initInput() {
 		};
 		//std::sort(addSTclose[v].begin(), addSTclose[v].end(), cmp);
 		
-		getTopKmin(addSTclose[v], addSTclose.size2(), globalCfg->mRLLocalSearchRange[1],cmp);
-		std::sort(addSTclose[v], addSTclose[v] + globalCfg->mRLLocalSearchRange[1], cmp);
+		getTopKmin(addSTclose[v], addSTclose.size2(), aps->mRLLocalSearchRange[1],cmp);
+		std::sort(addSTclose[v], addSTclose[v] + aps->mRLLocalSearchRange[1], cmp);
 
 	}
 

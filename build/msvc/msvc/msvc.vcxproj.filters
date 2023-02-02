@@ -5,15 +5,12 @@
       <UniqueIdentifier>{67DA6AB6-F800-4c08-8B7A-83BB121AAD01}</UniqueIdentifier>
       <Extensions>rc;ico;cur;bmp;dlg;rc2;rct;bin;rgs;gif;jpg;jpeg;jpe;resx;tiff;tif;png;wav;mfcribbon-ms</Extensions>
     </Filter>
-    <Filter Include="src\Util">
-      <UniqueIdentifier>{19d4cc32-77a4-49b6-90ed-9e60b6608c64}</UniqueIdentifier>
-    </Filter>
     <Filter Include="src\MCP">
       <UniqueIdentifier>{f75e2dea-59a5-4667-baa6-0cde77e9160e}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="..\..\..\src\Configuration.cpp">
+    <ClCompile Include="..\..\..\src\Algorithm_Parameters.cpp">
       <Filter>src</Filter>
     </ClCompile>
     <ClCompile Include="..\..\..\src\EAX.cpp">
@@ -23,9 +20,6 @@
       <Filter>src</Filter>
     </ClCompile>
     <ClCompile Include="..\..\..\src\Goal.cpp">
-      <Filter>src</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\..\src\main.cpp">
       <Filter>src</Filter>
     </ClCompile>
     <ClCompile Include="..\..\..\src\Problem.cpp">
@@ -40,9 +34,18 @@
     <ClCompile Include="..\..\..\src\MCP\CliqueTsm.cpp">
       <Filter>src\MCP</Filter>
     </ClCompile>
+    <ClCompile Include="..\..\..\src\Main.cpp">
+      <Filter>src</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\src\Individual.cpp">
+      <Filter>src</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\src\YearTable.cpp">
+      <Filter>src</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="..\..\..\src\Configuration.h">
+    <ClInclude Include="..\..\..\src\Algorithm_Parameters.h">
       <Filter>src</Filter>
     </ClInclude>
     <ClInclude Include="..\..\..\src\EAX.h">
@@ -60,20 +63,8 @@
     <ClInclude Include="..\..\..\src\Solver.h">
       <Filter>src</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\..\src\Utility.h">
+    <ClInclude Include="..\..\..\src\Util_Common.h">
       <Filter>src</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\..\src\Util\Flag.h">
-      <Filter>src\Util</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\..\src\Util\Math.h">
-      <Filter>src\Util</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\..\src\Util\Arr2D.h">
-      <Filter>src\Util</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\..\src\Util\Exception.h">
-      <Filter>src\Util</Filter>
     </ClInclude>
     <ClInclude Include="..\..\..\src\MCP\Arr.h">
       <Filter>src\MCP</Filter>
@@ -83,6 +74,21 @@
     </ClInclude>
     <ClInclude Include="..\..\..\src\MCP\Graph.h">
       <Filter>src\MCP</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\src\Util_Arr2D.h">
+      <Filter>src</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\src\CommandLine.h">
+      <Filter>src</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\src\LowerBoundOfRouteNum.h">
+      <Filter>src</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\src\Individual.h">
+      <Filter>src</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\src\YearTable.h">
+      <Filter>src</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>

@@ -6,9 +6,9 @@
 
 namespace hust {
 
-EAX::EAX(Solver& pa, Solver& pb) :paPriE(2 * (pa.input.custCnt + pa.rts.cnt+1)), pbPriE(2 * (pb.input.custCnt + pb.rts.cnt+1)) {
+EAX::EAX(Solver& pa, Solver& pb) :paPriE(2 * (pa.input->custCnt + pa.rts.cnt+1)), pbPriE(2 * (pb.input->custCnt + pb.rts.cnt+1)) {
 
-	this->eaxCusCnt = pa.input.custCnt;
+	this->eaxCusCnt = pa.input->custCnt;
 	this->eaxRCnt = pa.rts.cnt;
 
 	this->richEdges = Vec<RichEdge>(2 * (this->eaxCusCnt + 1 + this->eaxRCnt));
@@ -53,8 +53,8 @@ bool EAX::classifyEdges(Solver& pa, Solver& pb) {
 			while (ptn != -1) {
 
 				Edge e;
-				e.a = pt <= ps.input.custCnt ? pt : 0;
-				e.b = ptn <= ps.input.custCnt ? ptn : 0;
+				e.a = pt <= ps.input->custCnt ? pt : 0;
+				e.b = ptn <= ps.input->custCnt ? ptn : 0;
 
 				int code = toCode(e.a, e.b);
 
@@ -104,12 +104,12 @@ bool EAX::classifyEdges(Solver& pa, Solver& pb) {
 		RichEdge& re = richEdges[i];
 		if (re.owner == Owner::Pa) {
 			++GabEsize;
-			paPriE.ins(re.index);
+			paPriE.insert(re.index);
 			adjEdgeTable[re.e.a].push_back(re.index);
 		}
 		else if (re.owner == Owner::Pb) {
 			++GabEsize;
-			pbPriE.ins(re.index);
+			pbPriE.insert(re.index);
 			adjEdgeTable[re.e.b].push_back(re.index);
 		}
 	}
@@ -156,17 +156,17 @@ bool EAX::generateCycles() {
 	while (paPriEClone.cnt > 0 || pbPriEClone.cnt > 0) {
 
 		if (genSize == 0) {
-			if (myRand->pick(2) == 0) {
+			if (random->pick(2) == 0) {
 
 				lastEdge = Owner::Pb;
-				int reIndex = paPriEClone.ve[myRand->pick(paPriEClone.cnt)];
+				int reIndex = paPriEClone.ve[random->pick(paPriEClone.cnt)];
 				RichEdge& globalre = richEdges[reIndex];
 				curCus = globalre.e.a;
 			}
 			else {
 
 				lastEdge = Owner::Pa;
-				int reIndex = pbPriEClone.ve[myRand->pick(pbPriEClone.cnt)];
+				int reIndex = pbPriEClone.ve[random->pick(pbPriEClone.cnt)];
 				RichEdge& globalre = richEdges[reIndex];
 				curCus = globalre.e.b;
 			}
@@ -183,7 +183,7 @@ bool EAX::generateCycles() {
 				if (re1.visited == false) {
 					if (re1.owner == Owner::Pa && re1.e.a == curCus) {
 						++cnt;
-						if (myRand->pick(cnt) == 0) {
+						if (random->pick(cnt) == 0) {
 							reIndex = re1.index;
 						}
 					}
@@ -200,7 +200,7 @@ bool EAX::generateCycles() {
 				if (re2.visited == false) {
 					if (re2.owner == Owner::Pb && re2.e.b == curCus) {
 						++cnt;
-						if (myRand->pick(cnt) == 0) {
+						if (random->pick(cnt) == 0) {
 							reIndex = re2.index;
 						}
 					}
@@ -382,7 +382,7 @@ bool updateBestPos(Solver::Position& ret,Solver::Position& temp) {
 
 Solver::Position EAX::findBestPosRemoveSubtour(Solver& pc, int w, int wj, DisType deInSub) {
 
-	auto& rtsIndexOrder = myRandX->getMN(pc.rts.cnt, pc.rts.cnt);
+	auto& rtsIndexOrder = randomx->getMN(pc.rts.cnt, pc.rts.cnt);
 
 	std::sort(rtsIndexOrder.begin(), rtsIndexOrder.end(), [&](int x,int y) {
 		return 	pc.rts[x].rQ < pc.rts[y].rQ;
@@ -398,7 +398,7 @@ Solver::Position EAX::findBestPosRemoveSubtour(Solver& pc, int w, int wj, DisTyp
 		int vj = pc.customers[v].next;
 
 		DisType oldrPc = pc.rts[i].rPc;
-		DisType rPc = std::max<DisType>(0, rt.rQ + deInSub - pc.input.Q);
+		DisType rPc = std::max<DisType>(0, rt.rQ + deInSub - pc.input->Q);
 		rPc = rPc - oldrPc;
 
 		//if (rPc > ret.pen) {
@@ -426,8 +426,8 @@ Solver::Position EAX::findBestPosRemoveSubtour(Solver& pc, int w, int wj, DisTyp
 			pc.customers[wj].pre = w;
 
 			DisType cost = 
-				pc.input.getDisof2(v,wj) + pc.input.getDisof2(w,vj)
-				- pc.input.getDisof2(v,vj) -pc.input.getDisof2(w,wj);
+				pc.input->getDisof2(v,wj) + pc.input->getDisof2(w,vj)
+				- pc.input->getDisof2(v,vj) -pc.input->getDisof2(w,wj);
 			//int year = (*yearTable)[reCusNo(w)][reCusNo(v)] + (*yearTable)[reCusNo(w)][reCusNo(vj)];
 			//year >>= 1;
 
@@ -437,7 +437,7 @@ Solver::Position EAX::findBestPosRemoveSubtour(Solver& pc, int w, int wj, DisTyp
 			posTemp.pen = rPtw + rPc;
 			posTemp.pos = v;
 			//posTemp.year = year;
-			//posTemp.secDis = abs(input.datas[w].polarAngle - input.datas[v].polarAngle);
+			//posTemp.secDis = abs(input->datas[w].polarAngle - input->datas[v].polarAngle);
 			// TODO[-1]:移除子环的方式，目标函数
 
 			updateBestPos(ret,posTemp);
@@ -456,14 +456,14 @@ int EAX::removeSubring(Solver& pc) {
 	ConfSet cusSet(eaxCusCnt + 1);
 
 	for (int i = 1; i <= eaxCusCnt; ++i) {
-		subCyCus.ins(i);
+		subCyCus.insert(i);
 	}
 
 	for (int i = 0; i < pc.rts.cnt; ++i) {
 		Vec<int> arr = pc.rPutCusInve(pc.rts[i]);
 		for (int c : arr) {
 			subCyCus.removeVal(c);
-			cusSet.ins(c);
+			cusSet.insert(c);
 		}
 	}
 
@@ -483,7 +483,7 @@ int EAX::removeSubring(Solver& pc) {
 		Solver::Position ret;
 		do {
 			subCyCus.removeVal(w);
-			demandInSub += pc.input.datas[w].DEMAND;
+			demandInSub += pc.input->datas[w].DEMAND;
 
 			int wj = pc.customers[w].next;
 			w = wj;
@@ -607,7 +607,7 @@ int EAX::doNaEAX(Solver& pa, Solver& pb, Solver& pc) {
 	++all;
 
 	choosecyIndex = -1;
-	auto& order = myRandX->getMN(abCycleSet.size(), abCycleSet.size());
+	auto& order = randomx->getMN(abCycleSet.size(), abCycleSet.size());
 	if (tabuCyIds.count(order[0]) > 0) {
 		++cnt;
 	}
@@ -629,7 +629,7 @@ int EAX::doNaEAX(Solver& pa, Solver& pb, Solver& pc) {
 	pc.reCalRtsCostAndPen();
 		
 	//TODO[0]:这里考虑是否可以在没有子换的情况下再禁忌
-	if (globalCfg->abcyWinkacRate == 100) {
+	if (aps->abcyWinkacRate == 100) {
 		tabuCyIds.insert(choosecyIndex);
 	}
 	else {
@@ -666,20 +666,20 @@ int EAX::doPrEAX(Solver& pa, Solver& pb, Solver& pc) {
 	//TODO[lyh][001]:最多放置多少个abcycle[2,(abcyNum)/2],pick 是开区间
 	int abcyNum = abCycleSet.size();
 
-	//static ProbControl probc(globalInput->custCnt/2);
+	//static ProbControl probc(input->custCnt/2);
 	////int numABCyUsed = 2;
 	//int numABCyUsed = probc.getIndexBasedData(3) + 2;
 	////int numABCyUsed = probc.getIndexBasedData(std::min<int>(2,abcyNum / 2 + 1) ) + 2;
-	////int numABCyUsed = myRand->pick(2, abcyNum/2+1);
-	////int numABCyUsed = myRand->pick(2, 10);
+	////int numABCyUsed = random->pick(2, abcyNum/2+1);
+	////int numABCyUsed = random->pick(2, 10);
 	//numABCyUsed = std::min<int>(numABCyUsed, abcyNum-1);
 
 	int putMax = abcyNum/2;
-	//int putMax = myRand->pick(2, abcyNum / 2 + 1);
+	//int putMax = random->pick(2, abcyNum / 2 + 1);
 	int numABCyUsed = 2;
 	for (int i = 3; i <= putMax; ++i) {
 		// TODO[-1]:这里可以调整 放置多少个abcy
-		if (myRand->pick(100) < 80) {
+		if (random->pick(100) < 80) {
 			numABCyUsed = i;
 		}
 		else {
@@ -697,7 +697,7 @@ int EAX::doPrEAX(Solver& pa, Solver& pb, Solver& pc) {
 	if (unionIndexOrder.size() == 0) {
 		return -1;
 	}
-	myRand->shuffleVec(unionIndexOrder);
+	random->shuffleVec(unionIndexOrder);
 
 
 	ConfSet cyInUnion(abcyNum);
@@ -708,10 +708,10 @@ int EAX::doPrEAX(Solver& pa, Solver& pb, Solver& pc) {
 
 		//将一个并查集的所有abcyindex保存起来
 		for (int cy : unionArr[uId]) {
-			cyInUnion.ins(cy);
+			cyInUnion.insert(cy);
 		}
 
-		int firstCyIndex = cyInUnion.ve[myRand->pick(cyInUnion.cnt)];
+		int firstCyIndex = cyInUnion.ve[random->pick(cyInUnion.cnt)];
 		std::queue<int> qu;
 		qu.push(firstCyIndex);
 		cyInUnion.removeVal(firstCyIndex);
@@ -722,7 +722,7 @@ int EAX::doPrEAX(Solver& pa, Solver& pb, Solver& pc) {
 			qu.pop();
 
 			auto adjs = abCyAdj[tp];
-			myRand->shuffleVec(adjs);
+			random->shuffleVec(adjs);
 			for (int ad : adjs) {
 				if (cyInUnion.pos[ad] >= 0) {
 					qu.push(ad);
@@ -773,20 +773,24 @@ int EAX::getabCyNum(Solver& pa, Solver& pb) {
 Vec<int> EAX::getDiffCusofPb(Solver& pa, Solver& pb) {
 
 	Vec<int> ret;
-	for (int c = 1; c <= globalInput->custCnt; ++c) {
 
-		int pacnext = pa.customers[c].next > globalInput->custCnt ? 0 : pa.customers[c].next;
-		int pbcnext = pb.customers[c].next > globalInput->custCnt ? 0 : pb.customers[c].next;
+	int custNum = pa.input->custCnt;
 
-		int pacpre = pa.customers[c].pre > globalInput->custCnt ? 0 : pa.customers[c].pre;
-		int pbcpre = pb.customers[c].pre > globalInput->custCnt ? 0 : pb.customers[c].pre;
+	for (int c = 1; c <= custNum; ++c) {
+
+		int pacnext = pa.customers[c].next > custNum ? 0 : pa.customers[c].next;
+		int pbcnext = pb.customers[c].next > custNum ? 0 : pb.customers[c].next;
+
+		int pacpre = pa.customers[c].pre > custNum ? 0 : pa.customers[c].pre;
+		int pbcpre = pb.customers[c].pre > custNum ? 0 : pb.customers[c].pre;
 
 		if (pacnext == pbcnext && pacpre == pbcpre) {}
 		else {
 			ret.push_back(c);
 		}
 	}
-	myRand->shuffleVec(ret);
+
+	pa.random->shuffleVec(ret);
 	
 	return ret;
 

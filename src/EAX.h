@@ -3,6 +3,7 @@
 #define CN_HUST_LYH_EAX_H
 
 #include "Solver.h"
+#include "Util_Common.h"
 
 namespace hust {
 
@@ -90,6 +91,12 @@ public:
 
 	int unionIndex = -1;
 	int choosecyIndex = -1;
+
+	Random* random = nullptr;
+	RandomX* randomx = nullptr;
+
+	AlgorithmParameters* aps;
+	BKS* bks;
 
 	EAX(Solver& pa, Solver& pb);
 

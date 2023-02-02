@@ -17,7 +17,19 @@ struct Goal {
 
 	int curSearchRN = -1;
 
-	Goal();
+	AlgorithmParameters* aps = nullptr;
+	BKS* bks = nullptr;
+	Random* random = nullptr;
+	RandomX* randomx = nullptr;
+	Input* input = nullptr;
+	Timer* timer = nullptr;
+
+	Goal(
+		Input*input,
+		AlgorithmParameters* aps,
+		BKS* bks,
+		Random* random,
+		RandomX* randomx);
 
 	void updateppol(Solver& sol, int index);
 

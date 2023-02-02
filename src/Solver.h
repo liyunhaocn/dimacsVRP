@@ -7,12 +7,14 @@
 #include <limits.h>
 
 #include "Flag.h"
-#include "Utility.h"
+#include "Util_Common.h"
 #include "Problem.h"
+#include "Individual.h"
+#include "YearTable.h"
 
 namespace hust {
 
-struct BSK;
+struct BKS;
 
 struct Route {
 
@@ -98,7 +100,7 @@ struct RTS {
 	Vec<int> posOf;
 	int cnt = 0;
 
-	//RTS() {}
+	RTS() {}
 		
 	RTS(int maxSize) {
 		cnt = 0;
@@ -249,7 +251,7 @@ struct ConfSet {
 		return true;
 	}
 
-	bool ins(int val) {
+	bool insert(int val) {
 
 		#if CHECKING
 		lyhCheckTrue(val>=0);
@@ -291,86 +293,6 @@ struct ConfSet {
 
 };
 
-struct RandomX {
-
-public:
-
-	using Generator = hust::XorShift128;
-
-	RandomX(unsigned seed) : rgen(seed) { initMpLLArr(); }
-	RandomX() : rgen(generateSeed()) { initMpLLArr(); }
-
-	RandomX(const RandomX& rhs) {
-		this->mpLLArr = rhs.mpLLArr;
-		this->maxRange = rhs.maxRange;
-		this->rgen = rhs.rgen;
-	}
-
-	Vec< Vec<int> > mpLLArr;
-
-	int maxRange = 1001;
-
-	bool initMpLLArr() {
-		mpLLArr = Vec< Vec<int> >(maxRange);
-
-		for (int m = 1; m < maxRange;++m) {
-			mpLLArr[m] = Vec<int>(m, 0);
-			auto& arr = mpLLArr[m];
-			std::iota(arr.begin(), arr.end(), 0);
-		}
-		return true;
-	}
-
-	static unsigned generateSeed() {
-		unsigned seed = std::chrono::system_clock::now().time_since_epoch().count();
-		return seed;
-	}
-
-	Generator::result_type operator()() { return rgen(); }
-
-	// pick with probability of (numerator / denominator).
-	bool isPicked(unsigned numerator, unsigned denominator) {
-		return ((rgen() % denominator) < numerator);
-	}
-
-	// pick from [min, max).
-	int pick(int min, int max) {
-		return ((rgen() % (max - min)) + min);
-	}
-	// pick from [0, max).
-	int pick(int max) {
-		return (rgen() % max);
-	}
-
-	Vec<int>& getMN(int M, int N) {
-
-		if (M >= maxRange) {
-			mpLLArr.resize(M * 2 + 1);
-			maxRange = M * 2 + 1;
-		}
-
-		Vec<int>& ve = mpLLArr[M];
-
-		if (ve.empty()) {
-			mpLLArr[M] = Vec<int>(M, 0);
-			auto& arr = mpLLArr[M];
-			std::iota(arr.begin(),arr.end(),0);
-		}
-
-		for (int i = 0; i < N; ++i) {
-			int index = pick(i, M);
-			std::swap(ve[i], ve[index]);
-		}
-		return ve;
-	}
-
-	RandomX& operator = (RandomX&& rhs) noexcept = delete;
-
-	RandomX& operator = (const RandomX& rhs) = delete;
-
-	Generator rgen;
-};
-
 struct NextPermutation {
 
 	bool hasNext(Vec<int>& ve, int Kmax, int& k, int N) {
@@ -403,11 +325,73 @@ struct NextPermutation {
 
 };
 
+class YearTable;
+
+struct DeltPen {
+
+	DisType deltPtw = DisInf;
+	DisType deltPc = DisInf;
+	DisType PcOnly = DisInf;
+	DisType PtwOnly = DisInf;
+	DisType deltCost = DisInf;
+
+	DeltPen() {
+
+		deltPc = DisInf;
+		PcOnly = DisInf;
+		PtwOnly = DisInf;
+		deltCost = DisInf;
+	}
+	DeltPen(const DeltPen& d) {
+		this->deltPc = d.deltPc;
+		this->deltPtw = d.deltPtw;
+		this->PtwOnly = d.PtwOnly;
+		this->PcOnly = d.PcOnly;
+		this->deltCost = d.deltCost;
+	}
+};
+
+struct TwoNodeMove {
+
+	int v = -1;
+	int w = -1;
+	int kind = -1;
+
+	DeltPen deltPen;
+
+	TwoNodeMove(int v, int w, int kind, DeltPen d) :
+		v(v), w(w), kind(kind), deltPen(d) {
+	}
+
+	TwoNodeMove(Vec<int> ve, int kind, DeltPen d) :
+		kind(kind), deltPen(d) {}
+
+	TwoNodeMove() :
+		v(0), w(0), kind(0) {
+		deltPen.deltPc = DisInf;
+		deltPen.deltPtw = DisInf;
+		deltPen.PtwOnly = DisInf;
+		deltPen.PcOnly = DisInf;
+	}
+
+	bool reSet() {
+		v = 0;
+		w = 0;
+		kind = 0;
+		deltPen.deltPc = DisInf;
+		deltPen.deltPtw = DisInf;
+		deltPen.PtwOnly = DisInf;
+		deltPen.PcOnly = DisInf;
+		deltPen.deltCost = DisInf;
+		return true;
+	}
+};
+
 class Solver
 {
 public:
 
-	Input& input;
+	Input* input;
 
 	Vec<Customer> customers;
 
@@ -431,65 +415,12 @@ public:
 
 	Route EPr;
 
-	struct DeltPen {
-
-		DisType deltPtw = DisInf;
-		DisType deltPc = DisInf;
-		DisType PcOnly = DisInf;
-		DisType PtwOnly = DisInf;
-		DisType deltCost = DisInf;
-
-		DeltPen() {
-
-			deltPc = DisInf;
-			PcOnly = DisInf;
-			PtwOnly = DisInf;
-			deltCost = DisInf;
-		}
-		DeltPen(const DeltPen& d) {
-			this->deltPc = d.deltPc;
-			this->deltPtw = d.deltPtw;
-			this->PtwOnly = d.PtwOnly;
-			this->PcOnly = d.PcOnly;
-			this->deltCost = d.deltCost;
-		}
-	};
-
-	struct TwoNodeMove {
-
-		int v = -1;
-		int w = -1;
-		int kind = -1;
-
-		DeltPen deltPen;
-
-		TwoNodeMove(int v, int w, int kind, DeltPen d) :
-			v(v), w(w), kind(kind), deltPen(d) {
-		}
-
-		TwoNodeMove(Vec<int> ve, int kind, DeltPen d) :
-			kind(kind), deltPen(d) {}
-
-		TwoNodeMove() :
-			v(0), w(0), kind(0) {
-			deltPen.deltPc = DisInf;
-			deltPen.deltPtw = DisInf;
-			deltPen.PtwOnly = DisInf;
-			deltPen.PcOnly = DisInf;
-		}
-
-		bool reSet() {
-			v = 0;
-			w = 0;
-			kind = 0;
-			deltPen.deltPc = DisInf;
-			deltPen.deltPtw = DisInf;
-			deltPen.PtwOnly = DisInf;
-			deltPen.PcOnly = DisInf;
-			deltPen.deltCost = DisInf;
-			return true;
-		}
-	};
+	AlgorithmParameters* aps = nullptr;
+	Random* random = nullptr;
+	RandomX* randomx = nullptr;
+	BKS* bks = nullptr;
+	Timer* timer = nullptr;
+	YearTable* yearTable = nullptr;
 
 	struct Position {
 		int rIndex =-1;
@@ -533,8 +464,10 @@ public:
 	};
 
 	bool initEPr();
-
+	
 	Solver();
+
+	Solver(Input* input,Random*random ,RandomX* randomx);
 
 	Solver(const Solver& s);
 
@@ -603,7 +536,9 @@ public:
 
 	bool initMaxRoute();
 
-	bool initByArr2(Vec < Vec<int>> arr2);
+	bool loadIndividual(const Individual* indiv);
+
+	void exportIndividual(Individual* indiv);
 
 	#if 0
 	bool initBySolFile(std::string bksPath);
@@ -685,11 +620,7 @@ public:
 
 	bool doReverse(TwoNodeMove& M);
 
-	bool updateYearTable(TwoNodeMove& t);
-
 	Vec<int> getPtwNodes(Route& r, int ptwKind = 0);
-
-	LL getYearOfMove(TwoNodeMove& t);
 
 	TwoNodeMove getMovesRandomly(std::function<bool(TwoNodeMove& t, TwoNodeMove& bestM)>updateBestM);
 
@@ -784,7 +715,7 @@ public:
 
 	bool printDimacs();
 
-	bool saveOutAsSintefFile(std::string opt = "");
+	bool saveOutAsSintefFile(std::string outputPath,std::string opt = "");
 		
 	~Solver();
 
@@ -797,7 +728,7 @@ struct BKS {
 	DisType lastPrCost = DisInf;
 	UnorderedMap<int,DisType> bksAtRn;
 	Timer::TimePoint lastPrintTp;
-
+	Timer* timer = nullptr;
 	BKS();
 
 	void reSet();

@@ -9,7 +9,7 @@
 #include <iostream>
 #include <list>
 
-#include "Util/Arr2D.h"
+#include "Util_Arr2D.h"
 
 #define DIMACSGO 0
 #define CHECKING 0
@@ -63,23 +63,23 @@ extern int vd16fpi;
 extern int disMul;
 extern unsigned Mod;
 
-struct Random;
-struct RandomX;
-struct Configuration;
-struct Input;
-struct BKS;
-struct Timer;
+//struct Random;
+//struct RandomX;
+//struct Configuration;
+//struct Input;
+//struct BKS;
+//struct Timer;
 
-extern Random* myRand;
-extern RandomX* myRandX;
-extern int squIter;
-extern hust::util::Array2D<int>* yearTable;
-extern Configuration* globalCfg;
-extern Input* globalInput;
-extern BKS* bks;
-extern Timer* gloalTimer;
+//extern Random* random;
+//extern RandomX* randomx;
+//extern int squIter;
+//extern hust::util::Array2D<int>* yearTable;
+//extern Configuration* aps;
+//extern Input* input;
+//extern BKS* bks;
+//extern Timer* gloalTimer;
 
-void globalRepairSquIter();
+//void globalRepairSquIter();
 }
 #endif // !CN_HUST_LYH_FLAG_H
 

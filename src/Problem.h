@@ -7,10 +7,12 @@
 #include <map>
 #include <string>
 #include <cstdio>
+#include <functional>
 
-#include "Configuration.h"
+#include "Algorithm_Parameters.h"
 #include "Flag.h"
-#include "./Util/Arr2D.h"
+#include "Util_Arr2D.h"
+#include "CommandLine.h"
 
 namespace hust {
 
@@ -104,7 +106,7 @@ public:
 	Customer() :pre(-1), next(-1), av(0), zv(0), avp(0),
 		zvp(0), TW_X(0), TWX_(0), Q_X(0), QX_(0) {}
 
-	bool reSet() {
+	bool reset() {
 		//id = -1;
 		pre = -1;
 		next = -1;
@@ -134,6 +136,10 @@ struct Input {
 	int vehicleCnt = 0;
 	Vec<Data> datas;
 	int Qbound = -1;
+	CommandLine* commandLine;
+	AlgorithmParameters* aps;
+
+	Random* random;
 
 	util::Array2D<DisType> disOf;
 
@@ -152,7 +158,7 @@ struct Input {
 
 	Vec<int> P;
 
-	Input();
+	Input(CommandLine* commandLine,AlgorithmParameters* aps);
 
 	bool initInput();
 
@@ -164,8 +170,6 @@ struct Input {
 
 	void getTopKmin(int* input,int n, int k, std::function<bool(int, int)> cmp);
 
-	void printHelpInfo();
-
 	inline DisType getDisof2(int a, int b) {
 
 		auto reCusNo = [=](int x) -> int {
@@ -175,6 +179,14 @@ struct Input {
 		b = reCusNo(b);
 
 		return disOf.at(a,b);
+	}
+
+	void displayInputInfo() {
+
+		INFO("example:", example);
+		INFO("custCnt:", custCnt);
+		INFO("Q:", Q);
+		INFO("vehicleCnt:", vehicleCnt);
 	}
 };
 

@@ -1,20 +1,17 @@
 
-#ifndef CN_HUST_LYH_CFG_H
-#define CN_HUST_LYH_CFG_H
+#ifndef CN_HUST_LYH_ALGORITHM_PARAMETERS_H
+#define CN_HUST_LYH_ALGORITHM_PARAMETERS_H
 
 #include "Flag.h"
+#include "Util_Common.h"
 
 // $(SolutionDir)$(Platform)\$(Configuration)
 // $(SolutionDir)\dimacsVRP
 
 namespace hust {
 
-struct Configuration {
+struct AlgorithmParameters {
 
-	LL seed = -1;
-	std::string inputPath = "";
-	std::string outputPath = "../Results/";
-	
 	int squContiIter = 100;
 	int squMinContiIter = 100;
 	int squMaxContiIter = 199;
@@ -23,8 +20,6 @@ struct Configuration {
 	int weightUpStep = 1;
 
 	int Irand = 400;
-	int runTimer = 1800; //s
-	//int runTimer = 0; //s
 	int neiMoveKind = 16;
 
 	int Pwei0 = 1;
@@ -104,16 +99,16 @@ struct Configuration {
 
 	int psizemulpsum = 0;
 
-	void show();
+	void displayInfo();
 
 	void repairByCusCnt(int cusCnt);
 
-	void solveCommandLine(int argc, char* argv[]);
+	//Configuration(): random(seed) {
 
-	void addHelpInfo();
+	//}
 
 };
 
 }
 
-#endif // !CN_HUST_LYH_CFG_H
+#endif // !CN_HUST_LYH_ALGORITHM_PARAMETERS_H

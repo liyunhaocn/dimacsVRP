@@ -1,7 +1,7 @@
 
 #include <climits>
 #include "Flag.h"
-#include "Utility.h"
+#include "Util_Common.h"
 
 namespace hust {
 
@@ -31,25 +31,25 @@ extern DisType DisInf = LLInf;
 //extern int disMul = 10000;
 extern unsigned Mod = 1000000007;
 
-extern Random* myRand = nullptr;
-extern RandomX* myRandX = nullptr;
-extern hust::util::Array2D<int>* yearTable = nullptr;
-extern Configuration* globalCfg = nullptr;
-extern Input* globalInput = nullptr;
-extern BKS* bks = nullptr;
-extern Timer* gloalTimer = nullptr;
-extern int squIter = 1;
+//extern Random* random = nullptr;
+//extern RandomX* randomx = nullptr;
+//extern hust::util::Array2D<int>* yearTable = nullptr;
+//extern Configuration* aps = nullptr;
+//extern Input* input = nullptr;
+//extern BKS* bks = nullptr;
+//extern Timer* gloalTimer = nullptr;
+//extern int squIter = 1;
 
-void globalRepairSquIter() {
-	if (squIter * 10 > IntInf) {
-		squIter = 1;
-		auto& lhsyear = (*yearTable);
-		for (int i = 0; i < lhsyear.size1();++i) {
-			for (int j = 0; j < lhsyear.size2(); ++j) {
-				lhsyear[i][j] = 1;
-			}
-		}
-	}
-}
+//void globalRepairSquIter() {
+//	if (squIter * 10 > IntInf) {
+//		squIter = 1;
+//		auto& lhsyear = (*yearTable);
+//		for (int i = 0; i < lhsyear.size1();++i) {
+//			for (int j = 0; j < lhsyear.size2(); ++j) {
+//				lhsyear[i][j] = 1;
+//			}
+//		}
+//	}
+//}
 
 }

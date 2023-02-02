@@ -27,18 +27,24 @@
     </ProjectConfiguration>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="..\..\..\src\Configuration.cpp" />
+    <ClCompile Include="..\..\..\src\Algorithm_Parameters.cpp" />
     <ClCompile Include="..\..\..\src\EAX.cpp" />
     <ClCompile Include="..\..\..\src\Flag.cpp" />
     <ClCompile Include="..\..\..\src\Goal.cpp" />
-    <ClCompile Include="..\..\..\src\main.cpp" />
+    <ClCompile Include="..\..\..\src\Individual.cpp" />
+    <ClCompile Include="..\..\..\src\Main.cpp" />
     <ClCompile Include="..\..\..\src\MCP\CliqueSolver.cpp" />
     <ClCompile Include="..\..\..\src\MCP\CliqueTsm.cpp" />
     <ClCompile Include="..\..\..\src\Problem.cpp" />
     <ClCompile Include="..\..\..\src\Solver.cpp" />
+    <ClCompile Include="..\..\..\src\YearTable.cpp" />
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="..\..\..\src\Configuration.h" />
+    <ClInclude Include="..\..\..\src\CommandLine.h" />
+    <ClInclude Include="..\..\..\src\Individual.h" />
+    <ClInclude Include="..\..\..\src\LowerBoundOfRouteNum.h" />
+    <ClInclude Include="..\..\..\src\Util_Arr2D.h" />
+    <ClInclude Include="..\..\..\src\Algorithm_Parameters.h" />
     <ClInclude Include="..\..\..\src\EAX.h" />
     <ClInclude Include="..\..\..\src\Flag.h" />
     <ClInclude Include="..\..\..\src\Goal.h" />
@@ -47,11 +53,8 @@
     <ClInclude Include="..\..\..\src\MCP\Graph.h" />
     <ClInclude Include="..\..\..\src\Problem.h" />
     <ClInclude Include="..\..\..\src\Solver.h" />
-    <ClInclude Include="..\..\..\src\Utility.h" />
-    <ClInclude Include="..\..\..\src\Util\Arr2D.h" />
-    <ClInclude Include="..\..\..\src\Util\Exception.h" />
-    <ClInclude Include="..\..\..\src\Util\Flag.h" />
-    <ClInclude Include="..\..\..\src\Util\Math.h" />
+    <ClInclude Include="..\..\..\src\Util_Common.h" />
+    <ClInclude Include="..\..\..\src\YearTable.h" />
   </ItemGroup>
   <PropertyGroup Label="Globals">
     <VCProjectVersion>16.0</VCProjectVersion>

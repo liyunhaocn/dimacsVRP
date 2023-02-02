@@ -12,11 +12,41 @@
 #include <vector>
 #include <cstring>
 
-#include "Exception.h"
-#include "Math.h"
-
 namespace hust {
 namespace util {
+
+struct NotImplementedException : public std::exception {
+    virtual const char* what() const noexcept override {
+        return "not implemented yet.";
+    }
+};
+
+struct IndexOutOfRangeException : public std::exception {
+    virtual const char* what() const noexcept override {
+        return "index out of range.";
+    }
+};
+
+struct DuplicateItemException : public std::exception {
+    virtual const char* what() const noexcept override {
+        return "duplicate item.";
+    }
+};
+
+struct ItemNotExistException : public std::exception {
+    virtual const char* what() const noexcept override {
+        return "item not exist.";
+    }
+};
+
+namespace math {
+
+    template<typename T>
+    bool isInRange(T num, T lb, T ub) { // check if `num \in [lb, ub)` is true.
+        return (num >= lb) && (num < ub);
+    }
+
+}
 
 enum ArrResetOption { AllBits0 = 0, AllBits1 = -1, SafeMaxInt = 0x3F };
 

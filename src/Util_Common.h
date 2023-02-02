@@ -197,7 +197,7 @@ public:
     }
 
     void shuffleVec(Vec<int>& v) {
-        std::shuffle(v.begin(), v.end(), myRand->rgen);
+        std::shuffle(v.begin(), v.end(), this->rgen);
     }
 };
 
@@ -205,6 +205,94 @@ public:
 // ------|------------------------------------------
 // index | 0 1 2 3 ... k-1   k    k+1   k+2  ... n-1
 // prob. | 1 1 1 1 ...  1  k/k+1 k/k+2 k/k+3 ... k/n
+
+struct RandomX {
+
+public:
+
+    using Generator = hust::XorShift128;
+
+    RandomX(unsigned seed) : rgen(seed) { initMpLLArr(); }
+    RandomX() : rgen(generateSeed()) { initMpLLArr(); }
+
+    RandomX(const RandomX& rhs) {
+        this->mpLLArr = rhs.mpLLArr;
+        this->maxRange = rhs.maxRange;
+        this->rgen = rhs.rgen;
+    }
+
+    Vec< Vec<int> > mpLLArr;
+
+    int maxRange = 1001;
+
+    bool initMpLLArr() {
+        mpLLArr = Vec< Vec<int> >(maxRange);
+
+        for (int m = 1; m < maxRange; ++m) {
+            mpLLArr[m] = Vec<int>(m, 0);
+            auto& arr = mpLLArr[m];
+            std::iota(arr.begin(), arr.end(), 0);
+        }
+        return true;
+    }
+
+    static unsigned generateSeed() {
+        unsigned seed = std::chrono::system_clock::now().time_since_epoch().count();
+        return seed;
+    }
+
+    Generator::result_type operator()() { return rgen(); }
+
+    // pick with probability of (numerator / denominator).
+    bool isPicked(unsigned numerator, unsigned denominator) {
+        return ((rgen() % denominator) < numerator);
+    }
+
+    // pick from [min, max).
+    int pick(int min, int max) {
+        return ((rgen() % (max - min)) + min);
+    }
+    // pick from [0, max).
+    int pick(int max) {
+        return (rgen() % max);
+    }
+
+    Vec<int>& getMN(int M, int N) {
+
+        if (M >= maxRange) {
+            mpLLArr.resize(M * 2 + 1);
+            maxRange = M * 2 + 1;
+        }
+
+        Vec<int>& ve = mpLLArr[M];
+
+        if (ve.empty()) {
+            mpLLArr[M] = Vec<int>(M, 0);
+            auto& arr = mpLLArr[M];
+            std::iota(arr.begin(), arr.end(), 0);
+        }
+
+        for (int i = 0; i < N; ++i) {
+            int index = pick(i, M);
+            std::swap(ve[i], ve[index]);
+        }
+        return ve;
+    }
+
+    RandomX& operator = (RandomX&& rhs) noexcept = delete;
+
+    RandomX& operator = (const RandomX& rhs) = delete;
+
+    Generator rgen;
+};
+
+struct RandomTools {
+
+    Random random;
+    RandomX randomx;
+    RandomTools(LL seed) :random(seed), randomx(seed) {}
+};
+
 class Sampling {
 public:
     Sampling(Random &randomNumberGenerator, int targetNumber)
@@ -377,8 +465,9 @@ struct ProbControl {
 
     Vec<int> data;
     Vec<int> sum;
+    Random* random;
 
-    ProbControl(int maxSize) {
+    ProbControl(int maxSize, Random*random): random(random) {
         data.resize(maxSize, 2);
         sum.resize(maxSize, 0);
     }
@@ -405,7 +494,7 @@ struct ProbControl {
         }
 
         int allSum = sum[n-1];
-        int rd = myRand->pick(1, allSum + 1);
+        int rd = random->pick(1, allSum + 1);
         auto index = std::lower_bound(sum.begin(), sum.begin() + n, rd) - sum.begin();
         return index;
     }
