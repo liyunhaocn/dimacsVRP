@@ -406,7 +406,7 @@ class Solver
 {
 public:
 
-	Input* input;
+	Input* input = nullptr;
 
 	Vec<Customer> customers;
 
@@ -477,9 +477,9 @@ public:
 		}
 	};
 
-	Solver();
+	//Solver();
 
-	Solver(Input* input, Random* random, RandomX* randomx);
+	Solver(Input* input,YearTable* yearTable,BKS* bks);
 
 	Solver(const Solver& s);
 
@@ -550,12 +550,6 @@ public:
 
 	//bool loadIndividual(const Individual* indiv);
 	//void exportIndividual(Individual* indiv);
-
-#if 0
-	bool initBySolFile(std::string bksPath);
-	bool initByDimacsBKS();
-	bool initByLKHBKS();
-#endif // 0
 
 	bool initSolution(int kind);
 
@@ -720,7 +714,7 @@ struct BKS {
 	UnorderedMap<int, DisType> bksAtRn;
 	Timer::TimePoint lastPrintTp;
 	Timer* timer = nullptr;
-	BKS();
+	BKS(Input* input,YearTable*yearTable,Timer* timer);
 
 	void reSet();
 

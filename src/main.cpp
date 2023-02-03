@@ -19,11 +19,15 @@ namespace hust {
 void run(int argc, char* argv[]) {
 
 	hust::CommandLine commandline(argc, argv);
+	Timer timer(commandline.runTimer);
+
 	AlgorithmParameters aps = commandline.aps;
 	RandomTools randomTools(commandline.seed);
 
-	Input input(&commandline, &aps);
-
+	Input input(&commandline, &aps,&randomTools,&timer);
+	
+	commandline.displayInfo();
+	input.displayInfo();
 	aps.displayInfo();
 
 	// TODO[lyh][0]:一定要记得aps用cusCnt合法化一下
@@ -31,15 +35,14 @@ void run(int argc, char* argv[]) {
 
 	YearTable yearTable(&input);
 
-	BKS bks;
-	Timer timer(commandline.runTimer);
-
-	hust::Goal goal(&input, &aps, &bks, &randomTools.random, &randomTools.randomx);
+	BKS bks(&input,&yearTable,&timer);
+	
+	hust::Goal goal(&input, &aps, &bks,&yearTable);
 
 	//goal.callSimulatedannealing();
-	//goal.TwoAlgCombine();
+	goal.TwoAlgCombine();
 	//goal.test();
-	goal.experOnMinRN();
+	//goal.experOnMinRN();
 
 }
 }

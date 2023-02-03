@@ -273,7 +273,7 @@ bool YearTable::updateYearTable(Solver* solver,TwoNodeMove t) {
 	int w = t.w;
 	auto& customers = solver->customers;
 
-	auto random = solver->input->random;
+	auto random = &solver->input->randomTools->random;
 	auto aps = solver->aps;
 
 	if (t.kind == 0) {

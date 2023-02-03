@@ -59,10 +59,10 @@ public:
 	}
 	void displayInfo() {
 
-		INFO("seed:", seed);
-		INFO("runTimer:", runTimer);
 		INFO("inputPath:", inputPath);
 		INFO("outputPath:", outputPath);
+		INFO("seed:", seed);
+		INFO("runTimer:", runTimer);
 	}
 
 	void displayHelpInfo()

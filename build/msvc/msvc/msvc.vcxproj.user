@@ -3,17 +3,17 @@
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <LocalDebuggerWorkingDirectory>$(SolutionDir)..\..\Dev</LocalDebuggerWorkingDirectory>
     <DebuggerFlavor>WindowsLocalDebugger</DebuggerFlavor>
-    <LocalDebuggerCommandArguments>-ins ../Instances/Homberger/C1_8_2.txt -time 3600 -psizemulpsum 0 -seed 1660141998</LocalDebuggerCommandArguments>
+    <LocalDebuggerCommandArguments>-ins ../Instances/Homberger/C1_8_2.txt -time 3600 -psizemulpsum 0 -seed 1665441954</LocalDebuggerCommandArguments>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='O0|x64'">
     <LocalDebuggerWorkingDirectory>$(SolutionDir)..\..\Dev</LocalDebuggerWorkingDirectory>
     <DebuggerFlavor>WindowsLocalDebugger</DebuggerFlavor>
-    <LocalDebuggerCommandArguments>-ins ../Instances/Homberger/C1_8_2.txt -time 3600 -psizemulpsum 0 -seed 1660141998</LocalDebuggerCommandArguments>
+    <LocalDebuggerCommandArguments>-ins ../Instances/Homberger/C1_8_2.txt -time 3600 -psizemulpsum 0 -seed 1665441954</LocalDebuggerCommandArguments>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <LocalDebuggerWorkingDirectory>$(SolutionDir)..\..\Dev</LocalDebuggerWorkingDirectory>
     <DebuggerFlavor>WindowsLocalDebugger</DebuggerFlavor>
-    <LocalDebuggerCommandArguments>-ins ../Instances/Homberger/C1_8_2.txt -time 3600 -psizemulpsum 0 -seed 1660141998</LocalDebuggerCommandArguments>
+    <LocalDebuggerCommandArguments>-ins ../Instances/Homberger/C1_8_2.txt -time 3600 -psizemulpsum 0 -seed 1665441954</LocalDebuggerCommandArguments>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <LocalDebuggerWorkingDirectory>$(SolutionDir)..\..\Dev</LocalDebuggerWorkingDirectory>

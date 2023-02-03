@@ -8,14 +8,14 @@ Goal::Goal(
 	Input*input,
 	AlgorithmParameters* aps,
 	BKS* bks,
-	Random* random,
-	RandomX* randomx
+	YearTable* yearTable
 ): 
 input(input),
 aps(aps),
 bks(bks),
-random(random),
-randomx(randomx)
+yearTable(yearTable),
+random(&input->randomTools->random),
+randomx(&input->randomTools->randomx)
 {
 	eaxTabuTable = Vec<Vec<bool>>
 		(aps->popSize, Vec<bool>(aps->popSize,false));
@@ -238,6 +238,7 @@ int Goal::gotoRNPop(int rn) {
 
 	//TODO[-1]:×¢ÊÍµôÁË
 	if (ppool[rn].size() == 0) {
+		Solver sol(input, yearTable, bks);
 		fillPopulation(rn);
 	}
 	
@@ -329,7 +330,8 @@ bool Goal::fillPopulation(int rn) {
 	auto& pool = ppool[rn];
 
 	if (pool.size() == 0 ) {
-		pool.resize(aps->popSizeMax);
+		Solver sol(input, yearTable, bks);
+		pool.resize(aps->popSizeMax,sol);
 	}
 
 	return true;
@@ -340,7 +342,7 @@ int Goal::callSimulatedannealing() {
 	//int ourTarget = aps->lkhRN;
 	int ourTarget = 0;
 
-	Solver st(input, random, randomx);
+	Solver st(input, yearTable,bks);
 
 	st.initSolution(0);
 	st.adjustRN(ourTarget);
@@ -358,7 +360,7 @@ int Goal::callSimulatedannealing() {
 
 bool Goal::test() {
 	
-	Solver sol(input, random, randomx);
+	Solver sol(input, yearTable,bks);
 	sol.initSolution(0);
 
 	sol.adjustRN(sol.rts.cnt + 10);
@@ -375,7 +377,7 @@ bool Goal::test() {
 bool Goal::experOnMinRN() {
 	//input->initDetail();
 
-	Solver sol(input, random, randomx);
+	Solver sol(input, yearTable,bks);
 	sol.initSolution(3);
 	
 	int target = aps->sintefRecRN;
@@ -394,7 +396,8 @@ void Goal::updateppol(Solver& sol, int index) {
 	int tar = sol.rts.cnt;
 
 	if (ppool[tar].size() == 0) {
-		ppool[tar].resize(aps->popSizeMax);
+		Solver sol(input,yearTable,bks);
+		ppool[tar].resize(aps->popSizeMax,sol);
 	}
 	if (sol.RoutesCost < ppool[tar][index].RoutesCost) {
 		INFO("update ppool rn:", tar, "index:", index);
@@ -404,7 +407,8 @@ void Goal::updateppol(Solver& sol, int index) {
 
 void Goal::getTheRangeMostHope() {
 
-	Solver sol(input,random,randomx);
+	Solver sol(input,yearTable,bks);
+	
 	sol.initSolution(0);
 
 	int adjBig = std::min<int>(input->vehicleCnt, sol.rts.cnt + 15);
@@ -435,8 +439,7 @@ void Goal::getTheRangeMostHope() {
 		aps->neiSizeMax = 35;
 	}
 
-	Vec<Solver> poolt(aps->popSizeMax);
-	poolt[0] = sol;
+	Vec<Solver> poolt(aps->popSizeMax,sol);
 	updateppol(sol, 0);
 	input->initDetail();
 

@@ -6,15 +6,20 @@
 
 namespace hust{
 
-Solver::Solver(){}
+//Solver::Solver(){}
 
-Solver::Solver(Input* input, Random* random, RandomX* randomx) :
+Solver::Solver(Input* input,YearTable* yearTable,BKS* bks) :
 	input(input),
-	random(random),
-	randomx(randomx),
+	random(&input->randomTools->random),
+	randomx(&input->randomTools->randomx),
+	timer(input->timer),
+	aps(input->aps),
+	bks(bks),
+	yearTable(yearTable),
 	PtwConfRts(input->custCnt/8),
 	PcConfRts(input->custCnt/8),
 	rts(input->custCnt/8)
+	
 {
 
 	customers = Vec<Customer>( (input->custCnt + 1) * 1.5 );
@@ -47,6 +52,14 @@ Solver::Solver(const Solver& s) :
 	this->beta = s.beta;
 	this->gamma = s.gamma;
 	this->RoutesCost = s.RoutesCost;
+
+	this->aps = s.aps;
+	this->random = s.random;
+	this->randomx = s.randomx;
+	this->bks = s.bks;
+	this->timer = s.timer;
+	this->yearTable = s.yearTable;
+
 }
 
 Solver& Solver::operator = (const Solver& s) {
@@ -65,6 +78,13 @@ Solver& Solver::operator = (const Solver& s) {
 		this->gamma = s.gamma;
 		this->Pc = s.Pc;
 		this->RoutesCost = s.RoutesCost;
+
+		this->aps = s.aps;
+		this->random = s.random;
+		this->randomx = s.randomx;
+		this->bks = s.bks;
+		this->timer = s.timer;
+		this->yearTable = s.yearTable;
 	}
 	return *this;
 }
@@ -82,8 +102,10 @@ Route Solver::rCreateRoute(int id) {
 	r.head = index;
 	r.tail = index + 1;
 
+	customers[r.head].pre = -1;
 	customers[r.head].next = r.tail;
 	customers[r.tail].pre = r.head;
+	customers[r.tail].next = -1;
 
 	customers[r.head].routeID = id;
 	customers[r.tail].routeID = id;
@@ -1129,6 +1151,7 @@ void Solver::exportIndividual(Individual* indiv) {
 
 bool Solver::initSolution(int kind) {//5ÖÖ
 
+	rts.reSet();
 	if (kind == 0) {
 		initBySecOrder();
 	}
@@ -7000,8 +7023,8 @@ bool Solver::ejectLocalSearch() {
 	int EpCusNoDown = 1;
 	int iter = 1;
 
-	//while (iter < aps->ejectLSMaxIter) {
-	while (!timer->isTimeOut()) {
+	while (iter < aps->ejectLSMaxIter && !timer->isTimeOut()) {
+	//while (!timer->isTimeOut()) {
 		//while (1) {
 
 		++iter;
@@ -7782,7 +7805,8 @@ bool Solver::saveOutAsSintefFile(std::string outputPath, std::string opt) {
 
 Solver::~Solver() {};
 
-BKS::BKS() {
+BKS::BKS(Input*input,YearTable* yearTable,Timer*timer):
+	bestSolFound(input,yearTable,nullptr),timer(timer) {
 	bestSolFound.penalty = DisInf;
 	bestSolFound.RoutesCost = DisInf;
 	lastPrCost = DisInf;

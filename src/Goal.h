@@ -23,13 +23,13 @@ struct Goal {
 	RandomX* randomx = nullptr;
 	Input* input = nullptr;
 	Timer* timer = nullptr;
+	YearTable* yearTable = nullptr;
 
 	Goal(
 		Input*input,
 		AlgorithmParameters* aps,
 		BKS* bks,
-		Random* random,
-		RandomX* randomx);
+		YearTable* yearTable);
 
 	void updateppol(Solver& sol, int index);
 

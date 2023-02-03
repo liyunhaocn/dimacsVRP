@@ -6,7 +6,14 @@
 
 namespace hust {
 
-EAX::EAX(Solver& pa, Solver& pb) :paPriE(2 * (pa.input->custCnt + pa.rts.cnt+1)), pbPriE(2 * (pb.input->custCnt + pb.rts.cnt+1)) {
+EAX::EAX(Solver& pa, Solver& pb) :
+	paPriE(2 * (pa.input->custCnt + pa.rts.cnt+1)), 
+	pbPriE(2 * (pb.input->custCnt + pb.rts.cnt+1)),
+	random(&pa.input->randomTools->random),
+	randomx(&pa.input->randomTools->randomx),
+	aps(pa.aps),
+	bks(pa.bks)
+{
 
 	this->eaxCusCnt = pa.input->custCnt;
 	this->eaxRCnt = pa.rts.cnt;

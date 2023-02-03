@@ -1759,8 +1759,8 @@ static InsData getD15InsData(std::string ins) {
 	return InsData{};
 }
 
-Input::Input(CommandLine* commandLine,AlgorithmParameters* aps):
-	commandLine(commandLine),aps(aps) {
+Input::Input(CommandLine* commandLine,AlgorithmParameters* aps,RandomTools* randomTools,Timer*timer):
+	commandLine(commandLine),aps(aps),randomTools(randomTools),timer(timer) {
 
 	//std::string example = aps->inputPath;
 	//int txtPos = example.find(".txt");

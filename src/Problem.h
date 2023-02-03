@@ -136,10 +136,11 @@ struct Input {
 	int vehicleCnt = 0;
 	Vec<Data> datas;
 	int Qbound = -1;
+
 	CommandLine* commandLine;
 	AlgorithmParameters* aps;
-
-	Random* random;
+	RandomTools* randomTools;
+	Timer* timer;
 
 	util::Array2D<DisType> disOf;
 
@@ -158,7 +159,7 @@ struct Input {
 
 	Vec<int> P;
 
-	Input(CommandLine* commandLine,AlgorithmParameters* aps);
+	Input(CommandLine* commandLine,AlgorithmParameters* aps, RandomTools* randomTools,Timer*timer);
 
 	bool initInput();
 
@@ -181,7 +182,7 @@ struct Input {
 		return disOf.at(a,b);
 	}
 
-	void displayInputInfo() {
+	void displayInfo() {
 
 		INFO("example:", example);
 		INFO("custCnt:", custCnt);
