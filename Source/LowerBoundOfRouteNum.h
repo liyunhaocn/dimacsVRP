@@ -69,8 +69,8 @@ std::vector<int> getOneBound(std::string ex) {
 
 			sol.rInsAtPosPre(r1, r1.tail, v);
 			sol.rInsAtPosPre(r1, r1.tail, w);
-			sol.rUpdateAvFrom(r1, r1.head);
-			sol.rUpdateZvFrom(r1, r1.tail);
+			sol.rUpdateAvQFrom(r1, r1.head);
+			sol.rUpdateZvQFrom(r1, r1.tail);
 			//sol.rNextDisp(r1);
 
 			bool is1 = r1.rPtw > 0;
@@ -81,8 +81,8 @@ std::vector<int> getOneBound(std::string ex) {
 
 			sol.rInsAtPosPre(r2, r2.tail, w);
 			sol.rInsAtPosPre(r2, r2.tail, v);
-			sol.rUpdateAvFrom(r2, r2.head);
-			sol.rUpdateZvFrom(r2, r2.tail);
+			sol.rUpdateAvQFrom(r2, r2.head);
+			sol.rUpdateZvQFrom(r2, r2.tail);
 			//sol.rNextDisp(r2);
 
 

@@ -173,7 +173,7 @@ bool Solver::rRemoveAllCustomersInRoute(Route& r) {
 
 	Vec<int> ve = rPutCustomersInVector(r);
 	for (int pt : ve) {
-		rRemoveAtPos(r, pt);
+		rRemoveAtPosition(r, pt);
 	}
 
 	rUpdateAvQFrom(r, r.head);
@@ -215,7 +215,7 @@ bool Solver::rInsAtPosPre(Route& r, int pos, int node) {
 	return true;
 }
 
-bool Solver::rRemoveAtPos(Route& r, int a) {
+bool Solver::rRemoveAtPosition(Route& r, int a) {
 
 	if (r.rCustCnt <= 0) {
 		return false;
@@ -238,7 +238,7 @@ bool Solver::rRemoveAtPos(Route& r, int a) {
 	return true;
 }
 
-void Solver::rPreDisplay(Route& r) {
+void Solver::rPrevDisplay(Route& r) {
 
 	int pt = r.tail;
 	std::cout << "predisp: ";
@@ -262,57 +262,6 @@ void Solver::rNextDisplay(Route& r) {
 		pt = customers[pt].next;
 	}
 	std::cout << std::endl;
-}
-
-DisType Solver::rUpdateAvFrom(Route& r, int vv) {
-
-	int v = vv;
-	if (v == r.head) {
-		v = customers[v].next;
-	}
-	int pt = v;
-	int ptpre = customers[pt].pre;
-
-	while (pt != -1) {
-
-		customers[pt].avp =
-			customers[pt].av = customers[ptpre].av + input->getDisof2(ptpre,pt) + input->datas[ptpre].SERVICETIME;
-
-		customers[pt].TW_X = customers[ptpre].TW_X;
-		customers[pt].TW_X += std::max<DisType>(customers[pt].avp - input->datas[pt].DUEDATE, 0);
-
-		if (customers[pt].avp <= input->datas[pt].DUEDATE) {
-			customers[pt].av = std::max<DisType>(customers[pt].avp, input->datas[pt].READYTIME);
-		}
-		else {
-			customers[pt].av = input->datas[pt].DUEDATE;
-		}
-
-		ptpre = pt;
-		pt = customers[pt].next;
-	}
-
-	r.rPtw = customers[r.tail].TW_X;
-	return r.rPtw;
-}
-
-DisType Solver::rUpdateAQFrom(Route& r, int v) {
-
-	if (v == r.head) {
-		v = customers[v].next;
-	}
-
-	int pt = v;
-	int ptpre = customers[pt].pre;
-	while (pt != -1) {
-		customers[pt].Q_X = customers[ptpre].Q_X + input->datas[pt].DEMAND;
-		ptpre = pt;
-		pt = customers[pt].next;
-	}
-
-	r.rQ = customers[r.tail].Q_X;
-	r.rPc = std::max<DisType>(0, r.rQ - input->Q);
-	return r.rPc;
 }
 
 bool Solver::rUpdateAvQFrom(Route& r, int vv) {
@@ -350,54 +299,6 @@ bool Solver::rUpdateAvQFrom(Route& r, int vv) {
 	r.rPc = std::max<DisType>(0, r.rQ - input->Q);
 
 	return true;
-}
-
-DisType Solver::rUpdateZvFrom(Route& r, int vv) {
-
-	int v = vv;
-
-	if (v == r.tail) {
-		v = customers[v].pre;
-	}
-
-	int pt = v;
-	int ptnext = customers[pt].next;
-
-	while (pt != -1) {
-
-		customers[pt].zvp =
-			customers[pt].zv = customers[ptnext].zv - input->getDisof2(pt,ptnext) - input->datas[pt].SERVICETIME;
-
-		customers[pt].TWX_ = customers[ptnext].TWX_;
-
-		customers[pt].TWX_ += std::max<DisType>(input->datas[pt].READYTIME - customers[pt].zvp, 0);
-
-		customers[pt].zv = customers[pt].zvp >= input->datas[pt].READYTIME ?
-			std::min<DisType>(customers[pt].zvp, input->datas[pt].DUEDATE) : input->datas[pt].READYTIME;
-
-		ptnext = pt;
-		pt = customers[pt].pre;
-	}
-	r.rPtw = customers[r.head].TWX_;
-	return r.rPtw;
-}
-
-DisType Solver::rUpdateZQFrom(Route& r, int v) {
-
-	if (v == r.tail) {
-		v = customers[v].pre;
-	}
-	int pt = v;
-	int ptnext = customers[pt].next;
-	while (pt != -1) {
-		customers[pt].QX_ = customers[ptnext].QX_ + input->datas[pt].DEMAND;
-		ptnext = pt;
-		pt = customers[pt].pre;
-	}
-
-	r.rQ = customers[r.head].QX_;
-	r.rPc = std::max<DisType>(0, r.rQ - input->Q);
-	return r.rPc;
 }
 
 void Solver::rUpdateZvQFrom(Route& r, int vv) {
@@ -471,52 +372,6 @@ Vec<int> Solver::rPutCustomersInVector(Route& r) {
 	return ret;
 }
 
-bool Solver::rtsCheck() {
-
-	for (int i = 0; i < rts.cnt; ++i) {
-		Route& r = rts[i];
-
-		Vec<int> cus1;
-		Vec<int> cus2;
-
-		int pt = r.head;
-		while (pt != -1) {
-
-			if (customers[pt].routeID != r.routeID) {
-				Logger::ERROR("customers[pt].routeID != r.routeID", pt, r.routeID);
-			}
-			cus1.push_back(pt);
-			pt = customers[pt].next;
-		}
-
-		pt = r.tail;
-		while (pt != -1) {
-			cus2.push_back(pt);
-			pt = customers[pt].pre;
-		}
-
-		if (cus1.size() != cus2.size()) {
-			Logger::ERROR("cus1.size() != cus2.size():",cus1.size() != cus2.size());
-		}
-
-		for (int i = 0; i < cus1.size(); ++i) {
-
-			if (cus1[i] != cus2[cus1.size() - 1 - i]) {
-				Logger::ERROR("cus1[i] != cus2[cus1.size() - 1 - i]",cus1[i] != cus2[cus1.size() - 1 - i]);
-			}
-		}
-
-		if (r.rCustCnt != cus1.size() - 2) {
-			Logger::ERROR("r.rCustCnt:",r.rCustCnt);
-			Logger::ERROR("cus1.size():",cus1.size());
-			rNextDisplay(r);
-			rNextDisplay(r);
-		}
-
-	}
-	return true;
-}
-
 void Solver::rReCalCusNumAndSetCusrIdWithHeadrId(Route& r) {
 
 	int pt = r.head;
@@ -585,7 +440,7 @@ CircleSector Solver::rGetCircleSector(Route& r) {
 	return ret;
 }
 
-void Solver::sumRtsPen() {
+void Solver::sumRtsPenalty() {
 
 	Pc = 0;
 	Ptw = 0;
@@ -845,7 +700,7 @@ Solver::Position Solver::findBestPositionForRuin(int w) {
 	return ret;
 }
 
-bool Solver::initBySecOrder() {
+bool Solver::initSolutionBySecOrder() {
 
 	Vec<int>que1(input->custCnt);
 	std::iota(que1.begin(), que1.end(), 1);
@@ -875,14 +730,14 @@ bool Solver::initBySecOrder() {
 
 		if (bestP.rIndex != -1 && bestP.pen == 0) {
 			rInsertAtPosition(rts[bestP.rIndex], bestP.pos, tp);
-			rUpdateAvFrom(rts[bestP.rIndex], tp);
-			rUpdateZvFrom(rts[bestP.rIndex], tp);
+			rUpdateAvQFrom(rts[bestP.rIndex], tp);
+			rUpdateZvQFrom(rts[bestP.rIndex], tp);
 		}
 		else {
 			Route r1 = rCreateRoute(rid++);
 			rInsAtPosPre(r1, r1.tail, tp);
-			rUpdateAvFrom(r1, tp);
-			rUpdateZvFrom(r1, tp);
+			rUpdateAvQFrom(r1, tp);
+			rUpdateZvQFrom(r1, tp);
 			rts.push_back(r1);
 		}
 	}
@@ -890,15 +745,15 @@ bool Solver::initBySecOrder() {
 	for (int i = 0; i < rts.cnt; ++i) {
 		Route& r = rts[i];
 		rUpdateZvQFrom(r, r.tail);
-		rUpdateAQFrom(r, r.head);
+		rUpdateAvQFrom(r, r.head);
 		rReCalculateRouteCost(r);
 	}
-	sumRtsPen();
+	sumRtsPenalty();
 
 	return true;
 }
 
-bool Solver::initSortOrder(int kind) {
+bool Solver::initSolutionSortOrder(int kind) {
 
 	Vec<int>que1(input->custCnt);
 	std::iota(que1.begin(), que1.end(), 1);
@@ -956,12 +811,12 @@ bool Solver::initSortOrder(int kind) {
 		rUpdateZvQFrom(r, r.tail);
 		rReCalculateRouteCost(r);
 	}
-	sumRtsPen();
+	sumRtsPenalty();
 	//patternAdjustment();
 	return true;
 }
 
-bool Solver::initMaxRoute() {
+bool Solver::initSolutionMaxRoute() {
 
 	Vec<int>que1(input->custCnt);
 	std::iota(que1.begin(), que1.end(), 1);
@@ -1002,16 +857,16 @@ bool Solver::initMaxRoute() {
 		if (isSucceed) {
 			que1.erase(que1.begin() + eaIndex);
 			rInsertAtPosition(rts[bestP.rIndex], bestP.pos, tp);
-			rUpdateAvFrom(rts[bestP.rIndex], rts[bestP.rIndex].head);
-			rUpdateZvFrom(rts[bestP.rIndex], rts[bestP.rIndex].tail);
+			rUpdateAvQFrom(rts[bestP.rIndex], rts[bestP.rIndex].head);
+			rUpdateZvQFrom(rts[bestP.rIndex], rts[bestP.rIndex].tail);
 			continue;
 		}
 
 		Route r1 = rCreateRoute(rid++);
 		rInsAtPosPre(r1, r1.tail, que1[0]);
 		que1.erase(que1.begin());
-		rUpdateAvFrom(r1, r1.head);
-		rUpdateZvFrom(r1, r1.tail);
+		rUpdateAvQFrom(r1, r1.head);
+		rUpdateZvQFrom(r1, r1.tail);
 		rts.push_back(r1);
 
 	} while (!que1.empty());
@@ -1020,10 +875,10 @@ bool Solver::initMaxRoute() {
 		Route& r = rts[i];
 
 		rUpdateZvQFrom(r, r.tail);
-		rUpdateAQFrom(r, r.head);
+		rUpdateAvQFrom(r, r.head);
 		rReCalculateRouteCost(r);
 	}
-	sumRtsPen();
+	sumRtsPenalty();
 	//patternAdjustment();
 	return true;
 }
@@ -1033,13 +888,13 @@ bool Solver::initSolution(int kind) {//5种
 	rts.reset();
 
 	if (kind == 0) {
-		initBySecOrder();
+		initSolutionBySecOrder();
 	}
 	else if(kind <= 3){
-		initSortOrder(kind);
+		initSolutionSortOrder(kind);
 	}
 	else if (kind == 4) {
-		initMaxRoute();
+		initSolutionMaxRoute();
 	}
 	
 	else {
@@ -1612,7 +1467,7 @@ DeltPen Solver::inrelocatevv_(int v, int w, int oneR) { //4
 
 			//auto cus = rPutCusInve(rw);
 
-			rRemoveAtPos(rw, w);
+			rRemoveAtPosition(rw, w);
 			rInsertAtPosition(rw, v_, w);
 
 			//Logger::INFO("twbegin:", twbegin);
@@ -1621,7 +1476,7 @@ DeltPen Solver::inrelocatevv_(int v, int w, int oneR) { //4
 			newwvPtw = getaRangeOffPtw(twbegin, twend);
 			//newwvPtw = rUpdateAvfrom(rw, rw.head);
 
-			rRemoveAtPos(rw, w);
+			rRemoveAtPosition(rw, w);
 			rInsertAtPosition(rw, w_, w);
 
 			//rUpdateAvfrom(rw, rw.head);
@@ -1742,12 +1597,12 @@ DeltPen Solver::inrelocatevvj(int v, int w, int oneR) { //5
 				// w ..... (v-) v
 			}
 
-			rRemoveAtPos(rw, w);
+			rRemoveAtPosition(rw, w);
 			rInsertAtPosition(rw, v, w);
 
 			newwvPtw = getaRangeOffPtw(twbegin, twend);
 
-			rRemoveAtPos(rw, w);
+			rRemoveAtPosition(rw, w);
 			rInsertAtPosition(rw, w_, w);
 
 			bestM.PtwOnly = newwvPtw - rw.rPtw;
@@ -1865,8 +1720,8 @@ DeltPen Solver::exchangevw(int v, int w, int oneR) { // 8
 				int fr = getFrontofTwoCus(v, w);
 
 				// exchangevw
-				rRemoveAtPos(rw, w);
-				rRemoveAtPos(rw, v);
+				rRemoveAtPosition(rw, w);
+				rRemoveAtPosition(rw, v);
 
 				rInsertAtPosition(rw, v_, w);
 				rInsertAtPosition(rw, w_, v);
@@ -1878,8 +1733,8 @@ DeltPen Solver::exchangevw(int v, int w, int oneR) { // 8
 					newwPtw = newvPtw = getaRangeOffPtw(w_, vj);
 				}
 
-				rRemoveAtPos(rw, w);
-				rRemoveAtPos(rw, v);
+				rRemoveAtPosition(rw, w);
+				rRemoveAtPosition(rw, v);
 
 				rInsertAtPosition(rw, w_, w);
 				rInsertAtPosition(rw, v_, v);
@@ -2063,9 +1918,9 @@ DeltPen Solver::exchangevvjw(int v, int w, int oneR) { // 11 2换1
 				// exchange vvj and (w)
 				int fr = getFrontofTwoCus(v, w);
 
-				rRemoveAtPos(rv, v);
-				rRemoveAtPos(rv, vj);
-				rRemoveAtPos(rw, w);
+				rRemoveAtPosition(rv, v);
+				rRemoveAtPosition(rv, vj);
+				rRemoveAtPosition(rw, w);
 
 				rInsertAtPosition(rv, v_, w);
 				rInsertAtPosition(rv, w_, v);
@@ -2078,9 +1933,9 @@ DeltPen Solver::exchangevvjw(int v, int w, int oneR) { // 11 2换1
 					newvPtw = newwPtw = getaRangeOffPtw(w_, vjj);
 				}
 
-				rRemoveAtPos(rv, v);
-				rRemoveAtPos(rv, vj);
-				rRemoveAtPos(rv, w);
+				rRemoveAtPosition(rv, v);
+				rRemoveAtPosition(rv, vj);
+				rRemoveAtPosition(rv, w);
 
 				rInsertAtPosition(rv, v_, v);
 				rInsertAtPosition(rv, v, vj);
@@ -2259,11 +2114,11 @@ DeltPen Solver::exchangevvjvjjwwj(int v, int w, int oneR) { // 9 3换2
 				//exchange vvjvjj and (ww + )
 				int fr = getFrontofTwoCus(v, w);
 
-				rRemoveAtPos(rv, v);
-				rRemoveAtPos(rv, vj);
-				rRemoveAtPos(rv, vjj);
-				rRemoveAtPos(rw, w);
-				rRemoveAtPos(rw, wj);
+				rRemoveAtPosition(rv, v);
+				rRemoveAtPosition(rv, vj);
+				rRemoveAtPosition(rv, vjj);
+				rRemoveAtPosition(rw, w);
+				rRemoveAtPosition(rw, wj);
 
 				rInsertAtPosition(rv, v_, w);
 				rInsertAtPosition(rv, w, wj);
@@ -2279,11 +2134,11 @@ DeltPen Solver::exchangevvjvjjwwj(int v, int w, int oneR) { // 9 3换2
 					newvPtw = newwPtw = getaRangeOffPtw(w_, v3j);
 				}
 
-				rRemoveAtPos(rv, v);
-				rRemoveAtPos(rv, vj);
-				rRemoveAtPos(rv, vjj);
-				rRemoveAtPos(rv, w);
-				rRemoveAtPos(rv, wj);
+				rRemoveAtPosition(rv, v);
+				rRemoveAtPosition(rv, vj);
+				rRemoveAtPosition(rv, vjj);
+				rRemoveAtPosition(rv, w);
+				rRemoveAtPosition(rv, wj);
 
 				rInsertAtPosition(rv, v_, v);
 				rInsertAtPosition(rv, v, vj);
@@ -2447,10 +2302,10 @@ DeltPen Solver::exchangevvjvjjw(int v, int w, int oneR) { // 10 三换一
 
 				int fr = getFrontofTwoCus(v, w);
 
-				rRemoveAtPos(rv, v);
-				rRemoveAtPos(rv, vj);
-				rRemoveAtPos(rv, vjj);
-				rRemoveAtPos(rw, w);
+				rRemoveAtPosition(rv, v);
+				rRemoveAtPosition(rv, vj);
+				rRemoveAtPosition(rv, vjj);
+				rRemoveAtPosition(rw, w);
 
 				rInsertAtPosition(rv, v_, w);
 				rInsertAtPosition(rv, w_, v);
@@ -2464,10 +2319,10 @@ DeltPen Solver::exchangevvjvjjw(int v, int w, int oneR) { // 10 三换一
 					newvPtw = newwPtw = getaRangeOffPtw(w_, v3j);
 				}
 
-				rRemoveAtPos(rv, v);
-				rRemoveAtPos(rv, vj);
-				rRemoveAtPos(rv, vjj);
-				rRemoveAtPos(rv, w);
+				rRemoveAtPosition(rv, v);
+				rRemoveAtPosition(rv, vj);
+				rRemoveAtPosition(rv, vjj);
+				rRemoveAtPosition(rv, w);
 
 				rInsertAtPosition(rv, v_, v);
 				rInsertAtPosition(rv, v, vj);
@@ -2626,8 +2481,8 @@ DeltPen Solver::outrelocatevvjTowwj(int v, int w, int oneR) {  //13 扔两个
 
 			int fr = getFrontofTwoCus(v, w);
 
-			rRemoveAtPos(rv, v);
-			rRemoveAtPos(rv, vj);
+			rRemoveAtPosition(rv, v);
+			rRemoveAtPosition(rv, vj);
 
 			rInsertAtPosition(rv, w, v);
 			rInsertAtPosition(rv, v, vj);
@@ -2639,8 +2494,8 @@ DeltPen Solver::outrelocatevvjTowwj(int v, int w, int oneR) {  //13 扔两个
 				newvPtw = newwPtw = getaRangeOffPtw(w, vjj);
 			}
 
-			rRemoveAtPos(rv, v);
-			rRemoveAtPos(rv, vj);
+			rRemoveAtPosition(rv, v);
+			rRemoveAtPosition(rv, vj);
 
 			rInsertAtPosition(rv, v_, v);
 			rInsertAtPosition(rv, v, vj);
@@ -3035,7 +2890,7 @@ bool Solver::outRelocate(TwoNodeMove& M) {
 		int vpre = customers[v].pre;
 		int vnext = customers[v].next;
 
-		rRemoveAtPos(rv, v);
+		rRemoveAtPosition(rv, v);
 		rInsertAtPosition(rw, customers[w].pre, v);
 
 		if (rv.routeID == rw.routeID) {
@@ -3058,7 +2913,7 @@ bool Solver::outRelocate(TwoNodeMove& M) {
 		int vpre = customers[v].pre;
 		int vnext = customers[v].next;
 
-		rRemoveAtPos(rv, v);
+		rRemoveAtPosition(rv, v);
 		rInsertAtPosition(rw, w, v);
 
 		if (rv.routeID == rw.routeID) {
@@ -3085,8 +2940,8 @@ bool Solver::outRelocate(TwoNodeMove& M) {
 				return false;
 			}
 
-			rRemoveAtPos(rw, v);
-			rRemoveAtPos(rw, vj);
+			rRemoveAtPosition(rw, v);
+			rRemoveAtPosition(rw, vj);
 			rInsertAtPosition(rw, w, v);
 			rInsertAtPosition(rw, v, vj);
 
@@ -3099,8 +2954,8 @@ bool Solver::outRelocate(TwoNodeMove& M) {
 			int vjj = customers[vj].next;
 			int v_ = customers[v].pre;
 
-			rRemoveAtPos(rv, v);
-			rRemoveAtPos(rv, vj);
+			rRemoveAtPosition(rv, v);
+			rRemoveAtPosition(rv, vj);
 
 			rInsertAtPosition(rw, w, v);
 			rInsertAtPosition(rw, v, vj);
@@ -3120,8 +2975,8 @@ bool Solver::outRelocate(TwoNodeMove& M) {
 
 		if (rw.routeID == rv.routeID) {
 
-			rRemoveAtPos(rv, v);
-			rRemoveAtPos(rv, v_);
+			rRemoveAtPosition(rv, v);
+			rRemoveAtPosition(rv, v_);
 
 			rInsAtPosPre(rv, w, v);
 			rInsAtPosPre(rv, v, v_);
@@ -3131,8 +2986,8 @@ bool Solver::outRelocate(TwoNodeMove& M) {
 		}
 		else {
 
-			rRemoveAtPos(rv, v);
-			rRemoveAtPos(rv, v_);
+			rRemoveAtPosition(rv, v);
+			rRemoveAtPosition(rv, v_);
 
 			rInsAtPosPre(rw, w, v);
 			rInsAtPosPre(rw, v, v_);
@@ -3167,7 +3022,7 @@ bool Solver::inRelocate(TwoNodeMove& M) {
 		int wnext = customers[w].next;
 		int wpre = customers[w].pre;
 
-		rRemoveAtPos(rw, w);
+		rRemoveAtPosition(rw, w);
 		rInsertAtPosition(rv, customers[v].pre, w);
 
 		if (rv.routeID == rw.routeID) {
@@ -3191,7 +3046,7 @@ bool Solver::inRelocate(TwoNodeMove& M) {
 		int wnext = customers[w].next;
 		int wpre = customers[w].pre;
 
-		rRemoveAtPos(rw, w);
+		rRemoveAtPosition(rw, w);
 		rInsertAtPosition(rv, v, w);
 
 		if (rv.routeID == rw.routeID) {
@@ -3235,15 +3090,15 @@ bool Solver::exchange(TwoNodeMove& M) {
 
 			if (v == w__) {
 
-				rRemoveAtPos(rv, v);
-				rRemoveAtPos(rw, w_);
+				rRemoveAtPosition(rv, v);
+				rRemoveAtPosition(rw, w_);
 
 				rInsertAtPosition(rv, v_, w_);
 				rInsertAtPosition(rw, w_, v);
 			}
 			else {
-				rRemoveAtPos(rv, v);
-				rRemoveAtPos(rw, w_);
+				rRemoveAtPosition(rv, v);
+				rRemoveAtPosition(rw, w_);
 
 				rInsertAtPosition(rw, w__, v);
 
@@ -3262,8 +3117,8 @@ bool Solver::exchange(TwoNodeMove& M) {
 		}
 		else {
 
-			rRemoveAtPos(rv, v);
-			rRemoveAtPos(rw, w_);
+			rRemoveAtPosition(rv, v);
+			rRemoveAtPosition(rw, w_);
 
 			rInsertAtPosition(rw, w__, v);
 			rInsertAtPosition(rv, v_, w_);
@@ -3293,15 +3148,15 @@ bool Solver::exchange(TwoNodeMove& M) {
 			}
 			else if (v == wjj) {
 
-				rRemoveAtPos(rv, v);
-				rRemoveAtPos(rw, wj);
+				rRemoveAtPosition(rv, v);
+				rRemoveAtPosition(rw, wj);
 
 				rInsertAtPosition(rv, w, v);
 				rInsertAtPosition(rw, v, wj);
 			}
 			else {
-				rRemoveAtPos(rv, v);
-				rRemoveAtPos(rw, wj);
+				rRemoveAtPosition(rv, v);
+				rRemoveAtPosition(rw, wj);
 
 				rInsertAtPosition(rv, v_, wj);
 
@@ -3318,8 +3173,8 @@ bool Solver::exchange(TwoNodeMove& M) {
 		}
 		else {
 
-			rRemoveAtPos(rv, v);
-			rRemoveAtPos(rw, wj);
+			rRemoveAtPosition(rv, v);
+			rRemoveAtPosition(rw, wj);
 
 			rInsertAtPosition(rw, w, v);
 			rInsertAtPosition(rv, v_, wj);
@@ -3339,8 +3194,8 @@ bool Solver::exchange(TwoNodeMove& M) {
 		int v_ = customers[v].pre;
 		int w_ = customers[w].pre;
 
-		rRemoveAtPos(rv, v);
-		rRemoveAtPos(rw, w);
+		rRemoveAtPosition(rv, v);
+		rRemoveAtPosition(rw, w);
 
 		if (rv.routeID == rw.routeID) {
 			//return bestM;
@@ -3388,11 +3243,11 @@ bool Solver::exchange(TwoNodeMove& M) {
 				return false;
 			}*/
 
-			rRemoveAtPos(rv, v);
-			rRemoveAtPos(rv, vj);
-			rRemoveAtPos(rv, vjj);
-			rRemoveAtPos(rw, w);
-			rRemoveAtPos(rw, wj);
+			rRemoveAtPosition(rv, v);
+			rRemoveAtPosition(rv, vj);
+			rRemoveAtPosition(rv, vjj);
+			rRemoveAtPosition(rw, w);
+			rRemoveAtPosition(rw, wj);
 
 			if (v_ == wj) {
 
@@ -3429,11 +3284,11 @@ bool Solver::exchange(TwoNodeMove& M) {
 		}
 		else {
 
-			rRemoveAtPos(rv, v);
-			rRemoveAtPos(rv, vj);
-			rRemoveAtPos(rv, vjj);
-			rRemoveAtPos(rw, w);
-			rRemoveAtPos(rw, wj);
+			rRemoveAtPosition(rv, v);
+			rRemoveAtPosition(rv, vj);
+			rRemoveAtPosition(rv, vjj);
+			rRemoveAtPosition(rw, w);
+			rRemoveAtPosition(rw, wj);
 
 			rInsertAtPosition(rv, v_, w);
 			rInsertAtPosition(rv, w, wj);
@@ -3463,10 +3318,10 @@ bool Solver::exchange(TwoNodeMove& M) {
 				return false;
 			}*/
 
-			rRemoveAtPos(rv, v);
-			rRemoveAtPos(rv, vj);
-			rRemoveAtPos(rv, vjj);
-			rRemoveAtPos(rw, w);
+			rRemoveAtPosition(rv, v);
+			rRemoveAtPosition(rv, vj);
+			rRemoveAtPosition(rv, vjj);
+			rRemoveAtPosition(rw, w);
 
 			if (v == wj) {
 
@@ -3497,10 +3352,10 @@ bool Solver::exchange(TwoNodeMove& M) {
 		}
 		else {
 
-			rRemoveAtPos(rv, v);
-			rRemoveAtPos(rv, vj);
-			rRemoveAtPos(rv, vjj);
-			rRemoveAtPos(rw, w);
+			rRemoveAtPosition(rv, v);
+			rRemoveAtPosition(rv, vj);
+			rRemoveAtPosition(rv, vjj);
+			rRemoveAtPosition(rw, w);
 
 			rInsertAtPosition(rv, v_, w);
 			rInsertAtPosition(rw, w_, v);
@@ -3522,9 +3377,9 @@ bool Solver::exchange(TwoNodeMove& M) {
 
 		if (rv.routeID == rw.routeID) {
 
-			rRemoveAtPos(rv, v);
-			rRemoveAtPos(rv, vj);
-			rRemoveAtPos(rw, w);
+			rRemoveAtPosition(rv, v);
+			rRemoveAtPosition(rv, vj);
+			rRemoveAtPosition(rw, w);
 
 			if (v_ == w) {
 				// w -> v -> v+
@@ -3550,9 +3405,9 @@ bool Solver::exchange(TwoNodeMove& M) {
 		}
 		else {
 			//exchangevvjw
-			rRemoveAtPos(rv, v);
-			rRemoveAtPos(rv, vj);
-			rRemoveAtPos(rw, w);
+			rRemoveAtPosition(rv, v);
+			rRemoveAtPosition(rv, vj);
+			rRemoveAtPosition(rw, w);
 
 			rInsertAtPosition(rv, v_, w);
 
@@ -3579,9 +3434,9 @@ bool Solver::exchange(TwoNodeMove& M) {
 				return false;
 			}*/
 
-			rRemoveAtPos(rv, v);
-			rRemoveAtPos(rw, w);
-			rRemoveAtPos(rw, wj);
+			rRemoveAtPosition(rv, v);
+			rRemoveAtPosition(rw, w);
+			rRemoveAtPosition(rw, wj);
 
 			// (w) -> (w+)-> (v) 
 			if (v_ == wj) {
@@ -3611,9 +3466,9 @@ bool Solver::exchange(TwoNodeMove& M) {
 		}
 		else {
 			// exchangevwwj
-			rRemoveAtPos(rv, v);
-			rRemoveAtPos(rw, w);
-			rRemoveAtPos(rw, wj);
+			rRemoveAtPosition(rv, v);
+			rRemoveAtPosition(rw, w);
+			rRemoveAtPosition(rw, wj);
 
 			rInsertAtPosition(rv, v_, w);
 			rInsertAtPosition(rv, w, wj);
@@ -4293,7 +4148,7 @@ bool Solver::doEjection(Vec<eOneRNode>& XSet) {
 		Route& r = rts.getRouteByRid(en.rId);
 
 		for (int node : en.ejeVe) {
-			rRemoveAtPos(r, node);
+			rRemoveAtPosition(r, node);
 			EP.insert(node);
 		}
 		rUpdateAvQFrom(r, r.head);
@@ -4305,7 +4160,7 @@ bool Solver::doEjection(Vec<eOneRNode>& XSet) {
 	}
 
 	resetConfRts();
-	sumRtsPen();
+	sumRtsPenalty();
 
 	#if LYH_CHECKING
 	lyhCheckTrue(penalty == 0);
@@ -4370,7 +4225,7 @@ bool Solver::removeOneRouteByRid(int rId) {
 		EP.insert(pt);
 	}
 
-	sumRtsPen();
+	sumRtsPenalty();
 	resetConfRts();
 	managerCusMem(releasedNodes);
 
@@ -4392,7 +4247,7 @@ DisType Solver::verify() {
 		Route& r = rts[i];
 
 		//cusCnt += r.rCustCnt;
-		Ptw += rUpdateAvFrom(r, r.head);
+		Ptw += rUpdateAvQFrom(r, r.head);
 		Pc += rUpdatePc(r);
 
 		Vec<int> cusve = rPutCustomersInVector(r);
@@ -4412,7 +4267,7 @@ DisType Solver::verify() {
 		rts[i].rWeight = 1;
 	}
 
-	sumRtsPen();
+	sumRtsPenalty();
 
 	if (Ptw > 0 && Pc == 0) {
 		return -2;
@@ -4538,7 +4393,7 @@ bool Solver::routeWeightedRepair() {
 			customers = it->customers;
 			rts = it->rts;
 			resetConfRts();
-			sumRtsPen();
+			sumRtsPenalty();
 
 			Vec<eOneRNode> reteNode = ejectFromPatialSol();
 
@@ -4581,7 +4436,7 @@ bool Solver::routeWeightedRepair() {
 	}
 
 	resetConfRts();
-	sumRtsPen();
+	sumRtsPenalty();
 
 	//int deTimeOneTurn = 0;
 	//int contiTurnNoDe = 0;
@@ -4825,7 +4680,7 @@ bool Solver::routeWeightedRepair() {
 		}
 
 		resetConfRts();
-		sumRtsPen();
+		sumRtsPenalty();
 
 		return true;
 	}
@@ -4927,7 +4782,7 @@ void Solver::ruinClearEP(int kind) {
 		}
 	}
 
-	sumRtsPen();
+	sumRtsPenalty();
 	for (auto rId : insRts) {
 		Route& r = rts.getRouteByRid(rId);
 		rReCalculateRouteCost(r);
@@ -5276,7 +5131,7 @@ void Solver::perturbBasedEjectionPool(int ruinCusNum) {
 		Route& r = rts.getRouteByRid(customers[cus].routeID);
 		rIds.insert(r.routeID);
 		if (r.rCustCnt > 2) {
-			rRemoveAtPos(r, cus);
+			rRemoveAtPosition(r, cus);
 			EP.insert(cus);
 		}
 	}
@@ -5288,7 +5143,7 @@ void Solver::perturbBasedEjectionPool(int ruinCusNum) {
 		rReCalculateRouteCost(r);
 	}
 	sumRtsCost();
-	sumRtsPen();
+	sumRtsPenalty();
 	bool isej = ejectLocalSearch();
 	if (isej) {
 		//TODO[-1]:这里去掉了
@@ -5334,7 +5189,7 @@ bool Solver::doOneTimeRuinPer(int perturbkind, int ruinCusNum, int clearEPKind) 
 		Route& r = rts.getRouteByRid(customers[cus].routeID);
 		rIds.insert(r.routeID);
 		if (r.rCustCnt > 2) {
-			rRemoveAtPos(r, cus);
+			rRemoveAtPosition(r, cus);
 			EP.insert(cus);
 		}
 	}
@@ -5346,7 +5201,7 @@ bool Solver::doOneTimeRuinPer(int perturbkind, int ruinCusNum, int clearEPKind) 
 		rReCalculateRouteCost(r);
 	}
 	sumRtsCost();
-	sumRtsPen();
+	sumRtsPenalty();
 	ruinClearEP(clearEPKind);
 
 	if (penalty == 0) {
@@ -5544,7 +5399,7 @@ int Solver::CVB2ClearEPAllowNewR(int kind) {
 		}
 	}
 
-	sumRtsPen();
+	sumRtsPenalty();
 	for (auto rId : insRts) {
 		Route& r = rts.getRouteByRid(rId);
 		rReCalculateRouteCost(r);
@@ -5604,7 +5459,7 @@ int Solver::CVB2ruinLS(int ruinCusNum) {
 	for (int cus : ruinCus) {
 		Route& r = rts.getRouteByRid(customers[cus].routeID);
 		rIds.insert(r.routeID);
-		rRemoveAtPos(r, cus);
+		rRemoveAtPosition(r, cus);
 		EP.insert(cus);
 
 		if (r.rCustCnt == 0) {
@@ -5623,7 +5478,7 @@ int Solver::CVB2ruinLS(int ruinCusNum) {
 	}
 
 	sumRtsCost();
-	sumRtsPen();
+	sumRtsPenalty();
 
 	//reCalRtsCostAndPen();
 
@@ -5779,7 +5634,7 @@ bool Solver::patternAdjustment(int Irand) {
 
 	} while (++iter < I1000);
 
-	sumRtsPen();
+	sumRtsPenalty();
 	if (beforeGamma == 1) {
 		reCalRtsCostSumCost();
 		gamma = beforeGamma;
@@ -6090,7 +5945,7 @@ Solver::eOneRNode Solver::ejectOneRouteOnlyP(Route& r, int kind, int Kmax) {
 			pt = ptn;
 			ptn = customers[ptn].next;
 		}
-		rUpdateAvFrom(r, r.head);
+		rUpdateAvQFrom(r, r.head);
 	};
 
 	Vec<int> R = rPutCustomersInVector(r);
@@ -6282,9 +6137,9 @@ Solver::eOneRNode Solver::ejectOneRouteMinPsumGreedy
 
 		if (ptw < curPtw) {
 
-			rRemoveAtPos(r, ctop);
-			rUpdateAvFrom(r, pre);
-			rUpdateZvFrom(r, nex);
+			rRemoveAtPosition(r, ctop);
+			rUpdateAvQFrom(r, pre);
+			rUpdateZvQFrom(r, nex);
 			curPtw = ptw;
 			ret.ejeVe.push_back(ctop);
 			ret.Psum += input->P[ctop];
@@ -6308,7 +6163,7 @@ Solver::eOneRNode Solver::ejectOneRouteMinPsumGreedy
 
 		int ctop = qu.top();
 		qu.pop();
-		rRemoveAtPos(r, ctop);
+		rRemoveAtPosition(r, ctop);
 		ret.ejeVe.push_back(ctop);
 		ret.Psum += input->P[ctop];
 	}
@@ -6373,7 +6228,7 @@ bool Solver::EPNodesCanEasilyPut() {
 			rUpdateAvQFrom(r, top);
 			rUpdateZvQFrom(r, top);
 
-			sumRtsPen();
+			sumRtsPenalty();
 			resetConfRts();
 
 			#if LYH_CHECKING
@@ -6458,7 +6313,7 @@ bool Solver::ejectLocalSearch() {
 		rInsertAtPosition(r, bestP.pos, top);
 		rUpdateAvQFrom(r, top);
 		rUpdateZvQFrom(r, top);
-		sumRtsPen();
+		sumRtsPenalty();
 		resetConfRts();
 
 		#if LYH_CHECKING
@@ -6610,7 +6465,7 @@ int Solver::splitLocalSearch() {
 		Route r1 = rCreateRoute(rId);
 
 		for (int i = 0; i < arr.size(); ++i) {
-			rRemoveAtPos(r, arr[i]);
+			rRemoveAtPosition(r, arr[i]);
 			rInsAtPosPre(r1, r1.tail, arr[i]);
 			if (arr[i] == vsp.pos) {
 				break;
@@ -6626,7 +6481,7 @@ int Solver::splitLocalSearch() {
 		rts.push_back(r1);
 
 		sumRtsCost();
-		sumRtsPen();
+		sumRtsPenalty();
 	}
 
 	return 0;
@@ -6671,7 +6526,7 @@ bool Solver::adjustRouteNumber(int ourTarget) {
 			//printve(arr);
 
 			for (int i = 0; i < arr.size(); ++i) {
-				rRemoveAtPos(r, arr[i]);
+				rRemoveAtPosition(r, arr[i]);
 				rInsAtPosPre(r1, r1.tail, arr[i]);
 				if (arr[i] == vsp.pos) {
 					break;
@@ -6687,7 +6542,7 @@ bool Solver::adjustRouteNumber(int ourTarget) {
 			rts.push_back(r1);
 
 			sumRtsCost();
-			sumRtsPen();
+			sumRtsPenalty();
 			
 		}
 		//Logger::INFO("split adjust rn rts.cnt:", rts.cnt);
@@ -6711,7 +6566,7 @@ bool Solver::repair() {
 	}
 
 	resetConfRts();
-	sumRtsPen();
+	sumRtsPenalty();
 
 	gamma = 1;
 
@@ -6778,7 +6633,7 @@ bool Solver::repair() {
 		
 		yearTable->squIterGrowUp(1);
 
-		sumRtsPen();
+		sumRtsPenalty();
 
 		RoutesCost += bestM.deltPen.deltCost;
 

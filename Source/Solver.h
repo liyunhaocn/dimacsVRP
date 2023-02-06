@@ -507,15 +507,7 @@ public:
 
 	void rNextDisplay(Route& r);
 
-	DisType rUpdateAvFrom(Route& r, int vv);
-
-	DisType rUpdateAQFrom(Route& r, int v);
-
 	bool rUpdateAvQFrom(Route& r, int vv);
-
-	DisType rUpdateZvFrom(Route& r, int vv);
-
-	DisType rUpdateZQFrom(Route& r, int v);
 
 	void rUpdateZvQFrom(Route& r, int vv);
 
@@ -524,8 +516,6 @@ public:
 	void rReCalculateRouteCost(Route& r);
 
 	Vec<int> rPutCustomersInVector(Route& r);
-
-	bool rtsCheck();
 
 	void rReCalCusNumAndSetCusrIdWithHeadrId(Route& r);
 
