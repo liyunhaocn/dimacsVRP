@@ -1,0 +1,27 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <ClCompile Include="..\..\TestCaseSource\EAXTest.cpp">
+      <Filter>TestCaseSource</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\TestCaseSource\pch.cpp">
+      <Filter>TestCaseSource</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\TestCaseSource\SolverTest.cpp">
+      <Filter>TestCaseSource</Filter>
+    </ClCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="packages.config" />
+  </ItemGroup>
+  <ItemGroup>
+    <Filter Include="TestCaseSource">
+      <UniqueIdentifier>{93388d58-879f-407d-9715-cffbbb0ebeeb}</UniqueIdentifier>
+    </Filter>
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="..\..\TestCaseSource\pch.h">
+      <Filter>TestCaseSource</Filter>
+    </ClInclude>
+  </ItemGroup>
+</Project>
