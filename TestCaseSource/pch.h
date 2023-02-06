@@ -12,6 +12,7 @@
 #include "../Source/Algorithm_Parameters.h"
 #include "../Source/Problem.h"
 #include "../Source/CommandLine.h"
+#include "../Source/Util_Logger.h"
 
 namespace hust {
 namespace lyhtest {

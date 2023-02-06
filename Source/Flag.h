@@ -11,7 +11,7 @@
 
 #include "Util_Arr2D.h"
 
-#define LYH_CHECKING 1
+#define LYH_CHECKING 0
 
 #define lyhCheckTrue(x) {				\
 	if(!(x) ){							\

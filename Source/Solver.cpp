@@ -1031,6 +1031,7 @@ bool Solver::initMaxRoute() {
 bool Solver::initSolution(int kind) {//5ÖÖ
 
 	rts.reset();
+
 	if (kind == 0) {
 		initBySecOrder();
 	}
@@ -1147,7 +1148,7 @@ DeltPen Solver::_2optOpenvv_(int v, int w) { //0
 		DisType vPtw = rv.rPtw * rv.rWeight;
 		DisType wPtw = rw.rPtw * rw.rWeight;
 
-		DisType newwvPtw = getPtwWithVectorOfCustomers({w,v})*2;
+		DisType newwvPtw = getPtwWithVectorOfCustomers({w,v});
 		// (v-) -> (w+)
 		DisType newv_wjPtw = getPtwWithVectorOfCustomers({ v_,wj });
 

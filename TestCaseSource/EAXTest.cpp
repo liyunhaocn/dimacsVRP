@@ -1,7 +1,7 @@
 #include "pch.h"
 
 
-TEST(EAXTest, Temp) {
+TEST(EAXTest, generateCycles) {
 
 	using namespace hust;
 
@@ -31,11 +31,18 @@ TEST(EAXTest, Temp) {
 		Solver pb(&input, &yearTable, &bks);
 		pb.initSolution(0);
 
+		
+		int bigRtsNumber = std::max<int>(pa.rts.cnt, pb.rts.cnt);
+		pa.adjustRouteNumber(bigRtsNumber);
+		pb.adjustRouteNumber(bigRtsNumber);
+		
 		EAX eax(pa, pb);
 
 		EXPECT_EQ(eax.pa->rts.cnt, eax.pb->rts.cnt);
 		
 		eax.generateCycles();
+
+		EXPECT_TRUE(eax.GabEsize>0);
 
 	}
 }
