@@ -4,7 +4,7 @@
 
 #pragma once
 
-#include "gtest/gtest.h"
+#include <gtest/gtest.h>
 #include "../Source/Flag.h"
 #include "../Source/Solver.h"
 #include "../Source/YearTable.h"
