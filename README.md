@@ -1,63 +1,90 @@
-# dimacsVRP
+# DLLSMA: Dual-level Local Search Memetic Algorithm for VRP with Time Windows
 
-- 2021.12.16代码
-    - popSize：5
-    - 随机选取pa，pb的选取为最近没有和pa进行eax的
+This solver
 
-- eax：
-    - 放一个和放多个（2,3,4）个
-    - 后者修复率是前者的三分之一，但是提升全局最优解的概率却是前者的一半
-    - 就是说只要放多个的情况下可以修复就大概率可以提升全局最优解
-    - 而且随着算法运行到后期，单个eax便很难提升全局最优解了
+# References
 
-- ruin:
-    - 将一条路径上连续的若干点以及它周围的点拿出来，然后贪心放回
-    - 放回选取十个备选位置随机挑选一个，优先选择惩罚值小的，惩罚值相同的选择delt routeCost小的
+DIMACS 12th Implementation Challenge workshop paper:
+Team HustSmart: Zhouxing Su, Yunhao Li, Shihao Huang, Zhipeng Lü, Junwen Ding, Fuda Ma, Weibo Lin
+[https://drive.google.com/file/d/1dDh3qiVbD5kexKbgEHQtkuSk3LBMjUOC/view?usp=sharing](https://drive.google.com/file/d/1dDh3qiVbD5kexKbgEHQtkuSk3LBMjUOC/view?usp=sharing)
 
-    - 逐渐扩大ruin的点的数量，算出来的下界和用eax的差不多
 
-- 混合ruin和eax
-    - 产生的pc
-    - 如果比pa好就替换pa
-    - 如果不比pa好但是比pb好：替换pb会导致种群收敛，下一次没有ab环了
-    - 不替换pb会导致种群中个体差异较大
+# Compiling && Running
 
-- 挑选出12个有代表性的算例进行测试
+## linux:build with CMake
 
-- 最优路径数的:
-    - 参考dimacs给出的路径数量，看是否存在一个极值点
-    - 如果是抖动的就比较难搞了
+You need to create a `Deploy` folder to save the execute file(if `Deploy` is not exist).
+```shell
+mkdir Deploy
+mkdir build
+cd build
+cmake ..
+make
+```
 
-- 单个算例的独特表现：
+To running under linux, An example as follows.
+```shell
+cd Deploy
+./DLLSMA -instancePath ../Instances/Homberger/C1_8_2.txt
+```
 
-    - RC1_8_2 
-    - nagata与平台记录相差最大的一组，每次算到nagata的记录时候就会变慢，到差距百分之10的时候就会停止
+The optional command line parameters.
+```shell
+[-time:int] the time limit
+[-bksDataFileBasePath:string] the bks file path
+[-seed:int] the seed of random
+[-customersWeight0:int] the weight of when eject customers from solution
+[-customersWeight0:int] the weight of when insert customers to solution
+[-tag:string] the tag of one run to distinguish each run
+[-psizemulpsum:int]
+[-ejectLSMaxIter:int] the max iter to limit ejectLocalSearch
+[-dimacsGo:bool] to close the info log and print the bks format dimacs style
+[-infoFlag:bool] switch to control the std output of info
+[-debugFlag:bool] switch to control the std output of debug
+[-errorFlag:bool] switch to control the stderr output of error info
+```
 
-    - C1_4_2:
-        - 只放一个ab换以及ruin无法跳出局部最优
-        - 扩大种群也可以改善
-        - 加上path-relinking之后变好一些，但是无法算出历史最优解
 
-    - C2_10_4:
-        - 算一个小时和半个小时居然优度只差了千分之8，证明到了局部最优 后半个小时，甚至前半个小时的大部分时间都早就进入了局部最优
+## windows:build with visual studio
 
-- TODO:
-    - route min如果得不到一样的路径数量的 可以进行拆分,肯定没有惩罚
-    - alpah beta gamma的比值，一定要调整 不是1 在选择解的时候有用
-    - 最优路径数量的确定
-    - 需要注意的是dimacs的距离处理 截断的问题 网站上写的是截断truncated，但是contr上写的是 round
-    - 使用的容量累加和来判断一个路径上顾客的先后顺序，如果有demand为0的顾客就会失效，需要写一个备选的方案
-    - 把P数组放在input里面
+Open the solution with `BuildwithVS2022/BuildwithVS2022.sln`.  There are two projects(`linux` and `windows`) in the solution.If you install the wsl on your computer you can build the `linux` project.The windows project can build directly.
 
-- 优化建议：
-    - 提速：
-    - inrelocate updatefrom head可以从变化位置开始更新，可以参照outrelocate写 容易出bug 记得打开check
-    - sqrt vs sqrtl 速度 选择了sqrt
-    - sqrt函数有三种形式
-    - 邻域动作 选择 if else 改为 switch case
-    - getPtwNodes lastnode 有简便方法
-    - ruin localsearch 在找不到合法路径的时候需要加一条路径
-    可以将不同路径的解分开存储，保存两个更新时间较远的解进行交叉
-    
-- 玄学：
-    - squeeze失败的时候 如果不和初始解一起比较 就算不出来 C1_6_6，神奇
+
+
+
+# Test with GoogleTest
+
+The test case files and project files is in `Test` folder.
+
+## linux:
+
+You need to install `GooleTest`:
+
+[https://github.com/google/googletest/tree/main/googletest](https://github.com/google/googletest/tree/main/googletest)
+
+Build the test project as follows.  You need to create a `Deploy` folder to save the test execute file(if `Deploy` is not exist in `Test` folder).
+
+```shell
+cd Test
+mkdir Deploy
+mkdir build
+cd build
+cmake ..
+make
+```
+Running the test with:
+
+```shell
+cd Deploy
+./vrpTest
+```
+
+## windows
+
+The folder `TestBuildwithVS2022` is a `Google Test Project` create with visuall studio.To open the project with opening the `TestBuildwithVS2022.sln`.
+
+
+# Code structure
+
+* Algorithm_Parameters:the parameters of the solver.
+* EAX: 
