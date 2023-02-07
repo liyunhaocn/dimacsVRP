@@ -7,7 +7,7 @@
 #include "gtest/gtest.h"
 #include "../Source/Flag.h"
 #include "../Source/Solver.h"
-#include "../Source/yearTable.h"
+#include "../Source/YearTable.h"
 #include "../Source/EAX.h"
 #include "../Source/Algorithm_Parameters.h"
 #include "../Source/Problem.h"
