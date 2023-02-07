@@ -41,8 +41,8 @@ void dimacsRun(int argc, char* argv[]) {
 	hust::Goal goal(&input, &aps, &bks, &yearTable);
 
 	//goal.callSimulatedannealing();
-	//goal.TwoAlgCombine();
-	goal.test();
+	goal.TwoAlgCombine();
+	//goal.test();
 	//goal.experOnMinRN();
 
 }

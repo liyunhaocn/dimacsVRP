@@ -72,7 +72,7 @@ public:
 	// 映射 `code` 到 `richEdges` 的 ID
 	UnorderedMap<int, int>	papbEMap; // 所有
 
-	ConfSet paPriE; // pa 所有
+	ConfSet paPriE; // pa: all from pa
 	ConfSet pbPriE;// pb 独有 
 	Vec<Vec<int>> abCycleSet; // 一次分解 GAB 得到的 AB-Cycle 集合
 	int generSolNum = -1; //生成了多少解

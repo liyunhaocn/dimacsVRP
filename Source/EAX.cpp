@@ -139,7 +139,7 @@ bool EAX::generateCycles() {
 	tabuCyIds.clear();
 	abCycleSet.clear();
 
-	for (auto i = 0; i < richEdges.size(); ++i) {
+	for (auto i = 0; i < static_cast<int>(richEdges.size()); ++i) {
 		richEdges[i].visited = false;
 	}
 
@@ -254,7 +254,7 @@ bool EAX::generateCycles() {
 
 			int abcStart = -1;
 			int cnt = 0;
-			for (int i = 0; i < cusVisitTime[curCus].size(); ++i) {
+			for (int i = 0; i < static_cast<int>(cusVisitTime[curCus].size()); ++i) {
 				if (genSize - cusVisitTime[curCus][i] > 0
 					&& (genSize - cusVisitTime[curCus][i]) % 2 == 0) {
 					abcStart = cusVisitTime[curCus][i];
@@ -724,7 +724,7 @@ int EAX::doPrEAX(Solver& pc) {
 		qu.push(firstCyIndex);
 		cyInUnion.removeVal(firstCyIndex);
 
-		while (eset.size() < numABCyUsed && qu.size() > 0) {
+		while (static_cast<int>(eset.size()) < numABCyUsed && qu.size() > 0) {
 			auto tp = qu.front();
 			eset.push_back(tp);
 			qu.pop();
@@ -739,7 +739,7 @@ int EAX::doPrEAX(Solver& pc) {
 			}
 		}
 
-		if (eset.size() == numABCyUsed) {
+		if (static_cast<int>(eset.size()) == numABCyUsed) {
 			break;
 		}
 	}

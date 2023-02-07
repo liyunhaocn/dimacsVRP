@@ -217,10 +217,10 @@ bool Input::initInput() {
 	//readDimacsBKS();
 
 	P = Vec<int>(custCnt + 1, 1);
-	if (datas.size() < custCnt * 3 + 3) {
+	if (static_cast<int>(datas.size()) < custCnt * 3 + 3) {
 		datas.resize(custCnt * 3 + 3);
 	}
-	for (int i = custCnt + 1; i < datas.size(); ++i) {
+	for (int i = custCnt + 1; i < static_cast<int>(datas.size()); ++i) {
 		datas[i] = datas[0];
 		datas[i].CUSTNO = i;
 	}
@@ -229,9 +229,9 @@ bool Input::initInput() {
 
 	double sumq = 0;
 	for (int i = 1; i <= custCnt; ++i) {
-		sumq += datas[i].DEMAND;
+		sumq += static_cast<double>(datas[i].DEMAND);
 	}
-	Qbound = static_cast<int>(ceil(double(sumq) / Q));
+	Qbound = static_cast<int>(ceil(double(sumq) / static_cast<double>(Q)));
 	Qbound = std::max<int>(Qbound, 2);
 
 	/*
@@ -353,7 +353,7 @@ bool Input::readDimacsInstance(std::string& instanciaPath) {
 	int readArgNum = 0;
 	while ((readArgNum = fscanf(file, "%d %d %d %d %d %d %d\n", &id, &coordx, &coordy, &demand, &ready_time, &due_date, &service_time)) == 7) {
 
-		if (index >= datas.size()) {
+		if (index >= static_cast<int>(datas.size())) {
 			int newSize = static_cast<int>(datas.size()) + static_cast<int>(datas.size()) / 2;
 			datas.resize(newSize);
 		}

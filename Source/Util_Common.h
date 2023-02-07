@@ -51,15 +51,15 @@ struct XorShift128 {
 
     // This random number generator uses 4 numbers.
     // Those numbers are used to repeatedly take the 'exclusive or' of a number with a bit-shifted version of itself.
-    LL state_[4]{};
+    unsigned  state_[4]{};
 
 public:
-    typedef LL result_type;
+    typedef unsigned  result_type;
 
     // Constructor of the Xorshift random number generator, given a seed stored as state_[0]
-    XorShift128(LL seed = 42)
+    XorShift128(int seed = 42)
     {
-        state_[0] = seed;
+        state_[0] = static_cast<unsigned>(seed);
         state_[1] = 123456789;
         state_[2] = 362436069;
         state_[3] = 521288629;
@@ -78,13 +78,13 @@ public:
     }
 
     // Defines the operator '()'. So a new random number will be returned when rng() is called on the XorShift128 instance rng.
-    LL operator()()
+    result_type operator()()
     {
         // Algorithm "xor128" from p. 5 of Marsaglia, "Xorshift RNGs"
-        LL t = state_[3];
+        result_type t = state_[3];
 
         // Perform a contrived 32-bit shift.
-        LL s = state_[0];
+        result_type s = state_[0];
         state_[3] = state_[2];
         state_[2] = state_[1];
         state_[1] = s;
@@ -101,8 +101,8 @@ struct Random {
 public:
     using Generator = XorShift128;
     Generator rgen;
-    LL seed = -1;
-    Random(LL seed) : rgen(seed),seed(seed) {}
+    int seed = -1;
+    Random(int seed) : rgen(seed),seed(seed) {}
     Random() : rgen(generateSeed()) {}
 
     static int generateSeed() {
@@ -141,7 +141,7 @@ public:
 
     using Generator = hust::XorShift128;
 
-    RandomX(LL seed) : rgen(seed) { initMpLLArr(); }
+    RandomX(int seed) : rgen(seed) { initMpLLArr(); }
     RandomX() : rgen(generateSeed()) { initMpLLArr(); }
 
     RandomX(const RandomX& rhs) {
@@ -165,9 +165,8 @@ public:
         return true;
     }
 
-    static LL generateSeed() {
-        LL seed = std::chrono::system_clock::now().time_since_epoch().count();
-        return seed;
+    static int generateSeed() {
+        return static_cast<int>(std::time(nullptr) + std::clock());
     }
 
     Generator::result_type operator()() { return rgen(); }
@@ -219,7 +218,7 @@ struct RandomTools {
 
     Random random;
     RandomX randomx;
-    RandomTools(LL seed) :random(seed), randomx(seed) {}
+    RandomTools(int seed) :random(seed), randomx(seed) {}
 };
 
 class Sampling {

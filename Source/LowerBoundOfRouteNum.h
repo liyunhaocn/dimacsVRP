@@ -104,7 +104,7 @@ std::vector<int> getOneBound(std::string ex) {
 	szx::tsm::Clique sln;
 
 	if (szx::tsm::solveWeightedMaxClique(sln, am, weights)) {
-		mqrn = sln.nodes.size();
+		mqrn = static_cast<int>(sln.nodes.size());
 	}
 
 	int sinrn = aps.sintefRecRN;

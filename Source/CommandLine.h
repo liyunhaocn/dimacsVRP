@@ -16,11 +16,11 @@ public:
 
 	AlgorithmParameters aps;
 
-	LL seed = 0;
+	int seed = 0;
 	int runTimer = 1800; //s
 	std::string instancePath = "";
 	std::string outputPath = "../Results/";
-	std::string bksDataFileBasePath = "../DataFromLiterature/";
+	std::string bksDataFileBasePath = "../Instances/DataFromLiterature/";
 
 	CommandLine(int argc, char* argv[]) {
 
@@ -39,8 +39,11 @@ public:
 			else if (argvstr == "-instancePath") {
 				this->instancePath = std::string(argv[i + 1]);
 			}
+			else if (argvstr == "-bksDataFileBasePath") {
+				this->bksDataFileBasePath = std::string(argv[i + 1]);
+			}
 			else if (argvstr == "-seed") {
-				this->seed = std::stol(argv[i + 1], nullptr, 0);
+				this->seed = std::stoi(argv[i + 1], nullptr, 0);
 			}
 			else if (argvstr == "-tag") {
 				aps.tag = std::string(argv[i + 1]);
@@ -97,7 +100,8 @@ public:
 		ss << "call solver by:" << std::endl;
 		ss << "./DLLSMA -instancePath:str" << std::endl;
 		ss << "[-time:int] the time limit" << std::endl;
-		ss << "[-seed:long long] the seed of random" << std::endl;
+		ss << "[-bksDataFileBasePath:string] the bks file path" << std::endl;
+		ss << "[-seed:int] the seed of random" << std::endl;
 		ss << "[-customersWeight0:int] the weight of when eject customers from solution" << std::endl;
 		ss << "[-customersWeight0:int] the weight of when insert customers to solution" << std::endl;
 		ss << "[-tag:string] the tag of one run to distinguish each run" << std::endl;

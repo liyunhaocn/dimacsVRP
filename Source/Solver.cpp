@@ -97,7 +97,7 @@ Route Solver::rCreateRoute(int id) {
 	Route r(id);
 	int index = input->custCnt + rts.cnt * 2 + 1;
 
-	while (index + 1 >= customers.size()) {
+	while (index + 1 >= static_cast<int>(customers.size())) {
 		customers.push_back(customers[0]);
 	}
 
@@ -423,7 +423,7 @@ CircleSector Solver::rGetCircleSector(Route& r) {
 	CircleSector ret;
 	auto ve = rPutCustomersInVector(r);
 	ret.initialize(input->datas[ve.front()].polarAngle);
-	for (int j = 1; j < ve.size(); ++j) {
+	for (int j = 1; j < static_cast<int>(ve.size()); ++j) {
 		ret.extend(input->datas[ve[j]].polarAngle);
 		
 		#if LYH_CHECKING
@@ -1181,9 +1181,6 @@ DeltPen Solver::outrelocatevToww_(int v, int w, int oneR) { //2
 			int front = getFrontofTwoCus(v, w);
 			//int back = (front == v ? w : v);
 
-			DisType lastav = 0;
-			int lastv = 0;
-
 			if (front == v) {
 
 				// v_ v vj ....w_ w ===> {v_ vj ...w_,v,w}
@@ -1325,9 +1322,6 @@ DeltPen Solver::outrelocatevTowwj(int v, int w, int oneR) { //3
 
 			int front = getFrontofTwoCus(v, w);
 			//int back = (front == v ? w : v);
-
-			DisType lastav = 0;
-			int lastv = 0;
 
 			if (front == v) {
 
@@ -3917,7 +3911,7 @@ TwoNodeMove Solver::getMovesRandomly
 
 		Vec<int>& relatedToV = input->iInNeicloseOfUnionNeiCloseOfI[v];
 
-		int N = relatedToV.size();
+		int N = static_cast<int>(relatedToV.size());
 		int m = std::max<int>(1, N / devided);
 
 		Vec<int>& ve = randomx->getMN(N, m);
@@ -4346,9 +4340,10 @@ bool Solver::routeWeightedRepair() {
 		auto it = bestPool.begin();
 		for (it = bestPool.begin(); it != bestPool.end();) {
 
-			if (Pc < (*it).Pc && PtwNoWei < (*it).PtwNoWei
-				|| Pc <= (*it).Pc && PtwNoWei < (*it).PtwNoWei
-				|| Pc < (*it).Pc && PtwNoWei <= (*it).PtwNoWei) {
+			if ( (Pc < (*it).Pc && PtwNoWei < (*it).PtwNoWei)
+				|| (Pc <= (*it).Pc && PtwNoWei < (*it).PtwNoWei)
+				|| (Pc < (*it).Pc && PtwNoWei <= (*it).PtwNoWei)
+				) {
 
 				isUpdate = true;
 				it = bestPool.erase(it);
@@ -4657,7 +4652,7 @@ bool Solver::routeWeightedRepair() {
 
 		if (contiNotDe == aps->squContiIter) {
 
-			if (penalty < 1.1 * pBestThisTurn && aps->squContiIter < aps->squMaxContiIter) {
+			if (penalty < static_cast<DisType>(1.1 * pBestThisTurn) && aps->squContiIter < aps->squMaxContiIter) {
 				aps->squContiIter += aps->squIterStepUp;
 				aps->squContiIter = std::min<int>(aps->squMaxContiIter, aps->squContiIter);
 			}
@@ -4756,7 +4751,7 @@ void Solver::ruinClearEP(int kind) {
 
 	//std::sort(EPArr.begin(), EPArr.end(), cmp3);
 
-	for (int i = 0; i < EPArr.size(); ++i) {
+	for (int i = 0; i < static_cast<int>(EPArr.size()); ++i) {
 		//for (int i = EPArr.size() - 1;i>=0;--i) {
 		int pt = EPArr[i];
 		EP.removeVal(pt);
@@ -4799,7 +4794,7 @@ int Solver::ruinGetSplitDepth(int maxDept) {
 
 	static Vec<int> a = { 10000 };
 	static Vec<int> s = { 10000 };
-	if (maxDept >= a.size()) {
+	if (maxDept >= static_cast<int>(a.size())) {
 		int oldS = static_cast<int>(a.size());
 		a.resize(maxDept + 2);
 		s.resize(maxDept + 2);
@@ -4830,7 +4825,7 @@ Vec<int> Solver::ruinGetRuinCusBySting(int ruinKmax, int ruinLmax) {
 	begCusSet.insert(v);
 
 	int wpos = 0;
-	while (rIdSet.size() < ruinK) {
+	while (static_cast<int>(rIdSet.size()) < ruinK) {
 		int w = input->addSTclose[v][wpos];
 		int wrId = customers[w].routeID;
 		if (wrId != -1 && rIdSet.count(wrId) == 0) {
@@ -5080,7 +5075,7 @@ Vec<int> Solver::ruinGetRuinCusBySec(int ruinCusNum) {
 
 	for (auto& apair : overPair) {
 
-		if (cusSet.size() >= ruinCusNum) {
+		if (static_cast<int>(cusSet.size()) >= ruinCusNum) {
 			break;
 		}
 
@@ -5092,7 +5087,7 @@ Vec<int> Solver::ruinGetRuinCusBySec(int ruinCusNum) {
 
 		for (int v : vei) {
 			int vAngle = input->datas[v].polarAngle;
-			if (cusSet.size() >= ruinCusNum) {
+			if (static_cast<int>(cusSet.size()) >= ruinCusNum) {
 				break;
 			}
 			if (secs[si].isEnclosed(vAngle) && secs[sj].isEnclosed(vAngle)) {
@@ -5103,7 +5098,7 @@ Vec<int> Solver::ruinGetRuinCusBySec(int ruinCusNum) {
 		
 		for (int v : vej) {
 			int vAngle = input->datas[v].polarAngle;
-			if (cusSet.size() >= ruinCusNum) {
+			if (static_cast<int>(cusSet.size()) >= ruinCusNum) {
 				break;
 			}
 			if (secs[si].isEnclosed(vAngle) && secs[sj].isEnclosed(vAngle)) {
@@ -5372,7 +5367,7 @@ int Solver::CVB2ClearEPAllowNewR(int kind) {
 		break;
 	}
 
-	for (int i = 0; i < EPArr.size(); ++i) {
+	for (int i = 0; i < static_cast<int>(EPArr.size()); ++i) {
 		//for (int i = EPArr.size() - 1;i>=0;--i) {
 		int pt = EPArr[i];
 		EP.removeVal(pt);
@@ -6418,7 +6413,7 @@ Solver::Position Solver::findBestPosToSplit(Route& r) {
 
 	Position ret;
 
-	for (int i = 0; i + 1 < arr.size(); ++i) {
+	for (int i = 0; i + 1 < static_cast<int>(arr.size()); ++i) {
 		int v = arr[i];
 		int vj = arr[i + 1];
 		DisType delt = 0;
@@ -6436,7 +6431,7 @@ Solver::Position Solver::findBestPosToSplit(Route& r) {
 int Solver::getARouteIdCanUsed(){
 
 	int rId = -2;
-	for (int i = 0; i < rts.posOf.size(); ++i) {
+	for (int i = 0; i < static_cast<int>(rts.posOf.size()); ++i) {
 		if (rts.posOf[i] == -1) {
 			rId = i;
 			break;
@@ -6464,7 +6459,7 @@ int Solver::splitLocalSearch() {
 		int rId = getARouteIdCanUsed();
 		Route r1 = rCreateRoute(rId);
 
-		for (int i = 0; i < arr.size(); ++i) {
+		for (int i = 0; i < static_cast<int>(arr.size()); ++i) {
 			rRemoveAtPosition(r, arr[i]);
 			rInsAtPosPre(r1, r1.tail, arr[i]);
 			if (arr[i] == vsp.pos) {
@@ -6525,7 +6520,7 @@ bool Solver::adjustRouteNumber(int ourTarget) {
 			//Logger::INFO("vsp", vsp);
 			//printve(arr);
 
-			for (int i = 0; i < arr.size(); ++i) {
+			for (int i = 0; i < static_cast<int>(arr.size()); ++i) {
 				rRemoveAtPosition(r, arr[i]);
 				rInsAtPosPre(r1, r1.tail, arr[i]);
 				if (arr[i] == vsp.pos) {
@@ -6728,7 +6723,7 @@ bool Solver::minimizeRouteDistanceLocalSearch(int hasRange,Vec<int> newCus) {
 		});
 		//random->shuffleVec(moveKindOrder);
 
-		int n = qu.size();
+		int n = static_cast<int>(qu.size());
 		for (int i = 0; i < n; ++i) {
 			int v = qu.front();
 			qu.pop();
@@ -6800,7 +6795,7 @@ bool Solver::minimizeRouteDistanceLocalSearch(int hasRange,Vec<int> newCus) {
 
 		TwoNodeMove bestM;
 		//TwoNodeMove bestM 
-		for (int i = 0; i < ranges.size(); ++i) {
+		for (int i = 0; i < static_cast<int>(ranges.size()); ++i) {
 			if (bestM.deltPen.PtwOnly > 0
 				|| bestM.deltPen.PcOnly > 0
 				|| bestM.deltPen.deltCost >= 0

@@ -142,7 +142,7 @@ struct RTS {
 		lyhCheckTrue(r1.routeID >= 0);
 #endif // LYH_CHECKING
 
-		if (r1.routeID >= posOf.size()) {
+		if (r1.routeID >= static_cast<int>(posOf.size()) ) {
 			size_t newSize = posOf.size() + std::max<size_t>(r1.routeID + 1, posOf.size() / 2 + 1);
 			ve.resize(newSize, Route());
 			posOf.resize(newSize, -1);
@@ -259,7 +259,7 @@ struct ConfSet {
 		lyhCheckTrue(val >= 0);
 #endif // LYH_CHECKING
 
-		if (val >= pos.size()) {
+		if (val >= static_cast<int>(pos.size())) {
 			int newSize = static_cast<int>(pos.size()) + std::max<int>(val + 1, static_cast<int>(pos.size()) / 2 + 1);
 			ve.resize(newSize, -1);
 			pos.resize(newSize, -1);
@@ -289,7 +289,7 @@ struct ConfSet {
 
 	bool removeVal(int val) {
 
-		if (val >= pos.size() || val < 0) {
+		if (val >= static_cast<int>(pos.size()) || val < 0) {
 			return false;
 		}
 
@@ -579,7 +579,7 @@ public:
 
 		DisType newPtw = customers[cusv.front()].TW_X + customers[cusv.back()].TWX_;
 		DisType lastav = customers[cusv.front()].av;
-		for (int i = 1; i < cusv.size(); ++i) {
+		for (int i = 1; i < static_cast<int>(cusv.size()); ++i) {
 			int pt = cusv[i], ptpre = cusv[i - 1];
 			DisType avp = lastav + input->datas[ptpre].SERVICETIME + input->getDisof2(ptpre, pt);
 			newPtw += std::max<DisType>(0, avp - input->datas[pt].DUEDATE);

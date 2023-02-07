@@ -149,7 +149,7 @@ bool Goal::perturbOneSol(Solver& sol) {
 		 
 		auto diff = EAX::getDiffCusofPb(sol, sclone);
 		//Logger::INFO("i:",i,"diff.size:",diff.size());
-		if (diff.size() > sol.input->custCnt * 0.2) {
+		if (static_cast<int>(diff.size()) > static_cast<int>(sol.input->custCnt * 0.2)) {
 			sclone.minimizeRouteDistanceLocalSearch(1, diff);
 			sol = sclone;
 			isPerOnePerson = true;
@@ -575,8 +575,6 @@ int Goal::TwoAlgCombine() {
 
 	std::queue<int>qunext;
 
-	int iterFillqu = 0;
-
 	aps->popSize = aps->popSizeMin;
 
 	auto fillqu = [&]() -> void {
@@ -597,7 +595,7 @@ int Goal::TwoAlgCombine() {
 			return bks->bksAtRn[x] < bks->bksAtRn[y];
 		});
 
-		int n = rns.size();
+		int n = static_cast<int>(rns.size());
 		for (int i = 0; i < n ; ++i) {
 		//for (int i = 0; i < 3; ++i) {
 			qunext.push(rns[i]);
@@ -605,7 +603,7 @@ int Goal::TwoAlgCombine() {
 
 		for (int rn : rns) {
 			auto& pool = ppool[rn];
-			int pn = pool.size();
+			int pn = static_cast<int>(pool.size());
 			for (int i = 0; i +1 < pn; ++i) {
 				int rdi = random->pick(i+1,pn);
 				std::swap(pool[i], pool[rdi]);

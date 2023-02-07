@@ -84,6 +84,24 @@
     <OutDir>$(SolutionDir)..\Deploy</OutDir>
     <TargetName>DLLSMA</TargetName>
   </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|ARM'">
+    <OutDir>$(SolutionDir)..\Deploy</OutDir>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|ARM'">
+    <OutDir>$(SolutionDir)..\Deploy</OutDir>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|ARM64'">
+    <OutDir>$(SolutionDir)..\Deploy</OutDir>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|ARM64'">
+    <OutDir>$(SolutionDir)..\Deploy</OutDir>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x86'">
+    <OutDir>$(SolutionDir)..\Deploy</OutDir>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x86'">
+    <OutDir>$(SolutionDir)..\Deploy</OutDir>
+  </PropertyGroup>
   <ItemGroup>
     <ClCompile Include="..\..\Source\Algorithm_Parameters.cpp" />
     <ClCompile Include="..\..\Source\EAX.cpp" />
@@ -94,6 +112,7 @@
     <ClCompile Include="..\..\Source\MCP\CliqueTsm.cpp" />
     <ClCompile Include="..\..\Source\Problem.cpp" />
     <ClCompile Include="..\..\Source\Solver.cpp" />
+    <ClCompile Include="..\..\Source\Util_Logger.cpp" />
     <ClCompile Include="..\..\Source\YearTable.cpp" />
   </ItemGroup>
   <ItemGroup>
@@ -110,6 +129,7 @@
     <ClInclude Include="..\..\Source\Solver.h" />
     <ClInclude Include="..\..\Source\Util_Arr2D.h" />
     <ClInclude Include="..\..\Source\Util_Common.h" />
+    <ClInclude Include="..\..\Source\Util_Logger.h" />
     <ClInclude Include="..\..\Source\YearTable.h" />
   </ItemGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">

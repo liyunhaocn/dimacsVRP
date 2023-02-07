@@ -39,6 +39,9 @@
     <ClCompile Include="..\..\Source\MCP\CliqueTsm.cpp">
       <Filter>Source\MCP</Filter>
     </ClCompile>
+    <ClCompile Include="..\..\Source\Util_Logger.cpp">
+      <Filter>Source</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\..\Source\Algorithm_Parameters.h">
@@ -82,6 +85,9 @@
     </ClInclude>
     <ClInclude Include="..\..\Source\MCP\Graph.h">
       <Filter>Source\MCP</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Source\Util_Logger.h">
+      <Filter>Source</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>
