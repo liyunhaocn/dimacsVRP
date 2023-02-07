@@ -501,9 +501,9 @@ public:
 
 	bool rInsAtPosPre(Route& r, int pos, int node);
 
-	bool rRemoveAtPos(Route& r, int a);
+	bool rRemoveAtPosition(Route& r, int a);
 
-	void rPreDisplay(Route& r);
+	void rPrevDisplay(Route& r);
 
 	void rNextDisplay(Route& r);
 
@@ -525,7 +525,7 @@ public:
 
 	CircleSector rGetCircleSector(Route& r);
 
-	void sumRtsPen();
+	void sumRtsPenalty();
 
 	void sumRtsCost();
 
@@ -535,11 +535,11 @@ public:
 
 	Position findBestPositionInSolutionForInitial(int w);
 
-	bool initBySecOrder();
+	bool initSolutionBySecOrder();
 
-	bool initSortOrder(int kind);
+	bool initSolutionSortOrder(int kind);
 
-	bool initMaxRoute();
+	bool initSolutionMaxRoute();
 
 	//bool loadIndividual(const Individual* indiv);
 	//void exportIndividual(Individual* indiv);

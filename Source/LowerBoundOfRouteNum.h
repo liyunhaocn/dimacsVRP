@@ -75,8 +75,8 @@ std::vector<int> getOneBound(std::string ex) {
 
 			bool is1 = r1.rPtw > 0;
 
-			sol.rRemoveAtPos(r1, v);
-			sol.rRemoveAtPos(r1, w);
+			sol.rRemoveAtPosition(r1, v);
+			sol.rRemoveAtPosition(r1, w);
 
 
 			sol.rInsAtPosPre(r2, r2.tail, w);
@@ -86,8 +86,8 @@ std::vector<int> getOneBound(std::string ex) {
 			//sol.rNextDisp(r2);
 
 
-			sol.rRemoveAtPos(r2, v);
-			sol.rRemoveAtPos(r2, w);
+			sol.rRemoveAtPosition(r2, v);
+			sol.rRemoveAtPosition(r2, w);
 
 			bool is2 = r2.rPtw > 0;
 
