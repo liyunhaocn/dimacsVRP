@@ -5,7 +5,7 @@
 #include "pch.h"
 #include "../Source/Flag.cpp"
 #include "../Source/Solver.cpp"
-#include "../Source/yearTable.cpp"
+#include "../Source/YearTable.cpp"
 #include "../Source/EAX.cpp"
 #include "../Source/Algorithm_Parameters.cpp"
 #include "../Source/Problem.cpp"
