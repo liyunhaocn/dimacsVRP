@@ -2,9 +2,9 @@
 
 #include "pch.h"
 
-// test the all Neighorhood will take too much time, you can test them use the follow line code.
-//TEST(SolverTest, DISABLED_Neighborhood) {
-TEST(SolverNeighborhoodTest, AllNeighborhood) {
+// test the all Neighorhood will take too much time, you can test them use the follow second line code.
+TEST(SolverTest, DISABLED_AllNeighborhood) {
+//TEST(SolverNeighborhoodTest, AllNeighborhood) {
 
 	using namespace hust;
 	using namespace lyhtest;
