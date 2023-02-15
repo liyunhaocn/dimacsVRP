@@ -99,6 +99,8 @@ struct AlgorithmParameters {
 
 	int psizemulpsum = 0;
 
+	int rateOfDynamicInAndOut = 5;
+
 	void displayInfo();
 
 	void repairByCusCnt(int cusCnt);

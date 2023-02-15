@@ -192,10 +192,10 @@ void Input::initDetail() {
 		}
 	}
 
-	const auto& d15 = getInstanceDataFromFile(commandLine->bksDataFileBasePath + "BKSfromDIMACSDay15.csv",example);
-	const auto& lkh = getInstanceDataFromFile(commandLine->bksDataFileBasePath + "BKSfromDIMACSLKH.csv",example);
-	const auto& nagata = getInstanceDataFromFile(commandLine->bksDataFileBasePath + "BKSfromNagata.csv",example);
-	const auto& sintef = getInstanceDataFromFile(commandLine->bksDataFileBasePath + "BKSfromSINTEF.csv",example);
+	const auto& d15 = getInstanceDataFromFile(commandLine->bksDataFileBasePath + "BKSfromDIMACSDay15.csv",instanceName);
+	const auto& lkh = getInstanceDataFromFile(commandLine->bksDataFileBasePath + "BKSfromDIMACSLKH.csv", instanceName);
+	const auto& nagata = getInstanceDataFromFile(commandLine->bksDataFileBasePath + "BKSfromNagata.csv", instanceName);
+	const auto& sintef = getInstanceDataFromFile(commandLine->bksDataFileBasePath + "BKSfromSINTEF.csv", instanceName);
 
 	aps->sintefRecRN = sintef.minRouteNumber;
 	aps->sintefRecRL = static_cast<DisType>(sintef.minRouteDistance * disMul);
@@ -213,8 +213,13 @@ void Input::initDetail() {
 
 bool Input::initInput() {
 
-	readDimacsInstance(commandLine->instancePath);
-	//readDimacsBKS();
+	if (commandLine->isDynamicRun == 1) {
+		readDynamicInstance(commandLine->instancePath);
+	}
+	else {
+		readDimacsInstance(commandLine->instancePath);
+	}
+	
 
 	P = Vec<int>(custCnt + 1, 1);
 	if (static_cast<int>(datas.size()) < custCnt * 3 + 3) {
@@ -224,8 +229,6 @@ bool Input::initInput() {
 		datas[i] = datas[0];
 		datas[i].CUSTNO = i;
 	}
-
-	disOf = util::Array2D <DisType>(custCnt + 1, custCnt + 1,DisType(0));
 
 	double sumq = 0;
 	for (int i = 1; i <= custCnt; ++i) {
@@ -241,18 +244,6 @@ bool Input::initInput() {
 		long double sqrtl(long double x);
 		float精度最低，double较高，long double精度最高
 	*/
-
-	for (int i = 0; i <= custCnt ; ++i) {
-		for (int j = i + 1; j <= custCnt; ++j) {
-			Data& d1 = datas[i];
-			Data& d2 = datas[j];
-			double dis = sqrt((d1.XCOORD - d2.XCOORD) * (d1.XCOORD - d2.XCOORD)
-				+ (d1.YCOORD - d2.YCOORD) * (d1.YCOORD - d2.YCOORD));
-
-			//disOf[j][i] = disOf[i][j] = dis+0.5;
-			disOf[j][i] = disOf[i][j] = static_cast<DisType>(ceil(dis));
-		}
-	}
 
 	sectorClose = util::Array2D<int>(custCnt + 1, custCnt,0);
 
@@ -322,10 +313,16 @@ bool Input::initInput() {
 	return true;
 }
 
-bool Input::readDimacsInstance(std::string& instanciaPath) {
+bool Input::readDimacsInstance(const std::string& instanciaPath) {
 
 	//debug(instanciaPath.c_str());
-	FILE* file = fopen(instanciaPath.c_str(), "r");
+	FILE* file = nullptr;
+
+	if (commandLine->instancePath == "readstdin") {
+	}
+	else {
+		file = fopen(instanciaPath.c_str(), "r");
+	}
 
 	if (!file) {
 		std::cout << instanciaPath << "Logger::ERROR: Instance path wrong." << std::endl;
@@ -335,7 +332,7 @@ bool Input::readDimacsInstance(std::string& instanciaPath) {
 	char name[64];
 	
 	fscanf(file, "%s\n", name);
-	this->example = std::string(name);
+	this->instanceName = std::string(name);
 	fscanf(file, "%*[^\n]\n");
 	fscanf(file, "%*[^\n]\n");
 	fscanf(file, "%d %lld\n", &this->vehicleCnt, &this->Q);
@@ -348,10 +345,10 @@ bool Input::readDimacsInstance(std::string& instanciaPath) {
 	this->datas = Vec<Data>(303);
 
 	int index = 0;
-	int id = -1, coordx = -1, coordy = -1, demand = -1;
+	int id = -1, coordx = -1, coordy = -1, DEMAND = -1;
 	int ready_time = -1, due_date = -1, service_time = -1;
 	int readArgNum = 0;
-	while ((readArgNum = fscanf(file, "%d %d %d %d %d %d %d\n", &id, &coordx, &coordy, &demand, &ready_time, &due_date, &service_time)) == 7) {
+	while ((readArgNum = fscanf(file, "%d %d %d %d %d %d %d\n", &id, &coordx, &coordy, &DEMAND, &ready_time, &due_date, &service_time)) == 7) {
 
 		if (index >= static_cast<int>(datas.size())) {
 			int newSize = static_cast<int>(datas.size()) + static_cast<int>(datas.size()) / 2;
@@ -361,7 +358,7 @@ bool Input::readDimacsInstance(std::string& instanciaPath) {
 		this->datas[index].CUSTNO = id;
 		this->datas[index].XCOORD = coordx * disMul;
 		this->datas[index].YCOORD = coordy * disMul;
-		this->datas[index].DEMAND = demand * disMul;
+		this->datas[index].DEMAND = DEMAND * disMul;
 		this->datas[index].READYTIME = ready_time * disMul;
 		this->datas[index].DUEDATE = due_date * disMul;
 		this->datas[index].SERVICETIME = service_time * disMul;
@@ -375,7 +372,443 @@ bool Input::readDimacsInstance(std::string& instanciaPath) {
 		++index;
 	}
 	custCnt = index - 1;
+	
+	disOf = util::Array2D <DisType>(custCnt + 1, custCnt + 1, DisType(0));
+
+	for (int i = 0; i <= custCnt; ++i) {
+		for (int j = i + 1; j <= custCnt; ++j) {
+			Data& d1 = datas[i];
+			Data& d2 = datas[j];
+			double dis = sqrt((d1.XCOORD - d2.XCOORD) * (d1.XCOORD - d2.XCOORD)
+				+ (d1.YCOORD - d2.YCOORD) * (d1.YCOORD - d2.YCOORD));
+
+			//disOf[j][i] = disOf[i][j] = dis+0.5;
+			disOf[j][i] = disOf[i][j] = static_cast<DisType>(ceil(dis));
+		}
+	}
+
 	fclose(file);
+	return true;
+}
+
+/*MIT License
+
+Original HGS-CVRP code: Copyright(c) 2020 Thibaut Vidal
+Additional contributions: Copyright(c) 2022 ORTEC
+Additional contributions: Copyright(c) 2023 liyunhao
+
+Permission is hereby granted, free of charge, to any person obtaining a copy
+of this software and associated documentation files(the "Software"), to deal
+in the Software without restriction, including without limitation the rights
+to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+copies of the Software, and to permit persons to whom the Software is
+furnished to do so, subject to the following conditions :
+
+The above copyright notice and this permission notice shall be included in all
+copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.IN NO EVENT SHALL THE
+AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+SOFTWARE.*/
+
+bool Input::readDynamicInstance(const std::string& instanciaPath) {
+
+	this->custCnt = 0;
+	this->Q = INT_MAX;
+	mustDispatchNumber = -1;
+	DisType totalDemand = 0;
+
+	std::string content, content2, content3;
+	int node = 0;
+	durationLimit = INT_MAX;
+	int serviceTimeData = 0;
+	bool hasServiceTimeSection = false;
+	// Read INPUT dataset
+	//std::ifstream inputFile(config.pathInstance);
+	//Logger::INFO("cl.config.isNpsRun:", cl.config.isNpsRun);
+	if (commandLine->instancePath == "readstdin") {
+	}
+	else {
+		auto x = freopen(commandLine->instancePath.data(), "r", stdin);
+		if (x == nullptr) {
+			throw std::string("x== nullptr return of freopen");
+		}
+	}
+
+	if (true)
+	{
+		// Read the instance name from the first line and remove \r
+		getline(std::cin, content);
+
+		instanceName = content;
+		instanceName.erase(std::remove(instanceName.begin(), instanceName.end(), '\r'), instanceName.end());
+
+		// Read the next lines
+		getline(std::cin, content);	// "Empty line" or "NAME : {instance_name}"
+		getline(std::cin, content);	// VEHICLE or "COMMENT: {}"
+
+		// Check if the next line has "VEHICLE"
+		if (content.substr(0, 7) == "VEHICLE")
+		{
+			// Get the number of vehicles and the capacity of the vehicles
+			getline(std::cin, content);  // NUMBER    CAPACITY
+			std::cin >> this->vehicleCnt >> Q;
+
+			// Skip the next four lines
+			getline(std::cin, content);
+			getline(std::cin, content);
+			getline(std::cin, content);
+			getline(std::cin, content);
+
+			// Create a vector where all information on the Clients can be stored and loop over all information in the file
+			datas = std::vector<Data>(1001);
+
+			custCnt = 0;
+			while (std::cin >> node)
+			{
+				// Store all the information of the next client
+				datas[custCnt].CUSTNO = node;
+				std::cin >> datas[custCnt].XCOORD >> datas[custCnt].YCOORD >> datas[custCnt].DEMAND >> datas[custCnt].READYTIME >> datas[custCnt].DUEDATE >> datas[custCnt].SERVICETIME;
+
+				// Scale coordinates by factor 10, later the distances will be rounded so we optimize with 1 decimal distances
+				datas[custCnt].XCOORD *= 10;
+				datas[custCnt].YCOORD *= 10;
+				datas[custCnt].READYTIME *= 10;
+				datas[custCnt].DUEDATE *= 10;
+				datas[custCnt].SERVICETIME *= 10;
+				datas[custCnt].polarAngle = CircleSector::positive_mod(static_cast<int>(32768. * atan2(datas[custCnt].YCOORD - datas[0].YCOORD, datas[custCnt].XCOORD - datas[0].XCOORD) / PI));
+
+				custCnt++;
+			}
+
+			// Reduce the size of the vector of clients if possible
+			datas.resize(custCnt);
+
+			// Don't count depot as client
+			--custCnt;
+
+			// Check if the required service and the start of the time window of the depot are both zero
+			if (datas[0].READYTIME != 0)
+			{
+				throw std::string("Time window for depot should start at 0");
+			}
+			if (datas[0].SERVICETIME != 0)
+			{
+				throw std::string("Service duration for depot should be 0");
+			}
+		}
+		else
+		{
+			// CVRP or VRPTW according to VRPLib format
+			for (std::cin >> content; content != "EOF"; std::cin >> content)
+			{
+				// Read the dimension of the problem (the number of clients)
+				if (content == "DIMENSION")
+				{
+					// Need to substract the depot from the number of nodes
+					std::cin >> content2 >> custCnt;
+					custCnt--;
+					P.resize(custCnt + 1, 1);
+				}
+				// Read the type of edge weights
+				else if (content == "EDGE_WEIGHT_TYPE")
+				{
+					std::cin >> content2 >> content3;
+					if (content3 == "EXPLICIT")
+					{
+						//isExplicitDistanceMatrix = true;
+					}
+				}
+				else if (content == "EDGE_WEIGHT_FORMAT")
+				{
+					std::cin >> content2 >> content3;
+					if (!isExplicitDistanceMatrix)
+					{
+						throw std::string("EDGE_WEIGHT_FORMAT can only be used with EDGE_WEIGHT_TYPE : EXPLICIT");
+					}
+
+					if (content3 != "FULL_MATRIX")
+					{
+						throw std::string("EDGE_WEIGHT_FORMAT only supports FULL_MATRIX");
+					}
+				}
+				else if (content == "CAPACITY")
+				{
+					std::cin >> content2 >> Q;
+				}
+				else if (content == "VEHICLES" || content == "SALESMAN")
+				{
+					// Set vehicle count from instance only if not specified on CLI.
+					std::cin >> content2;
+					if (vehicleCnt == INT_MAX) {
+						std::cin >> vehicleCnt;
+					}
+					else {
+						// Discard vehicle count
+						int _;
+						std::cin >> _;
+					}
+				}
+				else if (content == "DISTANCE")
+				{
+					std::cin >> content2 >> durationLimit; isDurationConstraint = true;
+				}
+				// Read the data on the service time (used when the service time is constant for all clients)
+				else if (content == "SERVICE_TIME")
+				{
+					std::cin >> content2 >> serviceTimeData;
+				}
+				// Read the edge weights of an explicit distance matrix
+				else if (content == "EDGE_WEIGHT_SECTION")
+				{
+					if (!isExplicitDistanceMatrix)
+					{
+						throw std::string("EDGE_WEIGHT_SECTION can only be used with EDGE_WEIGHT_TYPE : EXPLICIT");
+					}
+					maxDist = 0;
+					
+
+					disOf = util::Array2D <DisType>(custCnt + 1, custCnt + 1, DisType(0));
+
+					for (int i = 0; i <= custCnt; i++)
+					{
+						for (int j = 0; j <= custCnt; j++)
+						{
+							// Keep track of the largest distance between two clients (or the depot)
+							int cost;
+							std::cin >> cost;
+							if (cost > maxDist)
+							{
+								maxDist = cost;
+							}
+							disOf[j][i] = disOf[i][j] = static_cast<DisType>(cost);
+						}
+					}
+				}
+				else if (content == "NODE_COORD_SECTION")
+				{
+					// Reading client coordinates
+					datas = std::vector<Data>(custCnt + 1);
+					for (int i = 0; i <= custCnt; i++)
+					{
+						std::cin >> datas[i].CUSTNO >> datas[i].XCOORD >> datas[i].YCOORD;
+
+						// Check if the clients are in order
+						if (datas[i].CUSTNO != i + 1)
+						{
+							throw std::string("Clients are not in order in the list of coordinates")
+								+ "datas[i].custNum:" + std::to_string(datas[i].CUSTNO)
+								+ "i + 1:" + std::to_string(i + 1);
+						}
+						datas[i].CUSTNO--;
+						datas[i].polarAngle = CircleSector::positive_mod(static_cast<int>(32768. * atan2(datas[i].YCOORD - datas[0].YCOORD, datas[i].XCOORD - datas[0].XCOORD) / PI));
+					}
+					// 将所有的顾客都置为必须配送
+					for (int i = 0; i <= custCnt; i++) {
+						datas[i].must_dispatch = 1;
+					}
+					mustDispatchNumber = custCnt;
+				}
+				// Read the DEMAND of each client (including the depot, which should have DEMAND 0)
+				else if (content == "DEMAND_SECTION")
+				{
+					for (int i = 0; i <= custCnt; i++)
+					{
+						int clientNr = 0;
+						std::cin >> clientNr >> datas[i].DEMAND;
+
+						// Check if the clients are in order
+						if (clientNr != i + 1)
+						{
+							throw std::string("Clients are not in order in the list of demands");
+						}
+
+						// Keep track of the max and total DEMAND
+						if (datas[i].DEMAND > maxDemand)
+						{
+							maxDemand = datas[i].DEMAND;
+						}
+						totalDemand += datas[i].DEMAND;
+					}
+					// Check if the depot has DEMAND 0
+					if (datas[0].DEMAND != 0)
+					{
+						throw std::string("Depot DEMAND is not zero, but is instead: " + std::to_string(datas[0].SERVICETIME));
+					}
+				}
+				else if (content == "DEPOT_SECTION")
+				{
+					std::cin >> content2 >> content3;
+					if (content2 != "1")
+					{
+						throw std::string("Expected depot index 1 instead of " + content2);
+					}
+				}
+				else if (content == "CUSTOMER_WEIGHT")
+				{
+					for (int i = 0; i <= custCnt; ++i)
+					{
+						int clientNr = 0;
+						std::cin >> clientNr >> P[i];
+						// Check if the clients are in order
+						if (clientNr != i + 1)
+						{
+							throw std::string("Clients are not in order in the list of CUSTOMER_WEIGHT")
+								+ "clientNr:" + std::to_string(clientNr)
+								+ "i + 1:" + std::to_string(i + 1);
+						}
+					}
+					// Check if the service duration of the depot is 0
+					if (P[0] != 0)
+					{
+						throw std::string("P[0] should be 0");
+					}
+				}
+				else if (content == "MUST_DISPATCH")
+				{
+					mustDispatchNumber = 0;
+					for (int i = 0; i <= custCnt; i++)
+					{
+						int clientNr = 0;
+						std::cin >> clientNr >> datas[i].must_dispatch;
+						if (datas[i].must_dispatch == 1) {
+							++mustDispatchNumber;
+						}
+						// Check if the clients are in order
+						if (clientNr != i + 1)
+						{
+							throw std::string("Clients are not in order in the list of MUST_DISPATCH");
+						}
+					}
+					// Check if the service duration of the depot is 0
+					if (datas[0].must_dispatch != 0)
+					{
+						throw std::string("must_dispatch depot should be 0");
+					}
+				}
+				else if (content == "SERVICE_TIME_SECTION")
+				{
+					for (int i = 0; i <= custCnt; i++)
+					{
+						int clientNr = 0;
+						std::cin >> clientNr >> datas[i].SERVICETIME;
+
+						// Check if the clients are in order
+						if (clientNr != i + 1)
+						{
+							throw std::string("Clients are not in order in the list of service times");
+						}
+					}
+					// Check if the service duration of the depot is 0
+					if (datas[0].SERVICETIME != 0)
+					{
+						throw std::string("Service duration for depot should be 0");
+					}
+					hasServiceTimeSection = true;
+				}
+				//else if (content == "RELEASE_TIME_SECTION")
+				//{
+				//	for (int i = 0; i <= custCnt; i++)
+				//	{
+				//		int clientNr = 0;
+				//		std::cin >> clientNr >> datas[i].releaseTime;
+
+				//		// Check if the clients are in order
+				//		if (clientNr != i + 1)
+				//		{
+				//			throw std::string("Clients are not in order in the list of release times");
+				//		}
+				//	}
+				//	// Check if the service duration of the depot is 0
+				//	if (datas[0].releaseTime != 0)
+				//	{
+				//		throw std::string("Release time for depot should be 0");
+				//	}
+				//}
+				// Read the time windows of all the clients (the depot should have a time window from 0 to max)
+				else if (content == "TIME_WINDOW_SECTION")
+				{
+					isTimeWindowConstraint = true;
+					for (int i = 0; i <= custCnt; i++)
+					{
+						int clientNr = 0;
+						std::cin >> clientNr >> datas[i].READYTIME >> datas[i].DUEDATE;
+
+						// Check if the clients are in order
+						if (clientNr != i + 1)
+						{
+							Logger::ERROR("Clients are not in order in the list of time windows");
+							throw std::string("Clients are not in order in the list of time windows");
+						}
+					}
+
+					// Check the start of the time window of the depot
+					if (datas[0].READYTIME != 0)
+					{
+						Logger::ERROR("Time window for depot should start at 0");
+						throw std::string("Time window for depot should start at 0");
+					}
+				}
+				else
+				{
+					Logger::ERROR("Unexpected data in input file: " + content);
+					throw std::string("Unexpected data in input file: " + content);
+				}
+			}
+
+			if (!hasServiceTimeSection)
+			{
+				for (int i = 0; i <= custCnt; i++)
+				{
+					datas[i].SERVICETIME = (i == 0) ? 0 : serviceTimeData;
+				}
+			}
+
+			if (custCnt <= 0)
+			{
+				throw std::string("Number of nodes is undefined");
+			}
+			if (Q == INT_MAX)
+			{
+				throw std::string("Vehicle capacity is undefined");
+			}
+		}
+
+		if (static_cast<int>(datas.size()) < custCnt * 3 + 3) {
+			datas.resize(custCnt * 3 + 3);
+		}
+		for (int i = custCnt + 1; i < static_cast<int>(datas.size()); ++i) {
+			datas[i] = datas[0];
+			datas[i].CUSTNO = i;
+		}
+
+		//Logger::ERROR("mustDispatchNumber:",mustDispatchNumber);
+	}
+	else {
+		throw std::invalid_argument("Impossible to open instance file: " + commandLine->instancePath);
+	}
+
+	// Default initialization if the number of vehicles has not been provided by the user
+	if (vehicleCnt == INT_MAX)
+	{
+		// Safety margin: 30% + 3 more vehicles than the trivial bin packing LB
+		vehicleCnt = static_cast<int>(std::ceil(1.3 * totalDemand / Q) + 3.);
+		Logger::INFO("----- FLEET SIZE WAS NOT SPECIFIED: DEFAULT INITIALIZATION TO ", vehicleCnt, " VEHICLES");
+	}
+	else if (vehicleCnt == -1)
+	{
+		vehicleCnt = custCnt;
+		Logger::INFO("----- FLEET SIZE UNLIMITED: SET TO UPPER BOUND OF ", vehicleCnt, " VEHICLES");
+	}
+	else
+	{
+		Logger::INFO("----- FLEET SIZE SPECIFIED IN THE COMMANDLINE: SET TO ", vehicleCnt, " VEHICLES");
+	}
+
 	return true;
 }
 

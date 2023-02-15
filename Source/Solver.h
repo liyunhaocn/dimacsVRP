@@ -307,36 +307,59 @@ struct ConfSet {
 
 };
 
-struct NextPermutation {
+struct WeightedEjectPool {
 
-	bool hasNext(Vec<int>& ve, int Kmax, int& k, int N) {
+	int sumCost = 0;
+	ConfSet container;
+	Input* input;
+	WeightedEjectPool(Input* input) :container(input->custCnt + 1), input(input) {}
 
-		if (k == 1 && ve[k] == N) {
-			return false;
-		}
-		else {
-			return true;
-		}
-		return false;
+	WeightedEjectPool(const WeightedEjectPool& ej) {
+		this->container = ej.container;
+		this->sumCost = ej.sumCost;
+		this->input = ej.input;
 	}
 
-	bool nextPer(Vec<int>& ve, int Kmax, int& k, int N) {
-
-		if (k < Kmax && ve[k] < N) {
-			++k;
-			ve[k] = ve[k - 1] + 1;
+	WeightedEjectPool& operator = (const WeightedEjectPool& ej) {
+		if (this != &ej) {
+			this->container = ej.container;
+			this->sumCost = ej.sumCost;
+			this->input = ej.input;
 		}
-		else if (ve[k] == N) {
-			k--;
-			++ve[k];
-		}
-		else if (k == Kmax && ve[k] < N) {
-			++ve[k];
-		}
-
-		return true;
+		return *this;
 	}
 
+	~WeightedEjectPool() { }
+
+	void insert(int v) {
+		sumCost += input->P[v];
+		container.insert(v);
+	}
+
+	void remove(int v) {
+		if (container.pos[v] == -1) {
+			Logger::ERROR("container.pos[v]==-1");
+		}
+		sumCost -= input->P[v];
+		container.removeVal(v);
+	}
+
+	int randomPeek() {
+		return container.randomPeek(&input->randomTools->random);
+	}
+
+	void reset() {
+		container.reset();
+		sumCost = 0;
+	}
+
+	Vec<int>putElementInVector() {
+		return  container.putElementInVector();
+	}
+
+	int size() {
+		return container.cnt;
+	}
 };
 
 class YearTable;
@@ -694,6 +717,22 @@ public:
 	int CVB2ClearEPAllowNewR(int kind);
 
 	int simulatedannealing(int kind, int iterMax, double temperature, int ruinNum);
+
+	inline DisType  getDeltDistanceCostIfRemoveCustomer(int v) {
+		DisType delta = 0;
+		int prev = customers[v].pre;
+		int next = customers[v].next;
+		delta -= input->getDisof2(prev, v);
+		delta -= input->getDisof2(v, next);
+		delta += input->getDisof2(prev, next);
+		return delta;
+	}
+
+	Vec<int> getRuinCustomers(int perturbkind, int ruinCusNum);
+
+	Vec<int> dynamicPartialClearDynamicEP(int kind, WeightedEjectPool& dynamicEP);
+
+	int dynamicRuin(int ruinCusNum);
 
 	bool doOneTimeRuinPer(int perturbkind, int ruinCusNum, int clearEPKind);
 

@@ -5152,32 +5152,7 @@ void Solver::perturbBasedEjectionPool(int ruinCusNum) {
 
 bool Solver::doOneTimeRuinPer(int perturbkind, int ruinCusNum, int clearEPKind) {
 
-	Vec<int> ruinCus;
-	if (perturbkind == 0) {
-		ruinCus = ruinGetRuinCusByRound(ruinCusNum);
-	}
-	else if (perturbkind == 1) {
-		ruinCus = ruinGetRuinCusBySec(ruinCusNum);
-	}
-	else if (perturbkind == 2) {
-
-		int avgLen = input->custCnt / rts.cnt;
-		int Lmax = std::min<int>(aps->ruinLmax, avgLen);
-		int ruinKmax = 4 * ruinCusNum / (1 + Lmax) - 1;
-		ruinKmax = std::min<int>(rts.cnt-1, ruinKmax);
-		ruinKmax = std::max<int>(1, ruinKmax);
-
-		ruinCus = ruinGetRuinCusBySting(ruinKmax, Lmax);
-	}
-	else if (perturbkind == 3) {
-		ruinCus = ruinGetRuinCusByRand(ruinCusNum);
-	}
-	else if (perturbkind == 4) {
-		ruinCus = ruinGetRuinCusByRandOneR(ruinCusNum);
-	}
-	else {
-		Logger::ERROR("no this kind of ruin");
-	}
+	Vec<int> ruinCus = getRuinCustomers(perturbkind,ruinCusNum);
 
 	std::unordered_set<int> rIds;
 	for (int cus : ruinCus) {
@@ -5545,6 +5520,266 @@ int Solver::simulatedannealing(int kind,int iterMax, double temperature,int ruin
 	*this = pBest;
 	return true;
 
+}
+
+Vec<int> Solver::dynamicPartialClearDynamicEP(int kind, WeightedEjectPool& dynamicEP) {
+
+	std::unordered_set<int> insRts;
+	Vec<int> EPArr = dynamicEP.putElementInVector();
+
+	auto cmp1 = [&](int a, int b) {
+		return input->datas[a].DEMAND > input->datas[b].DEMAND;
+	};
+	auto cmp2 = [&](int a, int b) {
+		return input->datas[a].DUEDATE - input->datas[a].READYTIME
+			< input->datas[b].DUEDATE - input->datas[b].READYTIME;
+	};
+
+	auto cmp3 = [&](int a, int b) {
+		return input->getDisof2(a, 0) < input->getDisof2(b, 0);
+	};
+
+	auto cmp4 = [&](int a, int b) {
+		return input->datas[a].READYTIME > input->datas[b].READYTIME;
+	};
+
+	auto cmp5 = [&](int a, int b) {
+		return input->datas[a].DUEDATE < input->datas[b].DUEDATE;
+	};
+
+	switch (kind) {
+	case 0:
+		random ->shuffleVec(EPArr);
+		break;
+	case 1:
+		std::sort(EPArr.begin(), EPArr.end(), cmp1);
+		break;
+	case 2:
+		std::sort(EPArr.begin(), EPArr.end(), cmp2);
+		break;
+	case 3:
+		std::sort(EPArr.begin(), EPArr.end(), cmp3);
+		break;
+	case 4:
+		std::sort(EPArr.begin(), EPArr.end(), cmp4);
+		break;
+	case 5:
+		std::sort(EPArr.begin(), EPArr.end(), cmp5);
+		break;
+	default:
+		break;
+	}
+
+	Vec<int> ret;
+
+
+	for (int i = 0; i < static_cast<int>(EPArr.size()); ++i) {
+		//for (int i = EPArr.size() - 1;i>=0;--i) {
+		int pt = EPArr[i];
+
+		//++P[pt];
+		auto bestPos = findBestPositionForRuin(pt);
+
+		if (bestPos.pen == 0) {
+			if (bestPos.cost - input->P[pt] < 0
+				|| random->pick(100) < aps -> rateOfDynamicInAndOut
+				) {
+				Route& r = rts[bestPos.rIndex];
+				insRts.insert(r.routeID);
+				rInsertAtPosition(r, bestPos.pos, pt);
+				rUpdateAvQFrom(r, pt);
+				rUpdateZvQFrom(r, pt);
+				dynamicEP.remove(pt);
+				ret.push_back(pt);
+			}
+		}
+		else {
+
+			if (input->getDisof2(0, pt) + input->getDisof2(pt, 0) - input->P[pt] < 0
+				|| random->pick(100) < aps->rateOfDynamicInAndOut
+				) {
+				int rid = getARouteIdCanUsed();
+				Route r1 = rCreateRoute(rid);
+				rInsAtPosPre(r1, r1.tail, pt);
+				rUpdateAvQFrom(r1, r1.head);
+				rUpdateZvQFrom(r1, r1.tail);
+				rts.push_back(r1);
+				insRts.insert(rid);
+				dynamicEP.remove(pt);
+				ret.push_back(pt);
+			}
+		}
+	}
+
+	sumRtsPenalty();
+	for (auto rId : insRts) {
+		Route& r = rts.getRouteByRid(rId);
+		rReCalculateRouteCost(r);
+	}
+	sumRtsCost();
+	return ret;
+}
+
+Vec<int> Solver::getRuinCustomers(int perturbkind, int ruinCusNum) {
+
+	Vec<int> ruinCus;
+	if (perturbkind == 0) {
+		ruinCus = ruinGetRuinCusByRound(ruinCusNum);
+	}
+	else if (perturbkind == 1) {
+		ruinCus = ruinGetRuinCusBySec(ruinCusNum);
+	}
+	else if (perturbkind == 2) {
+		int avgLen = input->custCnt / rts.cnt;
+		int Lmax = std::min<int>(aps->ruinLmax, avgLen);
+		int ruinKmax = 4 * ruinCusNum / (1 + Lmax) - 1;
+		//TODO[-1]:!!!!!!
+		ruinKmax = std::min<int>(rts.cnt - 1, ruinKmax);
+		ruinKmax = std::max<int>(1, ruinKmax);
+		ruinCus = ruinGetRuinCusBySting(ruinKmax, Lmax);
+	}
+	else if (perturbkind == 3) {
+		// TODO[-1]:随机删除customers
+		ruinCus = ruinGetRuinCusByRand(ruinCusNum);
+	}
+	else if (perturbkind == 4) {
+		ruinCus = ruinGetRuinCusByRandOneR(ruinCusNum);
+	}
+	else {
+		Logger::ERROR("no this kind of ruin");
+	}
+	return ruinCus;
+}
+
+int Solver::dynamicRuin(int ruinCusNum) {
+
+	static ProbControl pcRuKind(5,&input->randomTools->random);
+	//static ProbControl pcRuKind(3);
+	static ProbControl pcCLKind(6, &input->randomTools->random);
+	WeightedEjectPool dynamicEP(input);
+
+	auto solBestFound = *this;
+	auto bestDynamicEP = dynamicEP;
+
+	int perturbkind = pcRuKind.getIndexBasedData();
+	int clearKind = pcCLKind.getIndexBasedData();
+	Vec<int> relevantCustomers;
+
+	Vec<int> ejectedCuses = dynamicPartialClearDynamicEP(clearKind,dynamicEP);
+	//    Vec<int> ejectedCuses = {dynamicEP.randomPeek()};
+	relevantCustomers.insert(relevantCustomers.end(), ejectedCuses.begin(), ejectedCuses.end());
+
+	int c_1 = random->pick(aps->ruinC_Min, aps->ruinC_Max + 1);
+	c_1 = std::min<int>(c_1, input->custCnt - 1 - dynamicEP.size());
+	if (c_1 > 0) {
+		simulatedannealing(1,10, 100.0, c_1);
+	}
+
+	std::unordered_set<int> newCustomersSet;
+	for (int v : relevantCustomers) {
+		if (customers[v].routeID != -1) {
+			newCustomersSet.insert(v);
+		}
+		for (int wpos = 0; wpos < 3; ++wpos) {
+			int w = input->addSTclose[v][wpos];
+			if (customers[w].routeID != -1) {
+				newCustomersSet.insert(w);
+			}
+		}
+	}
+	Vec<int> newCustomers;
+	for (int i : newCustomersSet) {
+		newCustomers.push_back(i);
+	}
+	if (newCustomers.size() > 0) {
+		minimizeRouteDistanceLocalSearch(1, newCustomers);
+	}
+
+	if (RoutesCost + dynamicEP.sumCost < solBestFound.RoutesCost + bestDynamicEP.sumCost) {
+		++pcRuKind.data[perturbkind];
+		++pcCLKind.data[clearKind];
+		solBestFound = *this;
+		dynamicEP = bestDynamicEP;
+	}
+
+	auto ruinCus = getRuinCustomers(perturbkind, ruinCusNum);
+	//    auto ruinCus = dynamicEP.randomPeek()};
+
+	std::unordered_set<int> rIds;
+	for (int cus : ruinCus) {
+		if (input->datas[cus].must_dispatch == true || customers[cus].routeID == -1) {
+			continue;
+		}
+		//        if(dynamicEP.size() + 2 < input->custCnt) {
+		DisType delt = getDeltDistanceCostIfRemoveCustomer(cus);
+		if (dynamicEP.size() < input->custCnt &&
+			(
+				input->P[cus] + delt < 0
+				|| random->pick(100) < aps->rateOfDynamicInAndOut
+				)) {
+			//            INFO("input->P[cus]:",input->P[cus],"delt:",delt);
+			Route& r = rts.getRouteByRid(customers[cus].routeID);
+			rIds.insert(r.routeID);
+			rRemoveAtPosition(r, cus);
+
+			dynamicEP.insert(cus);
+			relevantCustomers.push_back(cus);
+			if (r.rCustCnt == 0) {
+				if (rIds.count(r.routeID) > 0) {
+					rIds.erase(rIds.find(r.routeID));
+				}
+				removeOneRouteByRid(r.routeID);
+			}
+		}
+	}
+
+	for (auto rid : rIds) {
+		Route& r = rts.getRouteByRid(rid);
+		rUpdateAvQFrom(r, r.head);
+		rUpdateZvQFrom(r, r.tail);
+		rReCalculateRouteCost(r);
+	}
+
+	sumRtsCost();
+	sumRtsPenalty();
+
+	for (int v : relevantCustomers) {
+		if (customers[v].routeID != -1) {
+			newCustomersSet.insert(v);
+		}
+		for (int wpos = 0; wpos < 3; ++wpos) {
+			int w = input->addSTclose[v][wpos];
+			if (customers[w].routeID != -1) {
+				newCustomersSet.insert(w);
+			}
+		}
+	}
+
+	for (int i : newCustomersSet) {
+		newCustomers.push_back(i);
+	}
+	if (newCustomers.size() > 0) {
+		minimizeRouteDistanceLocalSearch(1, newCustomers);
+	}
+
+	int c_ = random->pick(aps->ruinC_Min, aps->ruinC_Max + 1);
+	c_ = std::min<int>(c_, input->custCnt - 1 - dynamicEP.size());
+	if (c_ > 0) {
+		simulatedannealing(1,10, 100.0, c_);
+	}
+	//TODO[-1]:这里去掉了reCalRtsCostAndPen
+	//reCalRtsCostAndPen();
+
+	if (RoutesCost + dynamicEP.sumCost < solBestFound.RoutesCost + bestDynamicEP.sumCost) {
+		++pcRuKind.data[perturbkind];
+		++pcCLKind.data[clearKind];
+		solBestFound = *this;
+		dynamicEP = bestDynamicEP;
+	}
+
+	*this = solBestFound;
+	dynamicEP = bestDynamicEP;
+	return true;
 }
 
 bool Solver::patternAdjustment(int Irand) {
@@ -6927,7 +7162,7 @@ bool Solver::saveOutAsSintefFile(std::string outputPath, std::string opt) {
 
 	std::string s = "";
 
-	s += "Instance name : " + input->example + "\n";
+	s += "Instance name : " + input->instanceName + "\n";
 	s += "Authors : <the name of the authors>\n";
 	s += "Date : <dd - mm - yy>\n";
 	s += "Reference : <reference to publication of method>\n";
@@ -6947,12 +7182,12 @@ bool Solver::saveOutAsSintefFile(std::string outputPath, std::string opt) {
 
 	std::ofstream rgbData;
 	std::string wrPath = outputPath + opt
-		+ input->example + "L" + std::to_string(RoutesCost) + ".txt";
+		+ input->instanceName + "L" + std::to_string(RoutesCost) + ".txt";
 
 	rgbData.open(wrPath, std::ios::app | std::ios::out);
 
 	if (!rgbData) {
-		Logger::ERROR("sintefoutput file open errno");
+		Logger::ERROR("sintef output file open errno");
 		return false;
 	}
 
@@ -7090,7 +7325,7 @@ bool saveSolutiontoCsvFile(Solver& sol) {
 
 	Input& input = *sol.input;
 
-	rgbData << input.example << ",";
+	rgbData << input.instanceName << ",";
 	rgbData << sol.aps->cmdIsopt << ",";
 
 	auto lyhrl = sol.RoutesCost;

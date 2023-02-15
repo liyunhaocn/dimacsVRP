@@ -14,18 +14,8 @@
 
 namespace hust {
 
-std::vector<int> getOneBound(std::string ex) {
+std::vector<int> getOneBound(hust::CommandLine& commandline) {
 
-	int argc = 3;
-
-	char a[100];
-	snprintf(a, 100, "../Instances/Homberger/%s.txt", ex.c_str());
-	char _sol[] = "./DLLSMA";
-	char _ins[] = "-ins";
-
-	char* argv[] = { _sol,_ins,a };
-
-	hust::CommandLine commandline(argc, argv);
 	AlgorithmParameters aps = commandline.aps;
 	RandomTools randomTools(commandline.seed);
 	Timer timer(commandline.runTimer);
@@ -39,7 +29,7 @@ std::vector<int> getOneBound(std::string ex) {
 
 	YearTable yearTable(&input);
 
-	std::cout << ex << ", " << aps.sintefRecRN << std::endl;
+	std::cout << commandline.instancePath << ", " << aps.sintefRecRN << std::endl;
 
 	int n = input.custCnt;
 
@@ -121,34 +111,53 @@ void getAllInstancesBound() {
 
 	std::vector<std::string> s;
 
+	std::string  basePath = "../Instances/Homberger/";
+
+	std::vector< std::string > allInstances;
+
 	for (std::string x : v1) {
 		for (std::string y : v2) {
 			for (std::string z : v3) {
-				std::cout << (x + y + z) << std::endl;
-				auto ret = getOneBound(x + y + z);
-				if (ret[0] == ret[1]) {
-					s.push_back(x + y + z);
-				}
+
+				std::string instanceName = x + y + z;
+				allInstances.push_back(instanceName);
 			}
 		}
 	}
 
-	for (auto& ss : s) {
-		Logger::INFO(ss);
-	}
+	for (std::string& instanceName : allInstances) {
 
+		std::cout << instanceName << std::endl;
+
+		int argc = 3;
+
+		char a[100];
+		snprintf(a, 100, "../Instances/Homberger/%s.txt", instanceName.c_str());
+		char _sol[] = "./DLLSMA";
+		char _ins[] = "-ins";
+
+		char* argv[] = { _sol,_ins,a };
+
+		hust::CommandLine commandLine(argc, argv);
+		auto ret = getOneBound(commandLine);
+
+		if (ret[0] == ret[1]) {
+			s.push_back(instanceName);
+		}
+
+		for (auto& ss : s) {
+			Logger::INFO(ss);
+		}
+	}
+	
 	std::vector<std::string> instsReachBound = {
 		"C1_2_1", "C1_4_1",
 		"C1_6_1", "C1_8_1",
 		"C1_8_2", "C1_10_1",
 		"R1_2_1", "R1_4_1",
 		"R1_6_1", "R1_8_1",
-		"R1_10_1", "RC2_2_5" };
+		"R1_10_1", "RC2_2_5" 
+	};
 
-	for (std::string ex : instsReachBound) {
-		auto rns = getOneBound(ex);
-		std::cout << ex << ", " << rns[0] << ", " << rns[1] << ", " << rns[2] << std::endl;
-		std::cout << "---------------" << std::endl;
-	}
 }
 }

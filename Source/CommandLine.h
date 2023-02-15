@@ -18,6 +18,11 @@ public:
 
 	int seed = 0;
 	int runTimer = 1800; //s
+	int isDynamicRun = 0;
+	int isDimacsRun = 0;
+	int isMinimizeRouteNumberRun = 0;
+	int isRouteNumberBoundRun = 0;
+
 	std::string instancePath = "";
 	std::string outputPath = "../Results/";
 	std::string bksDataFileBasePath = "../Instances/DataFromLiterature/";
@@ -41,6 +46,21 @@ public:
 			}
 			else if (argvstr == "-bksDataFileBasePath") {
 				this->bksDataFileBasePath = std::string(argv[i + 1]);
+			}
+			else if (argvstr == "-isDynamicRun") {
+				this->isDynamicRun = std::stoi(argv[i + 1], nullptr, 0);
+			}
+			else if (argvstr == "-isDimacsRun") {
+				this->isDimacsRun = std::stoi(argv[i + 1], nullptr, 0);
+			}
+			else if (argvstr == "-isMinimizeRouteNumberRun") {
+				this->isMinimizeRouteNumberRun = std::stoi(argv[i + 1], nullptr, 0);
+			}
+			else if (argvstr == "-isRouteNumberBoundRun") {
+				this->isRouteNumberBoundRun = std::stoi(argv[i + 1], nullptr, 0);
+			}
+			else if (argvstr == "-rateOfDynamicInAndOut") {
+				aps.rateOfDynamicInAndOut = std::stoi(argv[i + 1], nullptr, 0);
 			}
 			else if (argvstr == "-seed") {
 				this->seed = std::stoi(argv[i + 1], nullptr, 0);
@@ -100,6 +120,11 @@ public:
 		ss << "call solver by:" << std::endl;
 		ss << "./DLLSMA -instancePath:str" << std::endl;
 		ss << "[-time:int] the time limit" << std::endl;
+		ss << "[-isDynamicRun:int] ranges 0 or 1, default value 0, if the dynamic run" << std::endl;
+		ss << "[-isDimacsRun:int] ranges 0 or 1, default value 0, if the dimacsRun run" << std::endl;
+		ss << "[-isMinimizeRouteNumberRun:int] ranges 0 or 1, default value 0, if the minimize route number run" << std::endl;
+		ss << "[-isRouteNumberBoundRun:int] ranges 0 or 1, default value 0, if the getting route number bound run" << std::endl;
+		ss << "[-rateOfDynamicInAndOut:int] ranges [0,100],default 5, the rate to limit dymaic search customer insertion and ejection" << std::endl;
 		ss << "[-bksDataFileBasePath:string] the bks file path" << std::endl;
 		ss << "[-seed:int] the seed of random" << std::endl;
 		ss << "[-customersWeight0:int] the weight of when eject customers from solution" << std::endl;

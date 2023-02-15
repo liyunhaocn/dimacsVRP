@@ -80,6 +80,7 @@ struct Data {
 	DisType READYTIME = -1;
 	DisType DUEDATE = -1;
 	DisType SERVICETIME = -1;
+	bool must_dispatch = true;
 	int polarAngle = 0;
 };
 
@@ -130,18 +131,25 @@ public:
 
 struct Input {
 
-	std::string example = "";
+	std::string instanceName = "";
 	int custCnt = 0;
 	DisType Q = 0;
 	int vehicleCnt = 0;
 	Vec<Data> datas;
 	int Qbound = -1;
-
+	
 	CommandLine* commandLine;
 	AlgorithmParameters* aps;
 	RandomTools* randomTools;
 	Timer* timer;
-
+	int mustDispatchNumber = -1;
+	bool isExplicitDistanceMatrix = false;
+	int totalDemand;													// Total demand required by the clients
+	int maxDemand;														// Maximum demand of a client
+	int maxDist;														// Maximum distance between two clients
+	bool isDurationConstraint;											// Indicates if the problem includes duration constraints
+	bool isTimeWindowConstraint;										// Indicates if the problem includes time window constraints
+	int durationLimit;													// Route duration limit
 	util::Array2D<DisType> disOf;
 
 	//// disOf[v][w] 表示w和v之间的距离
@@ -163,8 +171,10 @@ struct Input {
 
 	bool initInput();
 
-	bool readDimacsInstance(std::string& instanciaPath);
+	bool readDimacsInstance(const std::string& instanciaPath);
 
+	bool readDynamicInstance(const std::string& instanciaPath);
+	
 	void initDetail();
 
 	int partition(int* arr, int start, int end, std::function<bool(int, int)>cmp);
@@ -184,7 +194,7 @@ struct Input {
 
 	void displayInfo() {
 
-		Logger::INFO("example:", example);
+		Logger::INFO("instanceName:", instanceName);
 		Logger::INFO("custCnt:", custCnt);
 		Logger::INFO("Q:", Q);
 		Logger::INFO("vehicleCnt:", vehicleCnt);
