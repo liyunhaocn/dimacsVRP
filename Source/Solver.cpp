@@ -5786,14 +5786,6 @@ Solver::eOneRNode Solver::ejectOneRouteOnlyP(Route& r, int kind, int Kmax) {
 	eOneRNode etemp(r.routeID);
 	etemp.Psum = 0;
 
-	#if LYH_CHECKING
-	DisType rQStart = r.rQ;
-	DisType PtwStart = r.rPtw;
-	DisType PcStart = r.rPc;
-	DisType depot0TW_XStart = customers[r.head].TWX_;
-	DisType depotN1TW_XStart = customers[r.tail].TW_X;
-	#endif // LYH_CHECKING
-
 	DisType rQ = r.rQ;
 
 	auto updateEje = [&]() {
@@ -6051,26 +6043,6 @@ Solver::eOneRNode Solver::ejectOneRouteOnlyP(Route& r, int kind, int Kmax) {
 		}
 
 	} while (!(k == 1 && ve[k] == N));
-
-
-	#if LYH_CHECKING
-
-	lyhCheckTrue(r.rQ == rQStart);
-	lyhCheckTrue(PcStart == r.rPc);
-	lyhCheckTrue(PtwStart == r.rPtw);
-	lyhCheckTrue(PtwStart == customers[r.head].TWX_);
-	lyhCheckTrue(PtwStart == customers[r.tail].TW_X);
-	lyhCheckTrue(customers[r.head].QX_ == rQStart);
-	lyhCheckTrue(customers[r.tail].Q_X == rQStart);
-
-	Vec<int> v1 = rPutCustomersInVector(r);
-	Vec<int> v2;
-
-	for (int pt = customers[r.tail].pre; pt <= input->custCnt; pt = customers[pt].pre) {
-		v2.push_back(pt);
-	}
-	lyhCheckTrue(v1.size() == v2.size());
-	#endif // LYH_CHECKING
 
 	return noTabuN;
 }

@@ -4,8 +4,8 @@
 /// note  : 1.	
 ////////////////////////////////
 
-#ifndef SMART_SZX_GOAL_MAX_CLIQUE_LIB_GRAPH_H
-#define SMART_SZX_GOAL_MAX_CLIQUE_LIB_GRAPH_H
+#ifndef SMART_HUST_GOAL_MAX_CLIQUE_LIB_GRAPH_H
+#define SMART_HUST_GOAL_MAX_CLIQUE_LIB_GRAPH_H
 
 
 #include <initializer_list>
@@ -13,7 +13,7 @@
 #include "Arr.h"
 
 
-namespace szx {
+namespace hustmcp {
 
 struct Graph {
     using ID = int;
@@ -161,4 +161,4 @@ struct Graph {
 }
 
 
-#endif // SMART_SZX_GOAL_MAX_CLIQUE_LIB_GRAPH_H
+#endif // SMART_HUST_GOAL_MAX_CLIQUE_LIB_GRAPH_H

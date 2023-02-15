@@ -7,7 +7,25 @@
     <ClCompile Include="..\..\Source\pch.cpp">
       <Filter>Source</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\Source\SolverTest.cpp">
+    <ClCompile Include="..\..\Source\SolverNeighborhoodTest.cpp">
+      <Filter>Source</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\Source\SolverEjectionTest.cpp">
+      <Filter>Source</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\Source\SolverMinimizeTest.cpp">
+      <Filter>Source</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\Source\SolverRouteTest.cpp">
+      <Filter>Source</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\Source\SolverPatternAdjustmentTest.cpp">
+      <Filter>Source</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\Source\SolverSISRTest.cpp">
+      <Filter>Source</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\Source\SolverInitialTest.cpp">
       <Filter>Source</Filter>
     </ClCompile>
   </ItemGroup>
@@ -20,5 +38,8 @@
     <ClInclude Include="..\..\Source\pch.h">
       <Filter>Source</Filter>
     </ClInclude>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="packages.config" />
   </ItemGroup>
 </Project>

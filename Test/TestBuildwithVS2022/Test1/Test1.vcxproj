@@ -51,7 +51,13 @@
   <ItemGroup>
     <ClCompile Include="..\..\Source\EAXTest.cpp" />
     <ClCompile Include="..\..\Source\pch.cpp" />
-    <ClCompile Include="..\..\Source\SolverTest.cpp" />
+    <ClCompile Include="..\..\Source\SolverEjectionTest.cpp" />
+    <ClCompile Include="..\..\Source\SolverInitialTest.cpp" />
+    <ClCompile Include="..\..\Source\SolverMinimizeTest.cpp" />
+    <ClCompile Include="..\..\Source\SolverNeighborhoodTest.cpp" />
+    <ClCompile Include="..\..\Source\SolverPatternAdjustmentTest.cpp" />
+    <ClCompile Include="..\..\Source\SolverRouteTest.cpp" />
+    <ClCompile Include="..\..\Source\SolverSISRTest.cpp" />
   </ItemGroup>
   <ItemGroup>
     <None Include="packages.config" />

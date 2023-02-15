@@ -5,7 +5,7 @@
 using namespace std;
 
 
-namespace szx {
+namespace hustmcp {
 namespace tsm {
 
 int loadInput(NextEdge nextEdge, const Arr<Weight> &nodeWeights,

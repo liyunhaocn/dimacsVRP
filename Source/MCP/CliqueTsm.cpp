@@ -2890,7 +2890,7 @@ int tsmMain(int argc, char *argv[]) {
 
 #include "CliqueSolver.h"
 
-namespace szx{
+namespace hustmcp {
 namespace tsm {
 
 int loadInput(NextEdge nextEdge, const Arr<Weight> &nodeWeights,

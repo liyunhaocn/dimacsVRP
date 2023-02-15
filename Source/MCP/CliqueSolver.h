@@ -5,8 +5,8 @@
 ///         2.	the core algorithm may fail if there are zero-weight nodes.
 ////////////////////////////////
 
-#ifndef SMART_SZX_GOAL_MAX_CLIQUE_LIB_CLIQUE_SOLVER_H
-#define SMART_SZX_GOAL_MAX_CLIQUE_LIB_CLIQUE_SOLVER_H
+#ifndef SMART_HUST_GOAL_MAX_CLIQUE_LIB_CLIQUE_SOLVER_H
+#define SMART_HUST_GOAL_MAX_CLIQUE_LIB_CLIQUE_SOLVER_H
 
 
 #include <functional>
@@ -15,7 +15,7 @@
 #include "Graph.h"
 
 
-namespace szx {
+namespace hustmcp {
 namespace tsm {
 
 using ID = Graph::ID; // node ID counts from 0 in the interface, but counts from 1 inside the LKH.
@@ -69,4 +69,4 @@ bool solveWeightedIndependentSet(Clique &sln, const AdjMat &adjMat, Millisecond 
 }
 
 
-#endif // SMART_SZX_GOAL_MAX_CLIQUE_LIB_CLIQUE_SOLVER_H
+#endif // SMART_HUST_GOAL_MAX_CLIQUE_LIB_CLIQUE_SOLVER_H

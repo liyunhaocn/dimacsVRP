@@ -4,8 +4,8 @@
 /// note  : 1.	
 ////////////////////////////////
 
-#ifndef SMART_SZX_GOAL_MAX_CLIQUE_LIB_ARR_H
-#define SMART_SZX_GOAL_MAX_CLIQUE_LIB_ARR_H
+#ifndef SMART_HUST_GOAL_MAX_CLIQUE_LIB_ARR_H
+#define SMART_HUST_GOAL_MAX_CLIQUE_LIB_ARR_H
 
 
 #include <algorithm>
@@ -15,7 +15,7 @@
 #include <cstring>
 
 
-namespace szx {
+namespace hustmcp {
 
 #ifndef SMART_SZX_CPP_UTILIBS_ARR
 #define SMART_SZX_CPP_UTILIBS_ARR
@@ -248,4 +248,4 @@ protected:
 }
 
 
-#endif // SMART_SZX_GOAL_MAX_CLIQUE_LIB_ARR_H
+#endif // SMART_HUST_GOAL_MAX_CLIQUE_LIB_ARR_H

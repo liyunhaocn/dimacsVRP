@@ -106,7 +106,7 @@ struct AlgorithmParameters {
 	//Configuration(): random(seed) {
 
 	//}
-
+	~AlgorithmParameters() {}
 };
 
 }

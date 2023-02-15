@@ -43,7 +43,7 @@ std::vector<int> getOneBound(std::string ex) {
 
 	int n = input.custCnt;
 
-	szx::tsm::AdjMat am(n, n);
+	hustmcp::tsm::AdjMat am(n, n);
 	for (int i = 0; i < n; ++i) {
 		for (int j = 0; j < n; ++j) {
 			am.at(i, j) = 0;
@@ -100,10 +100,10 @@ std::vector<int> getOneBound(std::string ex) {
 	}
 
 	int mqrn = -1;
-	szx::Arr<szx::tsm::Weight> weights(n, 1);
-	szx::tsm::Clique sln;
+	hustmcp::Arr<hustmcp::tsm::Weight> weights(n, 1);
+	hustmcp::tsm::Clique sln;
 
-	if (szx::tsm::solveWeightedMaxClique(sln, am, weights)) {
+	if (hustmcp::tsm::solveWeightedMaxClique(sln, am, weights)) {
 		mqrn = static_cast<int>(sln.nodes.size());
 	}
 
