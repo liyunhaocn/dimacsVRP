@@ -100,7 +100,7 @@ std::vector<int> getOneBound(hust::CommandLine& commandline) {
 	int sinrn = aps.sintefRecRN;
 	int qbrn = input.Qbound;
 
-	return { mqrn,sinrn,qbrn };
+	return { mqrn,sinrn,qbrn};
 }
 
 void getAllInstancesBound() {

@@ -377,19 +377,19 @@ bool Goal::test() {
 bool Goal::experimentRouteNumberMinimization() {
 	//input->initDetail();
 
-	Solver sol(input, yearTable,bks);
-	sol.initSolution(3);
+	Solver solver(input, yearTable,bks);
+	solver.initSolution(3);
 	
 	int target = aps->sintefRecRN;
 	
-	bool succeed = sol.minimizeRouteNumber(target);
+	bool succeed = solver.minimizeRouteNumber(target);
 	if (succeed) {
 		Logger::INFO("succeed to delete");
 	}
 	else {
 		Logger::INFO("fail to delete");
 	}
-	
+	bks->bestSolFound = solver;
 	return true;
 }
 

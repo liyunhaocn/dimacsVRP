@@ -5779,6 +5779,7 @@ int Solver::dynamicRuin(int ruinCusNum) {
 
 	*this = solBestFound;
 	dynamicEP = bestDynamicEP;
+	bks->bestSolFound = *this;
 	return true;
 }
 
@@ -6422,7 +6423,7 @@ bool Solver::EPNodesCanEasilyPut() {
 
 			Route& r = rts[bestP.rIndex];
 
-			input->P[top] += aps->customersWeight0;
+			input->P[top] += aps->customersWeight1;
 			//EP(*yearTable)[top] = EPIter + aps->EPTabuStep + random->pick(aps->EPTabuRand);
 			EP.removeVal(top);
 
@@ -6457,11 +6458,11 @@ bool Solver::ejectLocalSearch() {
 
 	int EpCusNoDown = 1;
 	int iter = 1;
-
+	
 	while (iter < aps->ejectLSMaxIter && !timer->isTimeOut()) {
 	//while (!timer->isTimeOut()) {
 		//while (1) {
-
+		
 		++iter;
 
 		EPNodesCanEasilyPut();
@@ -6497,7 +6498,7 @@ bool Solver::ejectLocalSearch() {
 		Route& r = rts[bestP.rIndex];
 		EP.removeVal(top);
 
-		input->P[top] += aps->customersWeight0;
+		input->P[top] += aps->customersWeight1;
 		maxOfPval = std::max<int>(input->P[top], maxOfPval);
 
 		if (maxOfPval >= 100) {
@@ -6554,7 +6555,7 @@ bool Solver::ejectLocalSearch() {
 				for (eOneRNode& en : XSet) {
 					for (int c : en.ejeVe) {
 						
-						input->P[c] += aps->customersWeight1;
+						input->P[c] += aps->customersWeight2;
 						maxOfPval = std::max<int>(input->P[c], maxOfPval);
 
 					}
@@ -7239,7 +7240,7 @@ bool BKS::updateBKSAndPrint(Solver& newSol, std::string opt) {
 	
 	if (newSol.RoutesCost <= bestSolFound.RoutesCost && newSol.rts.cnt <= newSol.input->vehicleCnt) {
 
-		if (dimacsGo) {
+		if (bestSolFound.input->commandLine->dimacsPrint == 1) {
 		}
 		else {
 
@@ -7256,7 +7257,7 @@ bool BKS::updateBKSAndPrint(Solver& newSol, std::string opt) {
 
 	}
 
-	if (dimacsGo) {
+	if (bestSolFound.input->commandLine->dimacsPrint == 1) {
 		Timer::TimePoint pt = Timer::Clock::now();
 		auto ms = Timer::durationInMillisecond(lastPrintTp, pt);
 
@@ -7299,8 +7300,8 @@ bool saveSolutiontoCsvFile(Solver& sol) {
 	}
 	path += "t" + std::to_string(sol.input->commandLine->runTimer);
 
-	std::string pwe0 = strtool::int_str(sol.aps->customersWeight0);
-	std::string pwe1 = strtool::int_str(sol.aps->customersWeight1);
+	std::string pwe0 = strtool::int_str(sol.aps->customersWeight1);
+	std::string pwe1 = strtool::int_str(sol.aps->customersWeight2);
 	std::string minKmax = strtool::int_str(sol.aps->minKmax);
 	std::string maxKmax = strtool::int_str(sol.aps->maxKmax);
 

@@ -16,6 +16,10 @@
 
 namespace hust {
 
+// Simple data structure to represent circle sectors
+// Angles are measured in [0,65535] instead of [0,359], in such a way that modulo operations are much faster (since 2^16 = 65536)
+// Credit to Fabian Giesen at "https://web.archive.org/web/20200912191950/https://fgiesen.wordpress.com/2015/09/24/intervals-in-modular-arithmetic/" for useful implementation tips regarding interval overlaps in modular arithmetics 
+
 struct CircleSector
 {
 	int start = 0;
@@ -131,6 +135,62 @@ public:
 
 struct Input {
 
+	struct DataModel {
+
+		int64_t num_vehicles = 0;
+		int64_t num_customers = 0;
+		int64_t vehicles_capacity = 0;
+
+		std::vector<std::vector<int64_t>> time_matrix;
+		std::vector<std::pair<int64_t, int64_t>> time_windows;
+		std::vector<std::pair<int64_t, int64_t>> coordinates;
+		std::vector<int64_t> demands;
+		std::vector<int64_t> service_times;
+
+		std::string instanceName = "defalutInstanceName";
+		
+		explicit DataModel(
+			int64_t num_vehicles,
+			int64_t num_customers,
+			int64_t vehicles_capacity,
+			const std::vector<std::vector<int64_t>>& time_matrix,
+			const std::vector<std::pair<int64_t, int64_t>>& time_windows,
+			const std::vector<std::pair<int64_t, int64_t>>& coordinates,
+			const std::vector<int64_t>& demands,
+			const std::vector<int64_t>& service_times,
+			const std::string& instanceName = "defalutInstanceName"
+		) :
+			num_vehicles(num_vehicles),
+			num_customers(num_customers),
+			vehicles_capacity(vehicles_capacity),
+			time_matrix(time_matrix), time_windows(time_windows), 
+			coordinates(coordinates), demands(demands),
+			service_times(service_times), instanceName(instanceName)
+		{}
+
+		bool check() const {
+
+			if (num_customers + 1 != static_cast<int>(time_matrix.size())) {
+				return false;
+			}
+			if (num_customers + 1 != static_cast<int>(coordinates.size())) {
+				return false;
+			}
+			if (num_customers + 1!= static_cast<int>(time_windows.size())) {
+				return false;
+			}
+			if (num_customers + 1 != static_cast<int>(demands.size())) {
+				return false;
+			}
+			for (auto& item : time_matrix) {
+				if (num_customers + 1 != static_cast<int>(item.size())) {
+					return false;
+				}
+			}
+			return true;
+		}
+	};
+
 	std::string instanceName = "";
 	int custCnt = 0;
 	DisType Q = 0;
@@ -168,13 +228,17 @@ struct Input {
 	Vec<int> P;
 
 	Input(CommandLine* commandLine,AlgorithmParameters* aps, RandomTools* randomTools,Timer*timer);
-
-	bool initInput();
-
-	bool readDimacsInstance(const std::string& instanciaPath);
-
-	bool readDynamicInstance(const std::string& instanciaPath);
 	
+	Input(CommandLine* commandLine,AlgorithmParameters* aps, RandomTools* randomTools,Timer*timer,const DataModel&dm);
+
+	void initInput();
+
+	void readInstanceFormatCVRPLIB();
+
+	//void readInstanceAttributeSplitting();
+	
+	void setInstanceCustomized(const DataModel& dm);
+
 	void initDetail();
 
 	int partition(int* arr, int start, int end, std::function<bool(int, int)>cmp);
@@ -210,7 +274,6 @@ struct Output
 	int minEP = -1;
 	DisType state = -1;
 	double runTime = 0.0;
-
 };
 
 

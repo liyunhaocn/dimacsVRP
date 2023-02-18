@@ -22,8 +22,8 @@ struct AlgorithmParameters {
 	int Irand = 400;
 	int neiMoveKind = 16;
 
-	int customersWeight0 = 1;
-	int customersWeight1 = 2;
+	int customersWeight1 = 1;
+	int customersWeight2 = 2;
 
 	int minKmax = 1;
 	int maxKmax = 4;

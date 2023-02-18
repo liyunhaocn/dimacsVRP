@@ -58,8 +58,6 @@ extern int vd4fpi;
 extern int vd8fpi;
 extern int vd16fpi;
 
-extern bool dimacsGo;
-
 extern int disMul;
 extern unsigned Mod;
 

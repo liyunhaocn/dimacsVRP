@@ -23,10 +23,9 @@ struct InstanceData {
 InstanceData getInstanceDataFromFile(std::string path,std::string instanceName) {
 
 	std::ifstream inStream(path, std::ios::in);
-	if (!inStream)
-	{
-		std::cout << "file to open the file" << path << std::endl;
-		exit(1);
+	if (!inStream) {
+		Logger::INFO("file to open the file", path);
+		return InstanceData{};
 	}
 
 	std::string line;
@@ -78,6 +77,20 @@ Input::Input(CommandLine* commandLine,AlgorithmParameters* aps,RandomTools* rand
 	//	slich += 7;
 	//}
 	//example = example.substr(slich + 1);
+
+	readInstanceFormatCVRPLIB();
+
+	initInput();
+	initDetail();
+}
+
+Input::Input(CommandLine* commandLine, AlgorithmParameters* aps, RandomTools* randomTools, Timer* timer, const DataModel& dm):
+	commandLine(commandLine), aps(aps), randomTools(randomTools), timer(timer) {
+	if (dm.check() == false) {
+		Logger::ERROR("Customized Data Model Error");
+		exit(-1);
+	}
+	setInstanceCustomized(dm);
 
 	initInput();
 	initDetail();
@@ -211,15 +224,7 @@ void Input::initDetail() {
 
 }
 
-bool Input::initInput() {
-
-	if (commandLine->isDynamicRun == 1) {
-		readDynamicInstance(commandLine->instancePath);
-	}
-	else {
-		readDimacsInstance(commandLine->instancePath);
-	}
-	
+void Input::initInput() {
 
 	P = Vec<int>(custCnt + 1, 1);
 	if (static_cast<int>(datas.size()) < custCnt * 3 + 3) {
@@ -309,87 +314,83 @@ bool Input::initInput() {
 		std::sort(addSTclose[v], addSTclose[v] + aps->mRLLocalSearchRange[1], cmp);
 
 	}
-
-	return true;
 }
 
-bool Input::readDimacsInstance(const std::string& instanciaPath) {
 
-	//debug(instanciaPath.c_str());
-	FILE* file = nullptr;
-
-	if (commandLine->instancePath == "readstdin") {
-	}
-	else {
-		file = fopen(instanciaPath.c_str(), "r");
-	}
-
-	if (!file) {
-		std::cout << instanciaPath << "Logger::ERROR: Instance path wrong." << std::endl;
-		exit(EXIT_FAILURE);
-	}
-
-	char name[64];
-	
-	fscanf(file, "%s\n", name);
-	this->instanceName = std::string(name);
-	fscanf(file, "%*[^\n]\n");
-	fscanf(file, "%*[^\n]\n");
-	fscanf(file, "%d %lld\n", &this->vehicleCnt, &this->Q);
-	fscanf(file, "%*[^\n]\n");
-	fscanf(file, "%*[^\n]\n");
-
-	this->Q *= disMul;
-	std::string line = "";
-
-	this->datas = Vec<Data>(303);
-
-	int index = 0;
-	int id = -1, coordx = -1, coordy = -1, DEMAND = -1;
-	int ready_time = -1, due_date = -1, service_time = -1;
-	int readArgNum = 0;
-	while ((readArgNum = fscanf(file, "%d %d %d %d %d %d %d\n", &id, &coordx, &coordy, &DEMAND, &ready_time, &due_date, &service_time)) == 7) {
-
-		if (index >= static_cast<int>(datas.size())) {
-			int newSize = static_cast<int>(datas.size()) + static_cast<int>(datas.size()) / 2;
-			datas.resize(newSize);
-		}
-
-		this->datas[index].CUSTNO = id;
-		this->datas[index].XCOORD = coordx * disMul;
-		this->datas[index].YCOORD = coordy * disMul;
-		this->datas[index].DEMAND = DEMAND * disMul;
-		this->datas[index].READYTIME = ready_time * disMul;
-		this->datas[index].DUEDATE = due_date * disMul;
-		this->datas[index].SERVICETIME = service_time * disMul;
-
-		if (index > 0) {
-			auto& dt = datas[index];
-			auto polar = CircleSector::positive_mod
-			(32768. * atan2(dt.YCOORD - datas[0].YCOORD, dt.XCOORD - datas[0].XCOORD) / PI);
-			dt.polarAngle = static_cast<int>(polar);
-		}
-		++index;
-	}
-	custCnt = index - 1;
-	
-	disOf = util::Array2D <DisType>(custCnt + 1, custCnt + 1, DisType(0));
-
-	for (int i = 0; i <= custCnt; ++i) {
-		for (int j = i + 1; j <= custCnt; ++j) {
-			Data& d1 = datas[i];
-			Data& d2 = datas[j];
-			double dis = sqrt((d1.XCOORD - d2.XCOORD) * (d1.XCOORD - d2.XCOORD)
-				+ (d1.YCOORD - d2.YCOORD) * (d1.YCOORD - d2.YCOORD));
-
-			//disOf[j][i] = disOf[i][j] = dis+0.5;
-			disOf[j][i] = disOf[i][j] = static_cast<DisType>(ceil(dis));
-		}
-	}
-
-	fclose(file);
-	return true;
-}
+//void Input::readInstanceFormatCVRPLIB() {
+//
+//	//debug(instanciaPath.c_str());
+//	FILE* file = nullptr;
+//
+//	if (commandLine->readInstanceFromStdin == 1) {
+//		;
+//	}
+//	else {
+//		file = fopen(commandLine->instancePath.c_str(), "r");
+//	}
+//
+//	if (!file) {
+//		std::cout << commandLine->instancePath << "Logger::ERROR: Instance path wrong." << std::endl;
+//		exit(EXIT_FAILURE);
+//	}
+//
+//	char name[64];
+//	
+//	fscanf(file, "%s\n", name);
+//	this->instanceName = std::string(name);
+//	fscanf(file, "%*[^\n]\n");
+//	fscanf(file, "%*[^\n]\n");
+//	fscanf(file, "%d %lld\n", &this->vehicleCnt, &this->Q);
+//	fscanf(file, "%*[^\n]\n");
+//	fscanf(file, "%*[^\n]\n");
+//
+//	this->Q *= disMul;
+//	std::string line = "";
+//
+//	this->datas = Vec<Data>(303);
+//
+//	int index = 0;
+//	int id = -1, coordx = -1, coordy = -1, DEMAND = -1;
+//	int ready_time = -1, due_date = -1, service_time = -1;
+//	int readArgNum = 0;
+//	while ((readArgNum = fscanf(file, "%d %d %d %d %d %d %d\n", &id, &coordx, &coordy, &DEMAND, &ready_time, &due_date, &service_time)) == 7) {
+//
+//		if (index >= static_cast<int>(datas.size())) {
+//			int newSize = static_cast<int>(datas.size()) + static_cast<int>(datas.size()) / 2;
+//			datas.resize(newSize);
+//		}
+//
+//		this->datas[index].CUSTNO = id;
+//		this->datas[index].XCOORD = coordx * disMul;
+//		this->datas[index].YCOORD = coordy * disMul;
+//		this->datas[index].DEMAND = DEMAND * disMul;
+//		this->datas[index].READYTIME = ready_time * disMul;
+//		this->datas[index].DUEDATE = due_date * disMul;
+//		this->datas[index].SERVICETIME = service_time * disMul;
+//
+//		if (index > 0) {
+//			auto& dt = datas[index];
+//			auto polar = CircleSector::positive_mod
+//			(32768. * atan2(dt.YCOORD - datas[0].YCOORD, dt.XCOORD - datas[0].XCOORD) / PI);
+//			dt.polarAngle = static_cast<int>(polar);
+//		}
+//		++index;
+//	}
+//	custCnt = index - 1;
+//	disOf = util::Array2D <DisType>(custCnt + 1, custCnt + 1, DisType(0));
+//	for (int i = 0; i <= custCnt; ++i) {
+//		for (int j = i + 1; j <= custCnt; ++j) {
+//			Data& d1 = datas[i];
+//			Data& d2 = datas[j];
+//			double dis = sqrt((d1.XCOORD - d2.XCOORD) * (d1.XCOORD - d2.XCOORD)
+//				+ (d1.YCOORD - d2.YCOORD) * (d1.YCOORD - d2.YCOORD));
+//
+//			//disOf[j][i] = disOf[i][j] = dis+0.5;
+//			disOf[j][i] = disOf[i][j] = static_cast<DisType>(ceil(dis));
+//		}
+//	}
+//	fclose(file);
+//}
 
 /*MIT License
 
@@ -415,7 +416,7 @@ LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.*/
 
-bool Input::readDynamicInstance(const std::string& instanciaPath) {
+void Input::readInstanceFormatCVRPLIB() {
 
 	this->custCnt = 0;
 	this->Q = INT_MAX;
@@ -430,7 +431,8 @@ bool Input::readDynamicInstance(const std::string& instanciaPath) {
 	// Read INPUT dataset
 	//std::ifstream inputFile(config.pathInstance);
 	//Logger::INFO("cl.config.isNpsRun:", cl.config.isNpsRun);
-	if (commandLine->instancePath == "readstdin") {
+	if (commandLine->readInstanceFromStdin == 1) {
+
 	}
 	else {
 		auto x = freopen(commandLine->instancePath.data(), "r", stdin);
@@ -499,6 +501,18 @@ bool Input::readDynamicInstance(const std::string& instanciaPath) {
 			if (datas[0].SERVICETIME != 0)
 			{
 				throw std::string("Service duration for depot should be 0");
+			}
+
+			disOf = util::Array2D <DisType>(custCnt + 1, custCnt + 1, DisType(0));
+			for (int i = 0; i <= custCnt; ++i) {
+				for (int j = i + 1; j <= custCnt; ++j) {
+					Data& d1 = datas[i];
+					Data& d2 = datas[j];
+					double dis = sqrt((d1.XCOORD - d2.XCOORD) * (d1.XCOORD - d2.XCOORD)
+						+ (d1.YCOORD - d2.YCOORD) * (d1.YCOORD - d2.YCOORD));
+					//disOf[j][i] = disOf[i][j] = dis+0.5;
+					disOf[j][i] = disOf[i][j] = static_cast<DisType>(ceil(dis));
+				}
 			}
 		}
 		else
@@ -574,9 +588,9 @@ bool Input::readDynamicInstance(const std::string& instanciaPath) {
 
 					disOf = util::Array2D <DisType>(custCnt + 1, custCnt + 1, DisType(0));
 
-					for (int i = 0; i <= custCnt; i++)
+					for (int i = 0; i <= custCnt; ++i)
 					{
-						for (int j = 0; j <= custCnt; j++)
+						for (int j = 0; j <= custCnt; ++j)
 						{
 							// Keep track of the largest distance between two clients (or the depot)
 							int cost;
@@ -585,7 +599,7 @@ bool Input::readDynamicInstance(const std::string& instanciaPath) {
 							{
 								maxDist = cost;
 							}
-							disOf[j][i] = disOf[i][j] = static_cast<DisType>(cost);
+							disOf[i][j] = static_cast<DisType>(cost);
 						}
 					}
 				}
@@ -808,8 +822,42 @@ bool Input::readDynamicInstance(const std::string& instanciaPath) {
 	{
 		Logger::INFO("----- FLEET SIZE SPECIFIED IN THE COMMANDLINE: SET TO ", vehicleCnt, " VEHICLES");
 	}
+}
 
-	return true;
+void Input::setInstanceCustomized(const DataModel& dm) {
+
+	char name[64];
+
+	this->instanceName = dm.instanceName;
+	this->vehicleCnt = dm.num_vehicles;
+	this->Q = dm.vehicles_capacity;
+
+	this->datas = Vec<Data>(dm.num_customers + 1);
+	this->custCnt = dm.num_customers;
+
+	for (int i = 0; i <= dm.num_customers; ++i) {
+		this->datas[i].CUSTNO = i;
+		this->datas[i].XCOORD = dm.coordinates[i].first;
+		this->datas[i].YCOORD = dm.coordinates[i].second;
+		this->datas[i].DEMAND = dm.demands[i];
+		this->datas[i].READYTIME = dm.time_windows[i].first;
+		this->datas[i].DUEDATE = dm.time_windows[i].second;
+		this->datas[i].SERVICETIME = dm.service_times[i];
+
+		if (i > 0) {
+			auto& dt = datas[i];
+			auto polar = CircleSector::positive_mod
+			(32768. * atan2(dt.YCOORD - datas[0].YCOORD, dt.XCOORD - datas[0].XCOORD) / PI);
+			dt.polarAngle = static_cast<int>(polar);
+		}
+	}
+	
+	disOf = util::Array2D <DisType>(custCnt + 1, custCnt + 1, DisType(0));
+	for (int i = 0; i <= custCnt; ++i) {
+		for (int j = 0 ; j <= custCnt; ++j) {
+			disOf[j][i] = dm.time_matrix[i][j];
+		}
+	}
 }
 
 int Input::partition(int* arr, int start, int end, std::function<bool(int, int)>cmp) {

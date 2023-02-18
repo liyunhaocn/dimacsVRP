@@ -31,6 +31,4 @@ DisType DisInf = LLInf;
 //extern int disMul = 10000;
 unsigned Mod = 1000000007;
 
-bool dimacsGo = false;
-
 }

@@ -55,8 +55,8 @@ void AlgorithmParameters::displayInfo() {
 	//lkhRN = -1;
 	//lkhRL = -1;
 	//cmdIsopt = -1;
-	Logger::INFO("Pwei0:", customersWeight0);
-	Logger::INFO("Pwei1:", customersWeight1);
+	Logger::INFO("customersWeight1:", customersWeight1);
+	Logger::INFO("customersWeight2:", customersWeight2);
 	Logger::INFO("minKmax:", minKmax);
 	Logger::INFO("maxKmax:", maxKmax);
 }

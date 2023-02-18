@@ -507,6 +507,19 @@ namespace vectool {
     inline void pushVectorBToBackOFVectorA(Vec<T>& a,const Vec<T>& b) {
         a.insert(a.end(),b.begin(),b.end());
     }
+
+    template<typename T >
+    inline int indexOfElement(Vec<T>& v, const T& value) {
+
+        auto it = find(v.begin(), v.end(), value);
+        if (it != v.end()){
+            return it - v.begin();
+        }
+        else {
+            return -1;
+        }
+        return -1;
+    }
 }
 }
 
