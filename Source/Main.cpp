@@ -61,7 +61,8 @@ void exampleUse() {
 		}
 	}
 }
-
+//-instancePath ../Instances/Homberger/C1_8_2.txt -time 3600 -psizemulpsum 0 -seed 1665441954
+//-readInstanceFromStdin 1
 int main(int argc, char* argv[])
 {
 	hust::CommandLine commandline(argc, argv);

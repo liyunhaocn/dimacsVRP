@@ -85,6 +85,12 @@ public:
 			else if (argvstr == "-tag") {
 				aps.tag = std::string(argv[i + 1]);
 			}
+			else if (argvstr == "-popSizeMin") {
+				aps.popSizeMin = std::stoi(argv[i + 1], nullptr, 0);
+			}
+			else if (argvstr == "-popSizeMax") {
+				aps.popSizeMax = std::stoi(argv[i + 1], nullptr, 0);
+			}
 			else if (argvstr == "-customersWeight1") {
 				aps.customersWeight1 = std::stoi(argv[i + 1], nullptr, 0);
 			}
@@ -150,11 +156,12 @@ public:
 		ss << "[-readInstanceFromStdin:int] ranges {0,1},default 0, get instance from stdin"<< std::endl;
 		ss << "[-rateOfDynamicInAndOut:int] ranges [0,100],default 5, the rate to limit dymaic search customer insertion and ejection" << std::endl;
 		ss << "[-bksDataFileBasePath:string] the bks file path" << std::endl;
+		ss << "[-popSizeMin:int] the minimal size of population" << std::endl;
+		ss << "[-popSizeMax:int] the maximal size of population" << std::endl;
 		ss << "[-customersWeight1:int] the weight of when eject customers from solution" << std::endl;
 		ss << "[-customersWeight2:int] the weight of when insert customers to solution" << std::endl;
 		ss << "[-tag:string] the tag of one run to distinguish each run" << std::endl;
-		ss << "[-psizemulpsum:int]" << std::endl;
-		ss << "[-ejectLSMaxIter:int] the max iter to limit ejectLocalSearch" << std::endl;
+		ss << "[-ejectLSMaxIter:int] the maximal iterations to limit ejectLocalSearch" << std::endl;
 		ss << "[-dimacsPrint:int] ranges {0,1} set value to 1 means close the info log and print the bks format dimacs style" << std::endl;
 		ss << "[-infoFlag:bool] switch to control the std output of info" << std::endl;
 		ss << "[-debugFlag:bool] switch to control the std output of debug" << std::endl;
