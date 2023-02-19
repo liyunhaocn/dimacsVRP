@@ -145,10 +145,12 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="..\..\Source\Adapter.cpp" />
     <ClCompile Include="..\..\Source\Algorithm_Parameters.cpp" />
     <ClCompile Include="..\..\Source\EAX.cpp" />
     <ClCompile Include="..\..\Source\Flag.cpp" />
     <ClCompile Include="..\..\Source\Goal.cpp" />
+    <ClCompile Include="..\..\Source\LowerBoundOfRouteNum.cpp" />
     <ClCompile Include="..\..\Source\Main.cpp" />
     <ClCompile Include="..\..\Source\MCP\CliqueSolver.cpp" />
     <ClCompile Include="..\..\Source\MCP\CliqueTsm.cpp" />
@@ -158,6 +160,7 @@
     <ClCompile Include="..\..\Source\YearTable.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="..\..\Source\Adapter.h" />
     <ClInclude Include="..\..\Source\Algorithm_Parameters.h" />
     <ClInclude Include="..\..\Source\CommandLine.h" />
     <ClInclude Include="..\..\Source\EAX.h" />

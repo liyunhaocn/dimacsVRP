@@ -42,6 +42,12 @@
     <ClCompile Include="..\..\Source\Util_Logger.cpp">
       <Filter>Source</Filter>
     </ClCompile>
+    <ClCompile Include="..\..\Source\Adapter.cpp">
+      <Filter>Source</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\Source\LowerBoundOfRouteNum.cpp">
+      <Filter>Source</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\..\Source\Algorithm_Parameters.h">
@@ -87,6 +93,9 @@
       <Filter>Source\MCP</Filter>
     </ClInclude>
     <ClInclude Include="..\..\Source\Util_Logger.h">
+      <Filter>Source</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Source\Adapter.h">
       <Filter>Source</Filter>
     </ClInclude>
   </ItemGroup>
