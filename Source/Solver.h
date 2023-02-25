@@ -7,9 +7,9 @@
 #include <set>
 #include <limits.h>
 
-#include "Flag.h"
-#include "Util_Common.h"
-#include "Problem.h"
+#include "Common.h"
+#include "Util.h"
+#include "Input.h"
 #include "YearTable.h"
 
 namespace hust {
@@ -96,8 +96,8 @@ public:
 
 struct RTS {
 
-	Vec<Route> ve;
-	Vec<int> posOf;
+	Vector<Route> ve;
+	Vector<int> posOf;
 	int cnt = 0;
 
 	RTS() = default;
@@ -109,7 +109,7 @@ struct RTS {
 			Route r;
 			ve.push_back(r);
 		}
-		posOf = Vec<int>(maxSize, -1);
+		posOf = Vector<int>(maxSize, -1);
 	}
 
 	RTS& operator = (const RTS& r) {
@@ -208,15 +208,15 @@ struct RTS {
 
 struct ConfSet {
 
-	Vec<int> ve;
-	Vec<int> pos;
+	Vector<int> ve;
+	Vector<int> pos;
 	int cnt = 0;
 
 	ConfSet() = default;
 	ConfSet(int maxSize) {
 		cnt = 0;
-		ve = Vec<int>(maxSize + 1, -1);
-		pos = Vec<int>(maxSize + 1, -1);
+		ve = Vector<int>(maxSize + 1, -1);
+		pos = Vector<int>(maxSize + 1, -1);
 	}
 
 	ConfSet(const ConfSet& cs) {
@@ -275,8 +275,8 @@ struct ConfSet {
 		return true;
 	}
 
-	Vec<int>putElementInVector() {
-		return Vec<int>(ve.begin(), ve.begin() + cnt);
+	Vector<int>putElementInVector() {
+		return Vector<int>(ve.begin(), ve.begin() + cnt);
 	}
 
 	int randomPeek(Random* random) {
@@ -345,7 +345,7 @@ struct WeightedEjectPool {
 	}
 
 	int randomPeek() {
-		return container.randomPeek(&input->randomTools->random);
+		return container.randomPeek(&input->random);
 	}
 
 	void reset() {
@@ -353,7 +353,7 @@ struct WeightedEjectPool {
 		sumCost = 0;
 	}
 
-	Vec<int>putElementInVector() {
+	Vector<int>putElementInVector() {
 		return  container.putElementInVector();
 	}
 
@@ -400,7 +400,7 @@ struct TwoNodeMove {
 		v(v), w(w), kind(kind), deltPen(d) {
 	}
 
-	TwoNodeMove(Vec<int> ve, int kind, DeltPen d) :
+	TwoNodeMove(Vector<int> ve, int kind, DeltPen d) :
 		kind(kind), deltPen(d) {}
 
 	TwoNodeMove() :
@@ -424,14 +424,66 @@ struct TwoNodeMove {
 	}
 };
 
-class Solver
+struct Customer {
+public:
+
+	//int id = -1;
+	int pre = -1;
+	int next = -1;
+	int routeID = -1;
+
+	DisType av = 0;
+	DisType zv = 0;
+
+	DisType avp = 0;
+	DisType zvp = 0;
+
+	DisType TW_X = 0;
+	DisType TWX_ = 0;
+
+	DisType Q_X = 0;
+	DisType QX_ = 0;
+
+	Customer() :pre(-1), next(-1), av(0), zv(0), avp(0),
+		zvp(0), TW_X(0), TWX_(0), Q_X(0), QX_(0) {}
+
+	bool reset() {
+		//id = -1;
+		pre = -1;
+		next = -1;
+		routeID = -1;
+
+		av = 0;
+		zv = 0;
+
+		avp = 0;
+		zvp = 0;
+
+		TW_X = 0;
+		TWX_ = 0;
+
+		Q_X = 0;
+		QX_ = 0;
+
+		return true;
+	}
+};
+
+struct Solver
 {
 public:
 
+	Vector<Customer> customers;
+	RTS rts;
 	Input* input = nullptr;
+	AlgorithmParameters* aps = nullptr;
+	YearTable* yearTable = nullptr;
 
-	Vec<Customer> customers;
-
+	BKS* bks = nullptr;
+	Random* random = nullptr;
+	RandomX* randomx = nullptr;
+	Timer* timer = nullptr;
+	
 	DisType penalty = 0;
 	DisType Ptw = 0;
 	DisType PtwNoWei = 0;
@@ -442,21 +494,13 @@ public:
 	DisType gamma = 1;
 
 	DisType RoutesCost = DisInf;
-
-	RTS rts;
+	
 	ConfSet EP;
 
 	ConfSet PtwConfRts, PcConfRts;
 
 	//LL EPIter = 1;
 	int minEPcus = IntInf;
-
-	AlgorithmParameters* aps = nullptr;
-	Random* random = nullptr;
-	RandomX* randomx = nullptr;
-	BKS* bks = nullptr;
-	Timer* timer = nullptr;
-	YearTable* yearTable = nullptr;
 
 	struct Position {
 		int rIndex = -1;
@@ -473,7 +517,7 @@ public:
 
 	struct eOneRNode {
 
-		Vec<int> ejeVe;
+		Vector<int> ejeVe;
 		int Psum = 0;
 		int rId = -1;
 
@@ -538,7 +582,7 @@ public:
 
 	void rReCalculateRouteCost(Route& r);
 
-	Vec<int> rPutCustomersInVector(Route& r);
+	Vector<int> rPutCustomersInVector(Route& r);
 
 	void rReCalCusNumAndSetCusrIdWithHeadrId(Route& r);
 
@@ -587,8 +631,8 @@ public:
 	}
 	
 	// begin is at front of end in a route
-	inline Vec<int> putCustomersInVectorBetweenTwoCus(int customerBegin, int customerEnd) {
-		Vec<int> arr;
+	inline Vector<int> putCustomersInVectorBetweenTwoCus(int customerBegin, int customerEnd) {
+		Vector<int> arr;
 		for (int i = customerBegin; i != -1; i = customers[i].next) {
 			arr.push_back(i);
 			if (i == customerEnd) {
@@ -598,7 +642,7 @@ public:
 		return arr;
 	}
 
-	inline DisType getPtwWithVectorOfCustomers(const Vec<int>& cusv) {
+	inline DisType getPtwWithVectorOfCustomers(const Vector<int>& cusv) {
 
 		DisType newPtw = customers[cusv.front()].TW_X + customers[cusv.back()].TWX_;
 		DisType lastav = customers[cusv.front()].av;
@@ -646,7 +690,7 @@ public:
 
 	DeltPen reversevw(int v, int w);
 
-	DeltPen _Nopt(Vec<int>& nodes);
+	DeltPen _Nopt(Vector<int>& nodes);
 
 	bool doMoves(TwoNodeMove& M);
 
@@ -660,19 +704,19 @@ public:
 
 	bool doReverse(TwoNodeMove& M);
 
-	Vec<int> getPtwNodes(Route& r, int ptwKind = 0);
+	Vector<int> getPtwNodes(Route& r, int ptwKind = 0);
 
 	TwoNodeMove getMovesRandomly(std::function<bool(TwoNodeMove& t, TwoNodeMove& bestM)>updateBestM);
 
 	bool resetConfRts();
 
-	bool resetConfRtsByOneMove(Vec<int> ids);
+	bool resetConfRtsByOneMove(Vector<int> ids);
 
-	bool doEjection(Vec<eOneRNode>& XSet);
+	bool doEjection(Vector<eOneRNode>& XSet);
 
 	bool EPNodesCanEasilyPut();
 
-	bool managerCusMem(Vec<int>& releaseNodes);
+	bool managerCusMem(Vector<int>& releaseNodes);
 
 	bool removeOneRouteByRid(int rId = -1);
 
@@ -682,27 +726,27 @@ public:
 
 	bool addWeightToRoute(TwoNodeMove& bestM);
 
-	Vec<eOneRNode> ejeNodesAfterSqueeze;
+	Vector<eOneRNode> ejeNodesAfterSqueeze;
 
 	bool routeWeightedRepair();
 
 	Position findBestPositionForRuin(int w);
 
-	static Vec<int>ClearEPOrderContribute;
+	static Vector<int>ClearEPOrderContribute;
 
 	void ruinClearEP(int kind);
 
 	int ruinGetSplitDepth(int maxDept);
 
-	Vec<int> ruinGetRuinCusBySting(int ruinK, int ruinL);
+	Vector<int> ruinGetRuinCusBySting(int ruinK, int ruinL);
 
-	Vec<int> ruinGetRuinCusByRound(int ruinCusNum);
+	Vector<int> ruinGetRuinCusByRound(int ruinCusNum);
 
-	Vec<int> ruinGetRuinCusByRand(int ruinCusNum);
+	Vector<int> ruinGetRuinCusByRand(int ruinCusNum);
 
-	Vec<int> ruinGetRuinCusByRandOneR(int ruinCusNum);
+	Vector<int> ruinGetRuinCusByRandOneR(int ruinCusNum);
 
-	Vec<int> ruinGetRuinCusBySec(int ruinCusNum);
+	Vector<int> ruinGetRuinCusBySec(int ruinCusNum);
 
 	int ruinLocalSearchNotNewR(int ruinCusNum);
 
@@ -728,11 +772,7 @@ public:
 		return delta;
 	}
 
-	Vec<int> getRuinCustomers(int perturbkind, int ruinCusNum);
-
-	Vec<int> dynamicPartialClearDynamicEP(int kind, WeightedEjectPool& dynamicEP);
-
-	int dynamicRuin(int ruinCusNum);
+	Vector<int> getRuinCustomers(int perturbkind, int ruinCusNum);
 
 	bool doOneTimeRuinPer(int perturbkind, int ruinCusNum, int clearEPKind);
 
@@ -744,7 +784,7 @@ public:
 
 	void perturbBasedEjectionPool(int ruinCusNum);
 
-	Vec<eOneRNode> ejectFromPatialSol();
+	Vector<eOneRNode> ejectFromPatialSol();
 
 	eOneRNode ejectOneRouteOnlyHasPcMinP(Route& r, int Kmax);
 
@@ -761,13 +801,9 @@ public:
 
 	bool repair();
 
-	bool minimizeRouteDistanceLocalSearch(int hasRange, Vec<int> newCus);
-
-	Output saveToOutPut();
+	bool simpleLocalSearch(int hasRange, Vector<int> newCus);
 
 	bool printDimacs();
-
-	bool saveOutAsSintefFile(std::string outputPath, std::string opt = "");
 
 	~Solver();
 
@@ -781,11 +817,11 @@ struct BKS {
 	UnorderedMap<int, DisType> bksAtRn;
 	Timer::TimePoint lastPrintTp;
 	Timer* timer = nullptr;
-	BKS(Input* input,YearTable*yearTable,Timer* timer);
+	BKS(Input* input);
 
 	void reset();
 
-	bool updateBKSAndPrint(Solver& newSol, std::string opt = "");
+	bool updateBKSAndPrint(Solver& newSol, String opt = "");
 
 	void resetBksAtRn();
 };

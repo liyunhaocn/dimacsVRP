@@ -7,44 +7,36 @@ namespace hust {
 
 struct Goal {
 
-	Vec<Vec<bool>> eaxTabuTable;
-
-	int poprnLowBound = 0;
-	int poprnUpBound = 0;
-
-	UnorderedMap<int, Vec<Solver>> ppool;
-	//Vec<Vec<Solver>> ppool;
-
-	int curSearchRN = -1;
+	int populationSize = 0;
+	int routeNumberLowerBound = 0;
+	int routeNumberUpperBound = 0;
+	UnorderedMap<int, Vector<Solver>> mapOfPopulation;
+	
+	YearTable yearTable;
+	
+	int curSearchRouteNumber = -1;
 
 	AlgorithmParameters* aps = nullptr;
-	BKS* bks = nullptr;
 	Random* random = nullptr;
 	RandomX* randomx = nullptr;
 	Input* input = nullptr;
 	Timer* timer = nullptr;
-	YearTable* yearTable = nullptr;
+	
+	BKS bks;
 
-	Goal(
-		Input*input,
-		AlgorithmParameters* aps,
-		BKS* bks,
-		YearTable* yearTable);
+	Goal(Input*input);
 
-	void updateppol(Solver& sol, int index);
+	void updateMapOfPopulation(Solver& sol, int index);
 
-	DisType getMinRtCostInPool(int rn);
+	DisType getMinRoutesCostInPool(int rn);
 
 	DisType doTwoKindEAX(Solver& pa, Solver& pb, int kind);
 
-	bool perturbOneSol(Solver& sol);
+	bool perturbOneSolution(Solver& sol);
 
-	int naMA(int rn);
+	int EAMA(int rn);
 
-	//Vec<int> getNotTabuPaPb();
-	//Vec<int> getpairOfPaPb();
-
-	int gotoRNPop(int rn);
+	int gotoPopulationAtRouteNumber(int rn);
 
 	bool fillPopulation(int rn);
 
@@ -52,11 +44,11 @@ struct Goal {
 
 	bool test();
 
-	bool experimentRouteNumberMinimization();
+	bool callRouteNumberMinimization();
 
-	int TwoAlgCombine();
+	int run();
 
-	void getTheRangeMostHope();
+	void initialMapOfPopulation();
 };
 
 

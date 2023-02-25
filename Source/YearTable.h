@@ -1,7 +1,7 @@
 #ifndef CN_HUST_LYH_YEAR_TABLE_H
 #define CN_HUST_LYH_YEAR_TABLE_H
 
-#include "Util_Arr2D.h"
+#include "Arr2D.h"
 #include "Solver.h"
 
 namespace hust {
@@ -9,13 +9,11 @@ namespace hust {
 class Solver;
 struct TwoNodeMove;
 
-class YearTable
-{
-public:
+struct YearTable{
 
 	util::Array2D<int> table;
 	Input* input;
-	int squIter = 1;
+	int iter = 1;
 
 	LL getYearOfMove(Solver* solver, TwoNodeMove t);
 	bool updateYearTable(Solver* solver, TwoNodeMove t);

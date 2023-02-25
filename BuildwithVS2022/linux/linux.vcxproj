@@ -34,6 +34,29 @@
       <Platform>x64</Platform>
     </ProjectConfiguration>
   </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="..\..\Source\AlgorithmParameters.cpp" />
+    <ClCompile Include="..\..\Source\EAX.cpp" />
+    <ClCompile Include="..\..\Source\Goal.cpp" />
+    <ClCompile Include="..\..\Source\Input.cpp" />
+    <ClCompile Include="..\..\Source\Main.cpp" />
+    <ClCompile Include="..\..\Source\Solver.cpp" />
+    <ClCompile Include="..\..\Source\Util.cpp" />
+    <ClCompile Include="..\..\Source\YearTable.cpp" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="..\..\Source\AlgorithmParameters.h" />
+    <ClInclude Include="..\..\Source\Arr2D.h" />
+    <ClInclude Include="..\..\Source\CommandLine.h" />
+    <ClInclude Include="..\..\Source\Common.h" />
+    <ClInclude Include="..\..\Source\EAX.h" />
+    <ClInclude Include="..\..\Source\Goal.h" />
+    <ClInclude Include="..\..\Source\Input.h" />
+    <ClInclude Include="..\..\Source\nlohmann\json.hpp" />
+    <ClInclude Include="..\..\Source\Solver.h" />
+    <ClInclude Include="..\..\Source\Util.h" />
+    <ClInclude Include="..\..\Source\YearTable.h" />
+  </ItemGroup>
   <PropertyGroup Label="Globals">
     <ProjectGuid>{2120aac7-a185-4dad-a1fa-289ee00dc29d}</ProjectGuid>
     <Keyword>Linux</Keyword>
@@ -102,36 +125,6 @@
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x86'">
     <OutDir>$(SolutionDir)..\Deploy</OutDir>
   </PropertyGroup>
-  <ItemGroup>
-    <ClCompile Include="..\..\Source\Algorithm_Parameters.cpp" />
-    <ClCompile Include="..\..\Source\EAX.cpp" />
-    <ClCompile Include="..\..\Source\Flag.cpp" />
-    <ClCompile Include="..\..\Source\Goal.cpp" />
-    <ClCompile Include="..\..\Source\Main.cpp" />
-    <ClCompile Include="..\..\Source\MCP\CliqueSolver.cpp" />
-    <ClCompile Include="..\..\Source\MCP\CliqueTsm.cpp" />
-    <ClCompile Include="..\..\Source\Problem.cpp" />
-    <ClCompile Include="..\..\Source\Solver.cpp" />
-    <ClCompile Include="..\..\Source\Util_Logger.cpp" />
-    <ClCompile Include="..\..\Source\YearTable.cpp" />
-  </ItemGroup>
-  <ItemGroup>
-    <ClInclude Include="..\..\Source\Algorithm_Parameters.h" />
-    <ClInclude Include="..\..\Source\CommandLine.h" />
-    <ClInclude Include="..\..\Source\EAX.h" />
-    <ClInclude Include="..\..\Source\Flag.h" />
-    <ClInclude Include="..\..\Source\Goal.h" />
-    <ClInclude Include="..\..\Source\LowerBoundOfRouteNum.h" />
-    <ClInclude Include="..\..\Source\MCP\Arr.h" />
-    <ClInclude Include="..\..\Source\MCP\CliqueSolver.h" />
-    <ClInclude Include="..\..\Source\MCP\Graph.h" />
-    <ClInclude Include="..\..\Source\Problem.h" />
-    <ClInclude Include="..\..\Source\Solver.h" />
-    <ClInclude Include="..\..\Source\Util_Arr2D.h" />
-    <ClInclude Include="..\..\Source\Util_Common.h" />
-    <ClInclude Include="..\..\Source\Util_Logger.h" />
-    <ClInclude Include="..\..\Source\YearTable.h" />
-  </ItemGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <Link>
       <AdditionalOptions>-pthread %(AdditionalOptions)</AdditionalOptions>

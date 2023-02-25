@@ -269,8 +269,8 @@ LL YearTable::getYearOfMove(Solver* solver, TwoNodeMove t) {
 
 bool YearTable::updateYearTable(Solver* solver,TwoNodeMove t) {
 	
-	if (squIter * 10 > IntInf) {
-		squIter = 1;
+	if (iter * 10 > IntInf) {
+		iter = 1;
 		for (int i = 0; i < table.size1(); ++i) {
 			for (int j = 0; j < table.size2(); ++j) {
 				table[i][j] = 1;
@@ -282,7 +282,7 @@ bool YearTable::updateYearTable(Solver* solver,TwoNodeMove t) {
 	int w = t.w;
 	auto& customers = solver->customers;
 
-	auto random = &solver->input->randomTools->random;
+	auto random = &solver->input->random;
 	auto aps = solver->aps;
 
 	if (t.kind == 0) {
@@ -290,8 +290,8 @@ bool YearTable::updateYearTable(Solver* solver,TwoNodeMove t) {
 		int wj = customers[w].next > input->custCnt ? 0 : customers[w].next;
 		int v_ = customers[v].pre > input->custCnt ? 0 : customers[v].pre;
 
-		table[v_][v] = squIter + aps->yearTabuLen + random->pick(aps->yearTabuRand);
-		table[w][wj] = squIter + aps->yearTabuLen + random->pick(aps->yearTabuRand);
+		table[v_][v] = iter + aps->yearTabuLen + random->pick(aps->yearTabuRand);
+		table[w][wj] = iter + aps->yearTabuLen + random->pick(aps->yearTabuRand);
 
 	}
 	else if (t.kind == 1) {
@@ -299,8 +299,8 @@ bool YearTable::updateYearTable(Solver* solver,TwoNodeMove t) {
 		int w_ = customers[w].pre > input->custCnt ? 0 : customers[w].pre;
 		int vj = customers[v].next > input->custCnt ? 0 : customers[v].next;
 
-		table[v][vj] = squIter + aps->yearTabuLen + random->pick(aps->yearTabuRand);
-		table[w_][w] = squIter + aps->yearTabuLen + random->pick(aps->yearTabuRand);
+		table[v][vj] = iter + aps->yearTabuLen + random->pick(aps->yearTabuRand);
+		table[w_][w] = iter + aps->yearTabuLen + random->pick(aps->yearTabuRand);
 
 	}
 	else if (t.kind == 2) {
@@ -309,9 +309,9 @@ bool YearTable::updateYearTable(Solver* solver,TwoNodeMove t) {
 		int v_ = customers[v].pre > input->custCnt ? 0 : customers[v].pre;
 		int vj = customers[v].next > input->custCnt ? 0 : customers[v].next;
 
-		table[v][vj] = squIter + aps->yearTabuLen + random->pick(aps->yearTabuRand);
-		table[v_][v] = squIter + aps->yearTabuLen + random->pick(aps->yearTabuRand);
-		table[w_][w] = squIter + aps->yearTabuLen + random->pick(aps->yearTabuRand);
+		table[v][vj] = iter + aps->yearTabuLen + random->pick(aps->yearTabuRand);
+		table[v_][v] = iter + aps->yearTabuLen + random->pick(aps->yearTabuRand);
+		table[w_][w] = iter + aps->yearTabuLen + random->pick(aps->yearTabuRand);
 
 	}
 	else if (t.kind == 3) {
@@ -320,9 +320,9 @@ bool YearTable::updateYearTable(Solver* solver,TwoNodeMove t) {
 		int v_ = customers[v].pre > input->custCnt ? 0 : customers[v].pre;
 		int vj = customers[v].next > input->custCnt ? 0 : customers[v].next;
 
-		table[v][vj] = squIter + aps->yearTabuLen + random->pick(aps->yearTabuRand);
-		table[v_][v] = squIter + aps->yearTabuLen + random->pick(aps->yearTabuRand);
-		table[w][wj] = squIter + aps->yearTabuLen + random->pick(aps->yearTabuRand);
+		table[v][vj] = iter + aps->yearTabuLen + random->pick(aps->yearTabuRand);
+		table[v_][v] = iter + aps->yearTabuLen + random->pick(aps->yearTabuRand);
+		table[w][wj] = iter + aps->yearTabuLen + random->pick(aps->yearTabuRand);
 
 	}
 	else if (t.kind == 4) {
@@ -332,9 +332,9 @@ bool YearTable::updateYearTable(Solver* solver,TwoNodeMove t) {
 		int wj = customers[w].next > input->custCnt ? 0 : customers[w].next;
 		int v_ = customers[v].pre > input->custCnt ? 0 : customers[v].pre;
 
-		table[w][wj] = squIter + aps->yearTabuLen + random->pick(aps->yearTabuRand);
-		table[w_][w] = squIter + aps->yearTabuLen + random->pick(aps->yearTabuRand);
-		table[v_][v] = squIter + aps->yearTabuLen + random->pick(aps->yearTabuRand);
+		table[w][wj] = iter + aps->yearTabuLen + random->pick(aps->yearTabuRand);
+		table[w_][w] = iter + aps->yearTabuLen + random->pick(aps->yearTabuRand);
+		table[v_][v] = iter + aps->yearTabuLen + random->pick(aps->yearTabuRand);
 
 	}
 	else if (t.kind == 5) {
@@ -344,9 +344,9 @@ bool YearTable::updateYearTable(Solver* solver,TwoNodeMove t) {
 		int wj = customers[w].next > input->custCnt ? 0 : customers[w].next;
 		int vj = customers[v].next > input->custCnt ? 0 : customers[v].next;
 
-		table[v][vj] = squIter + aps->yearTabuLen + random->pick(aps->yearTabuRand);
-		table[w_][w] = squIter + aps->yearTabuLen + random->pick(aps->yearTabuRand);
-		table[w][wj] = squIter + aps->yearTabuLen + random->pick(aps->yearTabuRand);
+		table[v][vj] = iter + aps->yearTabuLen + random->pick(aps->yearTabuRand);
+		table[w_][w] = iter + aps->yearTabuLen + random->pick(aps->yearTabuRand);
+		table[w][wj] = iter + aps->yearTabuLen + random->pick(aps->yearTabuRand);
 
 	}
 	else if (t.kind == 6) {
@@ -364,27 +364,27 @@ bool YearTable::updateYearTable(Solver* solver,TwoNodeMove t) {
 
 			if (v == w__) {
 
-				table[v_][v] = squIter + aps->yearTabuLen + random->pick(aps->yearTabuRand);
-				table[v][vj] = squIter + aps->yearTabuLen + random->pick(aps->yearTabuRand);
-				table[w_][w] = squIter + aps->yearTabuLen + random->pick(aps->yearTabuRand);
+				table[v_][v] = iter + aps->yearTabuLen + random->pick(aps->yearTabuRand);
+				table[v][vj] = iter + aps->yearTabuLen + random->pick(aps->yearTabuRand);
+				table[w_][w] = iter + aps->yearTabuLen + random->pick(aps->yearTabuRand);
 
 			}
 			else {
 
-				table[v_][v] = squIter + aps->yearTabuLen + random->pick(aps->yearTabuRand);
-				table[v][vj] = squIter + aps->yearTabuLen + random->pick(aps->yearTabuRand);
-				table[w__][w_] = squIter + aps->yearTabuLen + random->pick(aps->yearTabuRand);
-				table[w_][w] = squIter + aps->yearTabuLen + random->pick(aps->yearTabuRand);
+				table[v_][v] = iter + aps->yearTabuLen + random->pick(aps->yearTabuRand);
+				table[v][vj] = iter + aps->yearTabuLen + random->pick(aps->yearTabuRand);
+				table[w__][w_] = iter + aps->yearTabuLen + random->pick(aps->yearTabuRand);
+				table[w_][w] = iter + aps->yearTabuLen + random->pick(aps->yearTabuRand);
 
 			}
 
 		}
 		else {
 
-			table[v_][v] = squIter + aps->yearTabuLen + random->pick(aps->yearTabuRand);
-			table[v][vj] = squIter + aps->yearTabuLen + random->pick(aps->yearTabuRand);
-			table[w__][w_] = squIter + aps->yearTabuLen + random->pick(aps->yearTabuRand);
-			table[w_][w] = squIter + aps->yearTabuLen + random->pick(aps->yearTabuRand);
+			table[v_][v] = iter + aps->yearTabuLen + random->pick(aps->yearTabuRand);
+			table[v][vj] = iter + aps->yearTabuLen + random->pick(aps->yearTabuRand);
+			table[w__][w_] = iter + aps->yearTabuLen + random->pick(aps->yearTabuRand);
+			table[w_][w] = iter + aps->yearTabuLen + random->pick(aps->yearTabuRand);
 
 		}
 
@@ -407,27 +407,27 @@ bool YearTable::updateYearTable(Solver* solver,TwoNodeMove t) {
 			}
 			else if (v == wjj) {
 
-				table[v_][v] = squIter + aps->yearTabuLen + random->pick(aps->yearTabuRand);
-				table[v][vj] = squIter + aps->yearTabuLen + random->pick(aps->yearTabuRand);
-				table[w][wj] = squIter + aps->yearTabuLen + random->pick(aps->yearTabuRand);
+				table[v_][v] = iter + aps->yearTabuLen + random->pick(aps->yearTabuRand);
+				table[v][vj] = iter + aps->yearTabuLen + random->pick(aps->yearTabuRand);
+				table[w][wj] = iter + aps->yearTabuLen + random->pick(aps->yearTabuRand);
 
 			}
 			else {
 
-				table[v_][v] = squIter + aps->yearTabuLen + random->pick(aps->yearTabuRand);
-				table[v][vj] = squIter + aps->yearTabuLen + random->pick(aps->yearTabuRand);
-				table[w][wj] = squIter + aps->yearTabuLen + random->pick(aps->yearTabuRand);
-				table[wj][wjj] = squIter + aps->yearTabuLen + random->pick(aps->yearTabuRand);
+				table[v_][v] = iter + aps->yearTabuLen + random->pick(aps->yearTabuRand);
+				table[v][vj] = iter + aps->yearTabuLen + random->pick(aps->yearTabuRand);
+				table[w][wj] = iter + aps->yearTabuLen + random->pick(aps->yearTabuRand);
+				table[wj][wjj] = iter + aps->yearTabuLen + random->pick(aps->yearTabuRand);
 
 			}
 
 		}
 		else {
 
-			table[v_][v] = squIter + aps->yearTabuLen + random->pick(aps->yearTabuRand);
-			table[v][vj] = squIter + aps->yearTabuLen + random->pick(aps->yearTabuRand);
-			table[w][wj] = squIter + aps->yearTabuLen + random->pick(aps->yearTabuRand);
-			table[wj][wjj] = squIter + aps->yearTabuLen + random->pick(aps->yearTabuRand);
+			table[v_][v] = iter + aps->yearTabuLen + random->pick(aps->yearTabuRand);
+			table[v][vj] = iter + aps->yearTabuLen + random->pick(aps->yearTabuRand);
+			table[w][wj] = iter + aps->yearTabuLen + random->pick(aps->yearTabuRand);
+			table[wj][wjj] = iter + aps->yearTabuLen + random->pick(aps->yearTabuRand);
 
 		}
 
@@ -447,34 +447,34 @@ bool YearTable::updateYearTable(Solver* solver,TwoNodeMove t) {
 
 			if (v_ == w) {
 
-				table[v_][v] = squIter + aps->yearTabuLen + random->pick(aps->yearTabuRand);
-				table[v][vj] = squIter + aps->yearTabuLen + random->pick(aps->yearTabuRand);
-				table[w_][w] = squIter + aps->yearTabuLen + random->pick(aps->yearTabuRand);
+				table[v_][v] = iter + aps->yearTabuLen + random->pick(aps->yearTabuRand);
+				table[v][vj] = iter + aps->yearTabuLen + random->pick(aps->yearTabuRand);
+				table[w_][w] = iter + aps->yearTabuLen + random->pick(aps->yearTabuRand);
 
 			}
 			else if (w_ == v) {
 
-				table[v_][v] = squIter + aps->yearTabuLen + random->pick(aps->yearTabuRand);
-				table[w_][w] = squIter + aps->yearTabuLen + random->pick(aps->yearTabuRand);
-				table[w][wj] = squIter + aps->yearTabuLen + random->pick(aps->yearTabuRand);
+				table[v_][v] = iter + aps->yearTabuLen + random->pick(aps->yearTabuRand);
+				table[w_][w] = iter + aps->yearTabuLen + random->pick(aps->yearTabuRand);
+				table[w][wj] = iter + aps->yearTabuLen + random->pick(aps->yearTabuRand);
 
 			}
 			else {
 
-				table[v_][v] = squIter + aps->yearTabuLen + random->pick(aps->yearTabuRand);
-				table[v][vj] = squIter + aps->yearTabuLen + random->pick(aps->yearTabuRand);
-				table[w_][w] = squIter + aps->yearTabuLen + random->pick(aps->yearTabuRand);
-				table[w][wj] = squIter + aps->yearTabuLen + random->pick(aps->yearTabuRand);
+				table[v_][v] = iter + aps->yearTabuLen + random->pick(aps->yearTabuRand);
+				table[v][vj] = iter + aps->yearTabuLen + random->pick(aps->yearTabuRand);
+				table[w_][w] = iter + aps->yearTabuLen + random->pick(aps->yearTabuRand);
+				table[w][wj] = iter + aps->yearTabuLen + random->pick(aps->yearTabuRand);
 
 			}
 
 		}
 		else {
 
-			table[v_][v] = squIter + aps->yearTabuLen + random->pick(aps->yearTabuRand);
-			table[v][vj] = squIter + aps->yearTabuLen + random->pick(aps->yearTabuRand);
-			table[w_][w] = squIter + aps->yearTabuLen + random->pick(aps->yearTabuRand);
-			table[w][wj] = squIter + aps->yearTabuLen + random->pick(aps->yearTabuRand);
+			table[v_][v] = iter + aps->yearTabuLen + random->pick(aps->yearTabuRand);
+			table[v][vj] = iter + aps->yearTabuLen + random->pick(aps->yearTabuRand);
+			table[w_][w] = iter + aps->yearTabuLen + random->pick(aps->yearTabuRand);
+			table[w][wj] = iter + aps->yearTabuLen + random->pick(aps->yearTabuRand);
 
 		}
 
@@ -492,10 +492,10 @@ bool YearTable::updateYearTable(Solver* solver,TwoNodeMove t) {
 		int wj = customers[w].next > input->custCnt ? 0 : customers[w].next;
 		int wjj = customers[wj].next > input->custCnt ? 0 : customers[wj].next;
 
-		table[v_][v] = squIter + aps->yearTabuLen + random->pick(aps->yearTabuRand);
-		table[vjj][v3j] = squIter + aps->yearTabuLen + random->pick(aps->yearTabuRand);
-		table[w_][w] = squIter + aps->yearTabuLen + random->pick(aps->yearTabuRand);
-		table[wj][wjj] = squIter + aps->yearTabuLen + random->pick(aps->yearTabuRand);
+		table[v_][v] = iter + aps->yearTabuLen + random->pick(aps->yearTabuRand);
+		table[vjj][v3j] = iter + aps->yearTabuLen + random->pick(aps->yearTabuRand);
+		table[w_][w] = iter + aps->yearTabuLen + random->pick(aps->yearTabuRand);
+		table[wj][wjj] = iter + aps->yearTabuLen + random->pick(aps->yearTabuRand);
 
 
 	}
@@ -511,10 +511,10 @@ bool YearTable::updateYearTable(Solver* solver,TwoNodeMove t) {
 		int w_ = customers[w].pre > input->custCnt ? 0 : customers[w].pre;
 		int wj = customers[w].next > input->custCnt ? 0 : customers[w].next;
 
-		table[v_][v] = squIter + aps->yearTabuLen + random->pick(aps->yearTabuRand);
-		table[vjj][v3j] = squIter + aps->yearTabuLen + random->pick(aps->yearTabuRand);
-		table[w_][w] = squIter + aps->yearTabuLen + random->pick(aps->yearTabuRand);
-		table[w][wj] = squIter + aps->yearTabuLen + random->pick(aps->yearTabuRand);
+		table[v_][v] = iter + aps->yearTabuLen + random->pick(aps->yearTabuRand);
+		table[vjj][v3j] = iter + aps->yearTabuLen + random->pick(aps->yearTabuRand);
+		table[w_][w] = iter + aps->yearTabuLen + random->pick(aps->yearTabuRand);
+		table[w][wj] = iter + aps->yearTabuLen + random->pick(aps->yearTabuRand);
 
 	}
 	else if (t.kind == 11) {
@@ -526,10 +526,10 @@ bool YearTable::updateYearTable(Solver* solver,TwoNodeMove t) {
 		int w_ = customers[w].pre > input->custCnt ? 0 : customers[w].pre;
 		int wj = customers[w].next > input->custCnt ? 0 : customers[w].next;
 
-		table[v_][v] = squIter + aps->yearTabuLen + random->pick(aps->yearTabuRand);
-		table[vj][vjj] = squIter + aps->yearTabuLen + random->pick(aps->yearTabuRand);
-		table[w_][w] = squIter + aps->yearTabuLen + random->pick(aps->yearTabuRand);
-		table[w][wj] = squIter + aps->yearTabuLen + random->pick(aps->yearTabuRand);
+		table[v_][v] = iter + aps->yearTabuLen + random->pick(aps->yearTabuRand);
+		table[vj][vjj] = iter + aps->yearTabuLen + random->pick(aps->yearTabuRand);
+		table[w_][w] = iter + aps->yearTabuLen + random->pick(aps->yearTabuRand);
+		table[w][wj] = iter + aps->yearTabuLen + random->pick(aps->yearTabuRand);
 
 	}
 	else if (t.kind == 12) {
@@ -543,10 +543,10 @@ bool YearTable::updateYearTable(Solver* solver,TwoNodeMove t) {
 		int wj = customers[w].next > input->custCnt ? 0 : customers[w].next;
 		int wjj = customers[wj].next > input->custCnt ? 0 : customers[wj].next;
 
-		table[v_][v] = squIter + aps->yearTabuLen + random->pick(aps->yearTabuRand);
-		table[v][vj] = squIter + aps->yearTabuLen + random->pick(aps->yearTabuRand);
-		table[w_][w] = squIter + aps->yearTabuLen + random->pick(aps->yearTabuRand);
-		table[wj][wjj] = squIter + aps->yearTabuLen + random->pick(aps->yearTabuRand);
+		table[v_][v] = iter + aps->yearTabuLen + random->pick(aps->yearTabuRand);
+		table[v][vj] = iter + aps->yearTabuLen + random->pick(aps->yearTabuRand);
+		table[w_][w] = iter + aps->yearTabuLen + random->pick(aps->yearTabuRand);
+		table[wj][wjj] = iter + aps->yearTabuLen + random->pick(aps->yearTabuRand);
 
 	}
 	else if (t.kind == 13) {
@@ -560,9 +560,9 @@ bool YearTable::updateYearTable(Solver* solver,TwoNodeMove t) {
 		int wj = customers[w].next > input->custCnt ? 0 : customers[w].next;
 		//int wjj = customers[wj].next > input->custCnt ? 0 : customers[wj].next;
 
-		table[v_][v] = squIter + aps->yearTabuLen + random->pick(aps->yearTabuRand);
-		table[vj][vjj] = squIter + aps->yearTabuLen + random->pick(aps->yearTabuRand);
-		table[w][wj] = squIter + aps->yearTabuLen + random->pick(aps->yearTabuRand);
+		table[v_][v] = iter + aps->yearTabuLen + random->pick(aps->yearTabuRand);
+		table[vj][vjj] = iter + aps->yearTabuLen + random->pick(aps->yearTabuRand);
+		table[w][wj] = iter + aps->yearTabuLen + random->pick(aps->yearTabuRand);
 
 	}
 	else if (t.kind == 14) {
@@ -574,9 +574,9 @@ bool YearTable::updateYearTable(Solver* solver,TwoNodeMove t) {
 		int vj = customers[v].next > input->custCnt ? 0 : customers[v].next;
 		int w_ = customers[w].pre > input->custCnt ? 0 : customers[w].pre;
 
-		table[v__][v_] = squIter + aps->yearTabuLen + random->pick(aps->yearTabuRand);
-		table[v][vj] = squIter + aps->yearTabuLen + random->pick(aps->yearTabuRand);
-		table[w_][w] = squIter + aps->yearTabuLen + random->pick(aps->yearTabuRand);
+		table[v__][v_] = iter + aps->yearTabuLen + random->pick(aps->yearTabuRand);
+		table[v][vj] = iter + aps->yearTabuLen + random->pick(aps->yearTabuRand);
+		table[w_][w] = iter + aps->yearTabuLen + random->pick(aps->yearTabuRand);
 
 	}
 	else if (t.kind == 15) {
@@ -586,8 +586,8 @@ bool YearTable::updateYearTable(Solver* solver,TwoNodeMove t) {
 		int wj = customers[w].next > input->custCnt ? 0 : customers[w].next;
 
 
-		table[v_][v] = squIter + aps->yearTabuLen + random->pick(aps->yearTabuRand);
-		table[w][wj] = squIter + aps->yearTabuLen + random->pick(aps->yearTabuRand);
+		table[v_][v] = iter + aps->yearTabuLen + random->pick(aps->yearTabuRand);
+		table[w][wj] = iter + aps->yearTabuLen + random->pick(aps->yearTabuRand);
 
 		int fr = solver->getFrontofTwoCus(v, w);
 		if (fr == w) {
@@ -598,7 +598,7 @@ bool YearTable::updateYearTable(Solver* solver,TwoNodeMove t) {
 		int ptn = customers[pt].next;
 		while (pt != w) {
 			//debug(pt);
-			table[pt][ptn] = squIter + aps->yearTabuLen + random->pick(aps->yearTabuRand);
+			table[pt][ptn] = iter + aps->yearTabuLen + random->pick(aps->yearTabuRand);
 
 			pt = ptn;
 			ptn = customers[ptn].next;
@@ -624,7 +624,7 @@ bool YearTable::updateYearTable(Solver* solver,TwoNodeMove t) {
 }
 
 void YearTable::squIterGrowUp(int step) {
-	squIter += step;
+	iter += step;
 }
 
 }

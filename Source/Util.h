@@ -29,14 +29,72 @@
 #include <cctype>
 #include <locale>
 
-#include "Flag.h"
+#include "Common.h"
 
 
 namespace hust {
 
+class Logger {
+
+public:
+
+    static bool infoFlag;
+    static bool debugFlag;
+    static bool errorFlag;
+
+    template<typename ...T>
+    static void INFO(const T&... args) {
+        if (infoFlag == true) {
+            printlnerr_("[INFO]:", args...);
+        }
+    }
+
+    template<typename ...T>
+    static void DEBUG(const T&... args) {
+        if (debugFlag == true) {
+            printlnerr_("[INFO]:", args...);
+        }
+    }
+
+    template<typename ...T>
+    static void ERROR(const T&... args) {
+        if (errorFlag == true) {
+            printlnerr_("[INFO]:", args...);
+        }
+    }
+
+    template<typename T>
+    static void printElementInContainer(T arr) {
+        std::cout << "[ ";
+        for (auto& i : arr) {
+            std::cout << i << ",";
+        }
+        std::cout << "]" << std::endl;
+    }
+
+private:
+
+    static void println_() { std::cout << std::endl; }
+
+    template<typename T, typename ... Types>
+    static void println_(const T& firstArg, const Types&... args) {
+
+        std::cout << firstArg << " ";
+        println_(args...);
+    }
+
+    static void printlnerr_() { std::cerr << std::endl; }
+    template<typename T, typename ... Types>
+    static void printlnerr_(const T& firstArg, const Types&... args) {
+
+        std::cerr << firstArg << " ";
+        printlnerr_(args...);
+    }
+};
+
 template<typename T>
-static Vec<int> putEleInVec(T arr) {
-    Vec<int> ret;
+static Vector<int> putEleInVec(T arr) {
+    Vector<int> ret;
     ret.reserve(arr.size());
     for (const auto& i : arr) {
         ret.push_back(i);
@@ -125,7 +183,7 @@ public:
         return (rgen() % max);
     }
 
-    void shuffleVec(Vec<int>& v) {
+    void shuffleVec(Vector<int>& v) {
         std::shuffle(v.begin(), v.end(), this->rgen);
     }
 };
@@ -150,15 +208,15 @@ public:
         this->rgen = rhs.rgen;
     }
 
-    Vec< Vec<int> > mpLLArr;
+    Vector< Vector<int> > mpLLArr;
 
     int maxRange = 1001;
 
     bool initMpLLArr() {
-        mpLLArr = Vec< Vec<int> >(maxRange);
+        mpLLArr = Vector< Vector<int> >(maxRange);
 
         for (int m = 1; m < maxRange; ++m) {
-            mpLLArr[m] = Vec<int>(m, 0);
+            mpLLArr[m] = Vector<int>(m, 0);
             auto& arr = mpLLArr[m];
             std::iota(arr.begin(), arr.end(), 0);
         }
@@ -185,17 +243,17 @@ public:
         return (rgen() % max);
     }
 
-    Vec<int>& getMN(int M, int N) {
+    Vector<int>& getMN(int M, int N) {
 
         if (M >= maxRange) {
             mpLLArr.resize(M * 2 + 1);
             maxRange = M * 2 + 1;
         }
 
-        Vec<int>& ve = mpLLArr[M];
+        Vector<int>& ve = mpLLArr[M];
 
         if (ve.empty()) {
-            mpLLArr[M] = Vec<int>(M, 0);
+            mpLLArr[M] = Vector<int>(M, 0);
             auto& arr = mpLLArr[M];
             std::iota(arr.begin(), arr.end(), 0);
         }
@@ -212,13 +270,6 @@ public:
     RandomX& operator = (const RandomX& rhs) = delete;
 
     Generator rgen;
-};
-
-struct RandomTools {
-
-    Random random;
-    RandomX randomx;
-    RandomTools(int seed) :random(seed), randomx(seed) {}
 };
 
 class Sampling {
@@ -357,11 +408,11 @@ protected:
 
 struct Union {
 
-    Vec<int> fa;
-    Vec<int> rank;
+    Vector<int> fa;
+    Vector<int> rank;
     Union(int maxSize) {
-        fa = Vec<int>(maxSize);
-        rank = Vec<int>(maxSize);
+        fa = Vector<int>(maxSize);
+        rank = Vector<int>(maxSize);
         int n = static_cast<int>(fa.size());
         for (int i = 0; i < n; ++i)
         {
@@ -391,8 +442,8 @@ struct Union {
 
 struct ProbControl {
 
-    Vec<int> data;
-    Vec<int> sum;
+    Vector<int> data;
+    Vector<int> sum;
     Random* random;
 
     ProbControl(int maxSize, Random*random): random(random) {
@@ -467,8 +518,8 @@ static inline std::string trim_copy(std::string s) {
 }
 
 //split 
-static inline Vec<std::string> split(std::string str, std::string s) {
-    Vec<std::string> ret;
+static inline Vector<std::string> split(std::string str, std::string s) {
+    Vector<std::string> ret;
     if (s.size() == 0) {
         ret.push_back(str);
         return ret;
@@ -504,12 +555,12 @@ static inline std::string int_str(int s) {
 
 namespace vectool {
     template<typename T >
-    inline void pushVectorBToBackOFVectorA(Vec<T>& a,const Vec<T>& b) {
+    inline void pushVectorBToBackOFVectorA(Vector<T>& a,const Vector<T>& b) {
         a.insert(a.end(),b.begin(),b.end());
     }
 
     template<typename T >
-    inline int indexOfElement(Vec<T>& v, const T& value) {
+    inline int indexOfElement(Vector<T>& v, const T& value) {
 
         auto it = find(v.begin(), v.end(), value);
         if (it != v.end()){

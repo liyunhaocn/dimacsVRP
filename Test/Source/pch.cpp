@@ -3,14 +3,12 @@
 //
 
 #include "pch.h"
-#include "../../Source/Flag.cpp"
 #include "../../Source/Solver.cpp"
 #include "../../Source/YearTable.cpp"
 #include "../../Source/EAX.cpp"
-#include "../../Source/Algorithm_Parameters.cpp"
-#include "../../Source/Problem.cpp"
-#include "../../Source/Util_Logger.cpp"
-//#include "../../Source/LowerBoundOfRouteNum.h"
+#include "../../Source/AlgorithmParameters.cpp"
+#include "../../Source/Input.cpp"
+#include "../../Source/Util.cpp"
 
 namespace hust {
 namespace lyhtest {

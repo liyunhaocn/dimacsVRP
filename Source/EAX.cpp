@@ -10,8 +10,8 @@ EAX::EAX(Solver& pa, Solver& pb) :
 	pa(&pa),pb(&pb),
 	paPriE(2 * (pa.input->custCnt + pa.rts.cnt+1)), 
 	pbPriE(2 * (pb.input->custCnt + pb.rts.cnt+1)),
-	random(&pa.input->randomTools->random),
-	randomx(&pa.input->randomTools->randomx),
+	random(&pa.input->random),
+	randomx(&pa.input->randomx),
 	aps(pa.aps),
 	bks(pa.bks)
 {
@@ -19,9 +19,9 @@ EAX::EAX(Solver& pa, Solver& pb) :
 	this->eaxCusCnt = pa.input->custCnt;
 	this->eaxRCnt = pa.rts.cnt;
 
-	this->richEdges = Vec<RichEdge>(2 * (this->eaxCusCnt + 1 + this->eaxRCnt));
-	this->adjEdgeTable = Vec<Vec<int>>(this->eaxCusCnt + 1, Vec<int>());
-	//visited = Vec<bool>(cusCnt+1,0);
+	this->richEdges = Vector<RichEdge>(2 * (this->eaxCusCnt + 1 + this->eaxRCnt));
+	this->adjEdgeTable = Vector<Vector<int>>(this->eaxCusCnt + 1, Vector<int>());
+	//visited = Vector<bool>(cusCnt+1,0);
 	this->supportNumNodes = this->eaxCusCnt + 1;
 
 #if LYH_CHECKING
@@ -143,7 +143,7 @@ bool EAX::generateCycles() {
 		richEdges[i].visited = false;
 	}
 
-	Vec<Vec<int>> cusVisitTime(eaxCusCnt + 1);
+	Vector<Vector<int>> cusVisitTime(eaxCusCnt + 1);
 	//TODO[-1]bug!!!!!
 	//cusVisitTime.reserve(eaxRCnt * 2);
 	for (int i = 1; i <= eaxCusCnt; ++i) {
@@ -152,7 +152,7 @@ bool EAX::generateCycles() {
 	//记录一个customer是第几步访问到的
 	//*(cusCnt + rCnt)
 
-	Vec<int> genAbCy(2 * (eaxCusCnt + eaxRCnt), 0);
+	Vector<int> genAbCy(2 * (eaxCusCnt + eaxRCnt), 0);
 
 	int genSize = 0;
 	int curCus = -1;
@@ -264,7 +264,7 @@ bool EAX::generateCycles() {
 
 			if (abcStart != -1) {
 
-				Vec<int> oneCycle(genAbCy.begin() + abcStart,
+				Vector<int> oneCycle(genAbCy.begin() + abcStart,
 					genAbCy.begin() + genSize);
 
 				for (int i = genSize - 1; i >= abcStart; i--) {
@@ -297,10 +297,10 @@ bool EAX::generateCycles() {
 //对个体应用给定 AB-Cycle; 目标路径数为 `params.preprocess.numRoutes`
 bool EAX::applyOneCycle(int& cycleIndex, Solver& pc) {
 
-	Vec<int>& cycle = abCycleSet[cycleIndex];
+	Vector<int>& cycle = abCycleSet[cycleIndex];
 
-	Vec<int> deopt0;
-	Vec<int> deoptN;
+	Vector<int> deopt0;
+	Vector<int> deoptN;
 
 	deopt0.reserve(pc.rts.cnt);
 	deoptN.reserve(pc.rts.cnt);
@@ -357,7 +357,7 @@ bool EAX::applyOneCycle(int& cycleIndex, Solver& pc) {
 }
 
 /* 对个体应用给定 eSet 集合; */
-bool EAX::applyCycles(const Vec<int>& cyclesIndexes, Solver& pc) {
+bool EAX::applyCycles(const Vector<int>& cyclesIndexes, Solver& pc) {
 	for (int index : cyclesIndexes) {
 		applyOneCycle(index, pc);
 	}
@@ -406,7 +406,7 @@ Solver::Position EAX::findBestPosRemoveSubtour(Solver& pc, int w, int wj, DisTyp
 		int vj = pc.customers[v].next;
 
 		DisType oldrPc = pc.rts[i].rPc;
-		DisType rPc = std::max<DisType>(0, rt.rQ + deInSub - pc.input->Q);
+		DisType rPc = std::max<DisType>(0, rt.rQ + deInSub - pc.input->vehicleCapacity);
 		rPc = rPc - oldrPc;
 
 		//if (rPc > ret.pen) {
@@ -468,7 +468,7 @@ int EAX::removeSubring(Solver& pc) {
 	}
 
 	for (int i = 0; i < pc.rts.cnt; ++i) {
-		Vec<int> arr = pc.rPutCustomersInVector(pc.rts[i]);
+		Vector<int> arr = pc.rPutCustomersInVector(pc.rts[i]);
 		for (int c : arr) {
 			subCyCus.removeVal(c);
 			cusSet.insert(c);
@@ -565,7 +565,7 @@ void EAX::getUnionArr() {
 
 	int n = static_cast<int>(abCycleSet.size());
 	Union u(n);
-	Vec<UnorderedSet<int>> setVe(n);
+	Vector<UnorderedSet<int>> setVe(n);
 
 	for (int cyIndex = 0; cyIndex < n; ++cyIndex) {
 		setVe[cyIndex] = getCusInOneCycle(cyIndex);
@@ -583,7 +583,7 @@ void EAX::getUnionArr() {
 		}
 	}
 
-	UnorderedMap<int, Vec<int>>mp;
+	UnorderedMap<int, Vector<int>>mp;
 
 	for (int i = 0; i < n; ++i) {
 		int a = u.find(i);
@@ -637,7 +637,7 @@ int EAX::doNaEAX(Solver& pc) {
 	pc.reCalRtsCostAndPen();
 		
 	//TODO[0]:这里考虑是否可以在没有子换的情况下再禁忌
-	if (aps->abcyWinkacRate == 100) {
+	if (aps->abCycleWinkRate == 100) {
 		tabuCyIds.insert(choosecyIndex);
 	}
 	else {
@@ -696,7 +696,7 @@ int EAX::doPrEAX(Solver& pc) {
 	}
 
 	int uarrNum = static_cast<int>(unionArr.size());
-	Vec<int> unionIndexOrder;
+	Vector<int> unionIndexOrder;
 	for (int i = 0; i < uarrNum; ++i) {
 		if (unionArr[i].size() >= 2) {
 			unionIndexOrder.push_back(i);
@@ -710,7 +710,7 @@ int EAX::doPrEAX(Solver& pc) {
 
 	ConfSet cyInUnion(abcyNum);
 
-	Vec<int> eset;
+	Vector<int> eset;
 
 	for (int uId : unionIndexOrder) {
 
@@ -778,9 +778,9 @@ int EAX::getabCyNum(Solver& pa, Solver& pb) {
 	return static_cast<int>(et.abCycleSet.size());
 }
 
-Vec<int> EAX::getDiffCusofPb(Solver&pa, Solver&pb) {
+Vector<int> EAX::getDiffCusofPb(Solver&pa, Solver&pb) {
 
-	Vec<int> ret;
+	Vector<int> ret;
 	
 	int custNum = pa.input->custCnt;
 

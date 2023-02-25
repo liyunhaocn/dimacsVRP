@@ -9,10 +9,11 @@
 #include <cstdio>
 #include <functional>
 
-#include "Algorithm_Parameters.h"
-#include "Flag.h"
-#include "Util_Arr2D.h"
+#include "AlgorithmParameters.h"
+#include "Common.h"
+#include "Arr2D.h"
 #include "CommandLine.h"
+#include "Util.h"
 
 namespace hust {
 
@@ -88,120 +89,22 @@ struct Data {
 	int polarAngle = 0;
 };
 
-struct Customer {
-public:
-
-	//int id = -1;
-	int pre = -1;
-	int next = -1;
-	int routeID = -1;
-
-	DisType av = 0;
-	DisType zv = 0;
-
-	DisType avp = 0;
-	DisType zvp = 0;
-
-	DisType TW_X = 0;
-	DisType TWX_ = 0;
-
-	DisType Q_X = 0;
-	DisType QX_ = 0;
-
-	Customer() :pre(-1), next(-1), av(0), zv(0), avp(0),
-		zvp(0), TW_X(0), TWX_(0), Q_X(0), QX_(0) {}
-
-	bool reset() {
-		//id = -1;
-		pre = -1;
-		next = -1;
-		routeID = -1;
-
-		av = 0;
-		zv = 0;
-
-		avp = 0;
-		zvp = 0;
-
-		TW_X = 0;
-		TWX_ = 0;
-
-		Q_X = 0;
-		QX_ = 0;
-
-		return true;
-	}
-};
-
 struct Input {
 
-	struct DataModel {
-
-		int64_t num_vehicles = 0;
-		int64_t num_customers = 0;
-		int64_t vehicles_capacity = 0;
-
-		std::vector<std::vector<int64_t>> time_matrix;
-		std::vector<std::pair<int64_t, int64_t>> time_windows;
-		std::vector<std::pair<int64_t, int64_t>> coordinates;
-		std::vector<int64_t> demands;
-		std::vector<int64_t> service_times;
-
-		std::string instanceName = "defalutInstanceName";
-		
-		explicit DataModel(
-			int64_t num_vehicles,
-			int64_t num_customers,
-			int64_t vehicles_capacity,
-			const std::vector<std::vector<int64_t>>& time_matrix,
-			const std::vector<std::pair<int64_t, int64_t>>& time_windows,
-			const std::vector<std::pair<int64_t, int64_t>>& coordinates,
-			const std::vector<int64_t>& demands,
-			const std::vector<int64_t>& service_times,
-			const std::string& instanceName = "defalutInstanceName"
-		) :
-			num_vehicles(num_vehicles),
-			num_customers(num_customers),
-			vehicles_capacity(vehicles_capacity),
-			time_matrix(time_matrix), time_windows(time_windows), 
-			coordinates(coordinates), demands(demands),
-			service_times(service_times), instanceName(instanceName)
-		{}
-
-		bool check() const {
-
-			if (num_customers + 1 != static_cast<int>(time_matrix.size())) {
-				return false;
-			}
-			if (num_customers + 1 != static_cast<int>(coordinates.size())) {
-				return false;
-			}
-			if (num_customers + 1!= static_cast<int>(time_windows.size())) {
-				return false;
-			}
-			if (num_customers + 1 != static_cast<int>(demands.size())) {
-				return false;
-			}
-			for (auto& item : time_matrix) {
-				if (num_customers + 1 != static_cast<int>(item.size())) {
-					return false;
-				}
-			}
-			return true;
-		}
-	};
-
-	std::string instanceName = "";
+	String instanceName = "";
 	int custCnt = 0;
-	DisType Q = 0;
+	DisType vehicleCapacity = 0;
 	int vehicleCnt = 0;
-	Vec<Data> datas;
+	Vector<Data> datas;
+
 	int Qbound = -1;
-	
 	CommandLine* commandLine;
 	AlgorithmParameters* aps;
-	RandomTools* randomTools;
-	Timer* timer;
+
+	Random random;
+	RandomX randomx;
+	Timer timer;
+	
 	int mustDispatchNumber = -1;
 	bool isExplicitDistanceMatrix = false;
 	int totalDemand;													// Total demand required by the clients
@@ -213,7 +116,7 @@ struct Input {
 	util::Array2D<DisType> disOf;
 
 	//// disOf[v][w] 表示w和v之间的距离
-	//Vec<Vec<int>> allCloseOf;
+	//Vector<Vector<int>> allCloseOf;
 	//// input.allCloseOf[v][wpos] 表示v的地理位置第wpos近的点
 	util::Array2D<int> addSTclose;
 
@@ -221,23 +124,17 @@ struct Input {
 	util::Array2D<int> addSTJIsxthcloseOf;
 
 	//表示v的地理位置加上v的服务时间作为排序依据 input.addSTJIsxthcloseOf[v][w],w是v的第几近
-	Vec< Vec<int> > iInNeicloseOfUnionNeiCloseOfI;
+	Vector< Vector<int> > iInNeicloseOfUnionNeiCloseOfI;
 
 	util::Array2D<int> sectorClose;
 
-	Vec<int> P;
+	Vector<int> P;
 
-	Input(CommandLine* commandLine,AlgorithmParameters* aps, RandomTools* randomTools,Timer*timer);
+	Input(CommandLine* commandLine);
 	
-	Input(CommandLine* commandLine,AlgorithmParameters* aps, RandomTools* randomTools,Timer*timer,const DataModel&dm);
-
 	void initInput();
 
 	void readInstanceFormatCVRPLIB();
-
-	//void readInstanceAttributeSplitting();
-	
-	void setInstanceCustomized(const DataModel& dm);
 
 	void initDetail();
 
@@ -260,22 +157,10 @@ struct Input {
 
 		Logger::INFO("instanceName:", instanceName);
 		Logger::INFO("custCnt:", custCnt);
-		Logger::INFO("Q:", Q);
+		Logger::INFO("vehicleCapacity:", vehicleCapacity);
 		Logger::INFO("vehicleCnt:", vehicleCnt);
 	}
 };
-
-struct Output
-{
-	Vec<Vec<int>> rts;
-	Vec<int> EP;
-	DisType PtwNoWei = -1;
-	DisType Pc =-1;
-	int minEP = -1;
-	DisType state = -1;
-	double runTime = 0.0;
-};
-
 
 }
 

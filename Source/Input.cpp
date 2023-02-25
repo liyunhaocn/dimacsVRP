@@ -6,66 +6,19 @@
 #include <fstream>
 #include <iostream>
 
-#include "Problem.h"
-#include "Util_Common.h"
+#include "Input.h"
+#include "Util.h"
 
 namespace hust {
 
-struct InstanceData {
-	int minRouteNumber = 0;
-	double minRouteDistance = 0;
-	int isOptimal = 0;
-	InstanceData() :minRouteNumber(0), minRouteDistance(0), isOptimal(0) {}
-	InstanceData(int routeNumber, double routeDistance, int isOptimal) :
-		minRouteNumber(routeNumber), minRouteDistance(routeDistance), isOptimal(isOptimal) {}
-};
+Input::Input(CommandLine* commandLine):
+	commandLine(commandLine),
+	aps(&commandLine->aps),
+	random(commandLine->seed),
+	randomx(commandLine->seed),
+	timer(commandLine->runTimer) {
 
-InstanceData getInstanceDataFromFile(std::string path,std::string instanceName) {
-
-	std::ifstream inStream(path, std::ios::in);
-	if (!inStream) {
-		Logger::INFO("file to open the file", path);
-		return InstanceData{};
-	}
-
-	std::string line;
-
-	while (getline(inStream, line)) {
-		
-		std::stringstream sin(line); 
-		std::string item;
-
-		getline(sin, item, ',');
-		
-		std::string instanceNameInLine = item;
-		strtool::trim(instanceName);
-
-		getline(sin, item, ',');
-		//std::cout << atoi(item.c_str()) << " ";
-		int routeNumber = atoi(item.c_str());
-
-		getline(sin, item, ',');
-		//std:: cout << atof(item.c_str()) << " ";
-		double routeDistance = atof(item.c_str());
-
-		getline(sin, item); 
-		//std::cout << atoi(item.c_str()) << std::endl;
-		int isOptimal = atoi(item.c_str());
-		if (instanceNameInLine == instanceName) {
-			inStream.close();
-			return InstanceData{ routeNumber,routeDistance,isOptimal };
-		}
-		
-	}
-	inStream.close();
-
-	return InstanceData{};
-}
-
-Input::Input(CommandLine* commandLine,AlgorithmParameters* aps,RandomTools* randomTools,Timer*timer):
-	commandLine(commandLine),aps(aps),randomTools(randomTools),timer(timer) {
-
-	//std::string example = aps->inputPath;
+	//String example = aps->inputPath;
 	//int txtPos = example.find(".txt");
 	//example = example.substr(0, txtPos);
 	//int slich = example.find("Homberger/");
@@ -79,18 +32,6 @@ Input::Input(CommandLine* commandLine,AlgorithmParameters* aps,RandomTools* rand
 	//example = example.substr(slich + 1);
 
 	readInstanceFormatCVRPLIB();
-
-	initInput();
-	initDetail();
-}
-
-Input::Input(CommandLine* commandLine, AlgorithmParameters* aps, RandomTools* randomTools, Timer* timer, const DataModel& dm):
-	commandLine(commandLine), aps(aps), randomTools(randomTools), timer(timer) {
-	if (dm.check() == false) {
-		Logger::ERROR("Customized Data Model Error");
-		exit(-1);
-	}
-	setInstanceCustomized(dm);
 
 	initInput();
 	initDetail();
@@ -175,11 +116,11 @@ void Input::initDetail() {
 		}
 	}
 	
-	int deNeiSize = aps->outNeiSize;
+	int deNeiSize = aps->outNeiborSize;
 	deNeiSize = std::min(custCnt - 1, deNeiSize);
 
-	auto iInNeicloseOf = Vec< Vec<int> >
-		(custCnt + 1, Vec<int>());
+	auto iInNeicloseOf = Vector< Vector<int> >
+		(custCnt + 1, Vector<int>());
 	for (int i = 0; i < custCnt + 1; ++i) {
 		iInNeicloseOf[i].reserve(custCnt);
 	}
@@ -191,11 +132,11 @@ void Input::initDetail() {
 		}
 	}
 
-	iInNeicloseOfUnionNeiCloseOfI = Vec< Vec<int> >(custCnt + 1);
+	iInNeicloseOfUnionNeiCloseOfI = Vector< Vector<int> >(custCnt + 1);
 
 	for (int v = 0; v <= custCnt; ++v) {
 
-		iInNeicloseOfUnionNeiCloseOfI[v] = Vec<int>
+		iInNeicloseOfUnionNeiCloseOfI[v] = Vector<int>
 			(addSTclose[v], addSTclose[v] + deNeiSize);
 
 		for (int w : iInNeicloseOf[v]) {
@@ -204,29 +145,11 @@ void Input::initDetail() {
 			}
 		}
 	}
-
-	const auto& d15 = getInstanceDataFromFile(commandLine->bksDataFileBasePath + "BKSfromDIMACSDay15.csv",instanceName);
-	const auto& lkh = getInstanceDataFromFile(commandLine->bksDataFileBasePath + "BKSfromDIMACSLKH.csv", instanceName);
-	const auto& nagata = getInstanceDataFromFile(commandLine->bksDataFileBasePath + "BKSfromNagata.csv", instanceName);
-	const auto& sintef = getInstanceDataFromFile(commandLine->bksDataFileBasePath + "BKSfromSINTEF.csv", instanceName);
-
-	aps->sintefRecRN = sintef.minRouteNumber;
-	aps->sintefRecRL = static_cast<DisType>(sintef.minRouteDistance * disMul);
-	aps->naRecRN = nagata.minRouteNumber;
-	aps->naRecRL = static_cast<DisType>(nagata.minRouteDistance * disMul);
-
-	aps->d15RecRN = d15.minRouteNumber;
-	aps->d15RecRL = static_cast<DisType>(d15.minRouteDistance);
-
-	aps->lkhRN = lkh.minRouteNumber;
-	aps->lkhRL = static_cast<DisType>(lkh.minRouteDistance);
-	aps->cmdIsopt = lkh.isOptimal;
-
 }
 
 void Input::initInput() {
 
-	P = Vec<int>(custCnt + 1, 1);
+	P = Vector<int>(custCnt + 1, 1);
 	if (static_cast<int>(datas.size()) < custCnt * 3 + 3) {
 		datas.resize(custCnt * 3 + 3);
 	}
@@ -239,7 +162,7 @@ void Input::initInput() {
 	for (int i = 1; i <= custCnt; ++i) {
 		sumq += static_cast<double>(datas[i].DEMAND);
 	}
-	Qbound = static_cast<int>(ceil(double(sumq) / static_cast<double>(Q)));
+	Qbound = static_cast<int>(ceil(double(sumq) / static_cast<double>(vehicleCapacity)));
 	Qbound = std::max<int>(Qbound, 2);
 
 	/*
@@ -310,87 +233,11 @@ void Input::initInput() {
 		};
 		//std::sort(addSTclose[v].begin(), addSTclose[v].end(), cmp);
 		
-		getTopKmin(addSTclose[v], addSTclose.size2(), aps->mRLLocalSearchRange[1],cmp);
-		std::sort(addSTclose[v], addSTclose[v] + aps->mRLLocalSearchRange[1], cmp);
+		getTopKmin(addSTclose[v], addSTclose.size2(), aps->neiborRange[1],cmp);
+		std::sort(addSTclose[v], addSTclose[v] + aps->neiborRange[1], cmp);
 
 	}
 }
-
-
-//void Input::readInstanceFormatCVRPLIB() {
-//
-//	//debug(instanciaPath.c_str());
-//	FILE* file = nullptr;
-//
-//	if (commandLine->readInstanceFromStdin == 1) {
-//		;
-//	}
-//	else {
-//		file = fopen(commandLine->instancePath.c_str(), "r");
-//	}
-//
-//	if (!file) {
-//		std::cout << commandLine->instancePath << "Logger::ERROR: Instance path wrong." << std::endl;
-//		exit(EXIT_FAILURE);
-//	}
-//
-//	char name[64];
-//	
-//	fscanf(file, "%s\n", name);
-//	this->instanceName = std::string(name);
-//	fscanf(file, "%*[^\n]\n");
-//	fscanf(file, "%*[^\n]\n");
-//	fscanf(file, "%d %lld\n", &this->vehicleCnt, &this->Q);
-//	fscanf(file, "%*[^\n]\n");
-//	fscanf(file, "%*[^\n]\n");
-//
-//	this->Q *= disMul;
-//	std::string line = "";
-//
-//	this->datas = Vec<Data>(303);
-//
-//	int index = 0;
-//	int id = -1, coordx = -1, coordy = -1, DEMAND = -1;
-//	int ready_time = -1, due_date = -1, service_time = -1;
-//	int readArgNum = 0;
-//	while ((readArgNum = fscanf(file, "%d %d %d %d %d %d %d\n", &id, &coordx, &coordy, &DEMAND, &ready_time, &due_date, &service_time)) == 7) {
-//
-//		if (index >= static_cast<int>(datas.size())) {
-//			int newSize = static_cast<int>(datas.size()) + static_cast<int>(datas.size()) / 2;
-//			datas.resize(newSize);
-//		}
-//
-//		this->datas[index].CUSTNO = id;
-//		this->datas[index].XCOORD = coordx * disMul;
-//		this->datas[index].YCOORD = coordy * disMul;
-//		this->datas[index].DEMAND = DEMAND * disMul;
-//		this->datas[index].READYTIME = ready_time * disMul;
-//		this->datas[index].DUEDATE = due_date * disMul;
-//		this->datas[index].SERVICETIME = service_time * disMul;
-//
-//		if (index > 0) {
-//			auto& dt = datas[index];
-//			auto polar = CircleSector::positive_mod
-//			(32768. * atan2(dt.YCOORD - datas[0].YCOORD, dt.XCOORD - datas[0].XCOORD) / PI);
-//			dt.polarAngle = static_cast<int>(polar);
-//		}
-//		++index;
-//	}
-//	custCnt = index - 1;
-//	disOf = util::Array2D <DisType>(custCnt + 1, custCnt + 1, DisType(0));
-//	for (int i = 0; i <= custCnt; ++i) {
-//		for (int j = i + 1; j <= custCnt; ++j) {
-//			Data& d1 = datas[i];
-//			Data& d2 = datas[j];
-//			double dis = sqrt((d1.XCOORD - d2.XCOORD) * (d1.XCOORD - d2.XCOORD)
-//				+ (d1.YCOORD - d2.YCOORD) * (d1.YCOORD - d2.YCOORD));
-//
-//			//disOf[j][i] = disOf[i][j] = dis+0.5;
-//			disOf[j][i] = disOf[i][j] = static_cast<DisType>(ceil(dis));
-//		}
-//	}
-//	fclose(file);
-//}
 
 /*MIT License
 
@@ -419,11 +266,11 @@ SOFTWARE.*/
 void Input::readInstanceFormatCVRPLIB() {
 
 	this->custCnt = 0;
-	this->Q = INT_MAX;
+	this->vehicleCapacity = INT_MAX;
 	mustDispatchNumber = -1;
 	DisType totalDemand = 0;
 
-	std::string content, content2, content3;
+	String content, content2, content3;
 	int node = 0;
 	durationLimit = INT_MAX;
 	int serviceTimeData = 0;
@@ -431,14 +278,10 @@ void Input::readInstanceFormatCVRPLIB() {
 	// Read INPUT dataset
 	//std::ifstream inputFile(config.pathInstance);
 	//Logger::INFO("cl.config.isNpsRun:", cl.config.isNpsRun);
-	if (commandLine->readInstanceFromStdin == 1) {
 
-	}
-	else {
-		auto x = freopen(commandLine->instancePath.data(), "r", stdin);
-		if (x == nullptr) {
-			throw std::string("x== nullptr return of freopen");
-		}
+	auto x = freopen(commandLine->instancePath.data(), "r", stdin);
+	if (x == nullptr) {
+		throw String("x== nullptr return of freopen");
 	}
 
 	if (true)
@@ -458,7 +301,7 @@ void Input::readInstanceFormatCVRPLIB() {
 		{
 			// Get the number of vehicles and the capacity of the vehicles
 			getline(std::cin, content);  // NUMBER    CAPACITY
-			std::cin >> this->vehicleCnt >> Q;
+			std::cin >> this->vehicleCnt >> vehicleCapacity;
 
 			// Skip the next four lines
 			getline(std::cin, content);
@@ -467,7 +310,7 @@ void Input::readInstanceFormatCVRPLIB() {
 			getline(std::cin, content);
 
 			// Create a vector where all information on the Clients can be stored and loop over all information in the file
-			datas = std::vector<Data>(1001);
+			datas = Vector<Data>(1001);
 
 			custCnt = 0;
 			while (std::cin >> node)
@@ -484,7 +327,7 @@ void Input::readInstanceFormatCVRPLIB() {
 				datas[custCnt].SERVICETIME *= 10;
 				datas[custCnt].polarAngle = CircleSector::positive_mod(static_cast<int>(32768. * atan2(datas[custCnt].YCOORD - datas[0].YCOORD, datas[custCnt].XCOORD - datas[0].XCOORD) / PI));
 
-				custCnt++;
+				++custCnt;
 			}
 
 			// Reduce the size of the vector of clients if possible
@@ -496,11 +339,11 @@ void Input::readInstanceFormatCVRPLIB() {
 			// Check if the required service and the start of the time window of the depot are both zero
 			if (datas[0].READYTIME != 0)
 			{
-				throw std::string("Time window for depot should start at 0");
+				throw String("Time window for depot should start at 0");
 			}
 			if (datas[0].SERVICETIME != 0)
 			{
-				throw std::string("Service duration for depot should be 0");
+				throw String("Service duration for depot should be 0");
 			}
 
 			disOf = util::Array2D <DisType>(custCnt + 1, custCnt + 1, DisType(0));
@@ -542,17 +385,17 @@ void Input::readInstanceFormatCVRPLIB() {
 					std::cin >> content2 >> content3;
 					if (!isExplicitDistanceMatrix)
 					{
-						throw std::string("EDGE_WEIGHT_FORMAT can only be used with EDGE_WEIGHT_TYPE : EXPLICIT");
+						throw String("EDGE_WEIGHT_FORMAT can only be used with EDGE_WEIGHT_TYPE : EXPLICIT");
 					}
 
 					if (content3 != "FULL_MATRIX")
 					{
-						throw std::string("EDGE_WEIGHT_FORMAT only supports FULL_MATRIX");
+						throw String("EDGE_WEIGHT_FORMAT only supports FULL_MATRIX");
 					}
 				}
 				else if (content == "CAPACITY")
 				{
-					std::cin >> content2 >> Q;
+					std::cin >> content2 >> vehicleCapacity;
 				}
 				else if (content == "VEHICLES" || content == "SALESMAN")
 				{
@@ -581,7 +424,7 @@ void Input::readInstanceFormatCVRPLIB() {
 				{
 					if (!isExplicitDistanceMatrix)
 					{
-						throw std::string("EDGE_WEIGHT_SECTION can only be used with EDGE_WEIGHT_TYPE : EXPLICIT");
+						throw String("EDGE_WEIGHT_SECTION can only be used with EDGE_WEIGHT_TYPE : EXPLICIT");
 					}
 					maxDist = 0;
 					
@@ -606,7 +449,7 @@ void Input::readInstanceFormatCVRPLIB() {
 				else if (content == "NODE_COORD_SECTION")
 				{
 					// Reading client coordinates
-					datas = std::vector<Data>(custCnt + 1);
+					datas = Vector<Data>(custCnt + 1);
 					for (int i = 0; i <= custCnt; i++)
 					{
 						std::cin >> datas[i].CUSTNO >> datas[i].XCOORD >> datas[i].YCOORD;
@@ -614,7 +457,7 @@ void Input::readInstanceFormatCVRPLIB() {
 						// Check if the clients are in order
 						if (datas[i].CUSTNO != i + 1)
 						{
-							throw std::string("Clients are not in order in the list of coordinates")
+							throw String("Clients are not in order in the list of coordinates")
 								+ "datas[i].custNum:" + std::to_string(datas[i].CUSTNO)
 								+ "i + 1:" + std::to_string(i + 1);
 						}
@@ -638,7 +481,7 @@ void Input::readInstanceFormatCVRPLIB() {
 						// Check if the clients are in order
 						if (clientNr != i + 1)
 						{
-							throw std::string("Clients are not in order in the list of demands");
+							throw String("Clients are not in order in the list of demands");
 						}
 
 						// Keep track of the max and total DEMAND
@@ -651,7 +494,7 @@ void Input::readInstanceFormatCVRPLIB() {
 					// Check if the depot has DEMAND 0
 					if (datas[0].DEMAND != 0)
 					{
-						throw std::string("Depot DEMAND is not zero, but is instead: " + std::to_string(datas[0].SERVICETIME));
+						throw String("Depot DEMAND is not zero, but is instead: " + std::to_string(datas[0].SERVICETIME));
 					}
 				}
 				else if (content == "DEPOT_SECTION")
@@ -659,7 +502,7 @@ void Input::readInstanceFormatCVRPLIB() {
 					std::cin >> content2 >> content3;
 					if (content2 != "1")
 					{
-						throw std::string("Expected depot index 1 instead of " + content2);
+						throw String("Expected depot index 1 instead of " + content2);
 					}
 				}
 				else if (content == "CUSTOMER_WEIGHT")
@@ -671,7 +514,7 @@ void Input::readInstanceFormatCVRPLIB() {
 						// Check if the clients are in order
 						if (clientNr != i + 1)
 						{
-							throw std::string("Clients are not in order in the list of CUSTOMER_WEIGHT")
+							throw String("Clients are not in order in the list of CUSTOMER_WEIGHT")
 								+ "clientNr:" + std::to_string(clientNr)
 								+ "i + 1:" + std::to_string(i + 1);
 						}
@@ -679,7 +522,7 @@ void Input::readInstanceFormatCVRPLIB() {
 					// Check if the service duration of the depot is 0
 					if (P[0] != 0)
 					{
-						throw std::string("P[0] should be 0");
+						throw String("P[0] should be 0");
 					}
 				}
 				else if (content == "MUST_DISPATCH")
@@ -695,13 +538,13 @@ void Input::readInstanceFormatCVRPLIB() {
 						// Check if the clients are in order
 						if (clientNr != i + 1)
 						{
-							throw std::string("Clients are not in order in the list of MUST_DISPATCH");
+							throw String("Clients are not in order in the list of MUST_DISPATCH");
 						}
 					}
 					// Check if the service duration of the depot is 0
 					if (datas[0].must_dispatch != 0)
 					{
-						throw std::string("must_dispatch depot should be 0");
+						throw String("must_dispatch depot should be 0");
 					}
 				}
 				else if (content == "SERVICE_TIME_SECTION")
@@ -714,13 +557,13 @@ void Input::readInstanceFormatCVRPLIB() {
 						// Check if the clients are in order
 						if (clientNr != i + 1)
 						{
-							throw std::string("Clients are not in order in the list of service times");
+							throw String("Clients are not in order in the list of service times");
 						}
 					}
 					// Check if the service duration of the depot is 0
 					if (datas[0].SERVICETIME != 0)
 					{
-						throw std::string("Service duration for depot should be 0");
+						throw String("Service duration for depot should be 0");
 					}
 					hasServiceTimeSection = true;
 				}
@@ -734,13 +577,13 @@ void Input::readInstanceFormatCVRPLIB() {
 				//		// Check if the clients are in order
 				//		if (clientNr != i + 1)
 				//		{
-				//			throw std::string("Clients are not in order in the list of release times");
+				//			throw String("Clients are not in order in the list of release times");
 				//		}
 				//	}
 				//	// Check if the service duration of the depot is 0
 				//	if (datas[0].releaseTime != 0)
 				//	{
-				//		throw std::string("Release time for depot should be 0");
+				//		throw String("Release time for depot should be 0");
 				//	}
 				//}
 				// Read the time windows of all the clients (the depot should have a time window from 0 to max)
@@ -756,7 +599,7 @@ void Input::readInstanceFormatCVRPLIB() {
 						if (clientNr != i + 1)
 						{
 							Logger::ERROR("Clients are not in order in the list of time windows");
-							throw std::string("Clients are not in order in the list of time windows");
+							throw String("Clients are not in order in the list of time windows");
 						}
 					}
 
@@ -764,13 +607,13 @@ void Input::readInstanceFormatCVRPLIB() {
 					if (datas[0].READYTIME != 0)
 					{
 						Logger::ERROR("Time window for depot should start at 0");
-						throw std::string("Time window for depot should start at 0");
+						throw String("Time window for depot should start at 0");
 					}
 				}
 				else
 				{
 					Logger::ERROR("Unexpected data in input file: " + content);
-					throw std::string("Unexpected data in input file: " + content);
+					throw String("Unexpected data in input file: " + content);
 				}
 			}
 
@@ -784,11 +627,11 @@ void Input::readInstanceFormatCVRPLIB() {
 
 			if (custCnt <= 0)
 			{
-				throw std::string("Number of nodes is undefined");
+				throw String("Number of nodes is undefined");
 			}
-			if (Q == INT_MAX)
+			if (vehicleCapacity == INT_MAX)
 			{
-				throw std::string("Vehicle capacity is undefined");
+				throw String("Vehicle capacity is undefined");
 			}
 		}
 
@@ -806,11 +649,14 @@ void Input::readInstanceFormatCVRPLIB() {
 		throw std::invalid_argument("Impossible to open instance file: " + commandLine->instancePath);
 	}
 
+	std::cin.clear();
+	fclose(stdin);
+
 	// Default initialization if the number of vehicles has not been provided by the user
 	if (vehicleCnt == INT_MAX)
 	{
 		// Safety margin: 30% + 3 more vehicles than the trivial bin packing LB
-		vehicleCnt = static_cast<int>(std::ceil(1.3 * totalDemand / Q) + 3.);
+		vehicleCnt = static_cast<int>(std::ceil(1.3 * totalDemand / vehicleCapacity) + 3.);
 		Logger::INFO("----- FLEET SIZE WAS NOT SPECIFIED: DEFAULT INITIALIZATION TO ", vehicleCnt, " VEHICLES");
 	}
 	else if (vehicleCnt == -1)
@@ -821,42 +667,6 @@ void Input::readInstanceFormatCVRPLIB() {
 	else
 	{
 		Logger::INFO("----- FLEET SIZE SPECIFIED IN THE COMMANDLINE: SET TO ", vehicleCnt, " VEHICLES");
-	}
-}
-
-void Input::setInstanceCustomized(const DataModel& dm) {
-
-	char name[64];
-
-	this->instanceName = dm.instanceName;
-	this->vehicleCnt = dm.num_vehicles;
-	this->Q = dm.vehicles_capacity;
-
-	this->datas = Vec<Data>(dm.num_customers + 1);
-	this->custCnt = dm.num_customers;
-
-	for (int i = 0; i <= dm.num_customers; ++i) {
-		this->datas[i].CUSTNO = i;
-		this->datas[i].XCOORD = dm.coordinates[i].first;
-		this->datas[i].YCOORD = dm.coordinates[i].second;
-		this->datas[i].DEMAND = dm.demands[i];
-		this->datas[i].READYTIME = dm.time_windows[i].first;
-		this->datas[i].DUEDATE = dm.time_windows[i].second;
-		this->datas[i].SERVICETIME = dm.service_times[i];
-
-		if (i > 0) {
-			auto& dt = datas[i];
-			auto polar = CircleSector::positive_mod
-			(32768. * atan2(dt.YCOORD - datas[0].YCOORD, dt.XCOORD - datas[0].XCOORD) / PI);
-			dt.polarAngle = static_cast<int>(polar);
-		}
-	}
-	
-	disOf = util::Array2D <DisType>(custCnt + 1, custCnt + 1, DisType(0));
-	for (int i = 0; i <= custCnt; ++i) {
-		for (int j = 0 ; j <= custCnt; ++j) {
-			disOf[j][i] = dm.time_matrix[i][j];
-		}
 	}
 }
 

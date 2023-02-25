@@ -4,18 +4,12 @@
     <Filter Include="Source">
       <UniqueIdentifier>{502769e0-ed5a-4687-ae40-834fcebde540}</UniqueIdentifier>
     </Filter>
-    <Filter Include="Source\MCP">
-      <UniqueIdentifier>{420a4a0d-eb25-4198-8d77-d06ff904245a}</UniqueIdentifier>
-    </Filter>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="..\..\Source\Algorithm_Parameters.cpp">
+    <ClCompile Include="..\..\Source\AlgorithmParameters.cpp">
       <Filter>Source</Filter>
     </ClCompile>
     <ClCompile Include="..\..\Source\EAX.cpp">
-      <Filter>Source</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\Source\Flag.cpp">
       <Filter>Source</Filter>
     </ClCompile>
     <ClCompile Include="..\..\Source\Goal.cpp">
@@ -24,7 +18,7 @@
     <ClCompile Include="..\..\Source\Main.cpp">
       <Filter>Source</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\Source\Problem.cpp">
+    <ClCompile Include="..\..\Source\Input.cpp">
       <Filter>Source</Filter>
     </ClCompile>
     <ClCompile Include="..\..\Source\Solver.cpp">
@@ -33,24 +27,12 @@
     <ClCompile Include="..\..\Source\YearTable.cpp">
       <Filter>Source</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\Source\MCP\CliqueSolver.cpp">
-      <Filter>Source\MCP</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\Source\MCP\CliqueTsm.cpp">
-      <Filter>Source\MCP</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\Source\Util_Logger.cpp">
-      <Filter>Source</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\Source\Adapter.cpp">
-      <Filter>Source</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\Source\LowerBoundOfRouteNum.cpp">
+    <ClCompile Include="..\..\Source\Util.cpp">
       <Filter>Source</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="..\..\Source\Algorithm_Parameters.h">
+    <ClInclude Include="..\..\Source\AlgorithmParameters.h">
       <Filter>Source</Filter>
     </ClInclude>
     <ClInclude Include="..\..\Source\CommandLine.h">
@@ -59,43 +41,28 @@
     <ClInclude Include="..\..\Source\EAX.h">
       <Filter>Source</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\Source\Flag.h">
+    <ClInclude Include="..\..\Source\Common.h">
       <Filter>Source</Filter>
     </ClInclude>
     <ClInclude Include="..\..\Source\Goal.h">
       <Filter>Source</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\Source\LowerBoundOfRouteNum.h">
-      <Filter>Source</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\Source\Problem.h">
+    <ClInclude Include="..\..\Source\Input.h">
       <Filter>Source</Filter>
     </ClInclude>
     <ClInclude Include="..\..\Source\Solver.h">
       <Filter>Source</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\Source\Util_Arr2D.h">
+    <ClInclude Include="..\..\Source\Arr2D.h">
       <Filter>Source</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\Source\Util_Common.h">
+    <ClInclude Include="..\..\Source\Util.h">
       <Filter>Source</Filter>
     </ClInclude>
     <ClInclude Include="..\..\Source\YearTable.h">
       <Filter>Source</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\Source\MCP\Arr.h">
-      <Filter>Source\MCP</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\Source\MCP\CliqueSolver.h">
-      <Filter>Source\MCP</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\Source\MCP\Graph.h">
-      <Filter>Source\MCP</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\Source\Util_Logger.h">
-      <Filter>Source</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\Source\Adapter.h">
+    <ClInclude Include="..\..\Source\json.h">
       <Filter>Source</Filter>
     </ClInclude>
   </ItemGroup>

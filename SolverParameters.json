@@ -1,0 +1,37 @@
+{
+    "seed": 0,
+    "runTimer": 1800,
+    "dimacsPrint": 0,
+    "infoFlag": 1,
+    "debugFlag": 0,
+    "errorFlag":1,
+
+    "AlgorithmParameters":{
+
+        "populationSizeMin": 4,
+        "populationSizeMax": 50,
+
+        "maxStagnationIterOfRepair": 200,
+
+        "minKmax": 1,
+        "maxKmax": 4,
+
+        "namaEaxCh": 20,
+        "abCycleWinkRate": 99,
+
+        "patternAdjustmentNeiborRange": 60,
+        
+        "patternAdjustmentIrand": 400,
+
+        "neiborSizeMin": 20,
+        "neiborSizeMax": 50,
+
+        "ruinSplitRate": 0, 
+        "ruinLmax": 20,
+        
+        "ruinC_Min": 15,
+        "ruinC_Max": 35,
+        "ruinWinkRate": 90,
+        "initWinkRate": 80
+    }
+}

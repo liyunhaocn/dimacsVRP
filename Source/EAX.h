@@ -3,7 +3,7 @@
 #define CN_HUST_LYH_EAX_H
 
 #include "Solver.h"
-#include "Util_Common.h"
+#include "Util.h"
 
 namespace hust {
 
@@ -66,18 +66,18 @@ public:
 	int supportNumNodes = -1;
 
 	int richEdgeCurSize = 0; // `richEdges` 下一次分配的 ID
-	Vec<RichEdge> richEdges = {}; // 存储双亲所有边信息
-	Vec<Vec<int>> adjEdgeTable; // 当前 GAB 中每个节点的邻接rich edge列表
+	Vector<RichEdge> richEdges = {}; // 存储双亲所有边信息
+	Vector<Vector<int>> adjEdgeTable; // 当前 GAB 中每个节点的邻接rich edge列表
 
 	// 映射 `code` 到 `richEdges` 的 ID
 	UnorderedMap<int, int>	papbEMap; // 所有
 
 	ConfSet paPriE; // pa: all from pa
 	ConfSet pbPriE;// pb 独有 
-	Vec<Vec<int>> abCycleSet; // 一次分解 GAB 得到的 AB-Cycle 集合
+	Vector<Vector<int>> abCycleSet; // 一次分解 GAB 得到的 AB-Cycle 集合
 	int generSolNum = -1; //生成了多少解
 	int repairSolNum = -1; //生成了多少解
-	//Vec<bool> visited; // 标记一个节点是否已访问
+	//Vector<bool> visited; // 标记一个节点是否已访问
 	int GabEsize = 0;
 	
 	int eaxCusCnt = -1;
@@ -85,8 +85,8 @@ public:
 	int subCyNum = 0;
 	int subCyCusNum = 0;
 	
-	Vec< Vec<int> > unionArr;
-	Vec< Vec<int> > abCyAdj;
+	Vector< Vector<int> > unionArr;
+	Vector< Vector<int> > abCyAdj;
 	UnorderedSet<int> tabuCyIds;
 
 	int unionIndex = -1;
@@ -120,7 +120,7 @@ public:
 	bool applyOneCycle(int& cycleIndex, Solver& pc);
 
 	/* 对个体应用给定 eSet 集合; */
-	bool applyCycles(const Vec<int>& cyclesIndexes, Solver& pc);
+	bool applyCycles(const Vector<int>& cyclesIndexes, Solver& pc);
 
 	//int sameCnt = 0;
 
@@ -140,7 +140,7 @@ public:
 
 	static int getabCyNum(Solver& pa, Solver& pb);
 	
-	static Vec<int> getDiffCusofPb(Solver& pa, Solver& pb);
+	static Vector<int> getDiffCusofPb(Solver& pa, Solver& pb);
 
 };
 

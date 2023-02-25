@@ -5,14 +5,13 @@
 #pragma once
 
 #include <gtest/gtest.h>
-#include "../../Source/Flag.h"
+#include "../../Source/Common.h"
 #include "../../Source/Solver.h"
 #include "../../Source/YearTable.h"
 #include "../../Source/EAX.h"
-#include "../../Source/Algorithm_Parameters.h"
-#include "../../Source/Problem.h"
+#include "../../Source/AlgorithmParameters.h"
+#include "../../Source/Input.h"
 #include "../../Source/CommandLine.h"
-#include "../../Source/Util_Logger.h"
 
 namespace hust {
 namespace lyhtest {
@@ -25,7 +24,8 @@ public:
 	CommandLine* commandline = nullptr;
 	Timer* timer = nullptr;
 	AlgorithmParameters* aps = nullptr;
-	RandomTools* randomTools = nullptr;
+	Random* random = nullptr;
+	RandomX* randomx = nullptr;
 	Input* input = nullptr;
 	YearTable* yearTable = nullptr;
 	BKS* bks = nullptr;
@@ -49,11 +49,12 @@ public:
 		timer = new Timer(commandline->runTimer);
 
 		aps = &commandline->aps;
-		randomTools = new RandomTools(commandline->seed);
+		random = new Random(commandline->seed);
+		randomx = new RandomX(commandline->seed);
 
-		input = new Input(commandline, aps, randomTools, timer);
+		input = new Input(commandline);
 		YearTable* yearTable = new YearTable(input);
-		BKS* bks = new BKS(input, yearTable, timer);
+		BKS* bks = new BKS(input);
 
 		solver = new Solver(input, yearTable, bks);
 		return solver;
@@ -62,12 +63,13 @@ public:
 	~SolverGenerator() {
 		if (commandline != nullptr) delete commandline;
 		if (timer != nullptr) delete timer;
-		//if (aps != nullptr) delete aps;
-		if (randomTools != nullptr) delete randomTools;
+		if (random != nullptr) delete random;
+		if (randomx != nullptr) delete randomx;
 		if (input != nullptr) delete input;
 		if (yearTable != nullptr) delete yearTable;
 		if (bks != nullptr) delete bks;
 		if (solver != nullptr) delete solver;
+
 	}
 };
 

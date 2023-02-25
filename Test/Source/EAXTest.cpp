@@ -15,8 +15,15 @@ TEST(EAXTest, generateCycles) {
 
 		auto pa = genatorPa.generateSolver(argvItem);
 		pa->initSolution(0);
+		Solver* pb = nullptr;
+		try {
+			pb = genatorPb.generateSolver(argvItem);
+		}
+		catch (const char* msg) {
+			std::cerr << msg << std::endl;
+		}
 
-		auto pb = genatorPb.generateSolver(argvItem);
+		
 		pb->initSolution(1);
 		
 		int bigRtsNumber = std::max<int>(pa->rts.cnt, pb->rts.cnt);

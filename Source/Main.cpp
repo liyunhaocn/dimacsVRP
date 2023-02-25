@@ -2,86 +2,40 @@
 #include<iostream>
 #include<vector>
 
-#include "Adapter.h"
 
-void exampleUse() {
+#include "Goal.h"
 
-	int64_t num_vehicles = 2;
-	int64_t num_customers = 1;
-	int64_t vehicles_capacity = 100;
+//../Instances/Homberger/C1_8_2.txt ../SolverParameters.json ../Results
 
-	std::vector<std::vector<int64_t>> time_matrix = {
-		{0,5},
-		{5,0}
-	};
-
-	std::vector<std::pair<int64_t, int64_t>> time_windows = {
-		{0,20},
-		{10,40}
-	};
-
-	std::vector<std::pair<int64_t, int64_t>> coordinates = {
-		{0,0},
-		{3,4}
-	};
-
-	std::vector<int64_t> demands = { 0,20 };
-	std::vector<int64_t> service_times = { 0,10 };
-
-	hust::Input::DataModel dm{
-		num_vehicles,
-		num_customers,
-		vehicles_capacity,
-		time_matrix,
-		time_windows,
-		coordinates,
-		demands,
-		service_times
-	};
-	
-	using SolverGoal = hust::CommandLine::SolverGoal;
-	SolverGoal solverGoal = SolverGoal::StaticRoutesDistance;
-	//SolverGoal solverGoal = SolverGoal::StaticRoutesNumber;
-	//SolverGoal solverGoal = SolverGoal::StaticRoutesNumberBound;
-	//SolverGoal solverGoal = SolverGoal::DynamicRoutesDistance;
-
-	auto routes = hust::callSolverWithCustomizedInstance(dm, solverGoal);
-
-	if (solverGoal == SolverGoal::StaticRoutesNumberBound) {
-		std::cout << "the route number bound get with mcp is " 
-				  << routes[0][0] << std::endl;
-	}
-	else {
-		std::cout << "routes:" << std::endl;
-		for (auto& i : routes) {
-			for (auto& j : i) {
-				std::cout << j << " ";
-			}
-			std::cout << std::endl;
-		}
-	}
-}
-//-instancePath ../Instances/Homberger/C1_8_2.txt -time 3600 -psizemulpsum 0 -seed 1665441954
-//-readInstanceFromStdin 1
 int main(int argc, char* argv[])
 {
-	hust::CommandLine commandline(argc, argv);
-	if (commandline.solverGoal == hust::CommandLine::SolverGoal::DynamicRoutesDistance) {
-		hust::dynamicRun(commandline);
-	}
-	else if (commandline.solverGoal == hust::CommandLine::SolverGoal::StaticRoutesDistance) {
-		hust::dimacsRun(commandline);
-	}
-	else if (commandline.solverGoal == hust::CommandLine::SolverGoal::StaticRoutesNumber) {
-		hust::routeNumberMinimization(commandline);
-	}
-	else if (commandline.solverGoal == hust::CommandLine::SolverGoal::StaticRoutesNumberBound) {
-		hust::getOneBound(commandline);
+	using namespace hust;
+
+	CommandLine commandLine(argc, argv);
+
+	Json parameters;
+	std::ifstream ifs(commandLine.parametersPath);
+	if (ifs.fail()) {
+		Logger::INFO("can't open parameters file,use the default parameters");
 	}
 	else {
-		hust::Logger::ERROR("unknow solver goal of running");
-		return 0;
+		Json allJson;
+		ifs >> allJson;
+		Json apsJson = allJson["AlgorithmParameters"];
+		// initial commandLine with Josn
+		commandLine.from_json(allJson, commandLine);
 	}
-	
+
+	Input input(&commandLine);
+	commandLine.displayInfo();
+	input.displayInfo();
+	commandLine.aps.displayInfo();
+
+	commandLine.aps.check(input.custCnt);
+
+	Goal goal(&input);
+
+	goal.run();
+
 	return 0;
 }

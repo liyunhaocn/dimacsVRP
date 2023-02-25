@@ -1,6 +1,6 @@
 
 #include "EAX.h"
-#include "Problem.h"
+#include "Input.h"
 #include "Solver.h"
 
 
@@ -10,9 +10,9 @@ namespace hust{
 
 Solver::Solver(Input* input,YearTable* yearTable,BKS* bks) :
 	input(input),
-	random(&input->randomTools->random),
-	randomx(&input->randomTools->randomx),
-	timer(input->timer),
+	random(&input->random),
+	randomx(&input->randomx),
+	timer(&input->timer),
 	aps(input->aps),
 	bks(bks),
 	yearTable(yearTable),
@@ -22,11 +22,11 @@ Solver::Solver(Input* input,YearTable* yearTable,BKS* bks) :
 	
 {
 
-	customers = Vec<Customer>( static_cast<int>((input->custCnt + 1) * 1.5) );
+	customers = Vector<Customer>( static_cast<int>((input->custCnt + 1) * 1.5) );
 	alpha = 1;
 	beta = 1;
 	gamma = 1;
-	//squIter = 1;
+	//iter = 1;
 	penalty = 0;
 	Ptw = 0;
 	PtwNoWei = 0;
@@ -138,7 +138,7 @@ DisType Solver::rUpdatePc(Route& r) {
 		r.rQ += input->datas[pt].DEMAND;
 		pt = customers[pt].next;
 	}
-	r.rPc = std::max<DisType>(0, r.rQ - input->Q);
+	r.rPc = std::max<DisType>(0, r.rQ - input->vehicleCapacity);
 	return r.rPc;
 }
 
@@ -171,7 +171,7 @@ bool Solver::rRemoveAllCustomersInRoute(Route& r) {
 	r.routeCost = 0;
 	r.rWeight = 1;
 
-	Vec<int> ve = rPutCustomersInVector(r);
+	Vector<int> ve = rPutCustomersInVector(r);
 	for (int pt : ve) {
 		rRemoveAtPosition(r, pt);
 	}
@@ -186,7 +186,7 @@ bool Solver::rInsertAtPosition(Route& r, int pos, int node) {
 
 	customers[node].routeID = r.routeID;
 	r.rQ += input->datas[node].DEMAND;
-	r.rPc = std::max<DisType>(0, r.rQ - input->Q);
+	r.rPc = std::max<DisType>(0, r.rQ - input->vehicleCapacity);
 
 	int anext = customers[pos].next;
 	customers[node].next = anext;
@@ -203,7 +203,7 @@ bool Solver::rInsAtPosPre(Route& r, int pos, int node) {
 
 	customers[node].routeID = r.routeID;
 	r.rQ += input->datas[node].DEMAND;
-	r.rPc = std::max<DisType>(0, r.rQ - input->Q);
+	r.rPc = std::max<DisType>(0, r.rQ - input->vehicleCapacity);
 
 	int apre = customers[pos].pre;
 	customers[node].pre = apre;
@@ -222,7 +222,7 @@ bool Solver::rRemoveAtPosition(Route& r, int a) {
 	}
 
 	r.rQ -= input->datas[a].DEMAND;
-	r.rPc = std::max<DisType>(0, r.rQ - input->Q);
+	r.rPc = std::max<DisType>(0, r.rQ - input->vehicleCapacity);
 
 	Customer& temp = customers[a];
 	Customer& tpre = customers[temp.pre];
@@ -296,7 +296,7 @@ bool Solver::rUpdateAvQFrom(Route& r, int vv) {
 
 	r.rPtw = customers[r.tail].TW_X;
 	r.rQ = customers[r.tail].Q_X;
-	r.rPc = std::max<DisType>(0, r.rQ - input->Q);
+	r.rPc = std::max<DisType>(0, r.rQ - input->vehicleCapacity);
 
 	return true;
 }
@@ -330,7 +330,7 @@ void Solver::rUpdateZvQFrom(Route& r, int vv) {
 	}
 	r.rPtw = customers[r.head].TWX_;
 	r.rQ = customers[r.head].QX_;
-	r.rPc = std::max<DisType>(0, r.rQ - input->Q);
+	r.rPc = std::max<DisType>(0, r.rQ - input->vehicleCapacity);
 }
 
 int Solver::rGetCustomerNumber(Route& r) {
@@ -355,9 +355,9 @@ void Solver::rReCalculateRouteCost(Route& r) {
 	}
 }
 
-Vec<int> Solver::rPutCustomersInVector(Route& r) {
+Vector<int> Solver::rPutCustomersInVector(Route& r) {
 
-	Vec<int> ret;
+	Vector<int> ret;
 	if (r.rCustCnt > 0) {
 		ret.reserve(r.rCustCnt);
 	}
@@ -502,7 +502,7 @@ Solver::Position Solver::findBestPositionInSolution(int w) {
 		int vj = customers[v].next;
 
 		DisType oldrPc = rts[i].rPc;
-		DisType rPc = std::max<DisType>(0, rt.rQ + input->datas[w].DEMAND - input->Q);
+		DisType rPc = std::max<DisType>(0, rt.rQ + input->datas[w].DEMAND - input->vehicleCapacity);
 		rPc = rPc - oldrPc;
 
 		while (v != -1 && vj != -1) {
@@ -557,7 +557,7 @@ Solver::Position Solver::findBestPositionInSolutionForInitial(int w) {
 
 	//int quMax = aps->initFindPosPqSize;
 
-	Vec<CircleSector> secs(rts.cnt);
+	Vector<CircleSector> secs(rts.cnt);
 	for (int i = 0; i < rts.cnt; ++i) {
 		secs[i] = rGetCircleSector(rts[i]);
 	}
@@ -571,7 +571,7 @@ Solver::Position Solver::findBestPositionInSolutionForInitial(int w) {
 		int v = rt.head;
 		int vj = customers[v].next;
 
-		DisType rtPc = std::max<DisType>(0, rt.rQ + input->datas[w].DEMAND - input->Q);
+		DisType rtPc = std::max<DisType>(0, rt.rQ + input->datas[w].DEMAND - input->vehicleCapacity);
 		//rtPc = rtPc - rt.rPc;
 
 		if (rtPc > bestPos.pen) {
@@ -603,7 +603,7 @@ Solver::Position Solver::findBestPositionInSolutionForInitial(int w) {
 			else if (pt.pen == bestPos.pen) {
 
 				if (pt.cost < bestPos.cost) {
-					if (random->pick(100) < aps->initWinkacRate) {
+					if (random->pick(100) < aps->initWinkRate) {
 						bestPos = pt;
 					}
 				}
@@ -628,7 +628,7 @@ Solver::Position Solver::findBestPositionForRuin(int w) {
 	// 惩罚最大的排在最前面
 	auto updatePool = [&](Position& pos) {
 
-		if (random->pick(100) < aps->ruinWinkacRate) {
+		if (random->pick(100) < aps->ruinWinkRate) {
 
 			if (pos.pen < ret.pen) {
 				ret = pos;
@@ -655,14 +655,14 @@ Solver::Position Solver::findBestPositionForRuin(int w) {
 		Route& r = rts[i];
 
 		DisType oldrPc = rts[i].rPc;
-		DisType rPc = std::max<DisType>(0, r.rQ + input->datas[w].DEMAND - input->Q);
+		DisType rPc = std::max<DisType>(0, r.rQ + input->datas[w].DEMAND - input->vehicleCapacity);
 		rPc = rPc - oldrPc;
 
 		if (rPc > ret.pen) {
 			continue;
 		}
 
-		Vec<int> a = rPutCustomersInVector(r);
+		Vector<int> a = rPutCustomersInVector(r);
 		a.push_back(r.tail);
 
 		for (int vj : a) {
@@ -702,7 +702,7 @@ Solver::Position Solver::findBestPositionForRuin(int w) {
 
 bool Solver::initSolutionBySecOrder() {
 
-	Vec<int>que1(input->custCnt);
+	Vector<int>que1(input->custCnt);
 	std::iota(que1.begin(), que1.end(), 1);
 
 	auto cmp0 = [&](int x, int y) {
@@ -755,7 +755,7 @@ bool Solver::initSolutionBySecOrder() {
 
 bool Solver::initSolutionSortOrder(int kind) {
 
-	Vec<int>que1(input->custCnt);
+	Vector<int>que1(input->custCnt);
 	std::iota(que1.begin(), que1.end(), 1);
 
 	auto cmp1 = [&](int x, int y) {
@@ -818,7 +818,7 @@ bool Solver::initSolutionSortOrder(int kind) {
 
 bool Solver::initSolutionMaxRoute() {
 
-	Vec<int>que1(input->custCnt);
+	Vector<int>que1(input->custCnt);
 	std::iota(que1.begin(), que1.end(), 1);
 	
 	//TODO[-1]:这里的排序，现在是乱序
@@ -1024,8 +1024,8 @@ DeltPen Solver::_2optOpenvv_(int v, int w) { //0
 		rvQ += customers[v_].Q_X;
 		rvQ += customers[wj].QX_;
 
-		bestM.deltPc = std::max<DisType>(0, rwQ - input->Q) +
-			std::max<DisType>(0, rvQ - input->Q) -
+		bestM.deltPc = std::max<DisType>(0, rwQ - input->vehicleCapacity) +
+			std::max<DisType>(0, rvQ - input->vehicleCapacity) -
 			rv.rPc - rw.rPc;
 		bestM.PcOnly = bestM.deltPc;
 		bestM.deltPc *= beta;
@@ -1107,8 +1107,8 @@ DeltPen Solver::_2optOpenvvj(int v, int w) { //1
 		rw_vjQ += customers[w_].Q_X;
 		rw_vjQ += customers[vj].QX_;
 
-		bestM.deltPc = std::max<DisType>(0, rvwQ - input->Q)
-			+ std::max<DisType>(0, rw_vjQ - input->Q)
+		bestM.deltPc = std::max<DisType>(0, rvwQ - input->vehicleCapacity)
+			+ std::max<DisType>(0, rw_vjQ - input->vehicleCapacity)
 			- rv.rPc - rw.rPc;
 		bestM.PcOnly = bestM.deltPc;
 		bestM.deltPc *= beta;
@@ -1184,7 +1184,7 @@ DeltPen Solver::outrelocatevToww_(int v, int w, int oneR) { //2
 			if (front == v) {
 
 				// v_ v vj ....w_ w ===> {v_ vj ...w_,v,w}
-				Vec<int> arr = {v_};
+				Vector<int> arr = {v_};
 				auto vjTow_ = putCustomersInVectorBetweenTwoCus(vj,w_);
 				vectool::pushVectorBToBackOFVectorA(arr,vjTow_);
 				vectool::pushVectorBToBackOFVectorA(arr, {v,w});
@@ -1195,7 +1195,7 @@ DeltPen Solver::outrelocatevToww_(int v, int w, int oneR) { //2
 
 				// w_ w .... v_ v vj ===> {w_ v w ... v_ vj}
 
-				Vec<int> arr = { w_,v };
+				Vector<int> arr = { w_,v };
 				auto wTov_ = putCustomersInVectorBetweenTwoCus(w, v_);
 				vectool::pushVectorBToBackOFVectorA(arr, wTov_);
 				vectool::pushVectorBToBackOFVectorA(arr, {vj});
@@ -1240,8 +1240,8 @@ DeltPen Solver::outrelocatevToww_(int v, int w, int oneR) { //2
 			bestM.PcOnly = 0;
 		}
 		else {
-			bestM.deltPc = std::max<DisType>(0, rw.rQ + input->datas[v].DEMAND - input->Q)
-				+ std::max<DisType>(0, rv.rQ - input->datas[v].DEMAND - input->Q)
+			bestM.deltPc = std::max<DisType>(0, rw.rQ + input->datas[v].DEMAND - input->vehicleCapacity)
+				+ std::max<DisType>(0, rv.rQ - input->datas[v].DEMAND - input->vehicleCapacity)
 				- rv.rPc - rw.rPc;
 			bestM.PcOnly = bestM.deltPc;
 			bestM.deltPc *= beta;
@@ -1326,7 +1326,7 @@ DeltPen Solver::outrelocatevTowwj(int v, int w, int oneR) { //3
 			if (front == v) {
 
 				// v_ v vj  ... w wj ====> v_ vj ... w v wj
-				Vec<int> arr = { v_ };
+				Vector<int> arr = { v_ };
 				auto vjTow = putCustomersInVectorBetweenTwoCus(vj, w);
 				vectool::pushVectorBToBackOFVectorA(arr, vjTow);
 				vectool::pushVectorBToBackOFVectorA(arr, { v,wj });
@@ -1336,7 +1336,7 @@ DeltPen Solver::outrelocatevTowwj(int v, int w, int oneR) { //3
 			else if (front == w) {
 
 				// {w wj ....v_ v vj } ===> w v wj ... v_ vj
-				Vec<int> arr = { w,v };
+				Vector<int> arr = { w,v };
 				auto vjTow = putCustomersInVectorBetweenTwoCus(wj, v_);
 				vectool::pushVectorBToBackOFVectorA(arr, vjTow);
 				vectool::pushVectorBToBackOFVectorA(arr, { vj });
@@ -1369,8 +1369,8 @@ DeltPen Solver::outrelocatevTowwj(int v, int w, int oneR) { //3
 			bestM.PcOnly = 0;
 		}
 		else {
-			bestM.deltPc = std::max<DisType>(0, rw.rQ + input->datas[v].DEMAND - input->Q)
-				+ std::max<DisType>(0, rv.rQ - input->datas[v].DEMAND - input->Q)
+			bestM.deltPc = std::max<DisType>(0, rw.rQ + input->datas[v].DEMAND - input->vehicleCapacity)
+				+ std::max<DisType>(0, rv.rQ - input->datas[v].DEMAND - input->vehicleCapacity)
 				- rv.rPc - rw.rPc;
 			bestM.PcOnly = bestM.deltPc;
 			bestM.deltPc *= beta;
@@ -1501,8 +1501,8 @@ DeltPen Solver::inrelocatevv_(int v, int w, int oneR) { //4
 			bestM.PcOnly = 0;
 		}
 		else {
-			bestM.deltPc = std::max<DisType>(0, rw.rQ - input->datas[w].DEMAND - input->Q)
-				+ std::max<DisType>(0, rv.rQ + input->datas[w].DEMAND - input->Q)
+			bestM.deltPc = std::max<DisType>(0, rw.rQ - input->datas[w].DEMAND - input->vehicleCapacity)
+				+ std::max<DisType>(0, rv.rQ + input->datas[w].DEMAND - input->vehicleCapacity)
 				- rv.rPc - rw.rPc;
 			bestM.PcOnly = bestM.deltPc;
 			bestM.deltPc *= beta;
@@ -1624,8 +1624,8 @@ DeltPen Solver::inrelocatevvj(int v, int w, int oneR) { //5
 		}
 		else {
 			// insert w to (v,v+)
-			bestM.deltPc = std::max<DisType>(0, rw.rQ - input->datas[w].DEMAND - input->Q)
-				+ std::max<DisType>(0, rv.rQ + input->datas[w].DEMAND - input->Q)
+			bestM.deltPc = std::max<DisType>(0, rw.rQ - input->datas[w].DEMAND - input->vehicleCapacity)
+				+ std::max<DisType>(0, rv.rQ + input->datas[w].DEMAND - input->vehicleCapacity)
 				- rv.rPc - rw.rPc;
 			bestM.PcOnly = bestM.deltPc;
 			bestM.deltPc *= beta;
@@ -1764,8 +1764,8 @@ DeltPen Solver::exchangevw(int v, int w, int oneR) { // 8
 		}
 		else {
 
-			bestM.deltPc = std::max<DisType>(0, wQ - input->datas[w].DEMAND + input->datas[v].DEMAND - input->Q)
-				+ std::max<DisType>(0, vQ - input->datas[v].DEMAND + input->datas[w].DEMAND - input->Q)
+			bestM.deltPc = std::max<DisType>(0, wQ - input->datas[w].DEMAND + input->datas[v].DEMAND - input->vehicleCapacity)
+				+ std::max<DisType>(0, vQ - input->datas[v].DEMAND + input->datas[w].DEMAND - input->vehicleCapacity)
 				- vPc - wPc;
 			bestM.PcOnly = bestM.deltPc;
 			bestM.deltPc *= beta;
@@ -1968,8 +1968,8 @@ DeltPen Solver::exchangevvjw(int v, int w, int oneR) { // 11 2换1
 		else {
 
 			bestM.deltPc =
-				std::max<DisType>(0, wQ - input->datas[w].DEMAND + input->datas[v].DEMAND + input->datas[vj].DEMAND - input->Q)
-				+ std::max<DisType>(0, vQ - input->datas[v].DEMAND - input->datas[vj].DEMAND + input->datas[w].DEMAND - input->Q)
+				std::max<DisType>(0, wQ - input->datas[w].DEMAND + input->datas[v].DEMAND + input->datas[vj].DEMAND - input->vehicleCapacity)
+				+ std::max<DisType>(0, vQ - input->datas[v].DEMAND - input->datas[vj].DEMAND + input->datas[w].DEMAND - input->vehicleCapacity)
 				- vPc - wPc;
 			bestM.PcOnly = bestM.deltPc;
 			bestM.deltPc *= beta;
@@ -2175,8 +2175,8 @@ DeltPen Solver::exchangevvjvjjwwj(int v, int w, int oneR) { // 9 3换2
 		}
 		else {
 			bestM.deltPc =
-				std::max<DisType>(0, wQ - input->datas[w].DEMAND - input->datas[wj].DEMAND + input->datas[v].DEMAND + input->datas[vj].DEMAND + input->datas[vjj].DEMAND - input->Q)
-				+ std::max<DisType>(0, vQ - input->datas[v].DEMAND - input->datas[vj].DEMAND - input->datas[vjj].DEMAND + input->datas[w].DEMAND + input->datas[wj].DEMAND - input->Q)
+				std::max<DisType>(0, wQ - input->datas[w].DEMAND - input->datas[wj].DEMAND + input->datas[v].DEMAND + input->datas[vj].DEMAND + input->datas[vjj].DEMAND - input->vehicleCapacity)
+				+ std::max<DisType>(0, vQ - input->datas[v].DEMAND - input->datas[vj].DEMAND - input->datas[vjj].DEMAND + input->datas[w].DEMAND + input->datas[wj].DEMAND - input->vehicleCapacity)
 				- vPc - wPc;
 			bestM.PcOnly = bestM.deltPc;
 			bestM.deltPc *= beta;
@@ -2359,8 +2359,8 @@ DeltPen Solver::exchangevvjvjjw(int v, int w, int oneR) { // 10 三换一
 		else {
 
 			bestM.deltPc =
-				std::max<DisType>(0, wQ - input->datas[w].DEMAND + input->datas[v].DEMAND + input->datas[vj].DEMAND + input->datas[vjj].DEMAND - input->Q)
-				+ std::max<DisType>(0, vQ - input->datas[v].DEMAND - input->datas[vj].DEMAND - input->datas[vjj].DEMAND + input->datas[w].DEMAND - input->Q)
+				std::max<DisType>(0, wQ - input->datas[w].DEMAND + input->datas[v].DEMAND + input->datas[vj].DEMAND + input->datas[vjj].DEMAND - input->vehicleCapacity)
+				+ std::max<DisType>(0, vQ - input->datas[v].DEMAND - input->datas[vj].DEMAND - input->datas[vjj].DEMAND + input->datas[w].DEMAND - input->vehicleCapacity)
 				- vPc - wPc;
 			bestM.PcOnly = bestM.deltPc;
 			bestM.deltPc *= beta;
@@ -2530,8 +2530,8 @@ DeltPen Solver::outrelocatevvjTowwj(int v, int w, int oneR) {  //13 扔两个
 		else {
 
 			bestM.deltPc =
-				std::max<DisType>(0, wQ + input->datas[v].DEMAND + input->datas[vj].DEMAND - input->Q)
-				+ std::max<DisType>(0, vQ - input->datas[v].DEMAND - input->datas[vj].DEMAND - input->Q)
+				std::max<DisType>(0, wQ + input->datas[v].DEMAND + input->datas[vj].DEMAND - input->vehicleCapacity)
+				+ std::max<DisType>(0, vQ - input->datas[v].DEMAND - input->datas[vj].DEMAND - input->vehicleCapacity)
 				- vPc - wPc;
 			bestM.PcOnly = bestM.deltPc;
 			bestM.deltPc *= beta;
@@ -2695,7 +2695,7 @@ DeltPen Solver::reversevw(int v, int w) {//15 翻转
 
 }
 
-DeltPen Solver::_Nopt(Vec<int>& nodes) { //16 Nopt*
+DeltPen Solver::_Nopt(Vector<int>& nodes) { //16 Nopt*
 
 	DeltPen bestM;
 
@@ -2715,7 +2715,7 @@ DeltPen Solver::_Nopt(Vec<int>& nodes) { //16 Nopt*
 		newPtwNoWei += newwvPtw;
 
 		newPc += std::max<DisType>(0,
-			(vt > 0 ? customers[vt].Q_X : 0) + (wt > 0 ? customers[wt].QX_ : 0) - input->Q);
+			(vt > 0 ? customers[vt].Q_X : 0) + (wt > 0 ? customers[wt].QX_ : 0) - input->vehicleCapacity);
 		return newwvPtw;
 	};
 
@@ -3510,7 +3510,7 @@ bool Solver::doReverse(TwoNodeMove& M) {
 	int f_ = customers[front].pre;
 	int bj = customers[back].next;
 
-	Vec<int> ve;
+	Vector<int> ve;
 	ve.reserve(r.rCustCnt);
 
 	int pt = front;
@@ -3538,9 +3538,9 @@ bool Solver::doReverse(TwoNodeMove& M) {
 	return true;
 }
 
-Vec<int> Solver::getPtwNodes(Route& r, int ptwKind) {
+Vector<int> Solver::getPtwNodes(Route& r, int ptwKind) {
 
-	Vec<int> ptwNodes;
+	Vector<int> ptwNodes;
 	ptwNodes.reserve(r.rCustCnt);
 
 	#if LYH_CHECKING
@@ -3823,7 +3823,7 @@ TwoNodeMove Solver::getMovesRandomly
 
 			int N = vpos1;
 			int m = std::max<int>(1, N / devided);
-			Vec<int>& ve = randomx->getMN(N, m);
+			Vector<int>& ve = randomx->getMN(N, m);
 			for (int i = 0; i < m; ++i) {
 				int wpos = ve[i];
 
@@ -3873,7 +3873,7 @@ TwoNodeMove Solver::getMovesRandomly
 
 			m = std::max<int>(1, m);
 			randomx->getMN(N, m);
-			Vec<int>& ve = randomx->mpLLArr[N];
+			Vector<int>& ve = randomx->mpLLArr[N];
 
 			for (int i = 0; i < m; ++i) {
 				int wpos = ve[i];
@@ -3909,12 +3909,12 @@ TwoNodeMove Solver::getMovesRandomly
 		int devided = 7;
 		//int devided = 5;
 
-		Vec<int>& relatedToV = input->iInNeicloseOfUnionNeiCloseOfI[v];
+		Vector<int>& relatedToV = input->iInNeicloseOfUnionNeiCloseOfI[v];
 
 		int N = static_cast<int>(relatedToV.size());
 		int m = std::max<int>(1, N / devided);
 
-		Vec<int>& ve = randomx->getMN(N, m);
+		Vector<int>& ve = randomx->getMN(N, m);
 		for (int i = 0; i < m; ++i) {
 			int wpos = ve[i];
 			int w = relatedToV[wpos];
@@ -3962,7 +3962,7 @@ TwoNodeMove Solver::getMovesRandomly
 
 	if (r.rPtw > 0) {
 
-		Vec<int> ptwNodes = getPtwNodes(r,0);
+		Vector<int> ptwNodes = getPtwNodes(r,0);
 		
 		for (int v : ptwNodes) {
 
@@ -4007,13 +4007,13 @@ TwoNodeMove Solver::getMovesRandomly
 		auto rArr = rPutCustomersInVector(r);
 		for (int v : rArr) {
 
-			Vec<int>& relatedToV = input->iInNeicloseOfUnionNeiCloseOfI[v];
+			Vector<int>& relatedToV = input->iInNeicloseOfUnionNeiCloseOfI[v];
 			int N = static_cast<int>(relatedToV.size());
 			int m = N / 7;
 			//int m = N;
 			m = std::max<int>(1, m);
 
-			Vec<int>& ve = randomx->getMN(N, m);
+			Vector<int>& ve = randomx->getMN(N, m);
 			for (int i = 0; i < m; ++i) {
 				int wpos = ve[i];
 
@@ -4089,7 +4089,7 @@ bool Solver::resetConfRts() {
 	return true;
 };
 
-bool Solver::resetConfRtsByOneMove(Vec<int> ids) {
+bool Solver::resetConfRtsByOneMove(Vector<int> ids) {
 
 	for (int id : ids) {
 		PtwConfRts.removeVal(id);
@@ -4110,7 +4110,7 @@ bool Solver::resetConfRtsByOneMove(Vec<int> ids) {
 	return true;
 };
 
-bool Solver::doEjection(Vec<eOneRNode>& XSet) {
+bool Solver::doEjection(Vector<eOneRNode>& XSet) {
 
 	#if LYH_CHECKING
 
@@ -4165,7 +4165,7 @@ bool Solver::doEjection(Vec<eOneRNode>& XSet) {
 	return true;
 }
 
-bool Solver::managerCusMem(Vec<int>& releaseNodes) {
+bool Solver::managerCusMem(Vector<int>& releaseNodes) {
 
 	//printve(releaseNodes);
 	int useEnd = input->custCnt + (rts.cnt + 1) * 2 + 1;
@@ -4210,8 +4210,8 @@ bool Solver::removeOneRouteByRid(int rId) {
 
 	Route& rt = rts.getRouteByRid(rId);
 
-	Vec<int> rtVe = rPutCustomersInVector(rt);
-	Vec<int> releasedNodes = { rt.head,rt.tail };
+	Vector<int> rtVe = rPutCustomersInVector(rt);
+	Vector<int> releasedNodes = { rt.head,rt.tail };
 	rReset(rt);
 	rts.removeIndex(rts.posOf[rId]);
 	
@@ -4228,7 +4228,7 @@ bool Solver::removeOneRouteByRid(int rId) {
 
 DisType Solver::verify() {
 
-	Vec<int> visitCnt(input->custCnt + 1, 0);
+	Vector<int> visitCnt(input->custCnt + 1, 0);
 
 	int cusCnt = 0;
 	DisType routesCost = 0;
@@ -4244,7 +4244,7 @@ DisType Solver::verify() {
 		Ptw += rUpdateAvQFrom(r, r.head);
 		Pc += rUpdatePc(r);
 
-		Vec<int> cusve = rPutCustomersInVector(r);
+		Vector<int> cusve = rPutCustomersInVector(r);
 		for (int pt : cusve) {
 			++cusCnt;
 			++visitCnt[pt];
@@ -4288,7 +4288,7 @@ DeltPen Solver::getDeltIfRemoveOneNode(Route& r, int pt) {
 	DisType avnp = customers[pre].av + input->datas[pre].SERVICETIME + input->getDisof2(pre,next);
 	d.PtwOnly = std::max<DisType>(0, avnp - customers[next].zv) + customers[next].TWX_ + customers[pre].TW_X;
 	d.PtwOnly = d.PtwOnly - r.rPtw;
-	d.PcOnly = std::max<DisType>(0, r.rQ - input->datas[pt].DEMAND - input->Q);
+	d.PcOnly = std::max<DisType>(0, r.rQ - input->datas[pt].DEMAND - input->vehicleCapacity);
 	d.PcOnly = d.PcOnly - r.rPc;
 	return d;
 
@@ -4310,8 +4310,8 @@ bool Solver::addWeightToRoute(TwoNodeMove& bestM) {
 			//		/*debug(c)
 			//		debug(d.PtwOnly)
 			//		debug(d.PcOnly)*/
-			//		(*yearTable)[c][cnext] = squIter + aps->yearTabuLen;
-			//		(*yearTable)[cpre][c] = squIter + aps->yearTabuLen;
+			//		(*yearTable)[c][cnext] = iter + aps->yearTabuLen;
+			//		(*yearTable)[cpre][c] = iter + aps->yearTabuLen;
 			//	}
 			//}
 
@@ -4390,7 +4390,7 @@ bool Solver::routeWeightedRepair() {
 			resetConfRts();
 			sumRtsPenalty();
 
-			Vec<eOneRNode> reteNode = ejectFromPatialSol();
+			Vector<eOneRNode> reteNode = ejectFromPatialSol();
 
 			int bestCnt = 1;
 			int sum = 0;
@@ -4438,14 +4438,13 @@ bool Solver::routeWeightedRepair() {
 
 	yearTable->squIterGrowUp(aps->yearTabuLen + aps->yearTabuRand);
 
-	aps->squContiIter = aps->squMinContiIter;
 	DisType pBestThisTurn = DisInf;
-	int contiNotDe = 0;
+	int stagnation = 0;
 
 	auto updateBestM = [&](TwoNodeMove& t, TwoNodeMove& bestM)->bool {
 
 		/*LL tYear = getYearOfMove(t);
-		bool isTabu = (squIter <= tYear);
+		bool isTabu = (iter <= tYear);
 		bool isTabu = false;
 		if (isTabu) {
 			if (t.deltPen.deltPc + t.deltPen.deltPtw
@@ -4489,25 +4488,25 @@ bool Solver::routeWeightedRepair() {
 		TwoNodeMove bestM = getMovesRandomly(updateBestM);
 
 		if (bestM.deltPen.PcOnly == DisInf || bestM.deltPen.PtwOnly == DisInf) {
-			if (contiNotDe == aps->squContiIter) {
+			if (stagnation == aps->maxStagnationIterOfRepair) {
 				break;
 			}
 			Logger::INFO("squeeze fail find move");
-			Logger::INFO("yearTable->squIter", yearTable->squIter);
-			++contiNotDe;
+			Logger::INFO("yearTable->iter", yearTable->iter);
+			++stagnation;
 			continue;
 		}
 
 		#if LYH_CHECKING
 		if (bestM.deltPen.PcOnly == DisInf || bestM.deltPen.PtwOnly == DisInf) {
 			Logger::ERROR("squeeze fail find move");
-			Logger::ERROR("yearTable->squIter:",yearTable->squIter);
+			Logger::ERROR("yearTable->iter:",yearTable->squIter);
 			++contiNotDe;
 			continue;
 		}
-		Vec<Vec<int>> oldRoutes;
-		Vec<int> oldrv;
-		Vec<int> oldrw;
+		Vector<Vector<int>> oldRoutes;
+		Vector<int> oldrv;
+		Vector<int> oldrw;
 
 		DisType oldpenalty = penalty;
 		DisType oldPtw = Ptw;
@@ -4612,53 +4611,18 @@ bool Solver::routeWeightedRepair() {
 		addWeightToRoute(bestM);
 
 		if (penalty < pBestThisTurn) {
-			contiNotDe = 0;
+			stagnation = 0;
 			pBestThisTurn = penalty;
 		}
 		else {
-			++contiNotDe;
+			++stagnation;
 		}
 
 		//bool isDown = updateBestPool(Pc, PtwNoWei);
 		updateBestPool(Pc, PtwNoWei);
 
-		//if (contiNotDe == squCon.squContiIter / 2) {
-			//if (PtwNoWei < Pc) {
-			//	beta *= 1.01;
-			//	//beta *= 1.1;
-			//	if ( beta > 10000) {
-			//		 beta = 10000;
-			//	}
-			//}
-			//else if (PtwNoWei > Pc) {
-			//	 beta *= 0.99;
-			//	//beta *= 0.9;
-			//	if ( beta < 1) {
-			//		 beta = 1;
-			//	}
-			//}
-			//penalty =  alpha*Ptw +  beta*Pc;
-			//LL minW = squCon.inf;
-			//for (int i = 0; i < rts.size(); ++i) {
-			//	minW = std::min<int>(minW, rts[i].rWeight);
-			//}
-			//minW = minW/3 + 1;
-			//for (int i = 0; i < rts.size(); ++i) {
-			//	//rts[i].rWeight = rts[i].rWeight - minW +1;
-			//	rts[i].rWeight = rts[i].rWeight/ minW +1;
-			//}
-			//sumRtsPen();
-		//}
-
-		if (contiNotDe == aps->squContiIter) {
-
-			if (penalty < static_cast<DisType>(1.1 * pBestThisTurn) && aps->squContiIter < aps->squMaxContiIter) {
-				aps->squContiIter += aps->squIterStepUp;
-				aps->squContiIter = std::min<int>(aps->squMaxContiIter, aps->squContiIter);
-			}
-			else {
-				break;
-			}
+		if (stagnation == aps->maxStagnationIterOfRepair) {
+			break;
 		}
 
 		/*out(squCon.squContiIter)
@@ -4703,7 +4667,7 @@ void Solver::ruinClearEP(int kind) {
 	// 保存放入节点的路径，放入结束之后只更新这些路径的cost值
 	std::unordered_set<int> insRts;
 	
-	Vec<int> EPArr = EP.putElementInVector();
+	Vector<int> EPArr = EP.putElementInVector();
 
 	auto cmp1 = [&](int a, int b) {
 		return input->datas[a].DEMAND > input->datas[b].DEMAND;
@@ -4792,8 +4756,8 @@ int Solver::ruinGetSplitDepth(int maxDept) {
 		return -1;
 	}
 
-	static Vec<int> a = { 10000 };
-	static Vec<int> s = { 10000 };
+	static Vector<int> a = { 10000 };
+	static Vector<int> s = { 10000 };
 	if (maxDept >= static_cast<int>(a.size())) {
 		int oldS = static_cast<int>(a.size());
 		a.resize(maxDept + 2);
@@ -4808,7 +4772,7 @@ int Solver::ruinGetSplitDepth(int maxDept) {
 	return static_cast<int>(index + 1);
 }
 
-Vec<int> Solver::ruinGetRuinCusBySting(int ruinKmax, int ruinLmax) {
+Vector<int> Solver::ruinGetRuinCusBySting(int ruinKmax, int ruinLmax) {
 
 	std::unordered_set<int> uset;
 
@@ -4945,13 +4909,13 @@ Vec<int> Solver::ruinGetRuinCusBySting(int ruinKmax, int ruinLmax) {
 		int frontStr = random->pick(1,m+1);
 		int endStr = m - frontStr;
 
-		//Vec<int> farr;
+		//Vector<int> farr;
 		for (int i = 0; i < frontStr;++i) {
 			uset.insert(a[strbeg+i]);
 			//farr.push_back(a[strbeg + i]);
 		}
 
-		//Vec<int> eArr;
+		//Vector<int> eArr;
 		for (int i = 0; i < endStr; ++i) {
 			uset.insert(a[strbeg + t + i]);
 			//eArr.push_back(a[strbeg + frontStr + t + i]);
@@ -4964,7 +4928,7 @@ Vec<int> Solver::ruinGetRuinCusBySting(int ruinKmax, int ruinLmax) {
 		splitAndmiddle(beg);
 	}
 
-	Vec<int> runCus;
+	Vector<int> runCus;
 	runCus.reserve(uset.size());
 	for (int c : uset) {
 		runCus.push_back(c);
@@ -4973,7 +4937,7 @@ Vec<int> Solver::ruinGetRuinCusBySting(int ruinKmax, int ruinLmax) {
 	return runCus;
 }
 
-Vec<int> Solver::ruinGetRuinCusByRound(int ruinCusNum) {
+Vector<int> Solver::ruinGetRuinCusByRound(int ruinCusNum) {
 
 	int left = std::max<int>( static_cast<int>(ruinCusNum * 0.7), 1);
 	int right = std::min<int>(input->custCnt - 1, static_cast<int>(ruinCusNum * 1.3));
@@ -4987,7 +4951,7 @@ Vec<int> Solver::ruinGetRuinCusByRound(int ruinCusNum) {
 		v = random->pick(input->custCnt) + 1;
 	}
 
-	Vec<int> runCus;
+	Vector<int> runCus;
 	runCus.reserve(ruinCusNum);
 	runCus.push_back(v);
 
@@ -5001,7 +4965,7 @@ Vec<int> Solver::ruinGetRuinCusByRound(int ruinCusNum) {
 	return runCus;
 }
 
-Vec<int> Solver::ruinGetRuinCusByRand(int ruinCusNum) {
+Vector<int> Solver::ruinGetRuinCusByRand(int ruinCusNum) {
 
 	int left = std::max<int>(ruinCusNum * 0.7, 1);
 	int right = std::min<int>(input->custCnt - 1, ruinCusNum * 1.3);
@@ -5009,7 +4973,7 @@ Vec<int> Solver::ruinGetRuinCusByRand(int ruinCusNum) {
 
 	//int v = random->pick(input->custCnt)+1;
 	//ruinCusNum = 40;
-	//Vec<int> ret;
+	//Vector<int> ret;
 	//ret.reserve(ruinCusNum);
 	//ret.push_back(v);
 
@@ -5024,14 +4988,14 @@ Vec<int> Solver::ruinGetRuinCusByRand(int ruinCusNum) {
 
 	auto& arr = randomx->getMN(input->custCnt, ruinCusNum);
 	random->shuffleVec(arr);
-	Vec<int> ret;
+	Vector<int> ret;
 	for (int i = 0; i < ruinCusNum; ++i) {
 		ret.push_back(arr[i]+1);
 	}
 	return ret;
 }
 
-Vec<int> Solver::ruinGetRuinCusByRandOneR(int ruinCusNum) {
+Vector<int> Solver::ruinGetRuinCusByRandOneR(int ruinCusNum) {
 
 	//int index = 0;
 	//for (int i = 1; i < rts.cnt; ++i) {
@@ -5045,22 +5009,22 @@ Vec<int> Solver::ruinGetRuinCusByRandOneR(int ruinCusNum) {
 	return arr;
 }
 
-Vec<int> Solver::ruinGetRuinCusBySec(int ruinCusNum) {
+Vector<int> Solver::ruinGetRuinCusBySec(int ruinCusNum) {
 
 	//ruinCusNum = random->pick(1, ruinCusNum+1);
 
 	ruinCusNum = std::min<int>(ruinCusNum, input->custCnt - 1);
 
-	Vec<CircleSector> secs(rts.cnt);
+	Vector<CircleSector> secs(rts.cnt);
 	for (int i = 0; i < rts.cnt; ++i) {
 		secs[i] = rGetCircleSector(rts[i]);
 	}
 
-	Vec<int> rOrder(rts.cnt, 0);
+	Vector<int> rOrder(rts.cnt, 0);
 	std::iota(rOrder.begin(), rOrder.end(), 0);
 	random->shuffleVec(rOrder);
 
-	Vec< Vec<int> > overPair;
+	Vector< Vector<int> > overPair;
 
 	for (int i = 0; i < rts.cnt; ++i) {
 		for (int j = i + 1; j < rts.cnt; ++j) {
@@ -5107,7 +5071,7 @@ Vec<int> Solver::ruinGetRuinCusBySec(int ruinCusNum) {
 		}
 	}
 
-	Vec<int> cusArr = putEleInVec(cusSet);
+	Vector<int> cusArr = putEleInVec(cusSet);
 
 	//Logger::INFO("cusArr.size():", cusArr.size(),"runNum:",ruinCusNum);
 	
@@ -5152,7 +5116,7 @@ void Solver::perturbBasedEjectionPool(int ruinCusNum) {
 
 bool Solver::doOneTimeRuinPer(int perturbkind, int ruinCusNum, int clearEPKind) {
 
-	Vec<int> ruinCus = getRuinCustomers(perturbkind,ruinCusNum);
+	Vector<int> ruinCus = getRuinCustomers(perturbkind,ruinCusNum);
 
 	std::unordered_set<int> rIds;
 	for (int cus : ruinCus) {
@@ -5249,7 +5213,6 @@ bool Solver::perturbBasedRuin(int perturbkind, int ruinCusNum,int clearEPKind) {
 	return false;
 }
 
-//TODO[-1]:可能把解变差
 int Solver::ruinLocalSearchNotNewR(int ruinCusNum) {
 
 	gamma = 1;
@@ -5276,7 +5239,7 @@ int Solver::ruinLocalSearchNotNewR(int ruinCusNum) {
 		if (ispertutb) {
 			auto cuses = EAX::getDiffCusofPb(solclone, *this);
 			if (cuses.size() > 0) {
-				minimizeRouteDistanceLocalSearch(1,cuses);
+				simpleLocalSearch(1,cuses);
 			}
 			if (RoutesCost < Before) {
 				++pcRuinkind.data[kind];
@@ -5296,7 +5259,7 @@ int Solver::ruinLocalSearchNotNewR(int ruinCusNum) {
 int Solver::CVB2ClearEPAllowNewR(int kind) {
 
 	std::unordered_set<int> insRts;
-	Vec<int> EPArr = EP.putElementInVector();
+	Vector<int> EPArr = EP.putElementInVector();
 
 	auto cmp1 = [&](int a, int b) {
 		return input->datas[a].DEMAND > input->datas[b].DEMAND;
@@ -5398,7 +5361,7 @@ int Solver::CVB2ruinLS(int ruinCusNum) {
 	Solver solClone = *this;
 	int perturbkind = pcRuKind.getIndexBasedData();
 
-	Vec<int> ruinCus;
+	Vector<int> ruinCus;
 	if (perturbkind == 0) {
 		ruinCus = ruinGetRuinCusByRound(ruinCusNum);
 	}
@@ -5409,7 +5372,7 @@ int Solver::CVB2ruinLS(int ruinCusNum) {
 		int avgLen = input->custCnt / rts.cnt;
 		int Lmax = std::min<int>(aps->ruinLmax, avgLen);
 		int ruinKmax = 4 * ruinCusNum / (1 + Lmax) - 1;
-		//TODO[-1]:!!!!!!
+
 		ruinKmax = std::min<int>(rts.cnt - 1, ruinKmax);
 		ruinKmax = std::max<int>(1, ruinKmax);
 		ruinCus = ruinGetRuinCusBySting(ruinKmax, Lmax);
@@ -5459,7 +5422,7 @@ int Solver::CVB2ruinLS(int ruinCusNum) {
 
 	auto cuses = EAX::getDiffCusofPb(solClone, *this);
 	if (cuses.size() > 0) {
-		minimizeRouteDistanceLocalSearch(1, cuses);
+		simpleLocalSearch(1, cuses);
 	}
 
 	//TODO[-1]:这里去掉了reCalRtsCostAndPen
@@ -5472,7 +5435,6 @@ int Solver::CVB2ruinLS(int ruinCusNum) {
 	return true;
 }
 
-//0 表示不可以增加新路，1表示可以增加新路
 int Solver::simulatedannealing(int kind,int iterMax, double temperature,int ruinNum) {
 
 	Solver pBest = *this;
@@ -5522,107 +5484,9 @@ int Solver::simulatedannealing(int kind,int iterMax, double temperature,int ruin
 
 }
 
-Vec<int> Solver::dynamicPartialClearDynamicEP(int kind, WeightedEjectPool& dynamicEP) {
+Vector<int> Solver::getRuinCustomers(int perturbkind, int ruinCusNum) {
 
-	std::unordered_set<int> insRts;
-	Vec<int> EPArr = dynamicEP.putElementInVector();
-
-	auto cmp1 = [&](int a, int b) {
-		return input->datas[a].DEMAND > input->datas[b].DEMAND;
-	};
-	auto cmp2 = [&](int a, int b) {
-		return input->datas[a].DUEDATE - input->datas[a].READYTIME
-			< input->datas[b].DUEDATE - input->datas[b].READYTIME;
-	};
-
-	auto cmp3 = [&](int a, int b) {
-		return input->getDisof2(a, 0) < input->getDisof2(b, 0);
-	};
-
-	auto cmp4 = [&](int a, int b) {
-		return input->datas[a].READYTIME > input->datas[b].READYTIME;
-	};
-
-	auto cmp5 = [&](int a, int b) {
-		return input->datas[a].DUEDATE < input->datas[b].DUEDATE;
-	};
-
-	switch (kind) {
-	case 0:
-		random ->shuffleVec(EPArr);
-		break;
-	case 1:
-		std::sort(EPArr.begin(), EPArr.end(), cmp1);
-		break;
-	case 2:
-		std::sort(EPArr.begin(), EPArr.end(), cmp2);
-		break;
-	case 3:
-		std::sort(EPArr.begin(), EPArr.end(), cmp3);
-		break;
-	case 4:
-		std::sort(EPArr.begin(), EPArr.end(), cmp4);
-		break;
-	case 5:
-		std::sort(EPArr.begin(), EPArr.end(), cmp5);
-		break;
-	default:
-		break;
-	}
-
-	Vec<int> ret;
-
-
-	for (int i = 0; i < static_cast<int>(EPArr.size()); ++i) {
-		//for (int i = EPArr.size() - 1;i>=0;--i) {
-		int pt = EPArr[i];
-
-		//++P[pt];
-		auto bestPos = findBestPositionForRuin(pt);
-
-		if (bestPos.pen == 0) {
-			if (bestPos.cost - input->P[pt] < 0
-				|| random->pick(100) < aps -> rateOfDynamicInAndOut
-				) {
-				Route& r = rts[bestPos.rIndex];
-				insRts.insert(r.routeID);
-				rInsertAtPosition(r, bestPos.pos, pt);
-				rUpdateAvQFrom(r, pt);
-				rUpdateZvQFrom(r, pt);
-				dynamicEP.remove(pt);
-				ret.push_back(pt);
-			}
-		}
-		else {
-
-			if (input->getDisof2(0, pt) + input->getDisof2(pt, 0) - input->P[pt] < 0
-				|| random->pick(100) < aps->rateOfDynamicInAndOut
-				) {
-				int rid = getARouteIdCanUsed();
-				Route r1 = rCreateRoute(rid);
-				rInsAtPosPre(r1, r1.tail, pt);
-				rUpdateAvQFrom(r1, r1.head);
-				rUpdateZvQFrom(r1, r1.tail);
-				rts.push_back(r1);
-				insRts.insert(rid);
-				dynamicEP.remove(pt);
-				ret.push_back(pt);
-			}
-		}
-	}
-
-	sumRtsPenalty();
-	for (auto rId : insRts) {
-		Route& r = rts.getRouteByRid(rId);
-		rReCalculateRouteCost(r);
-	}
-	sumRtsCost();
-	return ret;
-}
-
-Vec<int> Solver::getRuinCustomers(int perturbkind, int ruinCusNum) {
-
-	Vec<int> ruinCus;
+	Vector<int> ruinCus;
 	if (perturbkind == 0) {
 		ruinCus = ruinGetRuinCusByRound(ruinCusNum);
 	}
@@ -5651,141 +5515,9 @@ Vec<int> Solver::getRuinCustomers(int perturbkind, int ruinCusNum) {
 	return ruinCus;
 }
 
-int Solver::dynamicRuin(int ruinCusNum) {
-
-	static ProbControl pcRuKind(5,&input->randomTools->random);
-	//static ProbControl pcRuKind(3);
-	static ProbControl pcCLKind(6, &input->randomTools->random);
-	WeightedEjectPool dynamicEP(input);
-
-	auto solBestFound = *this;
-	auto bestDynamicEP = dynamicEP;
-
-	int perturbkind = pcRuKind.getIndexBasedData();
-	int clearKind = pcCLKind.getIndexBasedData();
-	Vec<int> relevantCustomers;
-
-	Vec<int> ejectedCuses = dynamicPartialClearDynamicEP(clearKind,dynamicEP);
-	//    Vec<int> ejectedCuses = {dynamicEP.randomPeek()};
-	relevantCustomers.insert(relevantCustomers.end(), ejectedCuses.begin(), ejectedCuses.end());
-
-	int c_1 = random->pick(aps->ruinC_Min, aps->ruinC_Max + 1);
-	c_1 = std::min<int>(c_1, input->custCnt - 1 - dynamicEP.size());
-	if (c_1 > 0) {
-		simulatedannealing(1,10, 100.0, c_1);
-	}
-
-	std::unordered_set<int> newCustomersSet;
-	for (int v : relevantCustomers) {
-		if (customers[v].routeID != -1) {
-			newCustomersSet.insert(v);
-		}
-		for (int wpos = 0; wpos < 3; ++wpos) {
-			int w = input->addSTclose[v][wpos];
-			if (customers[w].routeID != -1) {
-				newCustomersSet.insert(w);
-			}
-		}
-	}
-	Vec<int> newCustomers;
-	for (int i : newCustomersSet) {
-		newCustomers.push_back(i);
-	}
-	if (newCustomers.size() > 0) {
-		minimizeRouteDistanceLocalSearch(1, newCustomers);
-	}
-
-	if (RoutesCost + dynamicEP.sumCost < solBestFound.RoutesCost + bestDynamicEP.sumCost) {
-		++pcRuKind.data[perturbkind];
-		++pcCLKind.data[clearKind];
-		solBestFound = *this;
-		dynamicEP = bestDynamicEP;
-	}
-
-	auto ruinCus = getRuinCustomers(perturbkind, ruinCusNum);
-	//    auto ruinCus = dynamicEP.randomPeek()};
-
-	std::unordered_set<int> rIds;
-	for (int cus : ruinCus) {
-		if (input->datas[cus].must_dispatch == true || customers[cus].routeID == -1) {
-			continue;
-		}
-		//        if(dynamicEP.size() + 2 < input->custCnt) {
-		DisType delt = getDeltDistanceCostIfRemoveCustomer(cus);
-		if (dynamicEP.size() < input->custCnt &&
-			(
-				input->P[cus] + delt < 0
-				|| random->pick(100) < aps->rateOfDynamicInAndOut
-				)) {
-			//            INFO("input->P[cus]:",input->P[cus],"delt:",delt);
-			Route& r = rts.getRouteByRid(customers[cus].routeID);
-			rIds.insert(r.routeID);
-			rRemoveAtPosition(r, cus);
-
-			dynamicEP.insert(cus);
-			relevantCustomers.push_back(cus);
-			if (r.rCustCnt == 0) {
-				if (rIds.count(r.routeID) > 0) {
-					rIds.erase(rIds.find(r.routeID));
-				}
-				removeOneRouteByRid(r.routeID);
-			}
-		}
-	}
-
-	for (auto rid : rIds) {
-		Route& r = rts.getRouteByRid(rid);
-		rUpdateAvQFrom(r, r.head);
-		rUpdateZvQFrom(r, r.tail);
-		rReCalculateRouteCost(r);
-	}
-
-	sumRtsCost();
-	sumRtsPenalty();
-
-	for (int v : relevantCustomers) {
-		if (customers[v].routeID != -1) {
-			newCustomersSet.insert(v);
-		}
-		for (int wpos = 0; wpos < 3; ++wpos) {
-			int w = input->addSTclose[v][wpos];
-			if (customers[w].routeID != -1) {
-				newCustomersSet.insert(w);
-			}
-		}
-	}
-
-	for (int i : newCustomersSet) {
-		newCustomers.push_back(i);
-	}
-	if (newCustomers.size() > 0) {
-		minimizeRouteDistanceLocalSearch(1, newCustomers);
-	}
-
-	int c_ = random->pick(aps->ruinC_Min, aps->ruinC_Max + 1);
-	c_ = std::min<int>(c_, input->custCnt - 1 - dynamicEP.size());
-	if (c_ > 0) {
-		simulatedannealing(1,10, 100.0, c_);
-	}
-	//TODO[-1]:这里去掉了reCalRtsCostAndPen
-	//reCalRtsCostAndPen();
-
-	if (RoutesCost + dynamicEP.sumCost < solBestFound.RoutesCost + bestDynamicEP.sumCost) {
-		++pcRuKind.data[perturbkind];
-		++pcCLKind.data[clearKind];
-		solBestFound = *this;
-		dynamicEP = bestDynamicEP;
-	}
-
-	*this = solBestFound;
-	dynamicEP = bestDynamicEP;
-	bks->bestSolFound = *this;
-	return true;
-}
-
 bool Solver::patternAdjustment(int Irand) {
 
-	int I1000 = random->pick(1,aps->Irand);
+	int I1000 = random->pick(1,aps->patternAdjustmentIrand);
 	if (Irand > 0) {
 		I1000 = Irand;
 	}
@@ -5794,10 +5526,11 @@ bool Solver::patternAdjustment(int Irand) {
 	int iter = 0;
 	gamma = 0;
 
-	Vec<int> kindSet = { 0,1,6,7,8,9,10,2,3,4,5 };
+	Vector<int> kindSet = { 0,1,6,7,8,9,10,2,3,4,5 };
+	int patternAdjustmentGetM = 10;
 
-	int N = aps->patternAdjustmentNnei;
-	int m = std::min<int>(aps->patternAdjustmentGetM, N);
+	int N = aps->patternAdjustmentNeiborRange;
+	int m = std::min<int>(patternAdjustmentGetM, N);
 
 	auto getDelt0MoveRandomly = [&]() {
 
@@ -5812,7 +5545,7 @@ bool Solver::patternAdjustment(int Irand) {
 
 			m = std::max<int>(1, m);
 			randomx->getMN(N, m);
-			Vec<int>& ve = randomx->mpLLArr[N];
+			Vector<int>& ve = randomx->mpLLArr[N];
 			for (int i = 0; i < m; ++i) {
 				int wpos = ve[i];
 
@@ -5838,7 +5571,7 @@ bool Solver::patternAdjustment(int Irand) {
 					if (d.deltPc + d.deltPtw == 0) {
 						TwoNodeMove m(v, w, kind, d);
 						ret = m;
-						if (yearTable->squIter >= yearTable->getYearOfMove(this,m)) {
+						if (yearTable->iter >= yearTable->getYearOfMove(this,m)) {
 							return m;
 						}
 					}
@@ -5873,11 +5606,11 @@ bool Solver::patternAdjustment(int Irand) {
 	return true;
 }
 
-Vec<Solver::eOneRNode> Solver::ejectFromPatialSol() {
+Vector<Solver::eOneRNode> Solver::ejectFromPatialSol() {
 
-	Vec<eOneRNode>ret;
+	Vector<eOneRNode>ret;
 
-	Vec<int>confRSet;
+	Vector<int>confRSet;
 
 	confRSet.reserve(PtwConfRts.cnt + PcConfRts.cnt);
 	for (int i = 0; i < PtwConfRts.cnt; ++i) {
@@ -5966,7 +5699,7 @@ Solver::eOneRNode Solver::ejectOneRouteOnlyHasPcMinP(Route& r, int Kmax) {
 	eOneRNode noTabuN(r.routeID);
 	noTabuN.Psum = 0;
 
-	Vec<int> R = rPutCustomersInVector(r);
+	Vector<int> R = rPutCustomersInVector(r);
 
 	auto cmpMinP = [&](const int& a, const int& b) {
 
@@ -5990,7 +5723,7 @@ Solver::eOneRNode Solver::ejectOneRouteOnlyHasPcMinP(Route& r, int Kmax) {
 		return false;
 	};
 
-	std::priority_queue<int, Vec<int>, decltype(cmpMinD)> qu(cmpMinD);
+	std::priority_queue<int, Vector<int>, decltype(cmpMinD)> qu(cmpMinD);
 
 	for (const int& c : R) {
 		qu.push(c);
@@ -6005,7 +5738,7 @@ Solver::eOneRNode Solver::ejectOneRouteOnlyHasPcMinP(Route& r, int Kmax) {
 
 		qu.pop();
 		rQ -= input->datas[ctop].DEMAND;
-		rPc = std::max<DisType>(0, rQ - input->Q);
+		rPc = std::max<DisType>(0, rQ - input->vehicleCapacity);
 		noTabuN.ejeVe.push_back(ctop);
 		noTabuN.Psum += input->P[ctop];
 	}
@@ -6140,7 +5873,7 @@ Solver::eOneRNode Solver::ejectOneRouteOnlyP(Route& r, int kind, int Kmax) {
 			etemp.ejeVe.push_back(pt);
 			etemp.Psum += input->P[pt];
 
-			if (ptw == 0 && rQ - input->Q <= 0) {
+			if (ptw == 0 && rQ - input->vehicleCapacity <= 0) {
 				updateEje();
 			}
 
@@ -6171,9 +5904,9 @@ Solver::eOneRNode Solver::ejectOneRouteOnlyP(Route& r, int kind, int Kmax) {
 		rUpdateAvQFrom(r, r.head);
 	};
 
-	Vec<int> R = rPutCustomersInVector(r);
+	Vector<int> R = rPutCustomersInVector(r);
 
-	Vec<int> ptwArr;
+	Vector<int> ptwArr;
 
 	if (r.rPtw > 0) {
 
@@ -6193,7 +5926,7 @@ Solver::eOneRNode Solver::ejectOneRouteOnlyP(Route& r, int kind, int Kmax) {
 
 	int k = 0;
 	int N = static_cast<int>(ptwArr.size()) - 1;
-	Vec<int> ve(Kmax + 1, -1);
+	Vector<int> ve(Kmax + 1, -1);
 
 	/*etemp = getPtwIfRemoveOneNode(r.head);
 	updateEje();*/
@@ -6220,7 +5953,7 @@ Solver::eOneRNode Solver::ejectOneRouteOnlyP(Route& r, int kind, int Kmax) {
 
 			DisType ptw = getPtwUseEq2(customers[delv].next);
 
-			if (ptw == 0 && rQ - input->Q <= 0) {
+			if (ptw == 0 && rQ - input->vehicleCapacity <= 0) {
 				updateEje();
 			}
 
@@ -6265,7 +5998,7 @@ Solver::eOneRNode Solver::ejectOneRouteOnlyP(Route& r, int kind, int Kmax) {
 
 			DisType ptw = getPtwUseEq2(customers[delv].next);
 
-			if (ptw == 0 && rQ - input->Q <= 0) {
+			if (ptw == 0 && rQ - input->vehicleCapacity <= 0) {
 				updateEje();
 			}
 
@@ -6288,7 +6021,7 @@ Solver::eOneRNode Solver::ejectOneRouteMinPsumGreedy
 
 	eOneRNode ret(r.routeID);
 	ret.Psum = 0;
-	Vec<int> R = rPutCustomersInVector(r);
+	Vector<int> R = rPutCustomersInVector(r);
 
 	auto cmpP = [&](const int& a, const int& b) ->bool {
 
@@ -6313,7 +6046,7 @@ Solver::eOneRNode Solver::ejectOneRouteMinPsumGreedy
 		return false;
 	};
 
-	std::priority_queue<int, Vec<int>, decltype(cmpP)> qu(cmpP);
+	std::priority_queue<int, Vector<int>, decltype(cmpP)> qu(cmpP);
 
 	for (const int& c : R) {
 		qu.push(c);
@@ -6321,7 +6054,7 @@ Solver::eOneRNode Solver::ejectOneRouteMinPsumGreedy
 
 	DisType curPtw = r.rPtw;
 
-	Vec<int> noGoodToPtw;
+	Vector<int> noGoodToPtw;
 	noGoodToPtw.reserve(R.size());
 
 	while (curPtw > 0) {
@@ -6389,7 +6122,7 @@ bool Solver::resetSolver() {
 	alpha = 1;
 	beta = 1;
 	gamma = 1;
-	//squIter = 0;
+	//iter = 0;
 	penalty = 0;
 	Ptw = 0;
 	PtwNoWei = 0;
@@ -6412,7 +6145,7 @@ bool Solver::EPNodesCanEasilyPut() {
 		DisType oldpenalty = PtwNoWei + Pc;
 		#endif // LYH_CHECKING
 
-		Vec<int> arr = EP.putElementInVector();
+		Vector<int> arr = EP.putElementInVector();
 		int top = arr[EPIndex];
 
 		Position bestP = findBestPositionInSolution(top);
@@ -6799,15 +6532,18 @@ bool Solver::repair() {
 
 	int contiNotDe = 0;
 
-	//static Vec<int> moveContribute(16,0);
+	//static Vector<int> moveContribute(16,0);
 
 	auto iter = 0;
 
 	auto penBest = penalty;
 
+
+	int repairExitStep = 5;
+
 	while (penalty > 0) {
 		++iter;
-		if (contiNotDe > aps->repairExitStep) {
+		if (contiNotDe > repairExitStep) {
 			break;
 		}
 		//TODO[2][repair]:这里修复的邻域动作究竟怎么选
@@ -6816,10 +6552,10 @@ bool Solver::repair() {
 		if (bestM.deltPen.PcOnly + bestM.deltPen.PtwOnly > 0) {
 
 			++contiNotDe;
-			if (contiNotDe > aps->repairExitStep) {
+			if (contiNotDe > repairExitStep) {
 				break;
 			}
-			//maxCon = std::max<int>(maxCon,contiNotDe);
+			//maxCon = std::max<int>(maxCon,stagnation);
 			if (bestM.v == 0 && bestM.w == 0) {
 				break;
 			}
@@ -6865,7 +6601,7 @@ bool Solver::repair() {
 	return false;
 }
 
-bool Solver::minimizeRouteDistanceLocalSearch(int hasRange,Vec<int> newCus) {
+bool Solver::simpleLocalSearch(int hasRange,Vector<int> newCus) {
 
 	alpha = 1;
 	beta = 1;
@@ -6875,11 +6611,11 @@ bool Solver::minimizeRouteDistanceLocalSearch(int hasRange,Vec<int> newCus) {
 
 	TwoNodeMove MRLbestM;
 
-	static Vec<int> moveKindOrder = { 0,1,2,3,4,5,6,7, 8,/*9,10,*/ 11,/*12,*/13,/*14,*/15};
-	//static Vec<int> moveKindOrder = { 0,1,2,3,4,5,6,7, 8,9,10,11,12,13,14,15};
+	static Vector<int> moveKindOrder = { 0,1,2,3,4,5,6,7, 8,/*9,10,*/ 11,/*12,*/13,/*14,*/15};
+	//static Vector<int> moveKindOrder = { 0,1,2,3,4,5,6,7, 8,9,10,11,12,13,14,15};
 
-	static Vec<int> contribution(16, 0);
-	Vec<int> contricus(input->custCnt + 1, 0);
+	static Vector<int> contribution(16, 0);
+	Vector<int> contricus(input->custCnt + 1, 0);
 	//auto maxIt = std::max_element(contribution.begin(), contribution.end());
 	for (auto& i : contribution) { i = (i >> 1) + 1; }
 	//std::sort(moveKindOrder.begin(), moveKindOrder.end(), [&](int a, int b) {
@@ -6916,8 +6652,8 @@ bool Solver::minimizeRouteDistanceLocalSearch(int hasRange,Vec<int> newCus) {
 		qu.push(i);
 	}
 
-	//auto& nei = aps->mRLLocalSearchRange;
-	//Vec<int> bugOrder(nei[1]-nei[0]);
+	//auto& nei = aps->neiborRange;
+	//Vector<int> bugOrder(nei[1]-nei[0]);
 	//std::iota(bugOrder.begin(), bugOrder.end(), nei[0]);
 
 	auto getMovesGivenRange = [&](int range) {
@@ -6946,10 +6682,10 @@ bool Solver::minimizeRouteDistanceLocalSearch(int hasRange,Vec<int> newCus) {
 
 			int beg = 0;
 
-			if (range == aps->mRLLocalSearchRange[0]) {
+			if (range == aps->neiborRange[0]) {
 			}
-			else if (range == aps->mRLLocalSearchRange[1]) {
-				beg = aps->mRLLocalSearchRange[0];
+			else if (range == aps->neiborRange[1]) {
+				beg = aps->neiborRange[0];
 			}
 
 			for (int i = beg; i < range; ++i) {
@@ -6997,7 +6733,7 @@ bool Solver::minimizeRouteDistanceLocalSearch(int hasRange,Vec<int> newCus) {
 	}
 	yearTable->squIterGrowUp(aps->yearTabuLen + aps->yearTabuRand);
 
-	Vec<int>& ranges = aps->mRLLocalSearchRange;
+	Vector<int>& ranges = aps->neiborRange;
 
 	while (true) {
 
@@ -7027,9 +6763,9 @@ bool Solver::minimizeRouteDistanceLocalSearch(int hasRange,Vec<int> newCus) {
 		++contribution[bestM.kind];
 
 		#if LYH_CHECKING
-		Vec<Vec<int>> oldRoutes;
-		Vec<int> oldrv;
-		Vec<int> oldrw;
+		Vector<Vector<int>> oldRoutes;
+		Vector<int> oldrv;
+		Vector<int> oldrw;
 
 		DisType oldpenalty = penalty;
 		DisType oldPtw = Ptw;
@@ -7120,27 +6856,6 @@ bool Solver::minimizeRouteDistanceLocalSearch(int hasRange,Vec<int> newCus) {
 	return true;
 }
 
-Output Solver::saveToOutPut() {
-
-	Output output;
-
-	DisType state = verify();
-
-	output.runTime = timer->getRunTime();
-	output.EP = EP.putElementInVector();
-	output.minEP = minEPcus;
-	output.PtwNoWei = PtwNoWei;
-	output.Pc = Pc;
-
-	output.rts.clear();
-	for (int i = 0; i < rts.cnt; ++i) {
-		output.rts.push_back(rPutCustomersInVector(rts[i]));
-	}
-	output.state = state;
-
-	return output;
-}
-
 bool Solver::printDimacs() {
 
 	for (int i = 0; i < rts.cnt; ++i) {
@@ -7159,51 +6874,12 @@ bool Solver::printDimacs() {
 	return true;
 }
 
-bool Solver::saveOutAsSintefFile(std::string outputPath, std::string opt) {
-
-	std::string s = "";
-
-	s += "Instance name : " + input->instanceName + "\n";
-	s += "Authors : <the name of the authors>\n";
-	s += "Date : <dd - mm - yy>\n";
-	s += "Reference : <reference to publication of method>\n";
-	s += "Solution\n";
-	for (int i = 0; i < rts.cnt; i++) {
-		auto cus = rPutCustomersInVector(rts[i]);
-		std::string r = "Route " + strtool::int_str(i + 1) + " :";
-
-		for (auto c : cus) {
-			r += " " + strtool::int_str(c);
-		}
-		r += "\n";
-		s += r;
-	}
-
-	reCalRtsCostSumCost();
-
-	std::ofstream rgbData;
-	std::string wrPath = outputPath + opt
-		+ input->instanceName + "L" + std::to_string(RoutesCost) + ".txt";
-
-	rgbData.open(wrPath, std::ios::app | std::ios::out);
-
-	if (!rgbData) {
-		Logger::ERROR("sintef output file open errno");
-		return false;
-	}
-
-	rgbData << s;
-
-	//debug(s);
-	rgbData.close();
-
-	return true;
-}
-
 Solver::~Solver() {};
 
-BKS::BKS(Input*input,YearTable* yearTable,Timer*timer):
-	bestSolFound(input,yearTable,nullptr),timer(timer) {
+BKS::BKS(Input*input):
+	bestSolFound(input,nullptr,nullptr),
+	timer(&input->timer) 
+{
 	bestSolFound.penalty = DisInf;
 	bestSolFound.RoutesCost = DisInf;
 	lastPrCost = DisInf;
@@ -7214,7 +6890,7 @@ void BKS::reset() {
 	bestSolFound.RoutesCost = DisInf;
 }
 
-bool BKS::updateBKSAndPrint(Solver& newSol, std::string opt) {
+bool BKS::updateBKSAndPrint(Solver& newSol, String opt) {
 
 	if (bksAtRn[newSol.rts.cnt] == 0) {
 		bksAtRn[newSol.rts.cnt] = newSol.RoutesCost;
@@ -7274,100 +6950,6 @@ bool BKS::updateBKSAndPrint(Solver& newSol, std::string opt) {
 
 void BKS::resetBksAtRn() {
 	bksAtRn.clear();
-}
-
-bool saveSolutiontoCsvFile(Solver& sol) {
-
-	static bool isPrinted = false;
-	if (isPrinted) {
-		return 0;
-	}
-	isPrinted = true;
-
-	// 输出 tm 结构的各个组成部分
-	//std::string day = /*ms.LL_str(d.year) + */ms.LL_str(d.month) + ms.LL_str(d.day);
-
-	std::string type = "";
-
-	std::string path = type + __DATE__;
-	
-	//path += std::string(1, '_') + __TIME__;
-
-	for (auto& c : path) {
-		if (c == ' ' || c == ':') {
-			c = '_';
-		}
-	}
-	path += "t" + std::to_string(sol.input->commandLine->runTimer);
-
-	std::string pwe0 = strtool::int_str(sol.aps->customersWeight1);
-	std::string pwe1 = strtool::int_str(sol.aps->customersWeight2);
-	std::string minKmax = strtool::int_str(sol.aps->minKmax);
-	std::string maxKmax = strtool::int_str(sol.aps->maxKmax);
-
-	std::ofstream rgbData;
-	path += sol.aps->tag;
-	std::string wrPath = sol.input->commandLine->outputPath + "_" + path + ".csv";
-
-	bool isGood = false; {
-		std::ifstream f(wrPath.c_str());
-		isGood = f.good();
-	}
-
-	rgbData.open(wrPath, std::ios::app | std::ios::out);
-
-	if (!rgbData) {
-		Logger::INFO("output file open errno");
-		return false;
-	}
-	if (!isGood) {
-		rgbData << "ins,isopt,lyhrl,lyhrn,time,gap,lkhrn,lkhrl,d15rn,d15RL,sinrn,sinrl,narn,narl,rts,seed" << std::endl;
-	}
-
-	Input& input = *sol.input;
-
-	rgbData << input.instanceName << ",";
-	rgbData << sol.aps->cmdIsopt << ",";
-
-	auto lyhrl = sol.RoutesCost;
-	rgbData << lyhrl << ",";
-
-	rgbData << sol.rts.cnt << ",";
-
-	rgbData << sol.timer->getRunTime() << ",";
-
-	rgbData << double((double)(lyhrl - sol.aps->lkhRL) / sol.aps->lkhRL) * 100 << ",";
-
-	rgbData << sol.aps->lkhRN << ",";
-	rgbData << sol.aps->lkhRL << ",";
-
-	rgbData << sol.aps->d15RecRN << ",";
-	rgbData << sol.aps->d15RecRL << ",";
-
-	rgbData << sol.aps->sintefRecRN << ",";
-	rgbData << sol.aps->sintefRecRL << ",";
-
-	rgbData << sol.aps->naRecRN << ",";
-	rgbData << sol.aps->naRecRL << ",";
-
-	for (int i = 0; i < sol.rts.cnt; ++i) {
-		rgbData << "Route  " << i + 1 << " : ";
-		Route& r = sol.rts[i];
-		auto cusArr = sol.rPutCustomersInVector(r);
-		for (int c : cusArr) {
-			rgbData << c << " ";
-		}
-		rgbData << "| ";
-	}
-
-	rgbData << ",";
-	rgbData << sol.input->commandLine->seed;
-
-	rgbData << std::endl;
-	rgbData.close();
-
-	Logger::INFO("write file succeed");
-	return true;
 }
 
 }
