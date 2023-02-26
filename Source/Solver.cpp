@@ -463,7 +463,7 @@ void Solver::sumRtsCost() {
 	}
 }
 
-DisType Solver::updatePenalty(const DeltPen& delt) {
+DisType Solver::updatePenalty(const DeltaPenalty& delt) {
 
 	Pc += delt.PcOnly;
 	Ptw += delt.deltPtw;
@@ -917,7 +917,7 @@ bool Solver::initSolution(int kind) {//5种
 	return true;
 }
 
-DeltPen Solver::estimatevw(int kind, int v, int w, int oneR) {
+DeltaPenalty Solver::estimatevw(int kind, int v, int w, int oneR) {
 	// TODO[move]:查看邻域动作的编号
 	switch (kind) {
 	case 0:return _2optOpenvv_(v, w);
@@ -940,7 +940,7 @@ DeltPen Solver::estimatevw(int kind, int v, int w, int oneR) {
 		Logger::ERROR("estimate no this kind move");
 		break;
 	}
-	DeltPen bestM;
+	DeltaPenalty bestM;
 	return bestM;
 }
 
@@ -979,10 +979,10 @@ DisType Solver::getaRangeOffPtw(int twbegin, int twend) {
 	return newwvPtw;
 }
 
-DeltPen Solver::_2optOpenvv_(int v, int w) { //0
+DeltaPenalty Solver::_2optOpenvv_(int v, int w) { //0
 	//debug(0)
 
-	DeltPen bestM;
+	DeltaPenalty bestM;
 
 	Route& rv = rts.getRouteByRid(customers[v].routeID);
 	Route& rw = rts.getRouteByRid(customers[w].routeID);
@@ -1061,9 +1061,9 @@ DeltPen Solver::_2optOpenvv_(int v, int w) { //0
 	return bestM;
 }
 
-DeltPen Solver::_2optOpenvvj(int v, int w) { //1
+DeltaPenalty Solver::_2optOpenvvj(int v, int w) { //1
 
-	DeltPen bestM;
+	DeltaPenalty bestM;
 
 	Route& rv = rts.getRouteByRid(customers[v].routeID);
 	Route& rw = rts.getRouteByRid(customers[w].routeID);
@@ -1142,12 +1142,12 @@ DeltPen Solver::_2optOpenvvj(int v, int w) { //1
 	return bestM;
 }
 
-DeltPen Solver::outrelocatevToww_(int v, int w, int oneR) { //2
+DeltaPenalty Solver::outrelocatevToww_(int v, int w, int oneR) { //2
 
 	Route& rv = rts.getRouteByRid(customers[v].routeID);
 	Route& rw = rts.getRouteByRid(customers[w].routeID);
 
-	DeltPen bestM;
+	DeltaPenalty bestM;
 
 	int v_ = customers[v].prev;
 	int vj = customers[v].next;
@@ -1280,12 +1280,12 @@ DeltPen Solver::outrelocatevToww_(int v, int w, int oneR) { //2
 	return bestM;
 }
 
-DeltPen Solver::outrelocatevTowwj(int v, int w, int oneR) { //3
+DeltaPenalty Solver::outrelocatevTowwj(int v, int w, int oneR) { //3
 
 	Route& rv = rts.getRouteByRid(customers[v].routeID);
 	Route& rw = rts.getRouteByRid(customers[w].routeID);
 
-	DeltPen bestM;
+	DeltaPenalty bestM;
 
 	int v_ = customers[v].prev;
 	int vj = customers[v].next;
@@ -1407,12 +1407,12 @@ DeltPen Solver::outrelocatevTowwj(int v, int w, int oneR) { //3
 	return bestM;
 }
 
-DeltPen Solver::inrelocatevv_(int v, int w, int oneR) { //4
+DeltaPenalty Solver::inrelocatevv_(int v, int w, int oneR) { //4
 
 	Route& rv = rts.getRouteByRid(customers[v].routeID);
 	Route& rw = rts.getRouteByRid(customers[w].routeID);
 
-	DeltPen bestM;
+	DeltaPenalty bestM;
 
 	int w_ = customers[w].prev;
 	int wj = customers[w].next;
@@ -1540,13 +1540,13 @@ DeltPen Solver::inrelocatevv_(int v, int w, int oneR) { //4
 	return bestM;
 }
 
-DeltPen Solver::inrelocatevvj(int v, int w, int oneR) { //5
+DeltaPenalty Solver::inrelocatevvj(int v, int w, int oneR) { //5
 
 	// insert w to (v,v+)
 	Route& rv = rts.getRouteByRid(customers[v].routeID);
 	Route& rw = rts.getRouteByRid(customers[w].routeID);
 
-	DeltPen bestM;
+	DeltaPenalty bestM;
 
 	int w_ = customers[w].prev;
 	int wj = customers[w].next;
@@ -1663,9 +1663,9 @@ DeltPen Solver::inrelocatevvj(int v, int w, int oneR) { //5
 
 }
 
-DeltPen Solver::exchangevw(int v, int w, int oneR) { // 8
+DeltaPenalty Solver::exchangevw(int v, int w, int oneR) { // 8
 
-	DeltPen bestM;
+	DeltaPenalty bestM;
 	// exchange v and (w)
 	Route& rv = rts.getRouteByRid(customers[v].routeID);
 	Route& rw = rts.getRouteByRid(customers[w].routeID);
@@ -1826,13 +1826,13 @@ DeltPen Solver::exchangevw(int v, int w, int oneR) { // 8
 	return bestM;
 }
 
-DeltPen Solver::exchangevw_(int v, int w, int oneR) { // 6
+DeltaPenalty Solver::exchangevw_(int v, int w, int oneR) { // 6
 
 	// exchange v and (w_)
 	/*Route& rv = rts.getRouteByRid(customers[v].routeID);
 	Route& rw = rts.getRouteByRid(customers[w].routeID);*/
 
-	DeltPen bestM;
+	DeltaPenalty bestM;
 
 	int w_ = customers[w].prev;
 
@@ -1843,13 +1843,13 @@ DeltPen Solver::exchangevw_(int v, int w, int oneR) { // 6
 
 }
 
-DeltPen Solver::exchangevwj(int v, int w, int oneR) { // 7
+DeltaPenalty Solver::exchangevwj(int v, int w, int oneR) { // 7
 
 	// exchange v and (w+)
 	/*Route& rv = rts.getRouteByRid(customers[v].routeID);
 	Route& rw = rts.getRouteByRid(customers[w].routeID);*/
 
-	DeltPen bestM;
+	DeltaPenalty bestM;
 
 	int wj = customers[w].next;
 
@@ -1859,11 +1859,11 @@ DeltPen Solver::exchangevwj(int v, int w, int oneR) { // 7
 	return exchangevw(v, wj, oneR);
 }
 
-DeltPen Solver::exchangevvjw(int v, int w, int oneR) { // 11 2换1
+DeltaPenalty Solver::exchangevvjw(int v, int w, int oneR) { // 11 2换1
 
 	// exchange vvj and (w)
 
-	DeltPen bestM;
+	DeltaPenalty bestM;
 
 	Route& rv = rts.getRouteByRid(customers[v].routeID);
 	Route& rw = rts.getRouteByRid(customers[w].routeID);
@@ -2032,10 +2032,10 @@ DeltPen Solver::exchangevvjw(int v, int w, int oneR) { // 11 2换1
 	return bestM;
 }
 
-DeltPen Solver::exchangevwwj(int v, int w, int oneR) { // 12 1换2
+DeltaPenalty Solver::exchangevwwj(int v, int w, int oneR) { // 12 1换2
 
 	// exchange v and (ww+)
-	DeltPen bestM;
+	DeltaPenalty bestM;
 
 	int wj = customers[w].next;
 
@@ -2046,10 +2046,10 @@ DeltPen Solver::exchangevwwj(int v, int w, int oneR) { // 12 1换2
 
 }
 
-DeltPen Solver::exchangevvjvjjwwj(int v, int w, int oneR) { // 9 3换2
+DeltaPenalty Solver::exchangevvjvjjwwj(int v, int w, int oneR) { // 9 3换2
 
 	// exchange vvjvjj and (ww+)
-	DeltPen bestM;
+	DeltaPenalty bestM;
 
 	Route& rv = rts.getRouteByRid(customers[v].routeID);
 	Route& rw = rts.getRouteByRid(customers[w].routeID);
@@ -2238,13 +2238,13 @@ DeltPen Solver::exchangevvjvjjwwj(int v, int w, int oneR) { // 9 3换2
 	return bestM;
 }
 
-DeltPen Solver::exchangevvjvjjw(int v, int w, int oneR) { // 10 三换一
+DeltaPenalty Solver::exchangevvjvjjw(int v, int w, int oneR) { // 10 三换一
 
 	// exchange vvjvjj and (w)
 	Route& rv = rts.getRouteByRid(customers[v].routeID);
 	Route& rw = rts.getRouteByRid(customers[w].routeID);
 
-	DeltPen bestM;
+	DeltaPenalty bestM;
 
 	int wj = customers[w].next;
 	int vj = customers[v].next;
@@ -2423,9 +2423,9 @@ DeltPen Solver::exchangevvjvjjw(int v, int w, int oneR) { // 10 三换一
 	return bestM;
 }
 
-DeltPen Solver::outrelocatevvjTowwj(int v, int w, int oneR) {  //13 扔两个
+DeltaPenalty Solver::outrelocatevvjTowwj(int v, int w, int oneR) {  //13 扔两个
 
-	DeltPen bestM;
+	DeltaPenalty bestM;
 
 	Route& rv = rts.getRouteByRid(customers[v].routeID);
 	Route& rw = rts.getRouteByRid(customers[w].routeID);
@@ -2568,9 +2568,9 @@ DeltPen Solver::outrelocatevvjTowwj(int v, int w, int oneR) {  //13 扔两个
 	return bestM;
 }
 
-DeltPen Solver::outrelocatevv_Toww_(int v, int w, int oneR) {  //14 扔两个左边
+DeltaPenalty Solver::outrelocatevv_Toww_(int v, int w, int oneR) {  //14 扔两个左边
 
-	DeltPen bestM;
+	DeltaPenalty bestM;
 
 	int v_ = customers[v].prev;
 	if (v_ > input->customerNumer) {
@@ -2593,9 +2593,9 @@ DeltPen Solver::outrelocatevv_Toww_(int v, int w, int oneR) {  //14 扔两个左边
 
 }
 
-DeltPen Solver::reversevw(int v, int w) {//15 翻转
+DeltaPenalty Solver::reversevw(int v, int w) {//15 翻转
 
-	DeltPen bestM;
+	DeltaPenalty bestM;
 
 	int vId = customers[v].routeID;
 	int wId = customers[w].routeID;
@@ -2695,9 +2695,9 @@ DeltPen Solver::reversevw(int v, int w) {//15 翻转
 
 }
 
-DeltPen Solver::_Nopt(Vector<int>& nodes) { //16 Nopt*
+DeltaPenalty Solver::_Nopt(Vector<int>& nodes) { //16 Nopt*
 
-	DeltPen bestM;
+	DeltaPenalty bestM;
 
 	DisType newPtwNoWei = 0;
 	DisType newPtw = 0;
@@ -4278,12 +4278,12 @@ DisType Solver::verify() {
 	return routesCost;
 }
 
-DeltPen Solver::getDeltIfRemoveOneNode(Route& r, int pt) {
+DeltaPenalty Solver::getDeltIfRemoveOneNode(Route& r, int pt) {
 
 	int prev = customers[pt].prev;
 	int next = customers[pt].next;
 
-	DeltPen d;
+	DeltaPenalty d;
 
 	DisType avnp = customers[prev].av + input->datas[prev].SERVICETIME + input->getDisof2(prev,next);
 	d.PtwOnly = std::max<DisType>(0, avnp - customers[next].zv) + customers[next].TWX_ + customers[prev].TW_X;
@@ -5560,7 +5560,7 @@ bool Solver::patternAdjustment(int Irand) {
 
 				for (int kind : kindSet) {
 
-					DeltPen d;
+					DeltaPenalty d;
 					if (kind == 6 || kind == 7) {
 						d = estimatevw(kind, v, w, 1);
 					}

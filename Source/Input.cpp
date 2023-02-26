@@ -464,10 +464,7 @@ void Input::readInstanceFormatCVRPLIB() {
 						datas[i].CUSTNO--;
 						datas[i].polarAngle = CircleSector::positive_mod(static_cast<int>(32768. * atan2(datas[i].YCOORD - datas[0].YCOORD, datas[i].XCOORD - datas[0].XCOORD) / PI));
 					}
-					// 将所有的顾客都置为必须配送
-					for (int i = 0; i <= customerNumer; i++) {
-						datas[i].must_dispatch = 1;
-					}
+
 					mustDispatchNumber = customerNumer;
 				}
 				// Read the DEMAND of each client (including the depot, which should have DEMAND 0)
@@ -523,28 +520,6 @@ void Input::readInstanceFormatCVRPLIB() {
 					if (P[0] != 0)
 					{
 						throw String("P[0] should be 0");
-					}
-				}
-				else if (content == "MUST_DISPATCH")
-				{
-					mustDispatchNumber = 0;
-					for (int i = 0; i <= customerNumer; i++)
-					{
-						int clientNr = 0;
-						std::cin >> clientNr >> datas[i].must_dispatch;
-						if (datas[i].must_dispatch == 1) {
-							++mustDispatchNumber;
-						}
-						// Check if the clients are in order
-						if (clientNr != i + 1)
-						{
-							throw String("Clients are not in order in the list of MUST_DISPATCH");
-						}
-					}
-					// Check if the service duration of the depot is 0
-					if (datas[0].must_dispatch != 0)
-					{
-						throw String("must_dispatch depot should be 0");
 					}
 				}
 				else if (content == "SERVICE_TIME_SECTION")

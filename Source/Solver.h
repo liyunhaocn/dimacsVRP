@@ -364,7 +364,7 @@ struct WeightedEjectPool {
 
 class YearTable;
 
-struct DeltPen {
+struct DeltaPenalty {
 
 	DisType deltPtw = DisInf;
 	DisType deltPc = DisInf;
@@ -372,14 +372,14 @@ struct DeltPen {
 	DisType PtwOnly = DisInf;
 	DisType deltCost = DisInf;
 
-	DeltPen() {
+	DeltaPenalty() {
 
 		deltPc = DisInf;
 		PcOnly = DisInf;
 		PtwOnly = DisInf;
 		deltCost = DisInf;
 	}
-	DeltPen(const DeltPen& d) {
+	DeltaPenalty(const DeltaPenalty& d) {
 		this->deltPc = d.deltPc;
 		this->deltPtw = d.deltPtw;
 		this->PtwOnly = d.PtwOnly;
@@ -394,13 +394,13 @@ struct TwoNodeMove {
 	int w = -1;
 	int kind = -1;
 
-	DeltPen deltPen;
+	DeltaPenalty deltPen;
 
-	TwoNodeMove(int v, int w, int kind, DeltPen d) :
+	TwoNodeMove(int v, int w, int kind, DeltaPenalty d) :
 		v(v), w(w), kind(kind), deltPen(d) {
 	}
 
-	TwoNodeMove(Vector<int> ve, int kind, DeltPen d) :
+	TwoNodeMove(Vector<int> ve, int kind, DeltaPenalty d) :
 		kind(kind), deltPen(d) {}
 
 	TwoNodeMove() :
@@ -597,7 +597,7 @@ public:
 
 	void sumRtsCost();
 
-	DisType updatePenalty(const DeltPen& delt);
+	DisType updatePenalty(const DeltaPenalty& delt);
 
 	Position findBestPositionInSolution(int w);
 
@@ -614,7 +614,7 @@ public:
 
 	bool initSolution(int kind);
 
-	DeltPen estimatevw(int kind, int v, int w, int oneR);
+	DeltaPenalty estimatevw(int kind, int v, int w, int oneR);
 
 	inline int getFrontofTwoCus(int v, int w) {
 		if (customers[v].Q_X == customers[w].Q_X) {
@@ -659,39 +659,39 @@ public:
 	//开区间(twbegin，twend) twbegin，twend的各项值都是可靠的，开区间中间的点可以变化 twbegin，twend可以是仓库 
 	DisType getaRangeOffPtw(int twbegin, int twend);
 
-	DeltPen _2optOpenvv_(int v, int w);
+	DeltaPenalty _2optOpenvv_(int v, int w);
 
-	DeltPen _2optOpenvvj(int v, int w);
+	DeltaPenalty _2optOpenvvj(int v, int w);
 
-	DeltPen outrelocatevToww_(int v, int w, int oneR);
+	DeltaPenalty outrelocatevToww_(int v, int w, int oneR);
 
-	DeltPen outrelocatevTowwj(int v, int w, int oneR);
+	DeltaPenalty outrelocatevTowwj(int v, int w, int oneR);
 
-	DeltPen inrelocatevv_(int v, int w, int oneR);
+	DeltaPenalty inrelocatevv_(int v, int w, int oneR);
 
-	DeltPen inrelocatevvj(int v, int w, int oneR);
+	DeltaPenalty inrelocatevvj(int v, int w, int oneR);
 
-	DeltPen exchangevw(int v, int w, int oneR);
+	DeltaPenalty exchangevw(int v, int w, int oneR);
 
-	DeltPen exchangevw_(int v, int w, int oneR);
+	DeltaPenalty exchangevw_(int v, int w, int oneR);
 
-	DeltPen exchangevwj(int v, int w, int oneR);
+	DeltaPenalty exchangevwj(int v, int w, int oneR);
 
-	DeltPen exchangevvjw(int v, int w, int oneR);
+	DeltaPenalty exchangevvjw(int v, int w, int oneR);
 
-	DeltPen exchangevwwj(int v, int w, int oneR);
+	DeltaPenalty exchangevwwj(int v, int w, int oneR);
 
-	DeltPen exchangevvjvjjwwj(int v, int w, int oneR);
+	DeltaPenalty exchangevvjvjjwwj(int v, int w, int oneR);
 
-	DeltPen exchangevvjvjjw(int v, int w, int oneR);
+	DeltaPenalty exchangevvjvjjw(int v, int w, int oneR);
 
-	DeltPen outrelocatevvjTowwj(int v, int w, int oneR);
+	DeltaPenalty outrelocatevvjTowwj(int v, int w, int oneR);
 
-	DeltPen outrelocatevv_Toww_(int v, int w, int oneR);
+	DeltaPenalty outrelocatevv_Toww_(int v, int w, int oneR);
 
-	DeltPen reversevw(int v, int w);
+	DeltaPenalty reversevw(int v, int w);
 
-	DeltPen _Nopt(Vector<int>& nodes);
+	DeltaPenalty _Nopt(Vector<int>& nodes);
 
 	bool doMoves(TwoNodeMove& M);
 
@@ -723,7 +723,7 @@ public:
 
 	DisType verify();
 
-	DeltPen getDeltIfRemoveOneNode(Route& r, int pt);
+	DeltaPenalty getDeltIfRemoveOneNode(Route& r, int pt);
 
 	bool addWeightToRoute(TwoNodeMove& bestM);
 

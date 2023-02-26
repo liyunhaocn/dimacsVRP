@@ -77,7 +77,6 @@ struct CircleSector
 };
 
 struct Data {
-
 	int CUSTNO = -1;
 	DisType XCOORD = -1;
 	DisType YCOORD = -1;
@@ -85,7 +84,6 @@ struct Data {
 	DisType READYTIME = -1;
 	DisType DUEDATE = -1;
 	DisType SERVICETIME = -1;
-	bool must_dispatch = true;
 	int polarAngle = 0;
 };
 
