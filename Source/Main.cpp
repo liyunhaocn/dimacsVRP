@@ -27,11 +27,15 @@ int main(int argc, char* argv[])
 	}
 
 	Input input(&commandLine);
+
+	commandLine.check();
+	commandLine.aps.check(input.customerNumer);
+
 	commandLine.displayInfo();
 	input.displayInfo();
 	commandLine.aps.displayInfo();
 
-	commandLine.aps.check(input.custCnt);
+	
 
 	Goal goal(&input);
 

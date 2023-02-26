@@ -4,6 +4,7 @@
 
 #include <iostream>
 #include <climits>
+#include <fstream>
 #include "AlgorithmParameters.h"
 #include "Util.h"
 
@@ -73,6 +74,13 @@ public:
 		this->outputDir = String(argv[3]);
 	}
 
+	void check() {
+		// TODO: check the dir exist
+		//std::fstream fstr1;
+		//fstr1.open(this->instancePath.c_str(),std::ios::in);
+		//assert(fstr);
+	}
+
 	void displayInfo() {
 
 		Logger::INFO("instancePath:", instancePath);
@@ -89,6 +97,12 @@ public:
 		ss << "instance  	string  required  vrptw instance file path" << std::endl;
 		ss << "parameters	string  required  the parameters file path" << std::endl;
 		ss << "output    	string	required  solution file saved path" << std::endl;
+		
+		ss << "Options:												  " << std::endl;
+		ss << "-h,--help                 print this help message and exit" << std::endl;
+		ss << "example use" << std::endl;
+		ss << "../Instances/Homberger/C1_2_1.txt ../SolverParameters.json ../Results" << std::endl;
+
 		std::cout << ss.str();
 	};
 };

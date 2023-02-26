@@ -92,9 +92,9 @@ struct Data {
 struct Input {
 
 	String instanceName = "";
-	int custCnt = 0;
+	int customerNumer = 0;
 	DisType vehicleCapacity = 0;
-	int vehicleCnt = 0;
+	int vehicleNumber = 0;
 	Vector<Data> datas;
 
 	int Qbound = -1;
@@ -145,7 +145,7 @@ struct Input {
 	inline DisType getDisof2(int a, int b) {
 
 		auto reCusNo = [=](int x) -> int {
-			return x <= custCnt ? x : 0;
+			return x <= customerNumer ? x : 0;
 		};
 		a = reCusNo(a);
 		b = reCusNo(b);
@@ -156,9 +156,9 @@ struct Input {
 	void displayInfo() {
 
 		Logger::INFO("instanceName:", instanceName);
-		Logger::INFO("custCnt:", custCnt);
+		Logger::INFO("customerNumer:", customerNumer);
 		Logger::INFO("vehicleCapacity:", vehicleCapacity);
-		Logger::INFO("vehicleCnt:", vehicleCnt);
+		Logger::INFO("vehicleNumber:", vehicleNumber);
 	}
 };
 

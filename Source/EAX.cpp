@@ -8,15 +8,15 @@ namespace hust {
 
 EAX::EAX(Solver& pa, Solver& pb) :
 	pa(&pa),pb(&pb),
-	paPriE(2 * (pa.input->custCnt + pa.rts.cnt+1)), 
-	pbPriE(2 * (pb.input->custCnt + pb.rts.cnt+1)),
+	paPriE(2 * (pa.input->customerNumer + pa.rts.cnt+1)), 
+	pbPriE(2 * (pb.input->customerNumer + pb.rts.cnt+1)),
 	random(&pa.input->random),
 	randomx(&pa.input->randomx),
 	aps(pa.aps),
 	bks(pa.bks)
 {
 
-	this->eaxCusCnt = pa.input->custCnt;
+	this->eaxCusCnt = pa.input->customerNumer;
 	this->eaxRCnt = pa.rts.cnt;
 
 	this->richEdges = Vector<RichEdge>(2 * (this->eaxCusCnt + 1 + this->eaxRCnt));
@@ -61,8 +61,8 @@ bool EAX::classifyEdges() {
 			while (ptn != -1) {
 
 				Edge e;
-				e.a = pt <= ps.input->custCnt ? pt : 0;
-				e.b = ptn <= ps.input->custCnt ? ptn : 0;
+				e.a = pt <= ps.input->customerNumer ? pt : 0;
+				e.b = ptn <= ps.input->customerNumer ? ptn : 0;
 
 				int code = toCode(e.a, e.b);
 
@@ -100,7 +100,7 @@ bool EAX::classifyEdges() {
 			deOut(a);
 			debug(b);
 
-			a = ps.customers[r.tail].pre;
+			a = ps.customers[r.tail].prev;
 			b = 0;
 			deOut(a);
 			debug(b);
@@ -317,17 +317,17 @@ bool EAX::applyOneCycle(int& cycleIndex, Solver& pc) {
 		}
 
 		pc.customers[a].next = b;
-		pc.customers[b].pre = a;
+		pc.customers[b].prev = a;
 
 	};
 
 	auto breakab = [&](int a, int b) {
 
 		if (a == 0) {
-			a = pc.customers[b].pre;
+			a = pc.customers[b].prev;
 			deopt0.push_back(a);
 			pc.customers[a].next = -1;
-			pc.customers[b].pre = -1;
+			pc.customers[b].prev = -1;
 
 		}
 		else if (b == 0) {
@@ -335,7 +335,7 @@ bool EAX::applyOneCycle(int& cycleIndex, Solver& pc) {
 			b = pc.customers[a].next;
 			deoptN.push_back(b);
 			pc.customers[a].next = -1;
-			pc.customers[b].pre = -1;
+			pc.customers[b].prev = -1;
 		}
 	};
 
@@ -418,20 +418,20 @@ Solver::Position EAX::findBestPosRemoveSubtour(Solver& pc, int w, int wj, DisTyp
 			DisType oldrPtw = pc.rts[i].rPtw;
 
 			pc.customers[v].next = wj;
-			pc.customers[wj].pre = v;
+			pc.customers[wj].prev = v;
 
 			pc.customers[w].next = vj;
-			pc.customers[vj].pre = w;
+			pc.customers[vj].prev = w;
 
 			DisType rPtw = pc.getaRangeOffPtw(v, vj);
 
 			rPtw = rPtw - oldrPtw;
 
 			pc.customers[v].next = vj;
-			pc.customers[vj].pre = v;
+			pc.customers[vj].prev = v;
 
 			pc.customers[w].next = wj;
-			pc.customers[wj].pre = w;
+			pc.customers[wj].prev = w;
 
 			DisType cost = 
 				pc.input->getDisof2(v,wj) + pc.input->getDisof2(w,vj)
@@ -521,10 +521,10 @@ int EAX::removeSubring(Solver& pc) {
 
 		Route& r = pc.rts.getRouteByRid(pc.customers[v].routeID);
 		pc.customers[v].next = wj;
-		pc.customers[wj].pre = v;
+		pc.customers[wj].prev = v;
 
 		pc.customers[w].next = vj;
-		pc.customers[vj].pre = w;
+		pc.customers[vj].prev = w;
 
 		pc.rReCalCusNumAndSetCusrIdWithHeadrId(r);
 		pc.reCalRtsCostAndPen();
@@ -674,7 +674,7 @@ int EAX::doPrEAX(Solver& pc) {
 	//TODO[lyh][001]:最多放置多少个abcycle[2,(abcyNum)/2],pick 是开区间
 	int abcyNum = static_cast<int>(abCycleSet.size());
 
-	//static ProbControl probc(input->custCnt/2);
+	//static ProbControl probc(input->customerNumer/2);
 	////int numABCyUsed = 2;
 	//int numABCyUsed = probc.getIndexBasedData(3) + 2;
 	////int numABCyUsed = probc.getIndexBasedData(std::min<int>(2,abcyNum / 2 + 1) ) + 2;
@@ -782,15 +782,15 @@ Vector<int> EAX::getDiffCusofPb(Solver&pa, Solver&pb) {
 
 	Vector<int> ret;
 	
-	int custNum = pa.input->custCnt;
+	int custNum = pa.input->customerNumer;
 
 	for (int c = 1; c <= custNum; ++c) {
 
 		int pacnext = pa.customers[c].next > custNum ? 0 : pa.customers[c].next;
 		int pbcnext = pb.customers[c].next > custNum ? 0 : pb.customers[c].next;
 
-		int pacpre = pa.customers[c].pre > custNum ? 0 : pa.customers[c].pre;
-		int pbcpre = pb.customers[c].pre > custNum ? 0 : pb.customers[c].pre;
+		int pacpre = pa.customers[c].prev > custNum ? 0 : pa.customers[c].prev;
+		int pbcpre = pb.customers[c].prev > custNum ? 0 : pb.customers[c].prev;
 
 		if (pacnext == pbcnext && pacpre == pbcpre) {}
 		else {

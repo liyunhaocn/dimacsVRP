@@ -312,7 +312,7 @@ struct WeightedEjectPool {
 	int sumCost = 0;
 	ConfSet container;
 	Input* input;
-	WeightedEjectPool(Input* input) :container(input->custCnt + 1), input(input) {}
+	WeightedEjectPool(Input* input) :container(input->customerNumer + 1), input(input) {}
 
 	WeightedEjectPool(const WeightedEjectPool& ej) {
 		this->container = ej.container;
@@ -428,7 +428,7 @@ struct Customer {
 public:
 
 	//int id = -1;
-	int pre = -1;
+	int prev = -1;
 	int next = -1;
 	int routeID = -1;
 
@@ -444,12 +444,12 @@ public:
 	DisType Q_X = 0;
 	DisType QX_ = 0;
 
-	Customer() :pre(-1), next(-1), av(0), zv(0), avp(0),
+	Customer() :prev(-1), next(-1), av(0), zv(0), avp(0),
 		zvp(0), TW_X(0), TWX_(0), Q_X(0), QX_(0) {}
 
 	bool reset() {
 		//id = -1;
-		pre = -1;
+		prev = -1;
 		next = -1;
 		routeID = -1;
 
@@ -477,6 +477,7 @@ public:
 	RTS rts;
 	Input* input = nullptr;
 	AlgorithmParameters* aps = nullptr;
+
 	YearTable* yearTable = nullptr;
 
 	BKS* bks = nullptr;
@@ -764,7 +765,7 @@ public:
 
 	inline DisType  getDeltDistanceCostIfRemoveCustomer(int v) {
 		DisType delta = 0;
-		int prev = customers[v].pre;
+		int prev = customers[v].prev;
 		int next = customers[v].next;
 		delta -= input->getDisof2(prev, v);
 		delta -= input->getDisof2(v, next);

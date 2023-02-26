@@ -23,6 +23,7 @@ struct Goal {
 	Timer* timer = nullptr;
 	
 	BKS bks;
+	std::queue<int> alternativeRouteNumbers;
 
 	Goal(Input*input);
 
@@ -45,6 +46,10 @@ struct Goal {
 	bool test();
 
 	bool callRouteNumberMinimization();
+
+	void fillAlternativeRouteNumbers();
+	
+	int getNextRouteNumerToRun();
 
 	int run();
 

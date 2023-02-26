@@ -6,7 +6,7 @@
 namespace hust {
 
 YearTable::YearTable(Input* input):input(input) {
-	table = util::Array2D<int>(input->custCnt + 1, input->custCnt + 1, 0);
+	table = util::Array2D<int>(input->customerNumer + 1, input->customerNumer + 1, 0);
 }
 
 YearTable::~YearTable(){
@@ -22,53 +22,53 @@ LL YearTable::getYearOfMove(Solver* solver, TwoNodeMove t) {
 
 	if (t.kind == 0) {
 		//_2optOpenvv_
-		int wj = customers[w].next > input->custCnt ? 0 : customers[w].next;
-		int v_ = customers[v].pre > input->custCnt ? 0 : customers[v].pre;
+		int wj = customers[w].next > input->customerNumer ? 0 : customers[w].next;
+		int v_ = customers[v].prev > input->customerNumer ? 0 : customers[v].prev;
 		sumYear = (table[w][v] + table[v_][wj]) / 2;
 	}
 	else if (t.kind == 1) {
 		//_2optOpenvvj
-		int w_ = customers[w].pre > input->custCnt ? 0 : customers[w].pre;
-		int vj = customers[v].next > input->custCnt ? 0 : customers[v].next;
+		int w_ = customers[w].prev > input->customerNumer ? 0 : customers[w].prev;
+		int vj = customers[v].next > input->customerNumer ? 0 : customers[v].next;
 		sumYear = (table[v][w] + table[w_][vj]) / 2;
 	}
 	else if (t.kind == 2) {
 		//outrelocatevToww_
-		int w_ = customers[w].pre > input->custCnt ? 0 : customers[w].pre;
-		int v_ = customers[v].pre > input->custCnt ? 0 : customers[v].pre;
-		int vj = customers[v].next > input->custCnt ? 0 : customers[v].next;
+		int w_ = customers[w].prev > input->customerNumer ? 0 : customers[w].prev;
+		int v_ = customers[v].prev > input->customerNumer ? 0 : customers[v].prev;
+		int vj = customers[v].next > input->customerNumer ? 0 : customers[v].next;
 		sumYear = (table[v_][vj] + table[w_][v] + table[v][w]) / 3;
 
 	}
 	else if (t.kind == 3) {
 		//outrelocatevTowwj
-		int wj = customers[w].next > input->custCnt ? 0 : customers[w].next;
-		int v_ = customers[v].pre > input->custCnt ? 0 : customers[v].pre;
-		int vj = customers[v].next > input->custCnt ? 0 : customers[v].next;
+		int wj = customers[w].next > input->customerNumer ? 0 : customers[w].next;
+		int v_ = customers[v].prev > input->customerNumer ? 0 : customers[v].prev;
+		int vj = customers[v].next > input->customerNumer ? 0 : customers[v].next;
 		sumYear = (table[v_][vj] + table[w][v] + table[v][wj]) / 3;
 	}
 	else if (t.kind == 4) {
 		//inrelocatevv_
-		int w_ = customers[w].pre > input->custCnt ? 0 : customers[w].pre;
-		int wj = customers[w].next > input->custCnt ? 0 : customers[w].next;
-		int v_ = customers[v].pre > input->custCnt ? 0 : customers[v].pre;
+		int w_ = customers[w].prev > input->customerNumer ? 0 : customers[w].prev;
+		int wj = customers[w].next > input->customerNumer ? 0 : customers[w].next;
+		int v_ = customers[v].prev > input->customerNumer ? 0 : customers[v].prev;
 
 		sumYear = (table[w_][wj] + table[v_][w] + table[w][v]) / 3;
 	}
 	else if (t.kind == 5) {
 		//inrelocatevvj
-		int w_ = customers[w].pre > input->custCnt ? 0 : customers[w].pre;
-		int wj = customers[w].next > input->custCnt ? 0 : customers[w].next;
-		int vj = customers[v].next > input->custCnt ? 0 : customers[v].next;
+		int w_ = customers[w].prev > input->customerNumer ? 0 : customers[w].prev;
+		int wj = customers[w].next > input->customerNumer ? 0 : customers[w].next;
+		int vj = customers[v].next > input->customerNumer ? 0 : customers[v].next;
 
 		sumYear = (table[w_][wj] + table[v][w] + table[w][vj]) / 3;
 	}
 	else if (t.kind == 6) {
 		//exchangevw_
-		int w_ = customers[w].pre > input->custCnt ? 0 : customers[w].pre;
-		int v_ = customers[v].pre > input->custCnt ? 0 : customers[v].pre;
-		int vj = customers[v].next > input->custCnt ? 0 : customers[v].next;
-		int w__ = customers[w_].pre > input->custCnt ? 0 : customers[w_].pre;
+		int w_ = customers[w].prev > input->customerNumer ? 0 : customers[w].prev;
+		int v_ = customers[v].prev > input->customerNumer ? 0 : customers[v].prev;
+		int vj = customers[v].next > input->customerNumer ? 0 : customers[v].next;
+		int w__ = customers[w_].prev > input->customerNumer ? 0 : customers[w_].prev;
 
 		int rvId = customers[v].routeID;
 		int rwId = customers[w].routeID;
@@ -96,11 +96,11 @@ LL YearTable::getYearOfMove(Solver* solver, TwoNodeMove t) {
 	}
 	else if (t.kind == 7) {
 		//exchangevwj
-		//int w_ = customers[w].pre > input->custCnt ? 0 : customers[w].pre;
-		int v_ = customers[v].pre > input->custCnt ? 0 : customers[v].pre;
-		int vj = customers[v].next > input->custCnt ? 0 : customers[v].next;
-		int wj = customers[w].next > input->custCnt ? 0 : customers[w].next;
-		int wjj = customers[wj].next > input->custCnt ? 0 : customers[wj].next;
+		//int w_ = customers[w].prev > input->customerNumer ? 0 : customers[w].prev;
+		int v_ = customers[v].prev > input->customerNumer ? 0 : customers[v].prev;
+		int vj = customers[v].next > input->customerNumer ? 0 : customers[v].next;
+		int wj = customers[w].next > input->customerNumer ? 0 : customers[w].next;
+		int wjj = customers[wj].next > input->customerNumer ? 0 : customers[wj].next;
 
 		int rvId = customers[v].routeID;
 		int rwId = customers[w].routeID;
@@ -130,10 +130,10 @@ LL YearTable::getYearOfMove(Solver* solver, TwoNodeMove t) {
 	}
 	else if (t.kind == 8) {
 		//exchangevw
-		int w_ = customers[w].pre > input->custCnt ? 0 : customers[w].pre;
-		int v_ = customers[v].pre > input->custCnt ? 0 : customers[v].pre;
-		int vj = customers[v].next > input->custCnt ? 0 : customers[v].next;
-		int wj = customers[w].next > input->custCnt ? 0 : customers[w].next;
+		int w_ = customers[w].prev > input->customerNumer ? 0 : customers[w].prev;
+		int v_ = customers[v].prev > input->customerNumer ? 0 : customers[v].prev;
+		int vj = customers[v].next > input->customerNumer ? 0 : customers[v].next;
+		int wj = customers[w].next > input->customerNumer ? 0 : customers[w].next;
 
 		int rvId = customers[v].routeID;
 		int rwId = customers[w].routeID;
@@ -168,14 +168,14 @@ LL YearTable::getYearOfMove(Solver* solver, TwoNodeMove t) {
 
 		//exchangevvjvjjwwj(v, w); 三换二 v v+ v++ | w w+
 
-		int v_ = customers[v].pre > input->custCnt ? 0 : customers[v].pre;
-		int vj = customers[v].next > input->custCnt ? 0 : customers[v].next;
-		int vjj = customers[vj].next > input->custCnt ? 0 : customers[vj].next;
-		int v3j = customers[vjj].next > input->custCnt ? 0 : customers[vjj].next;
+		int v_ = customers[v].prev > input->customerNumer ? 0 : customers[v].prev;
+		int vj = customers[v].next > input->customerNumer ? 0 : customers[v].next;
+		int vjj = customers[vj].next > input->customerNumer ? 0 : customers[vj].next;
+		int v3j = customers[vjj].next > input->customerNumer ? 0 : customers[vjj].next;
 
-		int w_ = customers[w].pre > input->custCnt ? 0 : customers[w].pre;
-		int wj = customers[w].next > input->custCnt ? 0 : customers[w].next;
-		int wjj = customers[wj].next > input->custCnt ? 0 : customers[wj].next;
+		int w_ = customers[w].prev > input->customerNumer ? 0 : customers[w].prev;
+		int wj = customers[w].next > input->customerNumer ? 0 : customers[w].next;
+		int wjj = customers[wj].next > input->customerNumer ? 0 : customers[wj].next;
 
 		sumYear = (table[v][w_] + table[vjj][wjj]
 			+ table[v_][w] + table[wj][v3j]) / 4;
@@ -185,13 +185,13 @@ LL YearTable::getYearOfMove(Solver* solver, TwoNodeMove t) {
 
 		//exchangevvjvjjw(v, w); 三换一 v v + v++ | w
 
-		int v_ = customers[v].pre > input->custCnt ? 0 : customers[v].pre;
-		int vj = customers[v].next > input->custCnt ? 0 : customers[v].next;
-		int vjj = customers[vj].next > input->custCnt ? 0 : customers[vj].next;
-		int v3j = customers[vjj].next > input->custCnt ? 0 : customers[vjj].next;
+		int v_ = customers[v].prev > input->customerNumer ? 0 : customers[v].prev;
+		int vj = customers[v].next > input->customerNumer ? 0 : customers[v].next;
+		int vjj = customers[vj].next > input->customerNumer ? 0 : customers[vj].next;
+		int v3j = customers[vjj].next > input->customerNumer ? 0 : customers[vjj].next;
 
-		int w_ = customers[w].pre > input->custCnt ? 0 : customers[w].pre;
-		int wj = customers[w].next > input->custCnt ? 0 : customers[w].next;
+		int w_ = customers[w].prev > input->customerNumer ? 0 : customers[w].prev;
+		int wj = customers[w].next > input->customerNumer ? 0 : customers[w].next;
 
 		sumYear = (table[v][w_] + table[vjj][wj]
 			+ table[v_][w] + table[w][v3j]) / 4;
@@ -200,12 +200,12 @@ LL YearTable::getYearOfMove(Solver* solver, TwoNodeMove t) {
 	else if (t.kind == 11) {
 		//exchangevvjw(v, w); 二换一 v v +  | w
 
-		int v_ = customers[v].pre > input->custCnt ? 0 : customers[v].pre;
-		int vj = customers[v].next > input->custCnt ? 0 : customers[v].next;
-		int vjj = customers[vj].next > input->custCnt ? 0 : customers[vj].next;
+		int v_ = customers[v].prev > input->customerNumer ? 0 : customers[v].prev;
+		int vj = customers[v].next > input->customerNumer ? 0 : customers[v].next;
+		int vjj = customers[vj].next > input->customerNumer ? 0 : customers[vj].next;
 
-		int w_ = customers[w].pre > input->custCnt ? 0 : customers[w].pre;
-		int wj = customers[w].next > input->custCnt ? 0 : customers[w].next;
+		int w_ = customers[w].prev > input->customerNumer ? 0 : customers[w].prev;
+		int wj = customers[w].next > input->customerNumer ? 0 : customers[w].next;
 
 		sumYear = (table[v][w_] + table[vj][wj]
 			+ table[v_][w] + table[w][vjj]) / 4;
@@ -214,12 +214,12 @@ LL YearTable::getYearOfMove(Solver* solver, TwoNodeMove t) {
 
 		//exchangevwwj(v, w); 一换二 v  | w w+
 
-		int v_ = customers[v].pre > input->custCnt ? 0 : customers[v].pre;
-		int vj = customers[v].next > input->custCnt ? 0 : customers[v].next;
+		int v_ = customers[v].prev > input->customerNumer ? 0 : customers[v].prev;
+		int vj = customers[v].next > input->customerNumer ? 0 : customers[v].next;
 
-		int w_ = customers[w].pre > input->custCnt ? 0 : customers[w].pre;
-		int wj = customers[w].next > input->custCnt ? 0 : customers[w].next;
-		int wjj = customers[wj].next > input->custCnt ? 0 : customers[wj].next;
+		int w_ = customers[w].prev > input->customerNumer ? 0 : customers[w].prev;
+		int wj = customers[w].next > input->customerNumer ? 0 : customers[w].next;
+		int wjj = customers[wj].next > input->customerNumer ? 0 : customers[wj].next;
 
 		sumYear = (table[w_][v] + table[v][wjj]
 			+ table[v_][w] + table[wj][vj]) / 4;
@@ -229,27 +229,27 @@ LL YearTable::getYearOfMove(Solver* solver, TwoNodeMove t) {
 
 		//outrelocatevvjTowwj(v, w); 扔两个 v v+  | w w+
 
-		int vj = customers[v].next > input->custCnt ? 0 : customers[v].next;
-		//int w_ = customers[w].pre > input->custCnt ? 0 : customers[w].pre;
-		int wj = customers[w].next > input->custCnt ? 0 : customers[w].next;
-		//int wjj = customers[wj].next > input->custCnt ? 0 : customers[wj].next;
+		int vj = customers[v].next > input->customerNumer ? 0 : customers[v].next;
+		//int w_ = customers[w].prev > input->customerNumer ? 0 : customers[w].prev;
+		int wj = customers[w].next > input->customerNumer ? 0 : customers[w].next;
+		//int wjj = customers[wj].next > input->customerNumer ? 0 : customers[wj].next;
 
 		sumYear = (table[v][w] + table[vj][wj] + table[v][vj]) / 3;
 	}
 	else if (t.kind == 14) {
 
 		//outrelocatevv_Toww_  | w-  v- v w
-		int v_ = customers[v].pre > input->custCnt ? 0 : customers[v].pre;
-		int v__ = customers[v_].pre > input->custCnt ? 0 : customers[v_].pre;
-		int vj = customers[v].next > input->custCnt ? 0 : customers[v].next;
-		int w_ = customers[w].pre > input->custCnt ? 0 : customers[w].pre;
+		int v_ = customers[v].prev > input->customerNumer ? 0 : customers[v].prev;
+		int v__ = customers[v_].prev > input->customerNumer ? 0 : customers[v_].prev;
+		int vj = customers[v].next > input->customerNumer ? 0 : customers[v].next;
+		int w_ = customers[w].prev > input->customerNumer ? 0 : customers[w].prev;
 		sumYear = (table[w_][v_] + table[v][w] + table[v__][vj]) / 3;
 	}
 	else if (t.kind == 15) {
 
 		//reverse [v,w]
-		int v_ = customers[v].pre > input->custCnt ? 0 : customers[v].pre;
-		int wj = customers[w].next > input->custCnt ? 0 : customers[w].next;
+		int v_ = customers[v].prev > input->customerNumer ? 0 : customers[v].prev;
+		int wj = customers[w].next > input->customerNumer ? 0 : customers[w].next;
 
 		sumYear = (table[v][wj] + table[w][v_]) / 2;
 	}
@@ -287,8 +287,8 @@ bool YearTable::updateYearTable(Solver* solver,TwoNodeMove t) {
 
 	if (t.kind == 0) {
 		//_2optOpenvv_
-		int wj = customers[w].next > input->custCnt ? 0 : customers[w].next;
-		int v_ = customers[v].pre > input->custCnt ? 0 : customers[v].pre;
+		int wj = customers[w].next > input->customerNumer ? 0 : customers[w].next;
+		int v_ = customers[v].prev > input->customerNumer ? 0 : customers[v].prev;
 
 		table[v_][v] = iter + aps->yearTabuLen + random->pick(aps->yearTabuRand);
 		table[w][wj] = iter + aps->yearTabuLen + random->pick(aps->yearTabuRand);
@@ -296,8 +296,8 @@ bool YearTable::updateYearTable(Solver* solver,TwoNodeMove t) {
 	}
 	else if (t.kind == 1) {
 		//_2optOpenvvj
-		int w_ = customers[w].pre > input->custCnt ? 0 : customers[w].pre;
-		int vj = customers[v].next > input->custCnt ? 0 : customers[v].next;
+		int w_ = customers[w].prev > input->customerNumer ? 0 : customers[w].prev;
+		int vj = customers[v].next > input->customerNumer ? 0 : customers[v].next;
 
 		table[v][vj] = iter + aps->yearTabuLen + random->pick(aps->yearTabuRand);
 		table[w_][w] = iter + aps->yearTabuLen + random->pick(aps->yearTabuRand);
@@ -305,9 +305,9 @@ bool YearTable::updateYearTable(Solver* solver,TwoNodeMove t) {
 	}
 	else if (t.kind == 2) {
 		// outrelocatevToww_
-		int w_ = customers[w].pre > input->custCnt ? 0 : customers[w].pre;
-		int v_ = customers[v].pre > input->custCnt ? 0 : customers[v].pre;
-		int vj = customers[v].next > input->custCnt ? 0 : customers[v].next;
+		int w_ = customers[w].prev > input->customerNumer ? 0 : customers[w].prev;
+		int v_ = customers[v].prev > input->customerNumer ? 0 : customers[v].prev;
+		int vj = customers[v].next > input->customerNumer ? 0 : customers[v].next;
 
 		table[v][vj] = iter + aps->yearTabuLen + random->pick(aps->yearTabuRand);
 		table[v_][v] = iter + aps->yearTabuLen + random->pick(aps->yearTabuRand);
@@ -316,9 +316,9 @@ bool YearTable::updateYearTable(Solver* solver,TwoNodeMove t) {
 	}
 	else if (t.kind == 3) {
 		// outrelocatevTowwj
-		int wj = customers[w].next > input->custCnt ? 0 : customers[w].next;
-		int v_ = customers[v].pre > input->custCnt ? 0 : customers[v].pre;
-		int vj = customers[v].next > input->custCnt ? 0 : customers[v].next;
+		int wj = customers[w].next > input->customerNumer ? 0 : customers[w].next;
+		int v_ = customers[v].prev > input->customerNumer ? 0 : customers[v].prev;
+		int vj = customers[v].next > input->customerNumer ? 0 : customers[v].next;
 
 		table[v][vj] = iter + aps->yearTabuLen + random->pick(aps->yearTabuRand);
 		table[v_][v] = iter + aps->yearTabuLen + random->pick(aps->yearTabuRand);
@@ -328,9 +328,9 @@ bool YearTable::updateYearTable(Solver* solver,TwoNodeMove t) {
 	else if (t.kind == 4) {
 
 		// inrelocatevv_
-		int w_ = customers[w].pre > input->custCnt ? 0 : customers[w].pre;
-		int wj = customers[w].next > input->custCnt ? 0 : customers[w].next;
-		int v_ = customers[v].pre > input->custCnt ? 0 : customers[v].pre;
+		int w_ = customers[w].prev > input->customerNumer ? 0 : customers[w].prev;
+		int wj = customers[w].next > input->customerNumer ? 0 : customers[w].next;
+		int v_ = customers[v].prev > input->customerNumer ? 0 : customers[v].prev;
 
 		table[w][wj] = iter + aps->yearTabuLen + random->pick(aps->yearTabuRand);
 		table[w_][w] = iter + aps->yearTabuLen + random->pick(aps->yearTabuRand);
@@ -340,9 +340,9 @@ bool YearTable::updateYearTable(Solver* solver,TwoNodeMove t) {
 	else if (t.kind == 5) {
 
 		// inrelocatevvj
-		int w_ = customers[w].pre > input->custCnt ? 0 : customers[w].pre;
-		int wj = customers[w].next > input->custCnt ? 0 : customers[w].next;
-		int vj = customers[v].next > input->custCnt ? 0 : customers[v].next;
+		int w_ = customers[w].prev > input->customerNumer ? 0 : customers[w].prev;
+		int wj = customers[w].next > input->customerNumer ? 0 : customers[w].next;
+		int vj = customers[v].next > input->customerNumer ? 0 : customers[v].next;
 
 		table[v][vj] = iter + aps->yearTabuLen + random->pick(aps->yearTabuRand);
 		table[w_][w] = iter + aps->yearTabuLen + random->pick(aps->yearTabuRand);
@@ -352,10 +352,10 @@ bool YearTable::updateYearTable(Solver* solver,TwoNodeMove t) {
 	else if (t.kind == 6) {
 
 		// exchangevw_
-		int w_ = customers[w].pre > input->custCnt ? 0 : customers[w].pre;
-		int v_ = customers[v].pre > input->custCnt ? 0 : customers[v].pre;
-		int vj = customers[v].next > input->custCnt ? 0 : customers[v].next;
-		int w__ = customers[w_].pre > input->custCnt ? 0 : customers[w_].pre;
+		int w_ = customers[w].prev > input->customerNumer ? 0 : customers[w].prev;
+		int v_ = customers[v].prev > input->customerNumer ? 0 : customers[v].prev;
+		int vj = customers[v].next > input->customerNumer ? 0 : customers[v].next;
+		int w__ = customers[w_].prev > input->customerNumer ? 0 : customers[w_].prev;
 
 		int rvId = customers[v].routeID;
 		int rwId = customers[w].routeID;
@@ -391,11 +391,11 @@ bool YearTable::updateYearTable(Solver* solver,TwoNodeMove t) {
 	}
 	else if (t.kind == 7) {
 		// exchangevwj
-		//int w_ = customers[w].pre > input->custCnt ? 0 : customers[w].pre;
-		int v_ = customers[v].pre > input->custCnt ? 0 : customers[v].pre;
-		int vj = customers[v].next > input->custCnt ? 0 : customers[v].next;
-		int wj = customers[w].next > input->custCnt ? 0 : customers[w].next;
-		int wjj = customers[wj].next > input->custCnt ? 0 : customers[wj].next;
+		//int w_ = customers[w].prev > input->customerNumer ? 0 : customers[w].prev;
+		int v_ = customers[v].prev > input->customerNumer ? 0 : customers[v].prev;
+		int vj = customers[v].next > input->customerNumer ? 0 : customers[v].next;
+		int wj = customers[w].next > input->customerNumer ? 0 : customers[w].next;
+		int wjj = customers[wj].next > input->customerNumer ? 0 : customers[wj].next;
 
 		int rvId = customers[v].routeID;
 		int rwId = customers[w].routeID;
@@ -435,10 +435,10 @@ bool YearTable::updateYearTable(Solver* solver,TwoNodeMove t) {
 	else if (t.kind == 8) {
 
 		// exchangevw
-		int w_ = customers[w].pre > input->custCnt ? 0 : customers[w].pre;
-		int v_ = customers[v].pre > input->custCnt ? 0 : customers[v].pre;
-		int vj = customers[v].next > input->custCnt ? 0 : customers[v].next;
-		int wj = customers[w].next > input->custCnt ? 0 : customers[w].next;
+		int w_ = customers[w].prev > input->customerNumer ? 0 : customers[w].prev;
+		int v_ = customers[v].prev > input->customerNumer ? 0 : customers[v].prev;
+		int vj = customers[v].next > input->customerNumer ? 0 : customers[v].next;
+		int wj = customers[w].next > input->customerNumer ? 0 : customers[w].next;
 
 		int rvId = customers[v].routeID;
 		int rwId = customers[w].routeID;
@@ -483,14 +483,14 @@ bool YearTable::updateYearTable(Solver* solver,TwoNodeMove t) {
 
 		//exchangevvjvjjwwj(v, w); 三换二 v v+ v++ | w w+
 
-		int v_ = customers[v].pre > input->custCnt ? 0 : customers[v].pre;
-		int vj = customers[v].next > input->custCnt ? 0 : customers[v].next;
-		int vjj = customers[vj].next > input->custCnt ? 0 : customers[vj].next;
-		int v3j = customers[vjj].next > input->custCnt ? 0 : customers[vjj].next;
+		int v_ = customers[v].prev > input->customerNumer ? 0 : customers[v].prev;
+		int vj = customers[v].next > input->customerNumer ? 0 : customers[v].next;
+		int vjj = customers[vj].next > input->customerNumer ? 0 : customers[vj].next;
+		int v3j = customers[vjj].next > input->customerNumer ? 0 : customers[vjj].next;
 
-		int w_ = customers[w].pre > input->custCnt ? 0 : customers[w].pre;
-		int wj = customers[w].next > input->custCnt ? 0 : customers[w].next;
-		int wjj = customers[wj].next > input->custCnt ? 0 : customers[wj].next;
+		int w_ = customers[w].prev > input->customerNumer ? 0 : customers[w].prev;
+		int wj = customers[w].next > input->customerNumer ? 0 : customers[w].next;
+		int wjj = customers[wj].next > input->customerNumer ? 0 : customers[wj].next;
 
 		table[v_][v] = iter + aps->yearTabuLen + random->pick(aps->yearTabuRand);
 		table[vjj][v3j] = iter + aps->yearTabuLen + random->pick(aps->yearTabuRand);
@@ -503,13 +503,13 @@ bool YearTable::updateYearTable(Solver* solver,TwoNodeMove t) {
 
 		//exchangevvjvjjw(v, w); 三换一 v v+ v++ | w
 
-		int v_ = customers[v].pre > input->custCnt ? 0 : customers[v].pre;
-		int vj = customers[v].next > input->custCnt ? 0 : customers[v].next;
-		int vjj = customers[vj].next > input->custCnt ? 0 : customers[vj].next;
-		int v3j = customers[vjj].next > input->custCnt ? 0 : customers[vjj].next;
+		int v_ = customers[v].prev > input->customerNumer ? 0 : customers[v].prev;
+		int vj = customers[v].next > input->customerNumer ? 0 : customers[v].next;
+		int vjj = customers[vj].next > input->customerNumer ? 0 : customers[vj].next;
+		int v3j = customers[vjj].next > input->customerNumer ? 0 : customers[vjj].next;
 
-		int w_ = customers[w].pre > input->custCnt ? 0 : customers[w].pre;
-		int wj = customers[w].next > input->custCnt ? 0 : customers[w].next;
+		int w_ = customers[w].prev > input->customerNumer ? 0 : customers[w].prev;
+		int wj = customers[w].next > input->customerNumer ? 0 : customers[w].next;
 
 		table[v_][v] = iter + aps->yearTabuLen + random->pick(aps->yearTabuRand);
 		table[vjj][v3j] = iter + aps->yearTabuLen + random->pick(aps->yearTabuRand);
@@ -519,12 +519,12 @@ bool YearTable::updateYearTable(Solver* solver,TwoNodeMove t) {
 	}
 	else if (t.kind == 11) {
 		//exchangevvjw(v, w); 二换一 v v +  | w
-		int v_ = customers[v].pre > input->custCnt ? 0 : customers[v].pre;
-		int vj = customers[v].next > input->custCnt ? 0 : customers[v].next;
-		int vjj = customers[vj].next > input->custCnt ? 0 : customers[vj].next;
+		int v_ = customers[v].prev > input->customerNumer ? 0 : customers[v].prev;
+		int vj = customers[v].next > input->customerNumer ? 0 : customers[v].next;
+		int vjj = customers[vj].next > input->customerNumer ? 0 : customers[vj].next;
 
-		int w_ = customers[w].pre > input->custCnt ? 0 : customers[w].pre;
-		int wj = customers[w].next > input->custCnt ? 0 : customers[w].next;
+		int w_ = customers[w].prev > input->customerNumer ? 0 : customers[w].prev;
+		int wj = customers[w].next > input->customerNumer ? 0 : customers[w].next;
 
 		table[v_][v] = iter + aps->yearTabuLen + random->pick(aps->yearTabuRand);
 		table[vj][vjj] = iter + aps->yearTabuLen + random->pick(aps->yearTabuRand);
@@ -536,12 +536,12 @@ bool YearTable::updateYearTable(Solver* solver,TwoNodeMove t) {
 
 		//exchangevwwj(v, w); 一换二 v  | w w+
 
-		int v_ = customers[v].pre > input->custCnt ? 0 : customers[v].pre;
-		int vj = customers[v].next > input->custCnt ? 0 : customers[v].next;
+		int v_ = customers[v].prev > input->customerNumer ? 0 : customers[v].prev;
+		int vj = customers[v].next > input->customerNumer ? 0 : customers[v].next;
 
-		int w_ = customers[w].pre > input->custCnt ? 0 : customers[w].pre;
-		int wj = customers[w].next > input->custCnt ? 0 : customers[w].next;
-		int wjj = customers[wj].next > input->custCnt ? 0 : customers[wj].next;
+		int w_ = customers[w].prev > input->customerNumer ? 0 : customers[w].prev;
+		int wj = customers[w].next > input->customerNumer ? 0 : customers[w].next;
+		int wjj = customers[wj].next > input->customerNumer ? 0 : customers[wj].next;
 
 		table[v_][v] = iter + aps->yearTabuLen + random->pick(aps->yearTabuRand);
 		table[v][vj] = iter + aps->yearTabuLen + random->pick(aps->yearTabuRand);
@@ -552,13 +552,13 @@ bool YearTable::updateYearTable(Solver* solver,TwoNodeMove t) {
 	else if (t.kind == 13) {
 
 		//outrelocatevvjTowwj(v, w); 扔两个 v v+  | w w+
-		int vj = customers[v].next > input->custCnt ? 0 : customers[v].next;
-		int vjj = customers[vj].next > input->custCnt ? 0 : customers[vj].next;
-		int v_ = customers[v].pre > input->custCnt ? 0 : customers[v].pre;
+		int vj = customers[v].next > input->customerNumer ? 0 : customers[v].next;
+		int vjj = customers[vj].next > input->customerNumer ? 0 : customers[vj].next;
+		int v_ = customers[v].prev > input->customerNumer ? 0 : customers[v].prev;
 
-		//int w_ = customers[w].pre > input->custCnt ? 0 : customers[w].pre;
-		int wj = customers[w].next > input->custCnt ? 0 : customers[w].next;
-		//int wjj = customers[wj].next > input->custCnt ? 0 : customers[wj].next;
+		//int w_ = customers[w].prev > input->customerNumer ? 0 : customers[w].prev;
+		int wj = customers[w].next > input->customerNumer ? 0 : customers[w].next;
+		//int wjj = customers[wj].next > input->customerNumer ? 0 : customers[wj].next;
 
 		table[v_][v] = iter + aps->yearTabuLen + random->pick(aps->yearTabuRand);
 		table[vj][vjj] = iter + aps->yearTabuLen + random->pick(aps->yearTabuRand);
@@ -569,10 +569,10 @@ bool YearTable::updateYearTable(Solver* solver,TwoNodeMove t) {
 		// v- v | w_ w
 		//outrelocatevv_Toww_  | w-  v- v w
 
-		int v_ = customers[v].pre > input->custCnt ? 0 : customers[v].pre;
-		int v__ = customers[v_].pre > input->custCnt ? 0 : customers[v_].pre;
-		int vj = customers[v].next > input->custCnt ? 0 : customers[v].next;
-		int w_ = customers[w].pre > input->custCnt ? 0 : customers[w].pre;
+		int v_ = customers[v].prev > input->customerNumer ? 0 : customers[v].prev;
+		int v__ = customers[v_].prev > input->customerNumer ? 0 : customers[v_].prev;
+		int vj = customers[v].next > input->customerNumer ? 0 : customers[v].next;
+		int w_ = customers[w].prev > input->customerNumer ? 0 : customers[w].prev;
 
 		table[v__][v_] = iter + aps->yearTabuLen + random->pick(aps->yearTabuRand);
 		table[v][vj] = iter + aps->yearTabuLen + random->pick(aps->yearTabuRand);
@@ -582,8 +582,8 @@ bool YearTable::updateYearTable(Solver* solver,TwoNodeMove t) {
 	else if (t.kind == 15) {
 
 		//reverse [v,w]
-		int v_ = customers[v].pre > input->custCnt ? 0 : customers[v].pre;
-		int wj = customers[w].next > input->custCnt ? 0 : customers[w].next;
+		int v_ = customers[v].prev > input->customerNumer ? 0 : customers[v].prev;
+		int wj = customers[w].next > input->customerNumer ? 0 : customers[w].next;
 
 
 		table[v_][v] = iter + aps->yearTabuLen + random->pick(aps->yearTabuRand);

@@ -130,17 +130,17 @@ bool Goal::perturbOneSolution(Solver& sol) {
 		if (random->pick(2)==0) {
 			int perkind = random->pick(5);
 			int clearEPkind = random->pick(6);
-			int ruinCusNum = std::min<int>(input->custCnt/2, aps->ruinC_);
+			int ruinCusNum = std::min<int>(input->customerNumer/2, aps->ruinC_);
 			sclone.perturbBasedRuin(perkind, ruinCusNum, clearEPkind);
 		}
 		else{
-			int step = random->pick(static_cast<int>(sclone.input->custCnt * 0.2),static_cast<int>( sclone.input->custCnt * 0.3));
+			int step = random->pick(static_cast<int>(sclone.input->customerNumer * 0.2),static_cast<int>( sclone.input->customerNumer * 0.3));
 			sclone.patternAdjustment(step);
 		}
 		 
 		auto diff = EAX::getDiffCusofPb(sol, sclone);
 		//Logger::INFO("i:",i,"diff.size:",diff.size());
-		if (static_cast<int>(diff.size()) > static_cast<int>(sol.input->custCnt * 0.2)) {
+		if (static_cast<int>(diff.size()) > static_cast<int>(sol.input->customerNumer * 0.2)) {
 			sclone.simpleLocalSearch(1, diff);
 			sol = sclone;
 			isPerOnePerson = true;
@@ -234,7 +234,7 @@ int Goal::gotoPopulationAtRouteNumber(int rn) {
 	}
 	
 	//TODO[0]:Lmax和ruinLmax的定义
-	aps->ruinLmax = input->custCnt / rn;
+	aps->ruinLmax = input->customerNumer / rn;
 	//aps->ruinC_ = (aps->ruinLmax + 1)/2;
 	//aps->ruinC_ = (aps->ruinLmax + 1);
 	//aps->ruinC_ = 15;
@@ -357,7 +357,7 @@ bool Goal::test() {
 	sol.simpleLocalSearch(0, {});
 
 	for (;;) {
-		aps->ruinLmax = input->custCnt / sol.rts.cnt;
+		aps->ruinLmax = input->customerNumer / sol.rts.cnt;
 		//aps->ruinC_ = (aps->ruinLmax + 1);
 		sol.simulatedannealing(1, 500, 100.0, aps->ruinC_);
 		sol.patternAdjustment(100);
@@ -401,13 +401,13 @@ void Goal::initialMapOfPopulation() {
 	
 	sol.initSolution(0);
 
-	int adjBig = std::min<int>(input->vehicleCnt, sol.rts.cnt + 15);
+	int adjBig = std::min<int>(input->vehicleNumber, sol.rts.cnt + 15);
 
 	if (adjBig > sol.rts.cnt) {
 		sol.adjustRouteNumber(adjBig);
 	}
 	
-	aps->ruinLmax = input->custCnt / sol.rts.cnt;
+	aps->ruinLmax = input->customerNumer / sol.rts.cnt;
 	//aps->ruinC_ = (aps->ruinLmax + 1);
 	
 	int& neiborRange1 = aps->neiborRange[1];
@@ -415,7 +415,7 @@ void Goal::initialMapOfPopulation() {
 
 	sol.simulatedannealing(1, 1000, 100.0, aps->ruinC_);
 	
-	if (input->custCnt < sol.rts.cnt * 25 ) {
+	if (input->customerNumer < sol.rts.cnt * 25 ) {
 		//short route
 		aps->populationSizeMin = 2;
 		aps->populationSizeMax = 6;
@@ -436,12 +436,12 @@ void Goal::initialMapOfPopulation() {
 	for (int i = 1; i < aps->populationSizeMax; ++i) {
 		int kind = (i == 4 ? 4 : i % 4);
 		poolt[i].initSolution(kind);
-		int adjBig = std::min<int>(input->vehicleCnt, poolt[i].rts.cnt + 15);
+		int adjBig = std::min<int>(input->vehicleNumber, poolt[i].rts.cnt + 15);
 
 		poolt[i].adjustRouteNumber(adjBig);
 
 		if (i <= 4 ) {
-			aps->ruinLmax = input->custCnt / poolt[i].rts.cnt;
+			aps->ruinLmax = input->customerNumer / poolt[i].rts.cnt;
 			poolt[i].simulatedannealing(1, 500, 100.0, aps->ruinC_);
 			updateMapOfPopulation(poolt[i], i);
 			
@@ -484,17 +484,17 @@ void Goal::initialMapOfPopulation() {
 		routeNumberLowerBound = std::min<int>(routeNumberLowerBound, soles[i].back().rts.cnt);
 	}
 
-	routeNumberUpperBound = std::min<int>(routeNumberLowerBound + 15, input->custCnt);
+	routeNumberUpperBound = std::min<int>(routeNumberLowerBound + 15, input->customerNumer);
 	routeNumberUpperBound = std::max<int>(routeNumberUpperBound,bks.bestSolFound.rts.cnt);
 	routeNumberLowerBound = std::min<int>(routeNumberLowerBound,bks.bestSolFound.rts.cnt);
 
 	//TODO[-1]:这个很重要 考虑了vehicleCnt！！！
-	routeNumberUpperBound = std::min<int>(routeNumberUpperBound, input->vehicleCnt);
+	routeNumberUpperBound = std::min<int>(routeNumberUpperBound, input->vehicleNumber);
 
 	Logger::INFO("routeNumberLowerBound:",routeNumberLowerBound,"routeNumberUpperBound:", routeNumberUpperBound);
 
-	if (routeNumberLowerBound > input->vehicleCnt) {
-		Logger::ERROR("!!!!!this alg finshed! even cant get a sol sat vehicleCnt");
+	if (routeNumberLowerBound > input->vehicleNumber) {
+		Logger::ERROR("!!!!!this alg finshed! even cant get a sol sat vehicleNumber");
 	}
 	Logger::INFO("soles.size():", soles.size());
 
@@ -547,113 +547,88 @@ void Goal::initialMapOfPopulation() {
 	populationSize = aps->populationSizeMin;
 }
 
-int Goal::run() {
+void Goal::fillAlternativeRouteNumbers() {
 
-	std::queue<int>queNext;
-	
-	auto fillQueNext = [&]() -> void {
+	Vector<int> rns;
+	int bksRN = bks.bestSolFound.rts.cnt;
+	if (bksRN == routeNumberUpperBound) {
+		rns = { bksRN, bksRN - 1 ,bksRN - 2 };
+	}
+	else if (bksRN == routeNumberLowerBound) {
+		rns = { bksRN, bksRN + 1 ,bksRN + 2 };
+	}
+	else {
+		rns = { bksRN,bksRN + 1 ,bksRN - 1 };
+	}
 
-		Vector<int> rns;
-		int bksRN = bks.bestSolFound.rts.cnt;
-		if (bksRN == routeNumberUpperBound) {
-			rns = { bksRN, bksRN - 1 ,bksRN - 2 };
-		}
-		else if (bksRN == routeNumberLowerBound) {
-			rns = { bksRN, bksRN + 1 ,bksRN + 2 };
-		}
-		else {
-			rns = { bksRN,bksRN + 1 ,bksRN - 1 };
-		}
+	std::sort(rns.begin(), rns.end(), [&](int x, int y) {
+		return bks.bksAtRn[x] < bks.bksAtRn[y];
+	});
 
-		std::sort(rns.begin(), rns.end(), [&](int x, int y) {
-			return bks.bksAtRn[x] < bks.bksAtRn[y];
-		});
-
-		int n = static_cast<int>(rns.size());
-		for (int i = 0; i < n ; ++i) {
+	int n = static_cast<int>(rns.size());
+	for (int i = 0; i < n; ++i) {
 		//for (int i = 0; i < 3; ++i) {
-			queNext.push(rns[i]);
+		alternativeRouteNumbers.push(rns[i]);
+	}
+
+	for (int rn : rns) {
+		auto& pool = mapOfPopulation[rn];
+		int pn = static_cast<int>(pool.size());
+		for (int i = 0; i + 1 < pn; ++i) {
+			int rdi = random->pick(i + 1, pn);
+			std::swap(pool[i], pool[rdi]);
+		}
+	}
+};
+
+int Goal::getNextRouteNumerToRun() {
+
+	if (alternativeRouteNumbers.size() == 0) {
+
+		fillAlternativeRouteNumbers();
+
+		populationSize *= 3;
+		populationSize = std::min<int>(populationSize, aps->populationSizeMax);
+
+		aps->ruinC_ += 3;
+		if (aps->ruinC_ > aps->ruinC_Max) {
+			aps->ruinC_ = aps->ruinC_Min;
 		}
 
-		for (int rn : rns) {
-			auto& pool = mapOfPopulation[rn];
-			int pn = static_cast<int>(pool.size());
-			for (int i = 0; i +1 < pn; ++i) {
-				int rdi = random->pick(i+1,pn);
-				std::swap(pool[i], pool[rdi]);
-			}
+		int& neiborRange1 = aps->neiborRange[1];
+		neiborRange1 += 5;
+		if (neiborRange1 > aps->neiborSizeMax) {
+			neiborRange1 = aps->neiborSizeMin;
 		}
-	};
-	
-	auto getNextRouteNumerToRun = [&]() -> int {
+	}
 
-		if(queNext.size() == 0) {
+	Logger::INFO("aps->populationSize:", populationSize);
+	Logger::INFO("queNext.size():", alternativeRouteNumbers.size());
 
-			fillQueNext();
+	int ret = alternativeRouteNumbers.front();
+	alternativeRouteNumbers.pop();
+	return ret;
+};
 
-			populationSize *= 3;
-			populationSize = std::min<int>(populationSize, aps->populationSizeMax);
-
-			aps->ruinC_ += 3;
-			if (aps->ruinC_ > aps->ruinC_Max) {
-				aps->ruinC_ = aps->ruinC_Min;
-			}
-
-			int& neiborRange1 = aps->neiborRange[1];
-			neiborRange1 += 5;
-			if (neiborRange1 > aps->neiborSizeMax) {
-				neiborRange1 = aps->neiborSizeMin;
-			}
-		}
-
-		Logger::INFO("aps->populationSize:", populationSize);
-		Logger::INFO("queNext.size():", queNext.size());
-		
-		int ret = queNext.front();
-		queNext.pop();
-
-		return ret;
-	};
+int Goal::run() {
 
 	initialMapOfPopulation();
 
-	int rnn = getNextRouteNumerToRun();
+	int nextRouteNumber = getNextRouteNumerToRun();
+
+	curSearchRouteNumber = gotoPopulationAtRouteNumber(nextRouteNumber);
 
 	populationSize = aps->populationSizeMin;
-	
-	curSearchRouteNumber = gotoPopulationAtRouteNumber(rnn);
 
 	DisType bksLastLoop = bks.bestSolFound.RoutesCost;
 	int stagnation = 1;
 
-#if LYH_CHECKING
-	for (int rn = routeNumberLowerBound; rn <= routeNumberUpperBound; ++rn) {
-		for (int i = 0; i < aps->popSizeMax; ++i) {
-			if (mapOfPopulation[rn][i].rts.cnt != rn) {
-				Logger::ERROR("rn:", rn);
-				Logger::ERROR("i:", i);
-				Logger::ERROR("i:", i);
-			}
-		}
-	}
-#endif // LYH_CHECKING
-
 	while (true) {
 		
-#if LYH_CHECKING
-		for (int rn = routeNumberLowerBound; rn <= routeNumberUpperBound; ++rn) {
-			for (int i = 0; i < aps->popSizeMax; ++i) {
-				if (mapOfPopulation[rn][i].rts.cnt != rn) {
-					Logger::ERROR("rn:", rn);
-					Logger::ERROR("i:", i);
-				}
-			}
-		}
-#endif // LYH_CHECKING
-
 		int& neiSize = aps->neiborRange[1];
 
-		Logger::INFO("curSearchRouteNumber:", curSearchRouteNumber,
+		Logger::INFO(
+			"curSearchRouteNumber:", curSearchRouteNumber,
 			"populationSize:",populationSize,
 			"aps->ruinC_:", aps->ruinC_,
 			"neiSize:", neiSize);
@@ -689,24 +664,23 @@ int Goal::run() {
 			++stagnation;
 		}
 
-		int plangoto = -1;
+		int planGotoRouterNumber = -1;
 		if (stagnation >= 2) {
-			plangoto = getNextRouteNumerToRun();
+			planGotoRouterNumber = getNextRouteNumerToRun();
 		}
 
-		if (plangoto != -1) {
-			curSearchRouteNumber = gotoPopulationAtRouteNumber(plangoto);
-			if (curSearchRouteNumber == plangoto) {
+		if (planGotoRouterNumber != -1) {
+			curSearchRouteNumber = gotoPopulationAtRouteNumber(planGotoRouterNumber);
+			if (curSearchRouteNumber == planGotoRouterNumber) {
 				Logger::INFO("jump succeed curSearchRouteNumber", curSearchRouteNumber);
 			}
 			else {
-				Logger::INFO("jump fail curSearchRouteNumber", curSearchRouteNumber, "plangoto:", plangoto);
+				Logger::INFO("jump fail curSearchRouteNumber", curSearchRouteNumber, "planGotoRouterNumber:", planGotoRouterNumber);
 			}
 		}
 	}
 
 	bks.bestSolFound.printDimacs();
-
 	timer->disp();
 
 	return true;

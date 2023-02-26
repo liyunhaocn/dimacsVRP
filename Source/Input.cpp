@@ -39,7 +39,7 @@ Input::Input(CommandLine* commandLine):
 
 void Input::initDetail() {
 
-	for (int v = 0; v <= custCnt; ++v) {
+	for (int v = 0; v <= customerNumer; ++v) {
 
 		auto cmp = [&](const int a, const int b) {
 			return abs(datas[a].polarAngle - datas[v].polarAngle)
@@ -66,7 +66,7 @@ void Input::initDetail() {
 		return true;
 	};
 
-	for (int v = 0; v <= custCnt; ++v) {
+	for (int v = 0; v <= customerNumer; ++v) {
 
 		auto cmp = [&](const int a, const int b) {
 
@@ -107,9 +107,9 @@ void Input::initDetail() {
 		std::sort(addSTclose[v], addSTclose[v]+addSTclose.size2(), cmp);
 	}
 
-	addSTJIsxthcloseOf = util::Array2D<int> (custCnt + 1, custCnt + 1, -1);
+	addSTJIsxthcloseOf = util::Array2D<int> (customerNumer + 1, customerNumer + 1, -1);
 
-	for (int v = 0; v <= custCnt; ++v) {
+	for (int v = 0; v <= customerNumer; ++v) {
 		for (int wpos = 0; wpos < addSTclose.size2(); ++wpos) {
 			int w = addSTclose[v][wpos];
 			addSTJIsxthcloseOf[v][w] = wpos;
@@ -117,24 +117,24 @@ void Input::initDetail() {
 	}
 	
 	int deNeiSize = aps->outNeiborSize;
-	deNeiSize = std::min(custCnt - 1, deNeiSize);
+	deNeiSize = std::min(customerNumer - 1, deNeiSize);
 
 	auto iInNeicloseOf = Vector< Vector<int> >
-		(custCnt + 1, Vector<int>());
-	for (int i = 0; i < custCnt + 1; ++i) {
-		iInNeicloseOf[i].reserve(custCnt);
+		(customerNumer + 1, Vector<int>());
+	for (int i = 0; i < customerNumer + 1; ++i) {
+		iInNeicloseOf[i].reserve(customerNumer);
 	}
 
-	for (int v = 0; v <= custCnt; ++v) {
+	for (int v = 0; v <= customerNumer; ++v) {
 		for (int wpos = 0; wpos < deNeiSize; ++wpos) {
 			int w = addSTclose[v][wpos];
 			iInNeicloseOf[w].push_back(v);
 		}
 	}
 
-	iInNeicloseOfUnionNeiCloseOfI = Vector< Vector<int> >(custCnt + 1);
+	iInNeicloseOfUnionNeiCloseOfI = Vector< Vector<int> >(customerNumer + 1);
 
-	for (int v = 0; v <= custCnt; ++v) {
+	for (int v = 0; v <= customerNumer; ++v) {
 
 		iInNeicloseOfUnionNeiCloseOfI[v] = Vector<int>
 			(addSTclose[v], addSTclose[v] + deNeiSize);
@@ -149,17 +149,17 @@ void Input::initDetail() {
 
 void Input::initInput() {
 
-	P = Vector<int>(custCnt + 1, 1);
-	if (static_cast<int>(datas.size()) < custCnt * 3 + 3) {
-		datas.resize(custCnt * 3 + 3);
+	P = Vector<int>(customerNumer + 1, 1);
+	if (static_cast<int>(datas.size()) < customerNumer * 3 + 3) {
+		datas.resize(customerNumer * 3 + 3);
 	}
-	for (int i = custCnt + 1; i < static_cast<int>(datas.size()); ++i) {
+	for (int i = customerNumer + 1; i < static_cast<int>(datas.size()); ++i) {
 		datas[i] = datas[0];
 		datas[i].CUSTNO = i;
 	}
 
 	double sumq = 0;
-	for (int i = 1; i <= custCnt; ++i) {
+	for (int i = 1; i <= customerNumer; ++i) {
 		sumq += static_cast<double>(datas[i].DEMAND);
 	}
 	Qbound = static_cast<int>(ceil(double(sumq) / static_cast<double>(vehicleCapacity)));
@@ -173,13 +173,13 @@ void Input::initInput() {
 		float精度最低，double较高，long double精度最高
 	*/
 
-	sectorClose = util::Array2D<int>(custCnt + 1, custCnt,0);
+	sectorClose = util::Array2D<int>(customerNumer + 1, customerNumer,0);
 
-	for (int v = 0; v <= custCnt; ++v) {
+	for (int v = 0; v <= customerNumer; ++v) {
 
 		int idx = 0;
 
-		for (int pos = 0; pos <= custCnt; ++pos) {
+		for (int pos = 0; pos <= customerNumer; ++pos) {
 			if (pos != v) {
 				sectorClose[v][idx] = pos;
 				++idx;
@@ -193,12 +193,12 @@ void Input::initInput() {
 		std::sort(sectorClose[v], sectorClose[v] + sectorClose.size2(), cmp);
 	}
 
-	addSTclose = util::Array2D<int> (custCnt + 1, custCnt,0);
+	addSTclose = util::Array2D<int> (customerNumer + 1, customerNumer,0);
 
-	for (int v = 0; v <= custCnt; ++v) {
+	for (int v = 0; v <= customerNumer; ++v) {
 
 		int idx = 0;
-		for (int w = 0; w <= custCnt; ++w) {
+		for (int w = 0; w <= customerNumer; ++w) {
 			if (w != v) {
 				addSTclose[v][idx] = w;
 				++idx;
@@ -265,7 +265,7 @@ SOFTWARE.*/
 
 void Input::readInstanceFormatCVRPLIB() {
 
-	this->custCnt = 0;
+	this->customerNumer = 0;
 	this->vehicleCapacity = INT_MAX;
 	mustDispatchNumber = -1;
 	DisType totalDemand = 0;
@@ -301,7 +301,7 @@ void Input::readInstanceFormatCVRPLIB() {
 		{
 			// Get the number of vehicles and the capacity of the vehicles
 			getline(std::cin, content);  // NUMBER    CAPACITY
-			std::cin >> this->vehicleCnt >> vehicleCapacity;
+			std::cin >> this->vehicleNumber >> vehicleCapacity;
 
 			// Skip the next four lines
 			getline(std::cin, content);
@@ -312,29 +312,29 @@ void Input::readInstanceFormatCVRPLIB() {
 			// Create a vector where all information on the Clients can be stored and loop over all information in the file
 			datas = Vector<Data>(1001);
 
-			custCnt = 0;
+			customerNumer = 0;
 			while (std::cin >> node)
 			{
 				// Store all the information of the next client
-				datas[custCnt].CUSTNO = node;
-				std::cin >> datas[custCnt].XCOORD >> datas[custCnt].YCOORD >> datas[custCnt].DEMAND >> datas[custCnt].READYTIME >> datas[custCnt].DUEDATE >> datas[custCnt].SERVICETIME;
+				datas[customerNumer].CUSTNO = node;
+				std::cin >> datas[customerNumer].XCOORD >> datas[customerNumer].YCOORD >> datas[customerNumer].DEMAND >> datas[customerNumer].READYTIME >> datas[customerNumer].DUEDATE >> datas[customerNumer].SERVICETIME;
 
 				// Scale coordinates by factor 10, later the distances will be rounded so we optimize with 1 decimal distances
-				datas[custCnt].XCOORD *= 10;
-				datas[custCnt].YCOORD *= 10;
-				datas[custCnt].READYTIME *= 10;
-				datas[custCnt].DUEDATE *= 10;
-				datas[custCnt].SERVICETIME *= 10;
-				datas[custCnt].polarAngle = CircleSector::positive_mod(static_cast<int>(32768. * atan2(datas[custCnt].YCOORD - datas[0].YCOORD, datas[custCnt].XCOORD - datas[0].XCOORD) / PI));
+				datas[customerNumer].XCOORD *= 10;
+				datas[customerNumer].YCOORD *= 10;
+				datas[customerNumer].READYTIME *= 10;
+				datas[customerNumer].DUEDATE *= 10;
+				datas[customerNumer].SERVICETIME *= 10;
+				datas[customerNumer].polarAngle = CircleSector::positive_mod(static_cast<int>(32768. * atan2(datas[customerNumer].YCOORD - datas[0].YCOORD, datas[customerNumer].XCOORD - datas[0].XCOORD) / PI));
 
-				++custCnt;
+				++customerNumer;
 			}
 
 			// Reduce the size of the vector of clients if possible
-			datas.resize(custCnt);
+			datas.resize(customerNumer);
 
 			// Don't count depot as client
-			--custCnt;
+			--customerNumer;
 
 			// Check if the required service and the start of the time window of the depot are both zero
 			if (datas[0].READYTIME != 0)
@@ -346,9 +346,9 @@ void Input::readInstanceFormatCVRPLIB() {
 				throw String("Service duration for depot should be 0");
 			}
 
-			disOf = util::Array2D <DisType>(custCnt + 1, custCnt + 1, DisType(0));
-			for (int i = 0; i <= custCnt; ++i) {
-				for (int j = i + 1; j <= custCnt; ++j) {
+			disOf = util::Array2D <DisType>(customerNumer + 1, customerNumer + 1, DisType(0));
+			for (int i = 0; i <= customerNumer; ++i) {
+				for (int j = i + 1; j <= customerNumer; ++j) {
 					Data& d1 = datas[i];
 					Data& d2 = datas[j];
 					double dis = sqrt((d1.XCOORD - d2.XCOORD) * (d1.XCOORD - d2.XCOORD)
@@ -367,9 +367,9 @@ void Input::readInstanceFormatCVRPLIB() {
 				if (content == "DIMENSION")
 				{
 					// Need to substract the depot from the number of nodes
-					std::cin >> content2 >> custCnt;
-					custCnt--;
-					P.resize(custCnt + 1, 1);
+					std::cin >> content2 >> customerNumer;
+					customerNumer--;
+					P.resize(customerNumer + 1, 1);
 				}
 				// Read the type of edge weights
 				else if (content == "EDGE_WEIGHT_TYPE")
@@ -401,8 +401,8 @@ void Input::readInstanceFormatCVRPLIB() {
 				{
 					// Set vehicle count from instance only if not specified on CLI.
 					std::cin >> content2;
-					if (vehicleCnt == INT_MAX) {
-						std::cin >> vehicleCnt;
+					if (vehicleNumber == INT_MAX) {
+						std::cin >> vehicleNumber;
 					}
 					else {
 						// Discard vehicle count
@@ -429,11 +429,11 @@ void Input::readInstanceFormatCVRPLIB() {
 					maxDist = 0;
 					
 
-					disOf = util::Array2D <DisType>(custCnt + 1, custCnt + 1, DisType(0));
+					disOf = util::Array2D <DisType>(customerNumer + 1, customerNumer + 1, DisType(0));
 
-					for (int i = 0; i <= custCnt; ++i)
+					for (int i = 0; i <= customerNumer; ++i)
 					{
-						for (int j = 0; j <= custCnt; ++j)
+						for (int j = 0; j <= customerNumer; ++j)
 						{
 							// Keep track of the largest distance between two clients (or the depot)
 							int cost;
@@ -449,8 +449,8 @@ void Input::readInstanceFormatCVRPLIB() {
 				else if (content == "NODE_COORD_SECTION")
 				{
 					// Reading client coordinates
-					datas = Vector<Data>(custCnt + 1);
-					for (int i = 0; i <= custCnt; i++)
+					datas = Vector<Data>(customerNumer + 1);
+					for (int i = 0; i <= customerNumer; i++)
 					{
 						std::cin >> datas[i].CUSTNO >> datas[i].XCOORD >> datas[i].YCOORD;
 
@@ -465,15 +465,15 @@ void Input::readInstanceFormatCVRPLIB() {
 						datas[i].polarAngle = CircleSector::positive_mod(static_cast<int>(32768. * atan2(datas[i].YCOORD - datas[0].YCOORD, datas[i].XCOORD - datas[0].XCOORD) / PI));
 					}
 					// 将所有的顾客都置为必须配送
-					for (int i = 0; i <= custCnt; i++) {
+					for (int i = 0; i <= customerNumer; i++) {
 						datas[i].must_dispatch = 1;
 					}
-					mustDispatchNumber = custCnt;
+					mustDispatchNumber = customerNumer;
 				}
 				// Read the DEMAND of each client (including the depot, which should have DEMAND 0)
 				else if (content == "DEMAND_SECTION")
 				{
-					for (int i = 0; i <= custCnt; i++)
+					for (int i = 0; i <= customerNumer; i++)
 					{
 						int clientNr = 0;
 						std::cin >> clientNr >> datas[i].DEMAND;
@@ -507,7 +507,7 @@ void Input::readInstanceFormatCVRPLIB() {
 				}
 				else if (content == "CUSTOMER_WEIGHT")
 				{
-					for (int i = 0; i <= custCnt; ++i)
+					for (int i = 0; i <= customerNumer; ++i)
 					{
 						int clientNr = 0;
 						std::cin >> clientNr >> P[i];
@@ -528,7 +528,7 @@ void Input::readInstanceFormatCVRPLIB() {
 				else if (content == "MUST_DISPATCH")
 				{
 					mustDispatchNumber = 0;
-					for (int i = 0; i <= custCnt; i++)
+					for (int i = 0; i <= customerNumer; i++)
 					{
 						int clientNr = 0;
 						std::cin >> clientNr >> datas[i].must_dispatch;
@@ -549,7 +549,7 @@ void Input::readInstanceFormatCVRPLIB() {
 				}
 				else if (content == "SERVICE_TIME_SECTION")
 				{
-					for (int i = 0; i <= custCnt; i++)
+					for (int i = 0; i <= customerNumer; i++)
 					{
 						int clientNr = 0;
 						std::cin >> clientNr >> datas[i].SERVICETIME;
@@ -569,7 +569,7 @@ void Input::readInstanceFormatCVRPLIB() {
 				}
 				//else if (content == "RELEASE_TIME_SECTION")
 				//{
-				//	for (int i = 0; i <= custCnt; i++)
+				//	for (int i = 0; i <= customerNumer; i++)
 				//	{
 				//		int clientNr = 0;
 				//		std::cin >> clientNr >> datas[i].releaseTime;
@@ -590,7 +590,7 @@ void Input::readInstanceFormatCVRPLIB() {
 				else if (content == "TIME_WINDOW_SECTION")
 				{
 					isTimeWindowConstraint = true;
-					for (int i = 0; i <= custCnt; i++)
+					for (int i = 0; i <= customerNumer; i++)
 					{
 						int clientNr = 0;
 						std::cin >> clientNr >> datas[i].READYTIME >> datas[i].DUEDATE;
@@ -619,13 +619,13 @@ void Input::readInstanceFormatCVRPLIB() {
 
 			if (!hasServiceTimeSection)
 			{
-				for (int i = 0; i <= custCnt; i++)
+				for (int i = 0; i <= customerNumer; i++)
 				{
 					datas[i].SERVICETIME = (i == 0) ? 0 : serviceTimeData;
 				}
 			}
 
-			if (custCnt <= 0)
+			if (customerNumer <= 0)
 			{
 				throw String("Number of nodes is undefined");
 			}
@@ -635,10 +635,10 @@ void Input::readInstanceFormatCVRPLIB() {
 			}
 		}
 
-		if (static_cast<int>(datas.size()) < custCnt * 3 + 3) {
-			datas.resize(custCnt * 3 + 3);
+		if (static_cast<int>(datas.size()) < customerNumer * 3 + 3) {
+			datas.resize(customerNumer * 3 + 3);
 		}
-		for (int i = custCnt + 1; i < static_cast<int>(datas.size()); ++i) {
+		for (int i = customerNumer + 1; i < static_cast<int>(datas.size()); ++i) {
 			datas[i] = datas[0];
 			datas[i].CUSTNO = i;
 		}
@@ -653,20 +653,20 @@ void Input::readInstanceFormatCVRPLIB() {
 	fclose(stdin);
 
 	// Default initialization if the number of vehicles has not been provided by the user
-	if (vehicleCnt == INT_MAX)
+	if (vehicleNumber == INT_MAX)
 	{
 		// Safety margin: 30% + 3 more vehicles than the trivial bin packing LB
-		vehicleCnt = static_cast<int>(std::ceil(1.3 * totalDemand / vehicleCapacity) + 3.);
-		Logger::INFO("----- FLEET SIZE WAS NOT SPECIFIED: DEFAULT INITIALIZATION TO ", vehicleCnt, " VEHICLES");
+		vehicleNumber = static_cast<int>(std::ceil(1.3 * totalDemand / vehicleCapacity) + 3.);
+		Logger::INFO("----- FLEET SIZE WAS NOT SPECIFIED: DEFAULT INITIALIZATION TO ", vehicleNumber, " VEHICLES");
 	}
-	else if (vehicleCnt == -1)
+	else if (vehicleNumber == -1)
 	{
-		vehicleCnt = custCnt;
-		Logger::INFO("----- FLEET SIZE UNLIMITED: SET TO UPPER BOUND OF ", vehicleCnt, " VEHICLES");
+		vehicleNumber = customerNumer;
+		Logger::INFO("----- FLEET SIZE UNLIMITED: SET TO UPPER BOUND OF ", vehicleNumber, " VEHICLES");
 	}
 	else
 	{
-		Logger::INFO("----- FLEET SIZE SPECIFIED IN THE COMMANDLINE: SET TO ", vehicleCnt, " VEHICLES");
+		Logger::INFO("----- FLEET SIZE SPECIFIED IN THE COMMANDLINE: SET TO ", vehicleNumber, " VEHICLES");
 	}
 }
 

@@ -16,13 +16,13 @@ Solver::Solver(Input* input,YearTable* yearTable,BKS* bks) :
 	aps(input->aps),
 	bks(bks),
 	yearTable(yearTable),
-	PtwConfRts(input->custCnt/8),
-	PcConfRts(input->custCnt/8),
-	rts(input->custCnt/8)
+	PtwConfRts(input->customerNumer/8),
+	PcConfRts(input->customerNumer/8),
+	rts(input->customerNumer/8)
 	
 {
 
-	customers = Vector<Customer>( static_cast<int>((input->custCnt + 1) * 1.5) );
+	customers = Vector<Customer>( static_cast<int>((input->customerNumer + 1) * 1.5) );
 	alpha = 1;
 	beta = 1;
 	gamma = 1;
@@ -95,7 +95,7 @@ Solver& Solver::operator = (const Solver& s) {
 Route Solver::rCreateRoute(int id) {
 
 	Route r(id);
-	int index = input->custCnt + rts.cnt * 2 + 1;
+	int index = input->customerNumer + rts.cnt * 2 + 1;
 
 	while (index + 1 >= static_cast<int>(customers.size())) {
 		customers.push_back(customers[0]);
@@ -104,9 +104,9 @@ Route Solver::rCreateRoute(int id) {
 	r.head = index;
 	r.tail = index + 1;
 
-	customers[r.head].pre = -1;
+	customers[r.head].prev = -1;
 	customers[r.head].next = r.tail;
-	customers[r.tail].pre = r.head;
+	customers[r.tail].prev = r.head;
 	customers[r.tail].next = -1;
 
 	customers[r.head].routeID = id;
@@ -190,9 +190,9 @@ bool Solver::rInsertAtPosition(Route& r, int pos, int node) {
 
 	int anext = customers[pos].next;
 	customers[node].next = anext;
-	customers[node].pre = pos;
+	customers[node].prev = pos;
 	customers[pos].next = node;
-	customers[anext].pre = node;
+	customers[anext].prev = node;
 
 	++r.rCustCnt;
 
@@ -205,10 +205,10 @@ bool Solver::rInsAtPosPre(Route& r, int pos, int node) {
 	r.rQ += input->datas[node].DEMAND;
 	r.rPc = std::max<DisType>(0, r.rQ - input->vehicleCapacity);
 
-	int apre = customers[pos].pre;
-	customers[node].pre = apre;
+	int apre = customers[pos].prev;
+	customers[node].prev = apre;
 	customers[node].next = pos;
-	customers[pos].pre = node;
+	customers[pos].prev = node;
 	customers[apre].next = node;
 	++r.rCustCnt;
 
@@ -225,14 +225,14 @@ bool Solver::rRemoveAtPosition(Route& r, int a) {
 	r.rPc = std::max<DisType>(0, r.rQ - input->vehicleCapacity);
 
 	Customer& temp = customers[a];
-	Customer& tpre = customers[temp.pre];
+	Customer& tpre = customers[temp.prev];
 	Customer& tnext = customers[temp.next];
 
-	tnext.pre = temp.pre;
+	tnext.prev = temp.prev;
 	tpre.next = temp.next;
 
 	temp.next = -1;
-	temp.pre = -1;
+	temp.prev = -1;
 	temp.routeID = -1;
 	r.rCustCnt--;
 	return true;
@@ -245,7 +245,7 @@ void Solver::rPrevDisplay(Route& r) {
 	while (pt != -1) {
 		std::cout << pt << " ";
 		std::cout << ",";
-		pt = customers[pt].pre;
+		pt = customers[pt].prev;
 	}
 	std::cout << std::endl;
 }
@@ -271,7 +271,7 @@ bool Solver::rUpdateAvQFrom(Route& r, int vv) {
 		v = customers[v].next;
 	}
 	int pt = v;
-	int ptpre = customers[pt].pre;
+	int ptpre = customers[pt].prev;
 
 	while (pt != -1) {
 
@@ -306,7 +306,7 @@ void Solver::rUpdateZvQFrom(Route& r, int vv) {
 	int v = vv;
 
 	if (v == r.tail) {
-		v = customers[v].pre;
+		v = customers[v].prev;
 	}
 
 	int pt = v;
@@ -326,7 +326,7 @@ void Solver::rUpdateZvQFrom(Route& r, int vv) {
 
 		customers[pt].QX_ = customers[ptnext].QX_ + input->datas[pt].DEMAND;
 		ptnext = pt;
-		pt = customers[pt].pre;
+		pt = customers[pt].prev;
 	}
 	r.rPtw = customers[r.head].TWX_;
 	r.rQ = customers[r.head].QX_;
@@ -337,7 +337,7 @@ int Solver::rGetCustomerNumber(Route& r) {
 
 	int pt = customers[r.head].next;
 	int ret = 0;
-	while (pt <= input->custCnt) {
+	while (pt <= input->customerNumer) {
 		++ret;
 		pt = customers[pt].next;
 	}
@@ -364,7 +364,7 @@ Vector<int> Solver::rPutCustomersInVector(Route& r) {
 
 	int pt = customers[r.head].next;
 
-	while (pt <= input->custCnt) {
+	while (pt <= input->customerNumer) {
 		ret.push_back(pt);
 		pt = customers[pt].next;
 	}
@@ -379,7 +379,7 @@ void Solver::rReCalCusNumAndSetCusrIdWithHeadrId(Route& r) {
 	while (pt != -1) {
 		customers[pt].routeID = r.routeID;
 		r.tail = pt;
-		if (pt <= input->custCnt) {
+		if (pt <= input->customerNumer) {
 			++r.rCustCnt;
 		}
 		pt = customers[pt].next;
@@ -529,8 +529,8 @@ Solver::Position Solver::findBestPositionInSolution(int w) {
 				+ input->getDisof2(w,vj)
 				- input->getDisof2(vj,v);
 
-			int vre = v > input->custCnt ? 0 : v;
-			int vjre = vj > input->custCnt ? 0 : vj;
+			int vre = v > input->customerNumer ? 0 : v;
+			int vjre = vj > input->customerNumer ? 0 : vj;
 
 			int year = yearTable->table[vre][w] + yearTable->table[w][vjre];
 
@@ -667,7 +667,7 @@ Solver::Position Solver::findBestPositionForRuin(int w) {
 
 		for (int vj : a) {
 
-			int v = customers[vj].pre;
+			int v = customers[vj].prev;
 
 			//if (random->pick(2) == 0) {
 			//	continue;
@@ -702,7 +702,7 @@ Solver::Position Solver::findBestPositionForRuin(int w) {
 
 bool Solver::initSolutionBySecOrder() {
 
-	Vector<int>que1(input->custCnt);
+	Vector<int>que1(input->customerNumer);
 	std::iota(que1.begin(), que1.end(), 1);
 
 	auto cmp0 = [&](int x, int y) {
@@ -712,18 +712,18 @@ bool Solver::initSolutionBySecOrder() {
 
 	int rid = 0;
 
-	int indexBeg = random->pick(input->custCnt);
+	int indexBeg = random->pick(input->customerNumer);
 
 	//int indexBeg = 100;
-	// TODO[0]:init方向，+inupt.custCnt-1 相当于反方向转动
-	int deltstep = input->custCnt - 1;
+	// TODO[0]:init方向，+inupt.customerNumer-1 相当于反方向转动
+	int deltstep = input->customerNumer - 1;
 	if (random->pick(2) == 0) {
 		deltstep = 1;
 	}
 
-	for (int i = 0; i < input->custCnt; ++i) {
+	for (int i = 0; i < input->customerNumer; ++i) {
 		indexBeg += deltstep;
-		int tp = que1[indexBeg % input->custCnt];
+		int tp = que1[indexBeg % input->customerNumer];
 		
 		Position bestP = findBestPositionInSolutionForInitial(tp);
 		//Position bestP = findBestPosForRuin(tp);
@@ -755,7 +755,7 @@ bool Solver::initSolutionBySecOrder() {
 
 bool Solver::initSolutionSortOrder(int kind) {
 
-	Vector<int>que1(input->custCnt);
+	Vector<int>que1(input->customerNumer);
 	std::iota(que1.begin(), que1.end(), 1);
 
 	auto cmp1 = [&](int x, int y) {
@@ -818,7 +818,7 @@ bool Solver::initSolutionSortOrder(int kind) {
 
 bool Solver::initSolutionMaxRoute() {
 
-	Vector<int>que1(input->custCnt);
+	Vector<int>que1(input->customerNumer);
 	std::iota(que1.begin(), que1.end(), 1);
 	
 	//TODO[-1]:这里的排序，现在是乱序
@@ -991,10 +991,10 @@ DeltPen Solver::_2optOpenvv_(int v, int w) { //0
 		return bestM;
 	}
 
-	int v_ = customers[v].pre;
+	int v_ = customers[v].prev;
 	int wj = customers[w].next;
 
-	if (v_ > input->custCnt && wj > input->custCnt) {
+	if (v_ > input->customerNumer && wj > input->customerNumer) {
 		return bestM;
 	}
 
@@ -1073,9 +1073,9 @@ DeltPen Solver::_2optOpenvvj(int v, int w) { //1
 	}
 
 	int vj = customers[v].next;
-	int w_ = customers[w].pre;
+	int w_ = customers[w].prev;
 
-	if (vj > input->custCnt && w_ > input->custCnt) {
+	if (vj > input->customerNumer && w_ > input->customerNumer) {
 		return bestM;
 	}
 
@@ -1149,11 +1149,11 @@ DeltPen Solver::outrelocatevToww_(int v, int w, int oneR) { //2
 
 	DeltPen bestM;
 
-	int v_ = customers[v].pre;
+	int v_ = customers[v].prev;
 	int vj = customers[v].next;
-	int w_ = customers[w].pre;
+	int w_ = customers[w].prev;
 
-	if (v_ > input->custCnt && vj > input->custCnt) {
+	if (v_ > input->customerNumer && vj > input->customerNumer) {
 		return bestM;
 	}
 
@@ -1287,11 +1287,11 @@ DeltPen Solver::outrelocatevTowwj(int v, int w, int oneR) { //3
 
 	DeltPen bestM;
 
-	int v_ = customers[v].pre;
+	int v_ = customers[v].prev;
 	int vj = customers[v].next;
 	int wj = customers[w].next;
 
-	if (v_ > input->custCnt && vj > input->custCnt) {
+	if (v_ > input->customerNumer && vj > input->customerNumer) {
 		return bestM;
 	}
 
@@ -1316,7 +1316,7 @@ DeltPen Solver::outrelocatevTowwj(int v, int w, int oneR) { //3
 			}
 
 
-			//int w_ = customers[w].pre;
+			//int w_ = customers[w].prev;
 			////////////////////////
 			newv_vjPtw = newvwPtw = 0;
 
@@ -1414,11 +1414,11 @@ DeltPen Solver::inrelocatevv_(int v, int w, int oneR) { //4
 
 	DeltPen bestM;
 
-	int w_ = customers[w].pre;
+	int w_ = customers[w].prev;
 	int wj = customers[w].next;
-	int v_ = customers[v].pre;
+	int v_ = customers[v].prev;
 
-	if (w_ > input->custCnt && wj > input->custCnt) {
+	if (w_ > input->customerNumer && wj > input->customerNumer) {
 		return bestM;
 	}
 
@@ -1548,11 +1548,11 @@ DeltPen Solver::inrelocatevvj(int v, int w, int oneR) { //5
 
 	DeltPen bestM;
 
-	int w_ = customers[w].pre;
+	int w_ = customers[w].prev;
 	int wj = customers[w].next;
 	int vj = customers[v].next;
 
-	if (w_ > input->custCnt && wj > input->custCnt) {
+	if (w_ > input->customerNumer && wj > input->customerNumer) {
 		return bestM;
 	}
 
@@ -1671,9 +1671,9 @@ DeltPen Solver::exchangevw(int v, int w, int oneR) { // 8
 	Route& rw = rts.getRouteByRid(customers[w].routeID);
 
 	int wj = customers[w].next;
-	int v_ = customers[v].pre;
+	int v_ = customers[v].prev;
 	int vj = customers[v].next;
-	int w_ = customers[w].pre;
+	int w_ = customers[w].prev;
 
 	if (rv.routeID == rw.routeID) {
 
@@ -1700,12 +1700,12 @@ DeltPen Solver::exchangevw(int v, int w, int oneR) { // 8
 
 			if (v_ == w) {
 				// (v--) (v-) (v) (v+) ===> (v--) v (v-) vj
-				int v__ = customers[v_].pre;
+				int v__ = customers[v_].prev;
 				newwPtw = newvPtw = getPtwWithVectorOfCustomers({ v__,v,v_,vj });
 			}
 			else if (w_ == v) {
 				// (w--)->(w-)->(w)->(w+) ===> w__,w,w_,wj
-				int w__ = customers[w_].pre;
+				int w__ = customers[w_].prev;
 				newwPtw = newvPtw = getPtwWithVectorOfCustomers({ w__,w,w_,wj });
 			}
 			else {
@@ -1834,9 +1834,9 @@ DeltPen Solver::exchangevw_(int v, int w, int oneR) { // 6
 
 	DeltPen bestM;
 
-	int w_ = customers[w].pre;
+	int w_ = customers[w].prev;
 
-	if (w_ > input->custCnt || v == w_) {
+	if (w_ > input->customerNumer || v == w_) {
 		return bestM;
 	}
 	return exchangevw(v, w_, oneR);
@@ -1853,7 +1853,7 @@ DeltPen Solver::exchangevwj(int v, int w, int oneR) { // 7
 
 	int wj = customers[w].next;
 
-	if (wj > input->custCnt || v == wj) {
+	if (wj > input->customerNumer || v == wj) {
 		return bestM;
 	}
 	return exchangevw(v, wj, oneR);
@@ -1871,14 +1871,14 @@ DeltPen Solver::exchangevvjw(int v, int w, int oneR) { // 11 2换1
 	int wj = customers[w].next;
 	int vj = customers[v].next;
 
-	if (vj > input->custCnt) {
+	if (vj > input->customerNumer) {
 		return bestM;
 	}
 
 	int vjj = customers[vj].next;
 
-	int v_ = customers[v].pre;
-	int w_ = customers[w].pre;
+	int v_ = customers[v].prev;
+	int w_ = customers[w].prev;
 
 	if (rv.routeID == rw.routeID) {
 		if (oneR == 0) {
@@ -2039,7 +2039,7 @@ DeltPen Solver::exchangevwwj(int v, int w, int oneR) { // 12 1换2
 
 	int wj = customers[w].next;
 
-	if (wj > input->custCnt) {
+	if (wj > input->customerNumer) {
 		return bestM;
 	}
 	return exchangevvjw(w, v, oneR);
@@ -2057,12 +2057,12 @@ DeltPen Solver::exchangevvjvjjwwj(int v, int w, int oneR) { // 9 3换2
 	int wj = customers[w].next;
 	int vj = customers[v].next;
 
-	if (vj > input->custCnt || wj > input->custCnt) {
+	if (vj > input->customerNumer || wj > input->customerNumer) {
 		return bestM;
 	}
 	int vjj = customers[vj].next;
 
-	if (vjj > input->custCnt) {
+	if (vjj > input->customerNumer) {
 		return bestM;
 	}
 
@@ -2070,8 +2070,8 @@ DeltPen Solver::exchangevvjvjjwwj(int v, int w, int oneR) { // 9 3换2
 
 	int wjj = customers[wj].next;
 
-	int v_ = customers[v].pre;
-	int w_ = customers[w].pre;
+	int v_ = customers[v].prev;
+	int w_ = customers[w].prev;
 
 	//exchange vvjvjj and (ww + )
 	if (rw.routeID == rv.routeID) {
@@ -2249,18 +2249,18 @@ DeltPen Solver::exchangevvjvjjw(int v, int w, int oneR) { // 10 三换一
 	int wj = customers[w].next;
 	int vj = customers[v].next;
 
-	if (vj > input->custCnt) {
+	if (vj > input->customerNumer) {
 		return bestM;
 	}
 	int vjj = customers[vj].next;
 
-	if (vjj > input->custCnt) {
+	if (vjj > input->customerNumer) {
 		return bestM;
 	}
 	int v3j = customers[vjj].next;
 
-	int v_ = customers[v].pre;
-	int w_ = customers[w].pre;
+	int v_ = customers[v].prev;
+	int w_ = customers[w].prev;
 
 	if (rv.routeID == rw.routeID) {
 
@@ -2430,17 +2430,17 @@ DeltPen Solver::outrelocatevvjTowwj(int v, int w, int oneR) {  //13 扔两个
 	Route& rv = rts.getRouteByRid(customers[v].routeID);
 	Route& rw = rts.getRouteByRid(customers[w].routeID);
 
-	int v_ = customers[v].pre;
+	int v_ = customers[v].prev;
 	int vj = customers[v].next;
 
-	if (vj > input->custCnt || vj == w) {
+	if (vj > input->customerNumer || vj == w) {
 		return bestM;
 	}
 
 	int vjj = customers[vj].next;
 	int wj = customers[w].next;
 
-	if (v_ > input->custCnt && vjj > input->custCnt) {
+	if (v_ > input->customerNumer && vjj > input->customerNumer) {
 		return bestM;
 	}
 	if (wj == v) {
@@ -2572,19 +2572,19 @@ DeltPen Solver::outrelocatevv_Toww_(int v, int w, int oneR) {  //14 扔两个左边
 
 	DeltPen bestM;
 
-	int v_ = customers[v].pre;
-	if (v_ > input->custCnt) {
+	int v_ = customers[v].prev;
+	if (v_ > input->customerNumer) {
 		return bestM;
 	}
 
 	/*Route& rv = rts.getRouteByRid(customers[v].routeID);
 	Route& rw = rts.getRouteByRid(customers[w].routeID);*/
 
-	int w_ = customers[w].pre;
-	int v__ = customers[v_].pre;
+	int w_ = customers[w].prev;
+	int v__ = customers[v_].prev;
 	int vj = customers[v].next;
 
-	if (v__ > input->custCnt && vj > input->custCnt) {
+	if (v__ > input->customerNumer && vj > input->customerNumer) {
 		return bestM;
 	}
 
@@ -2600,7 +2600,7 @@ DeltPen Solver::reversevw(int v, int w) {//15 翻转
 	int vId = customers[v].routeID;
 	int wId = customers[w].routeID;
 
-	if (vId > input->custCnt || wId > input->custCnt || vId != wId || v == w) {
+	if (vId > input->customerNumer || wId > input->customerNumer || vId != wId || v == w) {
 		return bestM;
 	}
 
@@ -2609,7 +2609,7 @@ DeltPen Solver::reversevw(int v, int w) {//15 翻转
 	int front = getFrontofTwoCus(v, w);
 	int back = (front == v ? w : v);
 
-	int f_ = customers[front].pre;
+	int f_ = customers[front].prev;
 	int bj = customers[back].next;
 
 	auto getDeltPtw = [&]()->void {
@@ -2636,7 +2636,7 @@ DeltPen Solver::reversevw(int v, int w) {//15 翻转
 		lastav = lastavp > input->datas[lastv].DUEDATE ? input->datas[lastv].DUEDATE :
 			std::max<DisType>(lastavp, input->datas[lastv].READYTIME);
 
-		int pt = customers[lastv].pre;
+		int pt = customers[lastv].prev;
 		while (pt != -1) {
 
 			DisType aptp = lastav + input->datas[lastv].SERVICETIME + input->getDisof2(lastv,pt);
@@ -2649,7 +2649,7 @@ DeltPen Solver::reversevw(int v, int w) {//15 翻转
 			if (pt == front) {
 				break;
 			}
-			pt = customers[pt].pre;
+			pt = customers[pt].prev;
 		}
 
 		DisType abjp = lastav + input->datas[lastv].SERVICETIME + input->getDisof2(lastv,bj);
@@ -2785,16 +2785,16 @@ bool Solver::twoOptStar(TwoNodeMove& M) {
 
 	if (M.kind == 0) {
 
-		int vpre = customers[v].pre;
+		int vpre = customers[v].prev;
 		int wnext = customers[w].next;
 
 		int pt = v;
 
 		customers[w].next = v;
-		customers[v].pre = w;
+		customers[v].prev = w;
 
 		customers[vpre].next = wnext;
-		customers[wnext].pre = vpre;
+		customers[wnext].prev = vpre;
 
 		rv.rCustCnt = 0;
 		pt = customers[rv.head].next;
@@ -2828,12 +2828,12 @@ bool Solver::twoOptStar(TwoNodeMove& M) {
 	else if (M.kind == 1) {
 
 		int vnext = customers[v].next;
-		int wpre = customers[w].pre;
+		int wpre = customers[w].prev;
 
 		customers[v].next = w;
-		customers[w].pre = v;
+		customers[w].prev = v;
 		customers[wpre].next = vnext;
-		customers[vnext].pre = wpre;
+		customers[vnext].prev = wpre;
 
 		rv.rCustCnt = 0;
 		int pt = customers[rv.head].next;
@@ -2881,11 +2881,11 @@ bool Solver::outRelocate(TwoNodeMove& M) {
 
 	if (M.kind == 2) {
 
-		int vpre = customers[v].pre;
+		int vpre = customers[v].prev;
 		int vnext = customers[v].next;
 
 		rRemoveAtPosition(rv, v);
-		rInsertAtPosition(rw, customers[w].pre, v);
+		rInsertAtPosition(rw, customers[w].prev, v);
 
 		if (rv.routeID == rw.routeID) {
 
@@ -2904,7 +2904,7 @@ bool Solver::outRelocate(TwoNodeMove& M) {
 	}
 	else if (M.kind == 3) {
 
-		int vpre = customers[v].pre;
+		int vpre = customers[v].prev;
 		int vnext = customers[v].next;
 
 		rRemoveAtPosition(rv, v);
@@ -2946,7 +2946,7 @@ bool Solver::outRelocate(TwoNodeMove& M) {
 		else {
 			// outrelocatevvjTowwj
 			int vjj = customers[vj].next;
-			int v_ = customers[v].pre;
+			int v_ = customers[v].prev;
 
 			rRemoveAtPosition(rv, v);
 			rRemoveAtPosition(rv, vj);
@@ -2963,8 +2963,8 @@ bool Solver::outRelocate(TwoNodeMove& M) {
 	}
 	else if (M.kind == 14) {
 
-		int v_ = customers[v].pre;
-		int v__ = customers[v_].pre;
+		int v_ = customers[v].prev;
+		int v__ = customers[v_].prev;
 		int vj = customers[v].next;
 
 		if (rw.routeID == rv.routeID) {
@@ -3014,10 +3014,10 @@ bool Solver::inRelocate(TwoNodeMove& M) {
 		// inset w to (v-)->(v)
 
 		int wnext = customers[w].next;
-		int wpre = customers[w].pre;
+		int wpre = customers[w].prev;
 
 		rRemoveAtPosition(rw, w);
-		rInsertAtPosition(rv, customers[v].pre, w);
+		rInsertAtPosition(rv, customers[v].prev, w);
 
 		if (rv.routeID == rw.routeID) {
 
@@ -3038,7 +3038,7 @@ bool Solver::inRelocate(TwoNodeMove& M) {
 	else if (M.kind == 5) {
 
 		int wnext = customers[w].next;
-		int wpre = customers[w].pre;
+		int wpre = customers[w].prev;
 
 		rRemoveAtPosition(rw, w);
 		rInsertAtPosition(rv, v, w);
@@ -3072,13 +3072,13 @@ bool Solver::exchange(TwoNodeMove& M) {
 
 	if (M.kind == 6) {
 		// exchange v and (w_)
-		int w_ = customers[w].pre;
-		if (w_ > input->custCnt || v == w_) {
+		int w_ = customers[w].prev;
+		if (w_ > input->customerNumer || v == w_) {
 			return false;
 		}
 
-		int w__ = customers[w_].pre;
-		int v_ = customers[v].pre;
+		int w__ = customers[w_].prev;
+		int v_ = customers[v].prev;
 
 		if (rv.routeID == rw.routeID) {
 
@@ -3129,12 +3129,12 @@ bool Solver::exchange(TwoNodeMove& M) {
 	else if (M.kind == 7) {
 		// exchange v and (w+)
 		int wj = customers[w].next;
-		/*if (wj > input->custCnt || v == wj) {
+		/*if (wj > input->customerNumer || v == wj) {
 			return false;
 		}*/
 
 		int wjj = customers[wj].next;
-		int v_ = customers[v].pre;
+		int v_ = customers[v].prev;
 
 		if (rv.routeID == rw.routeID) {
 			if (v == wj) {
@@ -3185,8 +3185,8 @@ bool Solver::exchange(TwoNodeMove& M) {
 	}
 	else if (M.kind == 8) {
 
-		int v_ = customers[v].pre;
-		int w_ = customers[w].pre;
+		int v_ = customers[v].prev;
+		int w_ = customers[w].prev;
 
 		rRemoveAtPosition(rv, v);
 		rRemoveAtPosition(rw, w);
@@ -3228,8 +3228,8 @@ bool Solver::exchange(TwoNodeMove& M) {
 		int wj = customers[w].next;
 		int vj = customers[v].next;
 		int vjj = customers[vj].next;
-		int v_ = customers[v].pre;
-		int w_ = customers[w].pre;
+		int v_ = customers[v].prev;
+		int w_ = customers[w].prev;
 
 		if (rv.routeID == rw.routeID) {
 
@@ -3299,11 +3299,11 @@ bool Solver::exchange(TwoNodeMove& M) {
 	else if (M.kind == 10) {
 
 		//exchangevvjvjjw 3换1
-		int v_ = customers[v].pre;
+		int v_ = customers[v].prev;
 		int vj = customers[v].next;
 		int vjj = customers[vj].next;
 		int wj = customers[w].next;
-		int w_ = customers[w].pre;
+		int w_ = customers[w].prev;
 
 		if (rv.routeID == rw.routeID) {
 
@@ -3365,9 +3365,9 @@ bool Solver::exchange(TwoNodeMove& M) {
 	}
 	else if (M.kind == 11) {
 		//exchangevvjw 2换1
-		int v_ = customers[v].pre;
+		int v_ = customers[v].prev;
 		int vj = customers[v].next;
-		int w_ = customers[w].pre;
+		int w_ = customers[w].prev;
 
 		if (rv.routeID == rw.routeID) {
 
@@ -3418,9 +3418,9 @@ bool Solver::exchange(TwoNodeMove& M) {
 	}
 	else if (M.kind == 12) {
 		// exchangevwwj
-		int v_ = customers[v].pre;
+		int v_ = customers[v].prev;
 		int wj = customers[w].next;
-		int w_ = customers[w].pre;
+		int w_ = customers[w].prev;
 
 		if (rv.routeID == rw.routeID) {
 
@@ -3504,10 +3504,10 @@ bool Solver::doReverse(TwoNodeMove& M) {
 		if (back == v || back == w) {
 			break;
 		}
-		back = customers[back].pre;
+		back = customers[back].prev;
 	}
 
-	int f_ = customers[front].pre;
+	int f_ = customers[front].prev;
 	int bj = customers[back].next;
 
 	Vector<int> ve;
@@ -3523,14 +3523,14 @@ bool Solver::doReverse(TwoNodeMove& M) {
 	}
 
 	for (int pt : ve) {
-		std::swap(customers[pt].next, customers[pt].pre);
+		std::swap(customers[pt].next, customers[pt].prev);
 	}
 
 	customers[front].next = bj;
-	customers[back].pre = f_;
+	customers[back].prev = f_;
 
 	customers[f_].next = back;
-	customers[bj].pre = front;
+	customers[bj].prev = front;
 
 	rUpdateAvQFrom(r, back);
 	rUpdateZvQFrom(r, front);
@@ -3549,7 +3549,7 @@ Vector<int> Solver::getPtwNodes(Route& r, int ptwKind) {
 
 	auto getPtwNodesByFirstPtw = [&]() {
 
-		int startNode = customers[r.tail].pre;
+		int startNode = customers[r.tail].prev;
 		int endNode = customers[r.head].next;
 
 		int pt = customers[r.head].next;
@@ -3560,24 +3560,24 @@ Vector<int> Solver::getPtwNodes(Route& r, int ptwKind) {
 			}
 			pt = customers[pt].next;
 		}
-		if (endNode > input->custCnt) {
-			endNode = customers[r.tail].pre;
+		if (endNode > input->customerNumer) {
+			endNode = customers[r.tail].prev;
 		}
 
-		pt = customers[r.tail].pre;
+		pt = customers[r.tail].prev;
 		while (pt != -1) {
 			if (customers[pt].zvp < input->datas[pt].READYTIME) {
 				startNode = pt;
 				break;
 			}
-			pt = customers[pt].pre;
+			pt = customers[pt].prev;
 		}
-		if (startNode > input->custCnt) {
+		if (startNode > input->customerNumer) {
 			startNode = customers[r.head].next;
 		}
 
 		int v = startNode;
-		while (v <= input->custCnt) {
+		while (v <= input->customerNumer) {
 			ptwNodes.push_back(v);
 			if (v == endNode) {
 				break;
@@ -3587,7 +3587,7 @@ Vector<int> Solver::getPtwNodes(Route& r, int ptwKind) {
 
 		if (v != endNode) {
 			v = customers[r.head].next;
-			while (v <= input->custCnt) {
+			while (v <= input->customerNumer) {
 				ptwNodes.push_back(v);
 				if (v == endNode) {
 					break;
@@ -3605,7 +3605,7 @@ Vector<int> Solver::getPtwNodes(Route& r, int ptwKind) {
 
 	auto getPtwNodesByLastPtw = [&]() {
 
-		int startNode = customers[r.tail].pre;
+		int startNode = customers[r.tail].prev;
 		int endNode = customers[r.head].next;
 
 		int pt = customers[r.head].next;
@@ -3615,24 +3615,24 @@ Vector<int> Solver::getPtwNodes(Route& r, int ptwKind) {
 			}
 			pt = customers[pt].next;
 		}
-		if (endNode > input->custCnt) {
-			endNode = customers[r.tail].pre;
+		if (endNode > input->customerNumer) {
+			endNode = customers[r.tail].prev;
 		}
 
-		//pt = customers[r.tail].pre;
+		//pt = customers[r.tail].prev;
 		//while (pt != -1) {
 		//	if (customers[pt].zvp < input->datas[pt].READYTIME) {
 		//		startNode = pt;
 		//	}
-		//	pt = customers[pt].pre;
+		//	pt = customers[pt].prev;
 		//}
-		//if (startNode > input->custCnt ) {
+		//if (startNode > input->customerNumer ) {
 		//	startNode = customers[r.head].next;
 		//}
 		startNode = customers[r.head].next;
 
 		pt = startNode;
-		while (pt <= input->custCnt) {
+		while (pt <= input->customerNumer) {
 			ptwNodes.push_back(pt);
 			if (pt == endNode) {
 				break;
@@ -3647,7 +3647,7 @@ Vector<int> Solver::getPtwNodes(Route& r, int ptwKind) {
 
 	auto findRangeCanDePtw1 = [&]() {
 
-		int startNode = customers[r.tail].pre;
+		int startNode = customers[r.tail].prev;
 		int endNode = customers[r.head].next;
 
 		int pt = customers[r.head].next;
@@ -3662,35 +3662,35 @@ Vector<int> Solver::getPtwNodes(Route& r, int ptwKind) {
 			pt = customers[pt].next;
 		}
 		if (stop == false) {
-			endNode = customers[r.tail].pre;
+			endNode = customers[r.tail].prev;
 		}
 
-		pt = customers[r.tail].pre;
+		pt = customers[r.tail].prev;
 		stop = false;
-		while (pt <= input->custCnt) {
+		while (pt <= input->customerNumer) {
 
 			if (customers[pt].zvp < input->datas[pt].READYTIME) {
 				startNode = pt;
 				stop = true;
 				break;
 			}
-			pt = customers[pt].pre;
+			pt = customers[pt].prev;
 		}
 
 		if (stop == false) {
 			startNode = customers[r.head].next;
 		}
 
-		if (customers[startNode].pre <= input->custCnt) {
-			startNode = customers[startNode].pre;
+		if (customers[startNode].prev <= input->customerNumer) {
+			startNode = customers[startNode].prev;
 		}
 
-		if (customers[endNode].next <= input->custCnt) {
+		if (customers[endNode].next <= input->customerNumer) {
 			endNode = customers[endNode].next;
 		}
 
 		pt = startNode;
-		while (pt <= input->custCnt) {
+		while (pt <= input->customerNumer) {
 			ptwNodes.push_back(pt);
 			if (pt == endNode) {
 				break;
@@ -3726,8 +3726,8 @@ TwoNodeMove Solver::getMovesRandomly
 
 		int vid = customers[v].routeID;
 
-		int v_ = customers[v].pre;
-		if (v_ > input->custCnt) {
+		int v_ = customers[v].prev;
+		if (v_ > input->customerNumer) {
 			v_ = 0;
 		}
 
@@ -3741,7 +3741,7 @@ TwoNodeMove Solver::getMovesRandomly
 		else {
 			v_pos = static_cast<int>(v_pos * broaden);
 		}
-		v_pos = std::min<int>(v_pos, input->custCnt);
+		v_pos = std::min<int>(v_pos, input->customerNumer);
 
 		for (int wpos = 0; wpos < v_pos; ++wpos) {
 
@@ -3763,7 +3763,7 @@ TwoNodeMove Solver::getMovesRandomly
 		}
 
 		int vj = customers[v].next;
-		if (vj > input->custCnt) {
+		if (vj > input->customerNumer) {
 			vj = 0;
 		}
 		int vjpos = input->addSTJIsxthcloseOf[v][vj];
@@ -3774,7 +3774,7 @@ TwoNodeMove Solver::getMovesRandomly
 		else {
 			vjpos = static_cast<int>(vjpos * broaden);
 		}
-		vjpos = std::min<int>(vjpos, input->custCnt);
+		vjpos = std::min<int>(vjpos, input->customerNumer);
 
 		for (int wpos = 0; wpos < vjpos; ++wpos) {
 
@@ -3798,8 +3798,8 @@ TwoNodeMove Solver::getMovesRandomly
 
 	auto exchangevwEffectively = [&](int v) {
 
-		int vpre = customers[v].pre;
-		if (vpre > input->custCnt) {
+		int vpre = customers[v].prev;
+		if (vpre > input->customerNumer) {
 			vpre = 0;
 		}
 
@@ -3817,7 +3817,7 @@ TwoNodeMove Solver::getMovesRandomly
 			vpos1 = static_cast<int>(vpos1 * broaden);
 		}
 
-		vpos1 = std::min<int>(vpos1, input->custCnt);
+		vpos1 = std::min<int>(vpos1, input->customerNumer);
 
 		if (vpos1 > 0) {
 
@@ -3852,7 +3852,7 @@ TwoNodeMove Solver::getMovesRandomly
 
 
 		int vnext = customers[v].next;
-		if (vnext > input->custCnt) {
+		if (vnext > input->customerNumer) {
 			vnext = 0;
 		}
 		int vpos2 = input->addSTJIsxthcloseOf[vnext][v];
@@ -3864,7 +3864,7 @@ TwoNodeMove Solver::getMovesRandomly
 			vpos2 = static_cast<int>(vpos2*broaden);
 		}
 
-		vpos2 = std::min<int>(vpos2, input->custCnt);
+		vpos2 = std::min<int>(vpos2, input->customerNumer);
 
 		if (vpos2 > 0) {
 
@@ -3970,7 +3970,7 @@ TwoNodeMove Solver::getMovesRandomly
 			outrelocateEffectively(v);
 			exchangevwEffectively(v);
 
-			//int v_ = customers[v].pre;
+			//int v_ = customers[v].prev;
 			//int vj = customers[v].next;
 
 			//sectorArea(v);
@@ -3983,7 +3983,7 @@ TwoNodeMove Solver::getMovesRandomly
 
 			for (int i = 1; i <= maxL; ++i) {
 				w = customers[w].next;
-				if (w > input->custCnt) {
+				if (w > input->customerNumer) {
 					break;
 				}
 
@@ -4168,7 +4168,7 @@ bool Solver::doEjection(Vector<eOneRNode>& XSet) {
 bool Solver::managerCusMem(Vector<int>& releaseNodes) {
 
 	//printve(releaseNodes);
-	int useEnd = input->custCnt + (rts.cnt + 1) * 2 + 1;
+	int useEnd = input->customerNumer + (rts.cnt + 1) * 2 + 1;
 
 	for (int i : releaseNodes) {
 
@@ -4182,11 +4182,11 @@ bool Solver::managerCusMem(Vector<int>& releaseNodes) {
 
 				int jn = customers[j].next;
 				if (jn != -1) {
-					customers[jn].pre = i;
+					customers[jn].prev = i;
 					r.head = i;
 				}
 
-				int jp = customers[j].pre;
+				int jp = customers[j].prev;
 				if (jp != -1) {
 					customers[jp].next = i;
 					r.tail = i;
@@ -4228,7 +4228,7 @@ bool Solver::removeOneRouteByRid(int rId) {
 
 DisType Solver::verify() {
 
-	Vector<int> visitCnt(input->custCnt + 1, 0);
+	Vector<int> visitCnt(input->customerNumer + 1, 0);
 
 	int cusCnt = 0;
 	DisType routesCost = 0;
@@ -4272,7 +4272,7 @@ DisType Solver::verify() {
 	if (Ptw > 0 && Pc > 0) {
 		return -4;
 	}
-	if (cusCnt != input->custCnt) {
+	if (cusCnt != input->customerNumer) {
 		return -5;
 	}
 	return routesCost;
@@ -4280,13 +4280,13 @@ DisType Solver::verify() {
 
 DeltPen Solver::getDeltIfRemoveOneNode(Route& r, int pt) {
 
-	int pre = customers[pt].pre;
+	int prev = customers[pt].prev;
 	int next = customers[pt].next;
 
 	DeltPen d;
 
-	DisType avnp = customers[pre].av + input->datas[pre].SERVICETIME + input->getDisof2(pre,next);
-	d.PtwOnly = std::max<DisType>(0, avnp - customers[next].zv) + customers[next].TWX_ + customers[pre].TW_X;
+	DisType avnp = customers[prev].av + input->datas[prev].SERVICETIME + input->getDisof2(prev,next);
+	d.PtwOnly = std::max<DisType>(0, avnp - customers[next].zv) + customers[next].TWX_ + customers[prev].TW_X;
 	d.PtwOnly = d.PtwOnly - r.rPtw;
 	d.PcOnly = std::max<DisType>(0, r.rQ - input->datas[pt].DEMAND - input->vehicleCapacity);
 	d.PcOnly = d.PcOnly - r.rPc;
@@ -4305,8 +4305,8 @@ bool Solver::addWeightToRoute(TwoNodeMove& bestM) {
 			//for (int c: cus) {
 			//	auto d = getDeltIfRemoveOneNode(r, c);
 			//	if (d.PtwOnly < 0) {
-			//		int cpre = customers[c].pre > input->custCnt ? 0 : customers[c].pre;
-			//		int cnext = customers[c].next > input->custCnt ? 0 : customers[c].next;
+			//		int cpre = customers[c].prev > input->customerNumer ? 0 : customers[c].prev;
+			//		int cnext = customers[c].next > input->customerNumer ? 0 : customers[c].next;
 			//		/*debug(c)
 			//		debug(d.PtwOnly)
 			//		debug(d.PcOnly)*/
@@ -4778,9 +4778,9 @@ Vector<int> Solver::ruinGetRuinCusBySting(int ruinKmax, int ruinLmax) {
 
 	int ruinK = random->pick(1, ruinKmax + 1);
 	
-	int v = random->pick(1, input->custCnt + 1);
+	int v = random->pick(1, input->customerNumer + 1);
 	while (customers[v].routeID == -1) {
-		v = random->pick(input->custCnt) + 1;
+		v = random->pick(input->customerNumer) + 1;
 	}
 
 	UnorderedSet<int> rIdSet;
@@ -4821,7 +4821,7 @@ Vector<int> Solver::ruinGetRuinCusBySting(int ruinKmax, int ruinLmax) {
 		}
 		int cusNumAfterbeg = 0;
 		int pbeg = beg;
-		for (; pbeg <= input->custCnt; pbeg = customers[pbeg].next) {
+		for (; pbeg <= input->customerNumer; pbeg = customers[pbeg].next) {
 			++cusNumAfterbeg;
 		}
 		cusNumAfterbeg -= 1;
@@ -4837,14 +4837,14 @@ Vector<int> Solver::ruinGetRuinCusBySting(int ruinKmax, int ruinLmax) {
 		int pt = beg;
 		for (int i = 0; i < preStep; ++i) {
 			//int wposMax = random->pick(1, avg * 2 + 1);
-			if (pt > input->custCnt) {
+			if (pt > input->customerNumer) {
 				break;
 			}
 			//arr.push_back(pt);
-			pt = customers[pt].pre;
+			pt = customers[pt].prev;
 		}
 
-		if (pt > input->custCnt) {
+		if (pt > input->customerNumer) {
 			pt = customers[pt].next;
 		}
 
@@ -4853,7 +4853,7 @@ Vector<int> Solver::ruinGetRuinCusBySting(int ruinKmax, int ruinLmax) {
 		int firstPart = 0;
 		for (int i = 0; i < firstPartMax; ++i) {
 			//int wposMax = random->pick(1, avg * 2 + 1);
-			if (pt > input->custCnt) {
+			if (pt > input->customerNumer) {
 				break;
 			}
 			++firstPart;
@@ -4869,7 +4869,7 @@ Vector<int> Solver::ruinGetRuinCusBySting(int ruinKmax, int ruinLmax) {
 		int secPart = ruinCusNumInRoute - mputBack - firstPart;
 
 		for (int i = 0; i < secPart; ++i) {
-			if (pt > input->custCnt) {
+			if (pt > input->customerNumer) {
 				break;
 			}
 			uset.insert(pt);
@@ -4940,15 +4940,15 @@ Vector<int> Solver::ruinGetRuinCusBySting(int ruinKmax, int ruinLmax) {
 Vector<int> Solver::ruinGetRuinCusByRound(int ruinCusNum) {
 
 	int left = std::max<int>( static_cast<int>(ruinCusNum * 0.7), 1);
-	int right = std::min<int>(input->custCnt - 1, static_cast<int>(ruinCusNum * 1.3));
+	int right = std::min<int>(input->customerNumer - 1, static_cast<int>(ruinCusNum * 1.3));
 	ruinCusNum = random->pick(left, right + 1);
 
 	//=======
-	//ruinCusNum = std::min<int>(ruinCusNum,input->custCnt-1);
+	//ruinCusNum = std::min<int>(ruinCusNum,input->customerNumer-1);
 
-	int v = random->pick(input->custCnt) + 1;
+	int v = random->pick(input->customerNumer) + 1;
 	while (customers[v].routeID == -1) {
-		v = random->pick(input->custCnt) + 1;
+		v = random->pick(input->customerNumer) + 1;
 	}
 
 	Vector<int> runCus;
@@ -4968,10 +4968,10 @@ Vector<int> Solver::ruinGetRuinCusByRound(int ruinCusNum) {
 Vector<int> Solver::ruinGetRuinCusByRand(int ruinCusNum) {
 
 	int left = std::max<int>(ruinCusNum * 0.7, 1);
-	int right = std::min<int>(input->custCnt - 1, ruinCusNum * 1.3);
+	int right = std::min<int>(input->customerNumer - 1, ruinCusNum * 1.3);
 	ruinCusNum = random->pick(left, right + 1);
 
-	//int v = random->pick(input->custCnt)+1;
+	//int v = random->pick(input->customerNumer)+1;
 	//ruinCusNum = 40;
 	//Vector<int> ret;
 	//ret.reserve(ruinCusNum);
@@ -4986,7 +4986,7 @@ Vector<int> Solver::ruinGetRuinCusByRand(int ruinCusNum) {
 	//}
 	//return ret;
 
-	auto& arr = randomx->getMN(input->custCnt, ruinCusNum);
+	auto& arr = randomx->getMN(input->customerNumer, ruinCusNum);
 	random->shuffleVec(arr);
 	Vector<int> ret;
 	for (int i = 0; i < ruinCusNum; ++i) {
@@ -5013,7 +5013,7 @@ Vector<int> Solver::ruinGetRuinCusBySec(int ruinCusNum) {
 
 	//ruinCusNum = random->pick(1, ruinCusNum+1);
 
-	ruinCusNum = std::min<int>(ruinCusNum, input->custCnt - 1);
+	ruinCusNum = std::min<int>(ruinCusNum, input->customerNumer - 1);
 
 	Vector<CircleSector> secs(rts.cnt);
 	for (int i = 0; i < rts.cnt; ++i) {
@@ -5149,7 +5149,7 @@ bool Solver::doOneTimeRuinPer(int perturbkind, int ruinCusNum, int clearEPKind) 
 
 bool Solver::perturbBasedRuin(int perturbkind, int ruinCusNum,int clearEPKind) {
 
-	ruinCusNum = std::min<int>(ruinCusNum,input->custCnt / 2);
+	ruinCusNum = std::min<int>(ruinCusNum,input->customerNumer / 2);
 
 	gamma = 1;
 	//TODO[4][1]:这里可能可以去掉，如果之前每一条路径的cost都维护的话
@@ -5369,7 +5369,7 @@ int Solver::CVB2ruinLS(int ruinCusNum) {
 		ruinCus = ruinGetRuinCusBySec(ruinCusNum);
 	}
 	else if (perturbkind == 2) {
-		int avgLen = input->custCnt / rts.cnt;
+		int avgLen = input->customerNumer / rts.cnt;
 		int Lmax = std::min<int>(aps->ruinLmax, avgLen);
 		int ruinKmax = 4 * ruinCusNum / (1 + Lmax) - 1;
 
@@ -5494,7 +5494,7 @@ Vector<int> Solver::getRuinCustomers(int perturbkind, int ruinCusNum) {
 		ruinCus = ruinGetRuinCusBySec(ruinCusNum);
 	}
 	else if (perturbkind == 2) {
-		int avgLen = input->custCnt / rts.cnt;
+		int avgLen = input->customerNumer / rts.cnt;
 		int Lmax = std::min<int>(aps->ruinLmax, avgLen);
 		int ruinKmax = 4 * ruinCusNum / (1 + Lmax) - 1;
 		//TODO[-1]:!!!!!!
@@ -5538,7 +5538,7 @@ bool Solver::patternAdjustment(int Irand) {
 
 		for (int iter = 0; ++iter < 100;++iter) {
 
-			int v = random->pick(input->custCnt) + 1;
+			int v = random->pick(input->customerNumer) + 1;
 			if (customers[v].routeID == -1) {
 				continue;
 			}
@@ -5792,24 +5792,24 @@ Solver::eOneRNode Solver::ejectOneRouteOnlyP(Route& r, int kind, int Kmax) {
 
 	auto getAvpOf = [&](int v) {
 
-		int pre = customers[v].pre;
-		DisType avp = customers[pre].av +
-			input->datas[pre].SERVICETIME + input->getDisof2(pre,v);
+		int prev = customers[v].prev;
+		DisType avp = customers[prev].av +
+			input->datas[prev].SERVICETIME + input->getDisof2(prev,v);
 		return avp;
 	};
 
 	auto updateAvfromSubRoute = [&](int n) {
 
-		int pre = customers[n].pre;
+		int prev = customers[n].prev;
 
 		while (n != -1) {
 
-			customers[n].avp = customers[pre].av + input->datas[pre].SERVICETIME + input->getDisof2(pre,n);
+			customers[n].avp = customers[prev].av + input->datas[prev].SERVICETIME + input->getDisof2(prev,n);
 			customers[n].av = customers[n].avp > input->datas[n].DUEDATE ? input->datas[n].DUEDATE
 				: std::max<DisType>(customers[n].avp, input->datas[n].READYTIME);
 			customers[n].TW_X = std::max<DisType>(0, customers[n].avp - input->datas[n].DUEDATE);
-			customers[n].TW_X += customers[pre].TW_X;
-			pre = n;
+			customers[n].TW_X += customers[prev].TW_X;
+			prev = n;
 			n = customers[n].next;
 		}
 	};
@@ -5821,7 +5821,7 @@ Solver::eOneRNode Solver::ejectOneRouteOnlyP(Route& r, int kind, int Kmax) {
 		etemp.Psum += input->P[n];
 
 		int next = customers[n].next;
-		customers[next].pre = customers[n].pre;
+		customers[next].prev = customers[n].prev;
 		updateAvfromSubRoute(next);
 	};
 
@@ -5830,8 +5830,8 @@ Solver::eOneRNode Solver::ejectOneRouteOnlyP(Route& r, int kind, int Kmax) {
 
 		DisType avp = getAvpOf(v);
 		DisType ptw = std::max<DisType>(0, avp - customers[v].zv) + customers[v].TWX_;
-		int pre = customers[v].pre;
-		ptw += customers[pre].TW_X;
+		int prev = customers[v].prev;
+		ptw += customers[prev].TW_X;
 		return ptw;
 	};
 
@@ -5842,18 +5842,18 @@ Solver::eOneRNode Solver::ejectOneRouteOnlyP(Route& r, int kind, int Kmax) {
 		etemp.Psum -= input->P[n];
 
 		int next = customers[n].next;
-		customers[next].pre = n;
+		customers[next].prev = n;
 		updateAvfromSubRoute(n);
 	};
 
 	auto getPtwIfRemoveOneNode = [&](int head) {
 
 		int pt = head;
-		int pre = customers[pt].pre;
+		int prev = customers[pt].prev;
 		int next = customers[pt].next;
 
 		#if LYH_CHECKING
-		lyhCheckTrue(pre != -1);
+		lyhCheckTrue(prev != -1);
 		lyhCheckTrue(next != -1);
 		#endif // LYH_CHECKING
 
@@ -5862,10 +5862,10 @@ Solver::eOneRNode Solver::ejectOneRouteOnlyP(Route& r, int kind, int Kmax) {
 		while (next != -1) {
 
 			//debug(pt)
-			DisType avnp = customers[pre].av + input->datas[pre].SERVICETIME + input->getDisof2(pre,next);
-			ptw = std::max<DisType>(0, avnp - customers[next].zv) + customers[next].TWX_ + customers[pre].TW_X;
+			DisType avnp = customers[prev].av + input->datas[prev].SERVICETIME + input->getDisof2(prev,next);
+			ptw = std::max<DisType>(0, avnp - customers[next].zv) + customers[next].TWX_ + customers[prev].TW_X;
 
-			if (customers[pre].TW_X > 0) { // 剪枝 删除ik之后 前面的时间窗没有消除
+			if (customers[prev].TW_X > 0) { // 剪枝 删除ik之后 前面的时间窗没有消除
 				return etemp;
 			}
 
@@ -5881,7 +5881,7 @@ Solver::eOneRNode Solver::ejectOneRouteOnlyP(Route& r, int kind, int Kmax) {
 			etemp.ejeVe.pop_back();
 			etemp.Psum -= input->P[pt];
 
-			pre = pt;
+			prev = pt;
 			pt = next;
 			next = customers[next].next;
 		}
@@ -5897,7 +5897,7 @@ Solver::eOneRNode Solver::ejectOneRouteOnlyP(Route& r, int kind, int Kmax) {
 
 		while (pt != -1 && ptn != -1) {
 
-			customers[ptn].pre = pt;
+			customers[ptn].prev = pt;
 			pt = ptn;
 			ptn = customers[ptn].next;
 		}
@@ -6066,15 +6066,15 @@ Solver::eOneRNode Solver::ejectOneRouteMinPsumGreedy
 			return eOneRNode();
 		}
 
-		int pre = customers[ctop].pre;
+		int prev = customers[ctop].prev;
 		int nex = customers[ctop].next;
-		DisType avnp = customers[pre].av + input->datas[pre].SERVICETIME + input->getDisof2(pre,nex);
-		DisType ptw = std::max<DisType>(0, avnp - customers[nex].zv) + customers[nex].TWX_ + customers[pre].TW_X;
+		DisType avnp = customers[prev].av + input->datas[prev].SERVICETIME + input->getDisof2(prev,nex);
+		DisType ptw = std::max<DisType>(0, avnp - customers[nex].zv) + customers[nex].TWX_ + customers[prev].TW_X;
 
 		if (ptw < curPtw) {
 
 			rRemoveAtPosition(r, ctop);
-			rUpdateAvQFrom(r, pre);
+			rUpdateAvQFrom(r, prev);
 			rUpdateZvQFrom(r, nex);
 			curPtw = ptw;
 			ret.ejeVe.push_back(ctop);
@@ -6295,7 +6295,7 @@ bool Solver::ejectLocalSearch() {
 				}
 
 				doEjection(XSet);
-				//int Irand = input->custCnt / EPr.rCustCnt / 4;
+				//int Irand = input->customerNumer / EPr.rCustCnt / 4;
 				//Irand = std::max<int>(Irand,400);
 				//patternAdjustment(Irand);
 				patternAdjustment();
@@ -6615,7 +6615,7 @@ bool Solver::simpleLocalSearch(int hasRange,Vector<int> newCus) {
 	//static Vector<int> moveKindOrder = { 0,1,2,3,4,5,6,7, 8,9,10,11,12,13,14,15};
 
 	static Vector<int> contribution(16, 0);
-	Vector<int> contricus(input->custCnt + 1, 0);
+	Vector<int> contricus(input->customerNumer + 1, 0);
 	//auto maxIt = std::max_element(contribution.begin(), contribution.end());
 	for (auto& i : contribution) { i = (i >> 1) + 1; }
 	//std::sort(moveKindOrder.begin(), moveKindOrder.end(), [&](int a, int b) {
@@ -6643,7 +6643,7 @@ bool Solver::simpleLocalSearch(int hasRange,Vector<int> newCus) {
 	#endif // LYH_CHECKING
 
 	if (hasRange == 0) {
-		newCus = randomx->getMN(input->custCnt + 1, input->custCnt + 1);
+		newCus = randomx->getMN(input->customerNumer + 1, input->customerNumer + 1);
 	}
 
 	random->shuffleVec(newCus);
@@ -6862,7 +6862,7 @@ bool Solver::printDimacs() {
 		Route& r = rts[i];
 		printf("Route #%d:", i + 1);
 		int pt = customers[r.head].next;
-		while (pt <= input->custCnt) {
+		while (pt <= input->customerNumer) {
 			printf(" %d", pt);
 			pt = customers[pt].next;
 		}
@@ -6914,7 +6914,7 @@ bool BKS::updateBKSAndPrint(Solver& newSol, String opt) {
 	bool ret = false;
 
 	
-	if (newSol.RoutesCost <= bestSolFound.RoutesCost && newSol.rts.cnt <= newSol.input->vehicleCnt) {
+	if (newSol.RoutesCost <= bestSolFound.RoutesCost && newSol.rts.cnt <= newSol.input->vehicleNumber) {
 
 		if (bestSolFound.input->commandLine->dimacsPrint == 1) {
 		}
