@@ -109,8 +109,8 @@ Route Solver::rCreateRoute(int id) {
 	customers[r.tail].prev = r.head;
 	customers[r.tail].next = -1;
 
-	customers[r.head].routeID = id;
-	customers[r.tail].routeID = id;
+	customers[r.head].routeId = id;
+	customers[r.tail].routeId = id;
 
 	customers[r.head].av = customers[r.head].avp
 		= input->datas[r.head].READYTIME;
@@ -145,7 +145,7 @@ DisType Solver::rUpdatePc(Route& r) {
 bool Solver::rReset(Route& r) {
 
 	r.rCustCnt = 0; //Ã»ÓÐ¼ÆËã²Ö¿â
-	//r.routeID = -1;
+	//r.routeId = -1;
 	r.routeCost = 0;
 	r.rPc = 0;
 	r.rPtw = 0;
@@ -184,7 +184,7 @@ bool Solver::rRemoveAllCustomersInRoute(Route& r) {
 
 bool Solver::rInsertAtPosition(Route& r, int pos, int node) {
 
-	customers[node].routeID = r.routeID;
+	customers[node].routeId = r.routeId;
 	r.rQ += input->datas[node].DEMAND;
 	r.rPc = std::max<DisType>(0, r.rQ - input->vehicleCapacity);
 
@@ -201,7 +201,7 @@ bool Solver::rInsertAtPosition(Route& r, int pos, int node) {
 
 bool Solver::rInsAtPosPre(Route& r, int pos, int node) {
 
-	customers[node].routeID = r.routeID;
+	customers[node].routeId = r.routeId;
 	r.rQ += input->datas[node].DEMAND;
 	r.rPc = std::max<DisType>(0, r.rQ - input->vehicleCapacity);
 
@@ -233,7 +233,7 @@ bool Solver::rRemoveAtPosition(Route& r, int a) {
 
 	temp.next = -1;
 	temp.prev = -1;
-	temp.routeID = -1;
+	temp.routeId = -1;
 	r.rCustCnt--;
 	return true;
 }
@@ -377,7 +377,7 @@ void Solver::rReCalCusNumAndSetCusrIdWithHeadrId(Route& r) {
 	int pt = r.head;
 	r.rCustCnt = 0;
 	while (pt != -1) {
-		customers[pt].routeID = r.routeID;
+		customers[pt].routeId = r.routeId;
 		r.tail = pt;
 		if (pt <= input->customerNumer) {
 			++r.rCustCnt;
@@ -440,7 +440,7 @@ CircleSector Solver::rGetCircleSector(Route& r) {
 	return ret;
 }
 
-void Solver::sumRtsPenalty() {
+void Solver::sumRoutesPenalty() {
 
 	Pc = 0;
 	Ptw = 0;
@@ -456,7 +456,7 @@ void Solver::sumRtsPenalty() {
 	penalty = alpha * Ptw + beta * Pc;
 }
 
-void Solver::sumRtsCost() {
+void Solver::sumRoutesCost() {
 	RoutesCost = 0;
 	for (int i = 0; i < rts.cnt; ++i) {
 		RoutesCost += rts[i].routeCost;
@@ -748,7 +748,7 @@ bool Solver::initSolutionBySecOrder() {
 		rUpdateAvQFrom(r, r.head);
 		rReCalculateRouteCost(r);
 	}
-	sumRtsPenalty();
+	sumRoutesPenalty();
 
 	return true;
 }
@@ -811,8 +811,8 @@ bool Solver::initSolutionSortOrder(int kind) {
 		rUpdateZvQFrom(r, r.tail);
 		rReCalculateRouteCost(r);
 	}
-	sumRtsPenalty();
-	//patternAdjustment();
+	sumRoutesPenalty();
+	//perturb();
 	return true;
 }
 
@@ -878,8 +878,8 @@ bool Solver::initSolutionMaxRoute() {
 		rUpdateAvQFrom(r, r.head);
 		rReCalculateRouteCost(r);
 	}
-	sumRtsPenalty();
-	//patternAdjustment();
+	sumRoutesPenalty();
+	//perturb();
 	return true;
 }
 
@@ -920,21 +920,21 @@ bool Solver::initSolution(int kind) {//5ÖÖ
 DeltaPenalty Solver::estimatevw(int kind, int v, int w, int oneR) {
 	// TODO[move]:²é¿´ÁÚÓò¶¯×÷µÄ±àºÅ
 	switch (kind) {
-	case 0:return _2optOpenvv_(v, w);
-	case 1:return _2optOpenvvj(v, w);
-	case 2:return outrelocatevToww_(v, w, oneR);
-	case 3:return outrelocatevTowwj(v, w, oneR);
-	case 4:return inrelocatevv_(v, w, oneR);
-	case 5:return inrelocatevvj(v, w, oneR);
-	case 6:return exchangevw_(v, w, oneR);
-	case 7:return exchangevwj(v, w, oneR);
-	case 8:return exchangevw(v, w, oneR);
-	case 9:return exchangevvjvjjwwj(v, w, oneR);
-	case 10:return exchangevvjvjjw(v, w, oneR);
-	case 11:return exchangevvjw(v, w, oneR);
-	case 12:return exchangevwwj(v, w, oneR);
-	case 13:return outrelocatevvjTowwj(v, w, oneR);
-	case 14:return outrelocatevv_Toww_(v, w, oneR);
+	case 0:return twoOptStarOpenvv_(v, w);
+	case 1:return twoOptStarOpenvvj(v, w);
+	case 2:return outOnevToww_(v, w, oneR);
+	case 3:return outOnevTowwj(v, w, oneR);
+	case 4:return inOnevv_(v, w, oneR);
+	case 5:return inOnevvj(v, w, oneR);
+	case 6:return swapOneOnevw_(v, w, oneR);
+	case 7:return swapOneOnevwj(v, w, oneR);
+	case 8:return swapOneOnevw(v, w, oneR);
+	case 9:return swapThreeTwovvjvjjwwj(v, w, oneR);
+	case 10:return swapThreeOnevvjvjjw(v, w, oneR);
+	case 11:return swapTwoOnevvjw(v, w, oneR);
+	case 12:return swapOneTwovwwj(v, w, oneR);
+	case 13:return outTwovvjTowwj(v, w, oneR);
+	case 14:return outTwovv_Toww_(v, w, oneR);
 	case 15: return reversevw(v, w);
 	default:
 		Logger::ERROR("estimate no this kind move");
@@ -979,15 +979,15 @@ DisType Solver::getaRangeOffPtw(int twbegin, int twend) {
 	return newwvPtw;
 }
 
-DeltaPenalty Solver::_2optOpenvv_(int v, int w) { //0
+DeltaPenalty Solver::twoOptStarOpenvv_(int v, int w) { //0
 	//debug(0)
 
 	DeltaPenalty bestM;
 
-	Route& rv = rts.getRouteByRid(customers[v].routeID);
-	Route& rw = rts.getRouteByRid(customers[w].routeID);
+	Route& rv = rts.getRouteByRouteId(customers[v].routeId);
+	Route& rw = rts.getRouteByRouteId(customers[w].routeId);
 
-	if (rv.routeID == rw.routeID) {
+	if (rv.routeId == rw.routeId) {
 		return bestM;
 	}
 
@@ -1061,14 +1061,14 @@ DeltaPenalty Solver::_2optOpenvv_(int v, int w) { //0
 	return bestM;
 }
 
-DeltaPenalty Solver::_2optOpenvvj(int v, int w) { //1
+DeltaPenalty Solver::twoOptStarOpenvvj(int v, int w) { //1
 
 	DeltaPenalty bestM;
 
-	Route& rv = rts.getRouteByRid(customers[v].routeID);
-	Route& rw = rts.getRouteByRid(customers[w].routeID);
+	Route& rv = rts.getRouteByRouteId(customers[v].routeId);
+	Route& rw = rts.getRouteByRouteId(customers[w].routeId);
 
-	if (rv.routeID == rw.routeID) {
+	if (rv.routeId == rw.routeId) {
 		return bestM;
 	}
 
@@ -1142,10 +1142,10 @@ DeltaPenalty Solver::_2optOpenvvj(int v, int w) { //1
 	return bestM;
 }
 
-DeltaPenalty Solver::outrelocatevToww_(int v, int w, int oneR) { //2
+DeltaPenalty Solver::outOnevToww_(int v, int w, int oneR) { //2
 
-	Route& rv = rts.getRouteByRid(customers[v].routeID);
-	Route& rw = rts.getRouteByRid(customers[w].routeID);
+	Route& rv = rts.getRouteByRouteId(customers[v].routeId);
+	Route& rw = rts.getRouteByRouteId(customers[w].routeId);
 
 	DeltaPenalty bestM;
 
@@ -1157,7 +1157,7 @@ DeltaPenalty Solver::outrelocatevToww_(int v, int w, int oneR) { //2
 		return bestM;
 	}
 
-	if (rw.routeID == rv.routeID) {
+	if (rw.routeId == rv.routeId) {
 
 		if (oneR == 0) {
 			return bestM;
@@ -1172,7 +1172,7 @@ DeltaPenalty Solver::outrelocatevToww_(int v, int w, int oneR) { //2
 		DisType newv_vjPtw = 0;
 		DisType newvwPtw = 0;
 
-		if (rw.routeID == rv.routeID) {
+		if (rw.routeId == rv.routeId) {
 			
 			if (v == w || v == w_) {
 				return;
@@ -1235,7 +1235,7 @@ DeltaPenalty Solver::outrelocatevToww_(int v, int w, int oneR) { //2
 
 	auto getDeltPc = [&]() {
 
-		if (rv.routeID == rw.routeID) {
+		if (rv.routeId == rw.routeId) {
 			bestM.deltPc = 0;
 			bestM.PcOnly = 0;
 		}
@@ -1280,10 +1280,10 @@ DeltaPenalty Solver::outrelocatevToww_(int v, int w, int oneR) { //2
 	return bestM;
 }
 
-DeltaPenalty Solver::outrelocatevTowwj(int v, int w, int oneR) { //3
+DeltaPenalty Solver::outOnevTowwj(int v, int w, int oneR) { //3
 
-	Route& rv = rts.getRouteByRid(customers[v].routeID);
-	Route& rw = rts.getRouteByRid(customers[w].routeID);
+	Route& rv = rts.getRouteByRouteId(customers[v].routeId);
+	Route& rw = rts.getRouteByRouteId(customers[w].routeId);
 
 	DeltaPenalty bestM;
 
@@ -1295,7 +1295,7 @@ DeltaPenalty Solver::outrelocatevTowwj(int v, int w, int oneR) { //3
 		return bestM;
 	}
 
-	if (rw.routeID == rv.routeID) {
+	if (rw.routeId == rv.routeId) {
 
 		if (oneR == 0) {
 			return bestM;
@@ -1309,7 +1309,7 @@ DeltaPenalty Solver::outrelocatevTowwj(int v, int w, int oneR) { //3
 		DisType newv_vjPtw = 0;
 		DisType newvwPtw = 0;
 
-		if (rw.routeID == rv.routeID) {
+		if (rw.routeId == rv.routeId) {
 
 			if (v == w || v == wj) {
 				return;
@@ -1364,7 +1364,7 @@ DeltaPenalty Solver::outrelocatevTowwj(int v, int w, int oneR) { //3
 
 	auto getDeltPc = [&]() {
 
-		if (rv.routeID == rw.routeID) {
+		if (rv.routeId == rw.routeId) {
 			bestM.deltPc = 0;
 			bestM.PcOnly = 0;
 		}
@@ -1407,10 +1407,10 @@ DeltaPenalty Solver::outrelocatevTowwj(int v, int w, int oneR) { //3
 	return bestM;
 }
 
-DeltaPenalty Solver::inrelocatevv_(int v, int w, int oneR) { //4
+DeltaPenalty Solver::inOnevv_(int v, int w, int oneR) { //4
 
-	Route& rv = rts.getRouteByRid(customers[v].routeID);
-	Route& rw = rts.getRouteByRid(customers[w].routeID);
+	Route& rv = rts.getRouteByRouteId(customers[v].routeId);
+	Route& rw = rts.getRouteByRouteId(customers[w].routeId);
 
 	DeltaPenalty bestM;
 
@@ -1423,7 +1423,7 @@ DeltaPenalty Solver::inrelocatevv_(int v, int w, int oneR) { //4
 	}
 
 	// insert w to v and (v-)
-	if (rw.routeID == rv.routeID) {
+	if (rw.routeId == rv.routeId) {
 		if (oneR == 0) {
 			return bestM;
 		}
@@ -1442,7 +1442,7 @@ DeltaPenalty Solver::inrelocatevv_(int v, int w, int oneR) { //4
 		DisType newwvPtw = 0;
 
 		// insert w to v and (v-)
-		if (rw.routeID == rv.routeID) {
+		if (rw.routeId == rv.routeId) {
 
 			int whoIsFront = getFrontofTwoCus(v, w);
 
@@ -1496,7 +1496,7 @@ DeltaPenalty Solver::inrelocatevv_(int v, int w, int oneR) { //4
 
 	auto getDeltPc = [&]() {
 
-		if (rv.routeID == rw.routeID) {
+		if (rv.routeId == rw.routeId) {
 			bestM.deltPc = 0;
 			bestM.PcOnly = 0;
 		}
@@ -1540,11 +1540,11 @@ DeltaPenalty Solver::inrelocatevv_(int v, int w, int oneR) { //4
 	return bestM;
 }
 
-DeltaPenalty Solver::inrelocatevvj(int v, int w, int oneR) { //5
+DeltaPenalty Solver::inOnevvj(int v, int w, int oneR) { //5
 
 	// insert w to (v,v+)
-	Route& rv = rts.getRouteByRid(customers[v].routeID);
-	Route& rw = rts.getRouteByRid(customers[w].routeID);
+	Route& rv = rts.getRouteByRouteId(customers[v].routeId);
+	Route& rw = rts.getRouteByRouteId(customers[w].routeId);
 
 	DeltaPenalty bestM;
 
@@ -1556,7 +1556,7 @@ DeltaPenalty Solver::inrelocatevvj(int v, int w, int oneR) { //5
 		return bestM;
 	}
 
-	if (rw.routeID == rv.routeID) {
+	if (rw.routeId == rv.routeId) {
 		if (oneR == 0) {
 			return bestM;
 		}
@@ -1573,7 +1573,7 @@ DeltaPenalty Solver::inrelocatevvj(int v, int w, int oneR) { //5
 		DisType newwvPtw = 0;
 
 		//insert w to v vj
-		if (rw.routeID == rv.routeID) {
+		if (rw.routeId == rv.routeId) {
 
 			int whoIsFront = getFrontofTwoCus(v, w);
 
@@ -1618,7 +1618,7 @@ DeltaPenalty Solver::inrelocatevvj(int v, int w, int oneR) { //5
 
 	auto getDeltPc = [&]() {
 
-		if (rv.routeID == rw.routeID) {
+		if (rv.routeId == rw.routeId) {
 			bestM.PcOnly = 0;
 			bestM.deltPc = 0;
 		}
@@ -1663,19 +1663,19 @@ DeltaPenalty Solver::inrelocatevvj(int v, int w, int oneR) { //5
 
 }
 
-DeltaPenalty Solver::exchangevw(int v, int w, int oneR) { // 8
+DeltaPenalty Solver::swapOneOnevw(int v, int w, int oneR) { // 8
 
 	DeltaPenalty bestM;
 	// exchange v and (w)
-	Route& rv = rts.getRouteByRid(customers[v].routeID);
-	Route& rw = rts.getRouteByRid(customers[w].routeID);
+	Route& rv = rts.getRouteByRouteId(customers[v].routeId);
+	Route& rw = rts.getRouteByRouteId(customers[w].routeId);
 
 	int wj = customers[w].next;
 	int v_ = customers[v].prev;
 	int vj = customers[v].next;
 	int w_ = customers[w].prev;
 
-	if (rv.routeID == rw.routeID) {
+	if (rv.routeId == rw.routeId) {
 
 		if (oneR == 0) {
 			return bestM;
@@ -1692,7 +1692,7 @@ DeltaPenalty Solver::exchangevw(int v, int w, int oneR) { // 8
 		DisType vPtw = rv.rPtw * rv.rWeight;
 		DisType wPtw = rw.rPtw * rw.rWeight;
 
-		if (rv.routeID == rw.routeID) {
+		if (rv.routeId == rw.routeId) {
 
 			if (v == w) {
 				return;
@@ -1710,10 +1710,10 @@ DeltaPenalty Solver::exchangevw(int v, int w, int oneR) { // 8
 			}
 			else {
 
-				// exchangevw
+				// swapOneOnevw
 				int fr = getFrontofTwoCus(v, w);
 
-				// exchangevw
+				// swapOneOnevw
 				rRemoveAtPosition(rw, w);
 				rRemoveAtPosition(rw, v);
 
@@ -1758,7 +1758,7 @@ DeltaPenalty Solver::exchangevw(int v, int w, int oneR) { // 8
 		DisType vPc = rv.rPc;
 		DisType wPc = rw.rPc;
 
-		if (rv.routeID == rw.routeID) {
+		if (rv.routeId == rw.routeId) {
 			bestM.deltPc = 0;
 			bestM.PcOnly = 0;
 		}
@@ -1826,11 +1826,11 @@ DeltaPenalty Solver::exchangevw(int v, int w, int oneR) { // 8
 	return bestM;
 }
 
-DeltaPenalty Solver::exchangevw_(int v, int w, int oneR) { // 6
+DeltaPenalty Solver::swapOneOnevw_(int v, int w, int oneR) { // 6
 
 	// exchange v and (w_)
-	/*Route& rv = rts.getRouteByRid(customers[v].routeID);
-	Route& rw = rts.getRouteByRid(customers[w].routeID);*/
+	/*Route& rv = rts.getRouteByRouteId(customers[v].routeId);
+	Route& rw = rts.getRouteByRouteId(customers[w].routeId);*/
 
 	DeltaPenalty bestM;
 
@@ -1839,15 +1839,15 @@ DeltaPenalty Solver::exchangevw_(int v, int w, int oneR) { // 6
 	if (w_ > input->customerNumer || v == w_) {
 		return bestM;
 	}
-	return exchangevw(v, w_, oneR);
+	return swapOneOnevw(v, w_, oneR);
 
 }
 
-DeltaPenalty Solver::exchangevwj(int v, int w, int oneR) { // 7
+DeltaPenalty Solver::swapOneOnevwj(int v, int w, int oneR) { // 7
 
 	// exchange v and (w+)
-	/*Route& rv = rts.getRouteByRid(customers[v].routeID);
-	Route& rw = rts.getRouteByRid(customers[w].routeID);*/
+	/*Route& rv = rts.getRouteByRouteId(customers[v].routeId);
+	Route& rw = rts.getRouteByRouteId(customers[w].routeId);*/
 
 	DeltaPenalty bestM;
 
@@ -1856,17 +1856,17 @@ DeltaPenalty Solver::exchangevwj(int v, int w, int oneR) { // 7
 	if (wj > input->customerNumer || v == wj) {
 		return bestM;
 	}
-	return exchangevw(v, wj, oneR);
+	return swapOneOnevw(v, wj, oneR);
 }
 
-DeltaPenalty Solver::exchangevvjw(int v, int w, int oneR) { // 11 2»»1
+DeltaPenalty Solver::swapTwoOnevvjw(int v, int w, int oneR) { // 11 2»»1
 
 	// exchange vvj and (w)
 
 	DeltaPenalty bestM;
 
-	Route& rv = rts.getRouteByRid(customers[v].routeID);
-	Route& rw = rts.getRouteByRid(customers[w].routeID);
+	Route& rv = rts.getRouteByRouteId(customers[v].routeId);
+	Route& rw = rts.getRouteByRouteId(customers[w].routeId);
 
 	int wj = customers[w].next;
 	int vj = customers[v].next;
@@ -1880,7 +1880,7 @@ DeltaPenalty Solver::exchangevvjw(int v, int w, int oneR) { // 11 2»»1
 	int v_ = customers[v].prev;
 	int w_ = customers[w].prev;
 
-	if (rv.routeID == rw.routeID) {
+	if (rv.routeId == rw.routeId) {
 		if (oneR == 0) {
 			return bestM;
 		}
@@ -1897,7 +1897,7 @@ DeltaPenalty Solver::exchangevvjw(int v, int w, int oneR) { // 11 2»»1
 		DisType vPtw = rv.rPtw * rv.rWeight;
 		DisType wPtw = rw.rPtw * rw.rWeight;
 
-		if (rv.routeID == rw.routeID) {
+		if (rv.routeId == rw.routeId) {
 
 			if (v_ == w) {
 				newvPtw = newwPtw = getPtwWithVectorOfCustomers({ w_,v,vj,w,vjj });
@@ -1960,7 +1960,7 @@ DeltaPenalty Solver::exchangevvjw(int v, int w, int oneR) { // 11 2»»1
 		DisType vPc = rv.rPc;
 		DisType wPc = rw.rPc;
 
-		if (rv.routeID == rw.routeID) {
+		if (rv.routeId == rw.routeId) {
 
 			bestM.deltPc = 0;
 			bestM.PcOnly = 0;
@@ -2032,7 +2032,7 @@ DeltaPenalty Solver::exchangevvjw(int v, int w, int oneR) { // 11 2»»1
 	return bestM;
 }
 
-DeltaPenalty Solver::exchangevwwj(int v, int w, int oneR) { // 12 1»»2
+DeltaPenalty Solver::swapOneTwovwwj(int v, int w, int oneR) { // 12 1»»2
 
 	// exchange v and (ww+)
 	DeltaPenalty bestM;
@@ -2042,17 +2042,17 @@ DeltaPenalty Solver::exchangevwwj(int v, int w, int oneR) { // 12 1»»2
 	if (wj > input->customerNumer) {
 		return bestM;
 	}
-	return exchangevvjw(w, v, oneR);
+	return swapTwoOnevvjw(w, v, oneR);
 
 }
 
-DeltaPenalty Solver::exchangevvjvjjwwj(int v, int w, int oneR) { // 9 3»»2
+DeltaPenalty Solver::swapThreeTwovvjvjjwwj(int v, int w, int oneR) { // 9 3»»2
 
 	// exchange vvjvjj and (ww+)
 	DeltaPenalty bestM;
 
-	Route& rv = rts.getRouteByRid(customers[v].routeID);
-	Route& rw = rts.getRouteByRid(customers[w].routeID);
+	Route& rv = rts.getRouteByRouteId(customers[v].routeId);
+	Route& rw = rts.getRouteByRouteId(customers[w].routeId);
 
 	int wj = customers[w].next;
 	int vj = customers[v].next;
@@ -2074,7 +2074,7 @@ DeltaPenalty Solver::exchangevvjvjjwwj(int v, int w, int oneR) { // 9 3»»2
 	int w_ = customers[w].prev;
 
 	//exchange vvjvjj and (ww + )
-	if (rw.routeID == rv.routeID) {
+	if (rw.routeId == rv.routeId) {
 		if (oneR == 0) {
 			return bestM;
 		}
@@ -2092,7 +2092,7 @@ DeltaPenalty Solver::exchangevvjvjjwwj(int v, int w, int oneR) { // 9 3»»2
 		DisType vPtw = rv.rPtw * rv.rWeight;
 		DisType wPtw = rw.rPtw * rw.rWeight;
 
-		if (rv.routeID == rw.routeID) {
+		if (rv.routeId == rw.routeId) {
 			//exchange vvjvjj and (ww + )
 			if (v_ == wj) {
 				//w_ w wj v vj vjj v3j ==> w_,  v,vj,vjj , w,wj, v3j
@@ -2169,7 +2169,7 @@ DeltaPenalty Solver::exchangevvjvjjwwj(int v, int w, int oneR) { // 9 3»»2
 		DisType vPc = rv.rPc;
 		DisType wPc = rw.rPc;
 
-		if (rv.routeID == rw.routeID) {
+		if (rv.routeId == rw.routeId) {
 			bestM.deltPc = 0;
 			bestM.PcOnly = 0;
 		}
@@ -2238,11 +2238,11 @@ DeltaPenalty Solver::exchangevvjvjjwwj(int v, int w, int oneR) { // 9 3»»2
 	return bestM;
 }
 
-DeltaPenalty Solver::exchangevvjvjjw(int v, int w, int oneR) { // 10 Èý»»Ò»
+DeltaPenalty Solver::swapThreeOnevvjvjjw(int v, int w, int oneR) { // 10 Èý»»Ò»
 
 	// exchange vvjvjj and (w)
-	Route& rv = rts.getRouteByRid(customers[v].routeID);
-	Route& rw = rts.getRouteByRid(customers[w].routeID);
+	Route& rv = rts.getRouteByRouteId(customers[v].routeId);
+	Route& rw = rts.getRouteByRouteId(customers[w].routeId);
 
 	DeltaPenalty bestM;
 
@@ -2262,7 +2262,7 @@ DeltaPenalty Solver::exchangevvjvjjw(int v, int w, int oneR) { // 10 Èý»»Ò»
 	int v_ = customers[v].prev;
 	int w_ = customers[w].prev;
 
-	if (rv.routeID == rw.routeID) {
+	if (rv.routeId == rw.routeId) {
 
 		if (oneR == 0) {
 			return bestM;
@@ -2280,7 +2280,7 @@ DeltaPenalty Solver::exchangevvjvjjw(int v, int w, int oneR) { // 10 Èý»»Ò»
 		DisType vPtw = rv.rPtw * rv.rWeight;
 		DisType wPtw = rw.rPtw * rw.rWeight;
 
-		if (rv.routeID == rw.routeID) {
+		if (rv.routeId == rw.routeId) {
 
 			//return bestM;
 			// exchange vvjvjj and (w)
@@ -2350,7 +2350,7 @@ DeltaPenalty Solver::exchangevvjvjjw(int v, int w, int oneR) { // 10 Èý»»Ò»
 		DisType vPc = rv.rPc;
 		DisType wPc = rw.rPc;
 
-		if (rv.routeID == rw.routeID) {
+		if (rv.routeId == rw.routeId) {
 
 			bestM.deltPc = 0;
 			bestM.PcOnly = 0;
@@ -2423,12 +2423,12 @@ DeltaPenalty Solver::exchangevvjvjjw(int v, int w, int oneR) { // 10 Èý»»Ò»
 	return bestM;
 }
 
-DeltaPenalty Solver::outrelocatevvjTowwj(int v, int w, int oneR) {  //13 ÈÓÁ½¸ö
+DeltaPenalty Solver::outTwovvjTowwj(int v, int w, int oneR) {  //13 ÈÓÁ½¸ö
 
 	DeltaPenalty bestM;
 
-	Route& rv = rts.getRouteByRid(customers[v].routeID);
-	Route& rw = rts.getRouteByRid(customers[w].routeID);
+	Route& rv = rts.getRouteByRouteId(customers[v].routeId);
+	Route& rw = rts.getRouteByRouteId(customers[w].routeId);
 
 	int v_ = customers[v].prev;
 	int vj = customers[v].next;
@@ -2447,7 +2447,7 @@ DeltaPenalty Solver::outrelocatevvjTowwj(int v, int w, int oneR) {  //13 ÈÓÁ½¸ö
 		return bestM;
 	}
 
-	if (rw.routeID == rv.routeID) {
+	if (rw.routeId == rv.routeId) {
 		if (oneR == 0) {
 			return bestM;
 		}
@@ -2466,7 +2466,7 @@ DeltaPenalty Solver::outrelocatevvjTowwj(int v, int w, int oneR) {  //13 ÈÓÁ½¸ö
 		DisType newwPtw = 0;
 
 		// insert (v v+) to w and (w+)
-		if (rw.routeID == rv.routeID) {
+		if (rw.routeId == rv.routeId) {
 
 			//return bestM;
 			if (v == w || vj == w) {
@@ -2522,7 +2522,7 @@ DeltaPenalty Solver::outrelocatevvjTowwj(int v, int w, int oneR) {  //13 ÈÓÁ½¸ö
 		DisType vPc = rv.rPc;
 		DisType wPc = rw.rPc;
 
-		if (rv.routeID == rw.routeID) {
+		if (rv.routeId == rw.routeId) {
 
 			bestM.deltPc = 0;
 			bestM.PcOnly = 0;
@@ -2568,7 +2568,7 @@ DeltaPenalty Solver::outrelocatevvjTowwj(int v, int w, int oneR) {  //13 ÈÓÁ½¸ö
 	return bestM;
 }
 
-DeltaPenalty Solver::outrelocatevv_Toww_(int v, int w, int oneR) {  //14 ÈÓÁ½¸ö×ó±ß
+DeltaPenalty Solver::outTwovv_Toww_(int v, int w, int oneR) {  //14 ÈÓÁ½¸ö×ó±ß
 
 	DeltaPenalty bestM;
 
@@ -2577,8 +2577,8 @@ DeltaPenalty Solver::outrelocatevv_Toww_(int v, int w, int oneR) {  //14 ÈÓÁ½¸ö×
 		return bestM;
 	}
 
-	/*Route& rv = rts.getRouteByRid(customers[v].routeID);
-	Route& rw = rts.getRouteByRid(customers[w].routeID);*/
+	/*Route& rv = rts.getRouteByRouteId(customers[v].routeId);
+	Route& rw = rts.getRouteByRouteId(customers[w].routeId);*/
 
 	int w_ = customers[w].prev;
 	int v__ = customers[v_].prev;
@@ -2589,7 +2589,7 @@ DeltaPenalty Solver::outrelocatevv_Toww_(int v, int w, int oneR) {  //14 ÈÓÁ½¸ö×
 	}
 
 	//v- v || w_ w
-	return outrelocatevvjTowwj(v_, w_, oneR);
+	return outTwovvjTowwj(v_, w_, oneR);
 
 }
 
@@ -2597,14 +2597,14 @@ DeltaPenalty Solver::reversevw(int v, int w) {//15 ·­×ª
 
 	DeltaPenalty bestM;
 
-	int vId = customers[v].routeID;
-	int wId = customers[w].routeID;
+	int vId = customers[v].routeId;
+	int wId = customers[w].routeId;
 
 	if (vId > input->customerNumer || wId > input->customerNumer || vId != wId || v == w) {
 		return bestM;
 	}
 
-	Route& r = rts.getRouteByRid(customers[v].routeID);
+	Route& r = rts.getRouteByRouteId(customers[v].routeId);
 
 	int front = getFrontofTwoCus(v, w);
 	int back = (front == v ? w : v);
@@ -2616,12 +2616,12 @@ DeltaPenalty Solver::reversevw(int v, int w) {//15 ·­×ª
 
 		int fj = customers[front].next;
 		if (fj == back) {
-			bestM = exchangevw(v, w, 1);
+			bestM = swapOneOnevw(v, w, 1);
 			return;
 		}
 		int fjj = customers[fj].next;
 		if (fjj == back) {
-			bestM = exchangevw(v, w, 1);
+			bestM = swapOneOnevw(v, w, 1);
 			return;
 		}
 
@@ -2695,7 +2695,7 @@ DeltaPenalty Solver::reversevw(int v, int w) {//15 ·­×ª
 
 }
 
-DeltaPenalty Solver::_Nopt(Vector<int>& nodes) { //16 Nopt*
+DeltaPenalty Solver::nOptStar(Vector<int>& nodes) { //16 Nopt*
 
 	DeltaPenalty bestM;
 
@@ -2723,8 +2723,8 @@ DeltaPenalty Solver::_Nopt(Vector<int>& nodes) { //16 Nopt*
 	DisType oldPtw = 0;
 	DisType oldPc = 0;
 	for (std::size_t i = 0; i < nodes.size(); i += 2) {
-		int rId = customers[(nodes[i] == 0 ? nodes[i + 1] : nodes[i])].routeID;
-		Route& r = rts.getRouteByRid(rId);
+		int rId = customers[(nodes[i] == 0 ? nodes[i + 1] : nodes[i])].routeId;
+		Route& r = rts.getRouteByRouteId(rId);
 		oldPtwNoWei += r.rPtw;
 		oldPtw += r.rPtw * r.rWeight;
 		oldPc += r.rPc;
@@ -2748,15 +2748,15 @@ bool Solver::doMoves(TwoNodeMove& M) {
 
 	case 0:
 	case 1:
-		twoOptStar(M); break;
+		doTwoOptStar(M); break;
 	case 2:
 	case 3:
 	case 13:
 	case 14:
-		outRelocate(M); break;
+		doOutRelocate(M); break;
 	case 4:
 	case 5:
-		inRelocate(M); break;
+		doInRelocate(M); break;
 	case 6:
 	case 7:
 	case 8:
@@ -2764,7 +2764,7 @@ bool Solver::doMoves(TwoNodeMove& M) {
 	case 10:
 	case 11:
 	case 12:
-		exchange(M); break;
+		doExchange(M); break;
 	case 15:
 		doReverse(M); break;
 	default:
@@ -2775,13 +2775,13 @@ bool Solver::doMoves(TwoNodeMove& M) {
 	return false;
 }
 
-bool Solver::twoOptStar(TwoNodeMove& M) {
+bool Solver::doTwoOptStar(TwoNodeMove& M) {
 
 	int v = M.v;
 	int w = M.w;
 
-	Route& rv = rts.getRouteByRid(customers[v].routeID);
-	Route& rw = rts.getRouteByRid(customers[w].routeID);
+	Route& rv = rts.getRouteByRouteId(customers[v].routeId);
+	Route& rw = rts.getRouteByRouteId(customers[w].routeId);
 
 	if (M.kind == 0) {
 
@@ -2800,7 +2800,7 @@ bool Solver::twoOptStar(TwoNodeMove& M) {
 		pt = customers[rv.head].next;
 		while (pt != -1) {
 			++rv.rCustCnt;
-			customers[pt].routeID = rv.routeID;
+			customers[pt].routeId = rv.routeId;
 			pt = customers[pt].next;
 		}
 		rv.rCustCnt--;
@@ -2809,7 +2809,7 @@ bool Solver::twoOptStar(TwoNodeMove& M) {
 		rw.rCustCnt = 0;
 		while (pt != -1) {
 			++rw.rCustCnt;
-			customers[pt].routeID = rw.routeID;
+			customers[pt].routeId = rw.routeId;
 			pt = customers[pt].next;
 		}
 		rw.rCustCnt--;
@@ -2839,7 +2839,7 @@ bool Solver::twoOptStar(TwoNodeMove& M) {
 		int pt = customers[rv.head].next;
 		while (pt != -1) {
 			++rv.rCustCnt;
-			customers[pt].routeID = rv.routeID;
+			customers[pt].routeId = rv.routeId;
 			pt = customers[pt].next;
 		}
 		rv.rCustCnt--;
@@ -2848,7 +2848,7 @@ bool Solver::twoOptStar(TwoNodeMove& M) {
 		pt = customers[rw.head].next;
 		while (pt != -1) {
 			++rw.rCustCnt;
-			customers[pt].routeID = rw.routeID;
+			customers[pt].routeId = rw.routeId;
 			pt = customers[pt].next;
 		}
 		rw.rCustCnt--;
@@ -2871,13 +2871,13 @@ bool Solver::twoOptStar(TwoNodeMove& M) {
 	return false;
 }
 
-bool Solver::outRelocate(TwoNodeMove& M) {
+bool Solver::doOutRelocate(TwoNodeMove& M) {
 
 	int v = M.v;
 	int w = M.w;
 
-	Route& rv = rts.getRouteByRid(customers[v].routeID);
-	Route& rw = rts.getRouteByRid(customers[w].routeID);
+	Route& rv = rts.getRouteByRouteId(customers[v].routeId);
+	Route& rw = rts.getRouteByRouteId(customers[w].routeId);
 
 	if (M.kind == 2) {
 
@@ -2887,7 +2887,7 @@ bool Solver::outRelocate(TwoNodeMove& M) {
 		rRemoveAtPosition(rv, v);
 		rInsertAtPosition(rw, customers[w].prev, v);
 
-		if (rv.routeID == rw.routeID) {
+		if (rv.routeId == rw.routeId) {
 
 			rUpdateAvQFrom(rv, rv.head);
 			rUpdateZvQFrom(rv, rv.tail);
@@ -2910,7 +2910,7 @@ bool Solver::outRelocate(TwoNodeMove& M) {
 		rRemoveAtPosition(rv, v);
 		rInsertAtPosition(rw, w, v);
 
-		if (rv.routeID == rw.routeID) {
+		if (rv.routeId == rw.routeId) {
 
 			rUpdateAvQFrom(rv, rv.head);
 			rUpdateZvQFrom(rv, rv.tail);
@@ -2925,10 +2925,10 @@ bool Solver::outRelocate(TwoNodeMove& M) {
 		}
 	}
 	else if (M.kind == 13) {
-		// outrelocatevvjTowwj
+		// outTwovvjTowwj
 		int vj = customers[v].next;
 
-		if (rw.routeID == rv.routeID) {
+		if (rw.routeId == rv.routeId) {
 
 			if (v == w || vj == w) {
 				return false;
@@ -2944,7 +2944,7 @@ bool Solver::outRelocate(TwoNodeMove& M) {
 
 		}
 		else {
-			// outrelocatevvjTowwj
+			// outTwovvjTowwj
 			int vjj = customers[vj].next;
 			int v_ = customers[v].prev;
 
@@ -2967,7 +2967,7 @@ bool Solver::outRelocate(TwoNodeMove& M) {
 		int v__ = customers[v_].prev;
 		int vj = customers[v].next;
 
-		if (rw.routeID == rv.routeID) {
+		if (rw.routeId == rv.routeId) {
 
 			rRemoveAtPosition(rv, v);
 			rRemoveAtPosition(rv, v_);
@@ -3002,13 +3002,13 @@ bool Solver::outRelocate(TwoNodeMove& M) {
 	return true;
 }
 
-bool Solver::inRelocate(TwoNodeMove& M) {
+bool Solver::doInRelocate(TwoNodeMove& M) {
 
 	int v = M.v;
 	int w = M.w;
 
-	Route& rv = rts.getRouteByRid(customers[v].routeID);
-	Route& rw = rts.getRouteByRid(customers[w].routeID);
+	Route& rv = rts.getRouteByRouteId(customers[v].routeId);
+	Route& rw = rts.getRouteByRouteId(customers[w].routeId);
 
 	if (M.kind == 4) {
 		// inset w to (v-)->(v)
@@ -3019,7 +3019,7 @@ bool Solver::inRelocate(TwoNodeMove& M) {
 		rRemoveAtPosition(rw, w);
 		rInsertAtPosition(rv, customers[v].prev, w);
 
-		if (rv.routeID == rw.routeID) {
+		if (rv.routeId == rw.routeId) {
 
 			rUpdateAvQFrom(rv, rv.head);
 			rUpdateZvQFrom(rv, rv.tail);
@@ -3043,7 +3043,7 @@ bool Solver::inRelocate(TwoNodeMove& M) {
 		rRemoveAtPosition(rw, w);
 		rInsertAtPosition(rv, v, w);
 
-		if (rv.routeID == rw.routeID) {
+		if (rv.routeId == rw.routeId) {
 
 			rUpdateAvQFrom(rv, rv.head);
 			rUpdateZvQFrom(rv, rv.tail);
@@ -3062,13 +3062,13 @@ bool Solver::inRelocate(TwoNodeMove& M) {
 
 }
 
-bool Solver::exchange(TwoNodeMove& M) {
+bool Solver::doExchange(TwoNodeMove& M) {
 
 	int v = M.v;
 	int w = M.w;
 
-	Route& rv = rts.getRouteByRid(customers[v].routeID);
-	Route& rw = rts.getRouteByRid(customers[w].routeID);
+	Route& rv = rts.getRouteByRouteId(customers[v].routeId);
+	Route& rw = rts.getRouteByRouteId(customers[w].routeId);
 
 	if (M.kind == 6) {
 		// exchange v and (w_)
@@ -3080,7 +3080,7 @@ bool Solver::exchange(TwoNodeMove& M) {
 		int w__ = customers[w_].prev;
 		int v_ = customers[v].prev;
 
-		if (rv.routeID == rw.routeID) {
+		if (rv.routeId == rw.routeId) {
 
 			if (v == w__) {
 
@@ -3136,7 +3136,7 @@ bool Solver::exchange(TwoNodeMove& M) {
 		int wjj = customers[wj].next;
 		int v_ = customers[v].prev;
 
-		if (rv.routeID == rw.routeID) {
+		if (rv.routeId == rw.routeId) {
 			if (v == wj) {
 				return false;
 			}
@@ -3191,7 +3191,7 @@ bool Solver::exchange(TwoNodeMove& M) {
 		rRemoveAtPosition(rv, v);
 		rRemoveAtPosition(rw, w);
 
-		if (rv.routeID == rw.routeID) {
+		if (rv.routeId == rw.routeId) {
 			//return bestM;
 
 			if (v_ == w) {
@@ -3224,14 +3224,14 @@ bool Solver::exchange(TwoNodeMove& M) {
 	}
 	else if (M.kind == 9) {
 
-		//exchangevvjvjjwwj 3»»2
+		//swapThreeTwovvjvjjwwj 3»»2
 		int wj = customers[w].next;
 		int vj = customers[v].next;
 		int vjj = customers[vj].next;
 		int v_ = customers[v].prev;
 		int w_ = customers[w].prev;
 
-		if (rv.routeID == rw.routeID) {
+		if (rv.routeId == rw.routeId) {
 
 			/*if (v == w || v == wj || vj == w || vj == wj || vjj == w || vjj == wj) {
 				return false;
@@ -3298,14 +3298,14 @@ bool Solver::exchange(TwoNodeMove& M) {
 	}
 	else if (M.kind == 10) {
 
-		//exchangevvjvjjw 3»»1
+		//swapThreeOnevvjvjjw 3»»1
 		int v_ = customers[v].prev;
 		int vj = customers[v].next;
 		int vjj = customers[vj].next;
 		int wj = customers[w].next;
 		int w_ = customers[w].prev;
 
-		if (rv.routeID == rw.routeID) {
+		if (rv.routeId == rw.routeId) {
 
 			// exchange vvjvjj and (w)
 			/*if (v == w || vj == w || vjj == w) {
@@ -3364,12 +3364,12 @@ bool Solver::exchange(TwoNodeMove& M) {
 		}
 	}
 	else if (M.kind == 11) {
-		//exchangevvjw 2»»1
+		//swapTwoOnevvjw 2»»1
 		int v_ = customers[v].prev;
 		int vj = customers[v].next;
 		int w_ = customers[w].prev;
 
-		if (rv.routeID == rw.routeID) {
+		if (rv.routeId == rw.routeId) {
 
 			rRemoveAtPosition(rv, v);
 			rRemoveAtPosition(rv, vj);
@@ -3398,7 +3398,7 @@ bool Solver::exchange(TwoNodeMove& M) {
 			rUpdateZvQFrom(rv, rv.tail);
 		}
 		else {
-			//exchangevvjw
+			//swapTwoOnevvjw
 			rRemoveAtPosition(rv, v);
 			rRemoveAtPosition(rv, vj);
 			rRemoveAtPosition(rw, w);
@@ -3417,12 +3417,12 @@ bool Solver::exchange(TwoNodeMove& M) {
 		}
 	}
 	else if (M.kind == 12) {
-		// exchangevwwj
+		// swapOneTwovwwj
 		int v_ = customers[v].prev;
 		int wj = customers[w].next;
 		int w_ = customers[w].prev;
 
-		if (rv.routeID == rw.routeID) {
+		if (rv.routeId == rw.routeId) {
 
 			/*if (v == w || v == wj) {
 				return false;
@@ -3459,7 +3459,7 @@ bool Solver::exchange(TwoNodeMove& M) {
 			rUpdateZvQFrom(rv, rv.tail);
 		}
 		else {
-			// exchangevwwj
+			// swapOneTwovwwj
 			rRemoveAtPosition(rv, v);
 			rRemoveAtPosition(rw, w);
 			rRemoveAtPosition(rw, wj);
@@ -3488,7 +3488,7 @@ bool Solver::doReverse(TwoNodeMove& M) {
 	int v = M.v;
 	int w = M.w;
 
-	Route& r = rts.getRouteByRid(customers[v].routeID);
+	Route& r = rts.getRouteByRouteId(customers[v].routeId);
 
 	int front = r.head;
 	int back = r.tail;
@@ -3724,7 +3724,7 @@ TwoNodeMove Solver::getMovesRandomly
 
 	auto _2optEffectively = [&](int v) {
 
-		int vid = customers[v].routeID;
+		int vid = customers[v].routeId;
 
 		int v_ = customers[v].prev;
 		if (v_ > input->customerNumer) {
@@ -3747,7 +3747,7 @@ TwoNodeMove Solver::getMovesRandomly
 
 			int w = input->addSTclose[v][wpos];
 			//int w = input->allCloseOf[v][wpos];
-			int wid = customers[w].routeID;
+			int wid = customers[w].routeId;
 
 			if (wid == -1 || wid == vid) {
 				continue;
@@ -3757,7 +3757,7 @@ TwoNodeMove Solver::getMovesRandomly
 			//	continue;
 			//}
 
-			TwoNodeMove m0(v, w, 0, _2optOpenvv_(v, w));
+			TwoNodeMove m0(v, w, 0, twoOptStarOpenvv_(v, w));
 			updateBestM(m0, bestM);
 
 		}
@@ -3780,7 +3780,7 @@ TwoNodeMove Solver::getMovesRandomly
 
 			int w = input->addSTclose[v][wpos];
 			//int w = input->allCloseOf[v][wpos];
-			int wid = customers[w].routeID;
+			int wid = customers[w].routeId;
 			
 			if (wid == -1 || wid == vid) {
 				continue;
@@ -3790,7 +3790,7 @@ TwoNodeMove Solver::getMovesRandomly
 			//	continue;
 			//}
 
-			TwoNodeMove m1(v, w, 1, _2optOpenvvj(v, w));
+			TwoNodeMove m1(v, w, 1, twoOptStarOpenvvj(v, w));
 			updateBestM(m1, bestM);
 		}
 
@@ -3828,24 +3828,24 @@ TwoNodeMove Solver::getMovesRandomly
 				int wpos = ve[i];
 
 				int w = input->addSTclose[vpre][wpos];
-				int vrId = customers[v].routeID;
-				int wrId = customers[w].routeID;
-				if (customers[w].routeID == -1 || wrId == vrId) {
+				int vrId = customers[v].routeId;
+				int wrId = customers[w].routeId;
+				if (customers[w].routeId == -1 || wrId == vrId) {
 					continue;
 				}
-				TwoNodeMove m8(v, w, 8, exchangevw(v, w, 0));
+				TwoNodeMove m8(v, w, 8, swapOneOnevw(v, w, 0));
 				updateBestM(m8, bestM);
 
-				TwoNodeMove m9(v, w, 9, exchangevvjvjjwwj(v, w,0));
+				TwoNodeMove m9(v, w, 9, swapThreeTwovvjvjjwwj(v, w,0));
 				updateBestM(m9,bestM);
 
-				//TwoNodeMove m10(v, w, 10, exchangevvjvjjw(v, w, 0));
+				//TwoNodeMove m10(v, w, 10, swapThreeOnevvjvjjw(v, w, 0));
 				//updateBestM(m10,bestM);
 
-				TwoNodeMove m11(v, w, 11, exchangevvjw(v, w, 0));
+				TwoNodeMove m11(v, w, 11, swapTwoOnevvjw(v, w, 0));
 				updateBestM(m11,bestM);
 
-				//TwoNodeMove m12(v, w, 12, exchangevwwj(v, w, 0));
+				//TwoNodeMove m12(v, w, 12, swapOneTwovwwj(v, w, 0));
 				//updateBestM(m12,bestM);
 			}
 		}
@@ -3879,25 +3879,25 @@ TwoNodeMove Solver::getMovesRandomly
 				int wpos = ve[i];
 				wpos %= N;
 				int w = input->addSTclose[vnext][wpos];
-				int vrId = customers[v].routeID;
-				int wrId = customers[w].routeID;
-				if (customers[w].routeID == -1 || wrId == vrId) {
+				int vrId = customers[v].routeId;
+				int wrId = customers[w].routeId;
+				if (customers[w].routeId == -1 || wrId == vrId) {
 					continue;
 				}
 
-				TwoNodeMove m8(v, w, 8, exchangevw(v, w, 0));
+				TwoNodeMove m8(v, w, 8, swapOneOnevw(v, w, 0));
 				updateBestM(m8, bestM);
 
-				//TwoNodeMove m9(v, w, 9, exchangevvjvjjwwj(v, w, 0));
+				//TwoNodeMove m9(v, w, 9, swapThreeTwovvjvjjwwj(v, w, 0));
 				//updateBestM(m9,bestM);
 
-				//TwoNodeMove m10(v, w, 10, exchangevvjvjjw(v, w, 0));
+				//TwoNodeMove m10(v, w, 10, swapThreeOnevvjvjjw(v, w, 0));
 				//updateBestM(m10,bestM);
 
-				TwoNodeMove m11(v, w, 11, exchangevvjw(v, w, 0));
+				TwoNodeMove m11(v, w, 11, swapTwoOnevvjw(v, w, 0));
 				updateBestM(m11,bestM);
 
-				//TwoNodeMove m12(v, w, 12, exchangevwwj(v, w, 0));
+				//TwoNodeMove m12(v, w, 12, swapOneTwovwwj(v, w, 0));
 				//updateBestM(m12,bestM);
 			}
 		}
@@ -3919,19 +3919,19 @@ TwoNodeMove Solver::getMovesRandomly
 			int wpos = ve[i];
 			int w = relatedToV[wpos];
 
-			int wrId = customers[w].routeID;
+			int wrId = customers[w].routeId;
 			if (wrId == -1) {
 				continue;
 			}
 
-			if (wrId != customers[v].routeID) {
-				TwoNodeMove m2(v, w, 2, outrelocatevToww_(v, w, 0));
+			if (wrId != customers[v].routeId) {
+				TwoNodeMove m2(v, w, 2, outOnevToww_(v, w, 0));
 				updateBestM(m2, bestM);
-				TwoNodeMove m14(v, w, 14, outrelocatevv_Toww_(v, w, 0));
+				TwoNodeMove m14(v, w, 14, outTwovv_Toww_(v, w, 0));
 				updateBestM(m14, bestM);
-				//TwoNodeMove m3(v, w, 3, outrelocatevTowwj(v, w,0));
+				//TwoNodeMove m3(v, w, 3, outOnevTowwj(v, w,0));
 				//updateBestM(m3, bestM);
-				//TwoNodeMove m13(v, w, 13, outrelocatevvjTowwj(v, w, 0));
+				//TwoNodeMove m13(v, w, 13, outTwovvjTowwj(v, w, 0));
 				//updateBestM(m13,bestM);
 			}
 		}
@@ -3954,7 +3954,7 @@ TwoNodeMove Solver::getMovesRandomly
 		Logger::ERROR("error on conf route");
 	}
 
-	Route& r = rts.getRouteByRid(rId);
+	Route& r = rts.getRouteByRouteId(rId);
 
 	#if LYH_CHECKING
 	lyhCheckTrue(r.rPc > 0 || r.rPtw > 0);
@@ -3987,11 +3987,11 @@ TwoNodeMove Solver::getMovesRandomly
 					break;
 				}
 
-				TwoNodeMove m8(v, w, 8, exchangevw(v, w, 1));
+				TwoNodeMove m8(v, w, 8, swapOneOnevw(v, w, 1));
 				updateBestM(m8, bestM);
 
 				if (i >= 2) {
-					TwoNodeMove m3(v, w, 3, outrelocatevTowwj(v, w, 1));
+					TwoNodeMove m3(v, w, 3, outOnevTowwj(v, w, 1));
 					updateBestM(m3, bestM);
 				}
 
@@ -4018,51 +4018,51 @@ TwoNodeMove Solver::getMovesRandomly
 				int wpos = ve[i];
 
 				int w = relatedToV[wpos];
-				int vrId = customers[v].routeID;
-				int wrId = customers[w].routeID;
+				int vrId = customers[v].routeId;
+				int wrId = customers[w].routeId;
 
-				if (customers[w].routeID == -1 || wrId == vrId) {
+				if (customers[w].routeId == -1 || wrId == vrId) {
 					continue;
 				}
 
-				TwoNodeMove m0(v, w, 0, _2optOpenvv_(v, w));
+				TwoNodeMove m0(v, w, 0, twoOptStarOpenvv_(v, w));
 				updateBestM(m0, bestM);
-				TwoNodeMove m1(v, w, 1, _2optOpenvvj(v, w));
+				TwoNodeMove m1(v, w, 1, twoOptStarOpenvvj(v, w));
 				updateBestM(m1, bestM);
 
-				TwoNodeMove m2(v, w, 2, outrelocatevToww_(v, w, 0));
+				TwoNodeMove m2(v, w, 2, outOnevToww_(v, w, 0));
 				updateBestM(m2, bestM);
-				TwoNodeMove m3(v, w, 3, outrelocatevTowwj(v, w, 0));
+				TwoNodeMove m3(v, w, 3, outOnevTowwj(v, w, 0));
 				updateBestM(m3, bestM);
 
-				//TwoNodeMove m4(v, w, 4, inrelocatevv_(v, w));
+				//TwoNodeMove m4(v, w, 4, inOnevv_(v, w));
 				//updateBestM(m4,bestM);
-				//TwoNodeMove m5(v, w, 5, inrelocatevvj(v, w));
+				//TwoNodeMove m5(v, w, 5, inOnevvj(v, w));
 				//updateBestM(m5,bestM);
 
-				TwoNodeMove m6(v, w, 6, exchangevw_(v, w, 0));
+				TwoNodeMove m6(v, w, 6, swapOneOnevw_(v, w, 0));
 				updateBestM(m6, bestM);
-				TwoNodeMove m7(v, w, 7, exchangevwj(v, w, 0));
+				TwoNodeMove m7(v, w, 7, swapOneOnevwj(v, w, 0));
 				updateBestM(m7, bestM);
 
-				TwoNodeMove m8(v, w, 8, exchangevw(v, w, 0));
+				TwoNodeMove m8(v, w, 8, swapOneOnevw(v, w, 0));
 				updateBestM(m8, bestM);
 
-				/*TwoNodeMove m9(v, w, 9, exchangevvjvjjwwj(v, w,0));
+				/*TwoNodeMove m9(v, w, 9, swapThreeTwovvjvjjwwj(v, w,0));
 				updateBestM(m9,bestM);*/
 
-				//TwoNodeMove m10(v, w, 10, exchangevvjvjjw(v, w, 0));
+				//TwoNodeMove m10(v, w, 10, swapThreeOnevvjvjjw(v, w, 0));
 				//updateBestM(m10, bestM);
 
-				TwoNodeMove m11(v, w, 11, exchangevvjw(v, w, 0));
+				TwoNodeMove m11(v, w, 11, swapTwoOnevvjw(v, w, 0));
 				updateBestM(m11, bestM);
 
-				/*TwoNodeMove m12(v, w, 12, exchangevwwj(v, w, 0));
+				/*TwoNodeMove m12(v, w, 12, swapOneTwovwwj(v, w, 0));
 				updateBestM(m12,bestM);*/
 
-				TwoNodeMove m13(v, w, 13, outrelocatevvjTowwj(v, w, 0));
+				TwoNodeMove m13(v, w, 13, outTwovvjTowwj(v, w, 0));
 				updateBestM(m13, bestM);
-				/*TwoNodeMove m14(v, w, 14, outrelocatevv_Toww_(v, w, 0));
+				/*TwoNodeMove m14(v, w, 14, outTwovv_Toww_(v, w, 0));
 				updateBestM(m14,bestM);*/
 			}
 		}
@@ -4080,10 +4080,10 @@ bool Solver::resetConfRts() {
 
 	for (int i = 0; i < rts.cnt; ++i) {
 		if (rts[i].rPtw > 0) {
-			PtwConfRts.insert(rts[i].routeID);
+			PtwConfRts.insert(rts[i].routeId);
 		}
 		else if (rts[i].rPc > 0) {
-			PcConfRts.insert(rts[i].routeID);
+			PcConfRts.insert(rts[i].routeId);
 		}
 	}
 	return true;
@@ -4097,12 +4097,12 @@ bool Solver::resetConfRtsByOneMove(Vector<int> ids) {
 	}
 
 	for (int id : ids) {
-		Route& r = rts.getRouteByRid(id);
+		Route& r = rts.getRouteByRouteId(id);
 		if (r.rPtw > 0) {
-			PtwConfRts.insert(r.routeID);
+			PtwConfRts.insert(r.routeId);
 		}
 		else if (r.rPc > 0) {
-			PcConfRts.insert(r.routeID);
+			PcConfRts.insert(r.routeId);
 		}
 	}
 
@@ -4110,7 +4110,7 @@ bool Solver::resetConfRtsByOneMove(Vector<int> ids) {
 	return true;
 };
 
-bool Solver::doEjection(Vector<eOneRNode>& XSet) {
+void Solver::doEjection(Vector<eOneRNode>& XSet) {
 
 	#if LYH_CHECKING
 
@@ -4122,12 +4122,12 @@ bool Solver::doEjection(Vector<eOneRNode>& XSet) {
 	}
 	lyhCheckTrue(cnt == PtwConfRts.cnt);
 	for (int i = 0; i < PtwConfRts.cnt; ++i) {
-		Route& r = rts.getRouteByRid(PtwConfRts.ve[i]);
+		Route& r = rts.getRouteByRouteId(PtwConfRts.ve[i]);
 		lyhCheckTrue(r.rPtw > 0);
 	}
 
 	for (int i = 0; i < PcConfRts.cnt; ++i) {
-		Route& r = rts.getRouteByRid(PcConfRts.ve[i]);
+		Route& r = rts.getRouteByRouteId(PcConfRts.ve[i]);
 		lyhCheckTrue(r.rPc > 0);
 	}
 
@@ -4139,7 +4139,7 @@ bool Solver::doEjection(Vector<eOneRNode>& XSet) {
 
 	for (eOneRNode& en : XSet) {
 
-		Route& r = rts.getRouteByRid(en.rId);
+		Route& r = rts.getRouteByRouteId(en.rId);
 
 		for (int node : en.ejeVe) {
 			rRemoveAtPosition(r, node);
@@ -4154,15 +4154,13 @@ bool Solver::doEjection(Vector<eOneRNode>& XSet) {
 	}
 
 	resetConfRts();
-	sumRtsPenalty();
+	sumRoutesPenalty();
 
 	#if LYH_CHECKING
 	lyhCheckTrue(penalty == 0);
 	lyhCheckTrue(PtwConfRts.cnt == 0);
 	lyhCheckTrue(PcConfRts.cnt == 0);
 	#endif // LYH_CHECKING
-
-	return true;
 }
 
 bool Solver::managerCusMem(Vector<int>& releaseNodes) {
@@ -4174,11 +4172,11 @@ bool Solver::managerCusMem(Vector<int>& releaseNodes) {
 
 		for (int j = useEnd - 1; j > i; --j) {
 
-			if (customers[j].routeID != -1) {
+			if (customers[j].routeId != -1) {
 
 				customers[i] = customers[j];
 
-				Route& r = rts.getRouteByRid(customers[j].routeID);
+				Route& r = rts.getRouteByRouteId(customers[j].routeId);
 
 				int jn = customers[j].next;
 				if (jn != -1) {
@@ -4201,14 +4199,14 @@ bool Solver::managerCusMem(Vector<int>& releaseNodes) {
 	return true;
 }
 
-bool Solver::removeOneRouteByRid(int rId) {
+bool Solver::removeOneRouteByRouteId(int rId) {
 
 	if (rId == -1) {
 		int index = random->pick(rts.cnt);
-		rId = rts[index].routeID;
+		rId = rts[index].routeId;
 	}
 
-	Route& rt = rts.getRouteByRid(rId);
+	Route& rt = rts.getRouteByRouteId(rId);
 
 	Vector<int> rtVe = rPutCustomersInVector(rt);
 	Vector<int> releasedNodes = { rt.head,rt.tail };
@@ -4219,7 +4217,7 @@ bool Solver::removeOneRouteByRid(int rId) {
 		EP.insert(pt);
 	}
 
-	sumRtsPenalty();
+	sumRoutesPenalty();
 	resetConfRts();
 	managerCusMem(releasedNodes);
 
@@ -4261,7 +4259,7 @@ DisType Solver::verify() {
 		rts[i].rWeight = 1;
 	}
 
-	sumRtsPenalty();
+	sumRoutesPenalty();
 
 	if (Ptw > 0 && Pc == 0) {
 		return -2;
@@ -4299,7 +4297,7 @@ bool Solver::addWeightToRoute(TwoNodeMove& bestM) {
 	if (bestM.deltPen.PcOnly + bestM.deltPen.PtwOnly >= 0) {
 
 		for (int i = 0; i < PtwConfRts.cnt; ++i) {
-			Route& r = rts.getRouteByRid(PtwConfRts.ve[i]);
+			Route& r = rts.getRouteByRouteId(PtwConfRts.ve[i]);
 
 			//auto cus = rPutCusInve(r);
 			//for (int c: cus) {
@@ -4388,7 +4386,7 @@ bool Solver::routeWeightedRepair() {
 			customers = it->customers;
 			rts = it->rts;
 			resetConfRts();
-			sumRtsPenalty();
+			sumRoutesPenalty();
 
 			Vector<eOneRNode> reteNode = ejectFromPatialSol();
 
@@ -4431,7 +4429,7 @@ bool Solver::routeWeightedRepair() {
 	}
 
 	resetConfRts();
-	sumRtsPenalty();
+	sumRoutesPenalty();
 
 	//int deTimeOneTurn = 0;
 	//int contiTurnNoDe = 0;
@@ -4516,8 +4514,8 @@ bool Solver::routeWeightedRepair() {
 		DisType oldPcOnly = Pc;
 		DisType oldRcost = RoutesCost;
 
-		Route& rv = rts.getRouteByRid(customers[bestM.v].routeID);
-		Route& rw = rts.getRouteByRid(customers[bestM.w].routeID);
+		Route& rv = rts.getRouteByRouteId(customers[bestM.v].routeId);
+		Route& rw = rts.getRouteByRouteId(customers[bestM.w].routeId);
 		oldrv = rPutCustomersInVector(rv);
 		oldrw = rPutCustomersInVector(rw);
 
@@ -4532,8 +4530,8 @@ bool Solver::routeWeightedRepair() {
 		#endif // LYH_CHECKING
 
 		yearTable->updateYearTable(this, bestM);
-		int rvId = customers[bestM.v].routeID;
-		int rwId = customers[bestM.w].routeID;
+		int rvId = customers[bestM.v].routeId;
+		int rwId = customers[bestM.w].routeId;
 
 		doMoves(bestM);
 
@@ -4586,7 +4584,7 @@ bool Solver::routeWeightedRepair() {
 			Logger::ERROR("oldPtw:", oldPtw);
 			Logger::ERROR("oldPc:", oldPc);
 
-			Logger::ERROR("rv.routeID == rw.routeID:",rv.routeID == rw.routeID);
+			Logger::ERROR("rv.routeId == rw.routeId:",rv.routeId == rw.routeId);
 
 			std::cout << "oldrv: ";
 
@@ -4639,7 +4637,7 @@ bool Solver::routeWeightedRepair() {
 		}
 
 		resetConfRts();
-		sumRtsPenalty();
+		sumRoutesPenalty();
 
 		return true;
 	}
@@ -4734,19 +4732,19 @@ void Solver::ruinClearEP(int kind) {
 		}
 		else {
 			Route& r = rts[bestFitPos.rIndex];
-			insRts.insert(r.routeID);
+			insRts.insert(r.routeId);
 			rInsertAtPosition(r, bestFitPos.pos, pt);
 			rUpdateAvQFrom(r, pt);
 			rUpdateZvQFrom(r, pt);
 		}
 	}
 
-	sumRtsPenalty();
+	sumRoutesPenalty();
 	for (auto rId : insRts) {
-		Route& r = rts.getRouteByRid(rId);
+		Route& r = rts.getRouteByRouteId(rId);
 		rReCalculateRouteCost(r);
 	}
-	sumRtsCost();
+	sumRoutesCost();
 	//sumRtsPen();
 }
 
@@ -4779,19 +4777,19 @@ Vector<int> Solver::ruinGetRuinCusBySting(int ruinKmax, int ruinLmax) {
 	int ruinK = random->pick(1, ruinKmax + 1);
 	
 	int v = random->pick(1, input->customerNumer + 1);
-	while (customers[v].routeID == -1) {
+	while (customers[v].routeId == -1) {
 		v = random->pick(input->customerNumer) + 1;
 	}
 
 	UnorderedSet<int> rIdSet;
 	UnorderedSet<int> begCusSet;
-	rIdSet.insert(customers[v].routeID);
+	rIdSet.insert(customers[v].routeId);
 	begCusSet.insert(v);
 
 	int wpos = 0;
 	while (static_cast<int>(rIdSet.size()) < ruinK) {
 		int w = input->addSTclose[v][wpos];
-		int wrId = customers[w].routeID;
+		int wrId = customers[w].routeId;
 		if (wrId != -1 && rIdSet.count(wrId) == 0) {
 			rIdSet.insert(wrId);
 			begCusSet.insert(w);
@@ -4802,7 +4800,7 @@ Vector<int> Solver::ruinGetRuinCusBySting(int ruinKmax, int ruinLmax) {
 	#if 0
 	auto splitAndmiddle = [&](int beg) {
 
-		Route& r = rts.getRouteByRid(customers[beg].routeID);
+		Route& r = rts.getRouteByRouteId(customers[beg].routeId);
 
 		int ruinL = random->pick(1, ruinLmax + 1);
 
@@ -4879,7 +4877,7 @@ Vector<int> Solver::ruinGetRuinCusBySting(int ruinKmax, int ruinLmax) {
 	};
 	#else
 	auto splitAndmiddle = [&](int beg) {
-		Route& r = rts.getRouteByRid(customers[beg].routeID);
+		Route& r = rts.getRouteByRouteId(customers[beg].routeId);
 		auto a = rPutCustomersInVector(r);
 		int n = r.rCustCnt;
 		int index = static_cast<int>(std::find(a.begin(), a.end(),beg) - a.begin());
@@ -4947,7 +4945,7 @@ Vector<int> Solver::ruinGetRuinCusByRound(int ruinCusNum) {
 	//ruinCusNum = std::min<int>(ruinCusNum,input->customerNumer-1);
 
 	int v = random->pick(input->customerNumer) + 1;
-	while (customers[v].routeID == -1) {
+	while (customers[v].routeId == -1) {
 		v = random->pick(input->customerNumer) + 1;
 	}
 
@@ -4958,7 +4956,7 @@ Vector<int> Solver::ruinGetRuinCusByRound(int ruinCusNum) {
 	for (int i = 0; i < ruinCusNum; ++i) {
 		int wpos = i;
 		int w = input->addSTclose[v][wpos];
-		if (customers[w].routeID != -1) {
+		if (customers[w].routeId != -1) {
 			runCus.push_back(w);
 		}
 	}
@@ -4980,7 +4978,7 @@ Vector<int> Solver::ruinGetRuinCusByRand(int ruinCusNum) {
 	//for (int i = 0; i < ruinCusNum; ++i) {
 	//	int wpos = i;
 	//	int w = input->sectorClose[v][wpos];
-	//	if (customers[w].routeID != -1) {
+	//	if (customers[w].routeId != -1) {
 	//		ret.push_back(w);
 	//	}
 	//}
@@ -5087,8 +5085,8 @@ void Solver::perturbBasedEjectionPool(int ruinCusNum) {
 
 	std::unordered_set<int> rIds;
 	for (int cus : ruinCus) {
-		Route& r = rts.getRouteByRid(customers[cus].routeID);
-		rIds.insert(r.routeID);
+		Route& r = rts.getRouteByRouteId(customers[cus].routeId);
+		rIds.insert(r.routeId);
 		if (r.rCustCnt > 2) {
 			rRemoveAtPosition(r, cus);
 			EP.insert(cus);
@@ -5096,14 +5094,14 @@ void Solver::perturbBasedEjectionPool(int ruinCusNum) {
 	}
 
 	for (auto rid : rIds) {
-		Route& r = rts.getRouteByRid(rid);
+		Route& r = rts.getRouteByRouteId(rid);
 		rUpdateAvQFrom(r, r.head);
 		rUpdateZvQFrom(r, r.tail);
 		rReCalculateRouteCost(r);
 	}
-	sumRtsCost();
-	sumRtsPenalty();
-	bool isej = ejectLocalSearch();
+	sumRoutesCost();
+	sumRoutesPenalty();
+	bool isej = AWLS();
 	if (isej) {
 		//TODO[-1]:ÕâÀïÈ¥µôÁË
 		//reCalRtsCostAndPen();
@@ -5120,8 +5118,8 @@ bool Solver::doOneTimeRuinPer(int perturbkind, int ruinCusNum, int clearEPKind) 
 
 	std::unordered_set<int> rIds;
 	for (int cus : ruinCus) {
-		Route& r = rts.getRouteByRid(customers[cus].routeID);
-		rIds.insert(r.routeID);
+		Route& r = rts.getRouteByRouteId(customers[cus].routeId);
+		rIds.insert(r.routeId);
 		if (r.rCustCnt > 2) {
 			rRemoveAtPosition(r, cus);
 			EP.insert(cus);
@@ -5129,13 +5127,13 @@ bool Solver::doOneTimeRuinPer(int perturbkind, int ruinCusNum, int clearEPKind) 
 	}
 
 	for (auto rid : rIds) {
-		Route& r = rts.getRouteByRid(rid);
+		Route& r = rts.getRouteByRouteId(rid);
 		rUpdateAvQFrom(r, r.head);
 		rUpdateZvQFrom(r, r.tail);
 		rReCalculateRouteCost(r);
 	}
-	sumRtsCost();
-	sumRtsPenalty();
+	sumRoutesCost();
+	sumRoutesPenalty();
 	ruinClearEP(clearEPKind);
 
 	if (penalty == 0) {
@@ -5256,7 +5254,7 @@ int Solver::ruinLocalSearchNotNewR(int ruinCusNum) {
 	return retState;
 }
 
-int Solver::CVB2ClearEPAllowNewR(int kind) {
+void Solver::reInsertCustomersIntoSolution(int kind) {
 
 	std::unordered_set<int> insRts;
 	Vector<int> EPArr = EP.putElementInVector();
@@ -5314,7 +5312,7 @@ int Solver::CVB2ClearEPAllowNewR(int kind) {
 		
 		if (bestPos.pen == 0) {
 			Route& r = rts[bestPos.rIndex];
-			insRts.insert(r.routeID);
+			insRts.insert(r.routeId);
 			rInsertAtPosition(r, bestPos.pos, pt);
 			rUpdateAvQFrom(r, pt);
 			rUpdateZvQFrom(r, pt);
@@ -5332,12 +5330,12 @@ int Solver::CVB2ClearEPAllowNewR(int kind) {
 		}
 	}
 
-	sumRtsPenalty();
+	sumRoutesPenalty();
 	for (auto rId : insRts) {
-		Route& r = rts.getRouteByRid(rId);
+		Route& r = rts.getRouteByRouteId(rId);
 		rReCalculateRouteCost(r);
 	}
-	sumRtsCost();
+	sumRoutesCost();
 
 	#if LYH_CHECKING
 	if (RoutesCost != verify()) {
@@ -5348,8 +5346,6 @@ int Solver::CVB2ClearEPAllowNewR(int kind) {
 		Logger::ERROR(verify());
 	}
 	#endif // LYH_CHECKING
-
-	return 0;
 }
 
 int Solver::CVB2ruinLS(int ruinCusNum) {
@@ -5358,66 +5354,42 @@ int Solver::CVB2ruinLS(int ruinCusNum) {
 	//static ProbControl pcRuKind(3);
 	static ProbControl pcCLKind(6, random);
 
+	
 	Solver solClone = *this;
 	int perturbkind = pcRuKind.getIndexBasedData();
 
-	Vector<int> ruinCus;
-	if (perturbkind == 0) {
-		ruinCus = ruinGetRuinCusByRound(ruinCusNum);
-	}
-	else if (perturbkind == 1) {
-		ruinCus = ruinGetRuinCusBySec(ruinCusNum);
-	}
-	else if (perturbkind == 2) {
-		int avgLen = input->customerNumer / rts.cnt;
-		int Lmax = std::min<int>(aps->ruinLmax, avgLen);
-		int ruinKmax = 4 * ruinCusNum / (1 + Lmax) - 1;
-
-		ruinKmax = std::min<int>(rts.cnt - 1, ruinKmax);
-		ruinKmax = std::max<int>(1, ruinKmax);
-		ruinCus = ruinGetRuinCusBySting(ruinKmax, Lmax);
-	}
-	else if(perturbkind==3){
-		// TODO[-1]:Ëæ»úÉ¾³ýcustomers
-		ruinCus = ruinGetRuinCusByRand(ruinCusNum);
-	}
-	else if (perturbkind == 4) {
-		ruinCus = ruinGetRuinCusByRandOneR(ruinCusNum);
-	}
-	else {
-		Logger::ERROR("no this kind of ruin");
-	}
-
+	Vector<int> ruinCus = getRuinCustomers(perturbkind,ruinCusNum);
+	
 	std::unordered_set<int> rIds;
 	for (int cus : ruinCus) {
-		Route& r = rts.getRouteByRid(customers[cus].routeID);
-		rIds.insert(r.routeID);
+		Route& r = rts.getRouteByRouteId(customers[cus].routeId);
+		rIds.insert(r.routeId);
 		rRemoveAtPosition(r, cus);
 		EP.insert(cus);
 
 		if (r.rCustCnt == 0) {
-			if (rIds.count(r.routeID)>0) {
-				rIds.erase(rIds.find(r.routeID));
+			if (rIds.count(r.routeId)>0) {
+				rIds.erase(rIds.find(r.routeId));
 			}
-			removeOneRouteByRid(r.routeID);
+			removeOneRouteByRouteId(r.routeId);
 		}
 	}
 
 	for (auto rid : rIds) {
-		Route& r = rts.getRouteByRid(rid);
+		Route& r = rts.getRouteByRouteId(rid);
 		rUpdateAvQFrom(r, r.head);
 		rUpdateZvQFrom(r, r.tail);
 		rReCalculateRouteCost(r);
 	}
 
-	sumRtsCost();
-	sumRtsPenalty();
+	sumRoutesCost();
+	sumRoutesPenalty();
 
 	//reCalRtsCostAndPen();
 
 	int clearKind = pcCLKind.getIndexBasedData();
 
-	CVB2ClearEPAllowNewR(clearKind);
+	reInsertCustomersIntoSolution(clearKind);
 	bks->updateBKSAndPrint(*this, "out and in");
 
 	auto cuses = EAX::getDiffCusofPb(solClone, *this);
@@ -5435,7 +5407,7 @@ int Solver::CVB2ruinLS(int ruinCusNum) {
 	return true;
 }
 
-int Solver::simulatedannealing(int kind,int iterMax, double temperature,int ruinNum) {
+void Solver::ruin(int kind,int iterMax, double temperature,int ruinNum) {
 
 	Solver pBest = *this;
 	Solver s = *this;
@@ -5480,7 +5452,6 @@ int Solver::simulatedannealing(int kind,int iterMax, double temperature,int ruin
 	}
 
 	*this = pBest;
-	return true;
 
 }
 
@@ -5515,9 +5486,9 @@ Vector<int> Solver::getRuinCustomers(int perturbkind, int ruinCusNum) {
 	return ruinCus;
 }
 
-bool Solver::patternAdjustment(int Irand) {
+void Solver::perturb(int Irand) {
 
-	int I1000 = random->pick(1,aps->patternAdjustmentIrand);
+	int I1000 = random->pick(1,aps->perturbIrand);
 	if (Irand > 0) {
 		I1000 = Irand;
 	}
@@ -5529,7 +5500,7 @@ bool Solver::patternAdjustment(int Irand) {
 	Vector<int> kindSet = { 0,1,6,7,8,9,10,2,3,4,5 };
 	int patternAdjustmentGetM = 10;
 
-	int N = aps->patternAdjustmentNeiborRange;
+	int N = aps->perturbNeiborRange;
 	int m = std::min<int>(patternAdjustmentGetM, N);
 
 	auto getDelt0MoveRandomly = [&]() {
@@ -5539,7 +5510,7 @@ bool Solver::patternAdjustment(int Irand) {
 		for (int iter = 0; ++iter < 100;++iter) {
 
 			int v = random->pick(input->customerNumer) + 1;
-			if (customers[v].routeID == -1) {
+			if (customers[v].routeId == -1) {
 				continue;
 			}
 
@@ -5552,8 +5523,8 @@ bool Solver::patternAdjustment(int Irand) {
 				//TODO[-1]:ÕâÀï¸Ä³ÉÁËaddSTclose
 				//int w = input->allCloseOf[v][wpos];
 				int w = input->addSTclose[v][wpos];
-				if (customers[w].routeID == -1
-					//|| customers[w].routeID == customers[v].routeID
+				if (customers[w].routeId == -1
+					//|| customers[w].routeId == customers[v].routeId
 					) {
 					continue;
 				}
@@ -5598,12 +5569,11 @@ bool Solver::patternAdjustment(int Irand) {
 
 	} while (++iter < I1000);
 
-	sumRtsPenalty();
+	sumRoutesPenalty();
 	if (beforeGamma == 1) {
 		reCalRtsCostSumCost();
 		gamma = beforeGamma;
 	}
-	return true;
 }
 
 Vector<Solver::eOneRNode> Solver::ejectFromPatialSol() {
@@ -5622,7 +5592,7 @@ Vector<Solver::eOneRNode> Solver::ejectFromPatialSol() {
 
 	for (int id : confRSet) {
 
-		Route& r = rts.getRouteByRid(id);
+		Route& r = rts.getRouteByRouteId(id);
 
 		eOneRNode retNode;
 		int tKmax = aps->minKmax;
@@ -5696,7 +5666,7 @@ Vector<Solver::eOneRNode> Solver::ejectFromPatialSol() {
 
 Solver::eOneRNode Solver::ejectOneRouteOnlyHasPcMinP(Route& r, int Kmax) {
 
-	eOneRNode noTabuN(r.routeID);
+	eOneRNode noTabuN(r.routeId);
 	noTabuN.Psum = 0;
 
 	Vector<int> R = rPutCustomersInVector(r);
@@ -5749,10 +5719,10 @@ Solver::eOneRNode Solver::ejectOneRouteOnlyHasPcMinP(Route& r, int Kmax) {
 
 Solver::eOneRNode Solver::ejectOneRouteOnlyP(Route& r, int kind, int Kmax) {
 
-	eOneRNode noTabuN(r.routeID);
+	eOneRNode noTabuN(r.routeId);
 
 	//int sameCnt = 1;
-	eOneRNode etemp(r.routeID);
+	eOneRNode etemp(r.routeId);
 	etemp.Psum = 0;
 
 	DisType rQ = r.rQ;
@@ -6019,7 +5989,7 @@ Solver::eOneRNode Solver::ejectOneRouteOnlyP(Route& r, int kind, int Kmax) {
 Solver::eOneRNode Solver::ejectOneRouteMinPsumGreedy
 (Route& r, eOneRNode cutBranchNode) {
 
-	eOneRNode ret(r.routeID);
+	eOneRNode ret(r.routeId);
 	ret.Psum = 0;
 	Vector<int> R = rPutCustomersInVector(r);
 
@@ -6138,7 +6108,7 @@ bool Solver::resetSolver() {
 	return true;
 }
 
-bool Solver::EPNodesCanEasilyPut() {
+void Solver::simpleClearEP() {
 
 	for (int EPIndex = 0; EPIndex < EP.size();) {
 		#if LYH_CHECKING
@@ -6164,7 +6134,7 @@ bool Solver::EPNodesCanEasilyPut() {
 			rUpdateAvQFrom(r, top);
 			rUpdateZvQFrom(r, top);
 
-			sumRtsPenalty();
+			sumRoutesPenalty();
 			resetConfRts();
 
 			#if LYH_CHECKING
@@ -6175,12 +6145,10 @@ bool Solver::EPNodesCanEasilyPut() {
 		else {
 			++EPIndex;
 		}
-
 	}
-	return true;
 }
 
-bool Solver::ejectLocalSearch() {
+bool Solver::AWLS() {
 
 	minEPcus = IntInf;
 	yearTable->squIterGrowUp(aps->yearTabuLen + aps->yearTabuRand);
@@ -6198,7 +6166,7 @@ bool Solver::ejectLocalSearch() {
 		
 		++iter;
 
-		EPNodesCanEasilyPut();
+		simpleClearEP();
 
 		if (EP.size() < minEPcus) {
 			minEPcus = EP.size();
@@ -6249,7 +6217,7 @@ bool Solver::ejectLocalSearch() {
 		rInsertAtPosition(r, bestP.pos, top);
 		rUpdateAvQFrom(r, top);
 		rUpdateZvQFrom(r, top);
-		sumRtsPenalty();
+		sumRoutesPenalty();
 		resetConfRts();
 
 		#if LYH_CHECKING
@@ -6275,10 +6243,7 @@ bool Solver::ejectLocalSearch() {
 			}
 			#endif // LYH_CHECKING
 
-			bool squ = routeWeightedRepair();
-			
-
-			if (squ == true) {
+			if (routeWeightedRepair() == true) {
 				continue;
 			}
 			else {
@@ -6297,8 +6262,8 @@ bool Solver::ejectLocalSearch() {
 				doEjection(XSet);
 				//int Irand = input->customerNumer / EPr.rCustCnt / 4;
 				//Irand = std::max<int>(Irand,400);
-				//patternAdjustment(Irand);
-				patternAdjustment();
+				//perturb(Irand);
+				perturb();
 			}
 		}
 	}
@@ -6319,10 +6284,10 @@ bool Solver::minimizeRouteNumber(int ourTarget) {
 	while (rts.cnt > ourTarget && !timer->isTimeOut()) {
 
 		Solver sclone = *this;
-		removeOneRouteByRid();
+		removeOneRouteByRouteId();
 
 		std::fill(input->P.begin(), input->P.end(), 1);
-		bool isDelete = ejectLocalSearch();
+		bool isDelete = AWLS();
 		if (isDelete) {
 
 			//saveOutAsSintefFile();
@@ -6416,8 +6381,8 @@ int Solver::splitLocalSearch() {
 		rReCalculateRouteCost(r1);
 		rts.push_back(r1);
 
-		sumRtsCost();
-		sumRtsPenalty();
+		sumRoutesCost();
+		sumRoutesPenalty();
 	}
 
 	return 0;
@@ -6477,8 +6442,8 @@ bool Solver::adjustRouteNumber(int ourTarget) {
 			rReCalculateRouteCost(r1);
 			rts.push_back(r1);
 
-			sumRtsCost();
-			sumRtsPenalty();
+			sumRoutesCost();
+			sumRoutesPenalty();
 			
 		}
 		//Logger::INFO("split adjust rn rts.cnt:", rts.cnt);
@@ -6502,7 +6467,7 @@ bool Solver::repair() {
 	}
 
 	resetConfRts();
-	sumRtsPenalty();
+	sumRoutesPenalty();
 
 	gamma = 1;
 
@@ -6565,14 +6530,14 @@ bool Solver::repair() {
 		}
 
 		//update(*yearTable)(bestM);
-		int rvId = customers[bestM.v].routeID;
-		int rwId = customers[bestM.w].routeID;
+		int rvId = customers[bestM.v].routeId;
+		int rwId = customers[bestM.w].routeId;
 
 		doMoves(bestM);
 		
 		yearTable->squIterGrowUp(1);
 
-		sumRtsPenalty();
+		sumRoutesPenalty();
 
 		RoutesCost += bestM.deltPen.deltCost;
 
@@ -6676,7 +6641,7 @@ bool Solver::simpleLocalSearch(int hasRange,Vector<int> newCus) {
 		//random->shuffleVec(newCus);
 		//for(int v:newCus){
 
-			if (customers[v].routeID == -1) {
+			if (customers[v].routeId == -1) {
 				continue;
 			}
 
@@ -6695,7 +6660,7 @@ bool Solver::simpleLocalSearch(int hasRange,Vector<int> newCus) {
 				//TODO[-1]:ÕâÀï¸Ä³ÉÁËaddSTclose
 				int w = input->addSTclose[v][wpos];
 
-				if (customers[w].routeID == -1) {
+				if (customers[w].routeId == -1) {
 					continue;
 				}
 				for (int kind : moveKindOrder) {
@@ -6775,20 +6740,20 @@ bool Solver::simpleLocalSearch(int hasRange,Vector<int> newCus) {
 		DisType oldPcOnly = Pc;
 		DisType oldRcost = RoutesCost;
 
-		int rvid = customers[bestM.v].routeID;
-		int rwid = customers[bestM.w].routeID;
+		int rvid = customers[bestM.v].routeId;
+		int rwid = customers[bestM.w].routeId;
 
-		Route& rv1 = rts.getRouteByRid(rvid);
-		Route& rw1 = rts.getRouteByRid(rwid);
+		Route& rv1 = rts.getRouteByRouteId(rvid);
+		Route& rw1 = rts.getRouteByRouteId(rwid);
 		oldrv = rPutCustomersInVector(rv1);
 		oldrw = rPutCustomersInVector(rw1);
 
 		#endif // LYH_CHECKING
 
-		int rvId = customers[bestM.v].routeID;
-		int rwId = customers[bestM.w].routeID;
-		Route& rv = rts.getRouteByRid(rvId);
-		Route& rw = rts.getRouteByRid(rwId);
+		int rvId = customers[bestM.v].routeId;
+		int rwId = customers[bestM.w].routeId;
+		Route& rv = rts.getRouteByRouteId(rvId);
+		Route& rw = rts.getRouteByRouteId(rwId);
 
 		yearTable->updateYearTable(this,bestM);
 
@@ -6809,10 +6774,10 @@ bool Solver::simpleLocalSearch(int hasRange,Vector<int> newCus) {
 			auto rold = rts[i].routeCost;
 			rReCalculateRouteCost(rts[i]);
 			if (rold != rts[i].routeCost) {
-				Logger::ERROR(rv.routeID);
-				Logger::ERROR(rw.routeID);
-				Logger::ERROR(rts[i].routeID);
-				Logger::ERROR(rts[i].routeID);
+				Logger::ERROR(rv.routeId);
+				Logger::ERROR(rw.routeId);
+				Logger::ERROR(rts[i].routeId);
+				Logger::ERROR(rts[i].routeId);
 			}
 		}
 
@@ -6845,7 +6810,7 @@ bool Solver::simpleLocalSearch(int hasRange,Vector<int> newCus) {
 	}
 
 	//TODO[5]:Õâ¸ö¸üÐÂ±ØÐëÓÐ ÒòÎªËÑË÷¹¤³ÌÖÐÃ»ÓÐ¸üÐÂÃ¿Ò»ÌõÂ·¾¶µÄrouteCost
-	sumRtsCost();
+	sumRoutesCost();
 	//auto rc = RoutesCost;
 	//reCalRtsCostSumCost();
 	//if (rc != RoutesCost) {
@@ -6905,8 +6870,8 @@ bool BKS::updateBKSAndPrint(Solver& newSol, String opt) {
 		auto rold = this->bestSolFound.rts[i].routeCost;
 		this->bestSolFound.rReCalculateRouteCost(this->bestSolFound.rts[i]);
 		if (rold != this->bestSolFound.rts[i].routeCost) {
-			Logger::ERROR(this->bestSolFound.rts[i].routeID);
-			Logger::ERROR(this->bestSolFound.rts[i].routeID);
+			Logger::ERROR(this->bestSolFound.rts[i].routeId);
+			Logger::ERROR(this->bestSolFound.rts[i].routeId);
 		}
 	}
 	#endif // LYH_CHECKING

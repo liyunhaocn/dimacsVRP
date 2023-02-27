@@ -11,6 +11,9 @@ struct EAX
 {
 public:
 
+	Solver* pa = nullptr;
+	Solver* pb = nullptr;
+
 	enum class Owner { UNKNOWN = -1, Pa, Pb, COMMON };
 
 	struct Edge {
@@ -98,9 +101,6 @@ public:
 	AlgorithmParameters* aps;
 	BKS* bks;
 
-	Solver* pa = nullptr;
-	Solver* pb = nullptr;
-
 	EAX(Solver& pa, Solver& pb);
 
 	/* 从边到哈希码 */
@@ -110,10 +110,10 @@ public:
 	Edge toEdge(int code);
 
 	/* 双亲边集分类 */
-	bool classifyEdges();
+	void generateGab();
 
 	/* 分解 GAB, 获得 AB-Cycle */
-	bool generateCycles();
+	void generateCycles();
 
 	/* 仅复制个体的客户节点连接信息 */
 	//对个体应用给定 AB-Cycle; 目标路径数为 `params.preprocess.numRoutes`

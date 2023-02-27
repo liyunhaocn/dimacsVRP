@@ -1,8 +1,6 @@
 ﻿
 #include<iostream>
 #include<vector>
-
-
 #include "Goal.h"
 
 //../Instances/Homberger/C1_8_2.txt ../SolverParameters.json ../Results
@@ -34,8 +32,6 @@ int main(int argc, char* argv[])
 	commandLine.displayInfo();
 	input.displayInfo();
 	commandLine.aps.displayInfo();
-
-	
 
 	Goal goal(&input);
 

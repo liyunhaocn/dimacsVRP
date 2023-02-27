@@ -22,12 +22,12 @@ struct AlgorithmParameters {
 	int minKmax = 1;
 	int maxKmax = 4;
 
-	int namaEaxCh = 20;
+	int eamaEaxCh = 20;
 	int abCycleWinkRate = 99; // 100
 
-	int patternAdjustmentNeiborRange = 60;
+	int perturbNeiborRange = 60;
 	
-	int patternAdjustmentIrand = 400;
+	int perturbIrand = 400;
 
 	int neiborSizeMin = 20;
 	int neiborSizeMax = 50;
@@ -50,10 +50,10 @@ struct AlgorithmParameters {
 			{"maxStagnationIterOfRepair", aps.maxStagnationIterOfRepair},
 			{"minKmax", aps.minKmax},
 			{"maxKmax", aps.maxKmax},
-			{"namaEaxCh", aps.namaEaxCh},
+			{"eamaEaxCh", aps.eamaEaxCh},
 			{"abCycleWinkRate", aps.abCycleWinkRate},
-			{"patternAdjustmentNeiborRange", aps.patternAdjustmentNeiborRange},
-			{"patternAdjustmentIrand", aps.patternAdjustmentIrand},
+			{"perturbNeiborRange", aps.perturbNeiborRange},
+			{"perturbIrand", aps.perturbIrand},
 			{"neiborSizeMin", aps.neiborSizeMin},
 			{"neiborSizeMax", aps.neiborSizeMax},
 			{"ruinSplitRate", aps.ruinSplitRate},
@@ -71,10 +71,10 @@ struct AlgorithmParameters {
 		j.at("maxStagnationIterOfRepair").get_to(aps.maxStagnationIterOfRepair);
 		j.at("minKmax").get_to(aps.minKmax);
 		j.at("maxKmax").get_to(aps.maxKmax);
-		j.at("namaEaxCh").get_to(aps.namaEaxCh);
+		j.at("eamaEaxCh").get_to(aps.eamaEaxCh);
 		j.at("abCycleWinkRate").get_to(aps.abCycleWinkRate);
-		j.at("patternAdjustmentNeiborRange").get_to(aps.patternAdjustmentNeiborRange);
-		j.at("patternAdjustmentIrand").get_to(aps.patternAdjustmentIrand);
+		j.at("perturbNeiborRange").get_to(aps.perturbNeiborRange);
+		j.at("perturbIrand").get_to(aps.perturbIrand);
 		j.at("neiborSizeMin").get_to(aps.neiborSizeMin);
 		j.at("neiborSizeMax").get_to(aps.neiborSizeMax);
 		j.at("ruinSplitRate").get_to(aps.ruinSplitRate);

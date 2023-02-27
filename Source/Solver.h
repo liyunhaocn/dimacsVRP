@@ -20,11 +20,12 @@ struct Route {
 
 public:
 
-	int routeID = -1;
-	int rCustCnt = 0; //没有计算仓库
-	DisType rQ = 0;
 	int head = -1;
 	int tail = -1;
+	int routeId = -1;
+	int rCustCnt = 0; // not include depot
+	DisType rQ = 0;
+
 
 	DisType rPc = 0;
 	DisType rPtw = 0;
@@ -33,7 +34,7 @@ public:
 
 	Route() {
 
-		routeID = -1;
+		routeId = -1;
 		rCustCnt = 0; //没有计算仓库
 		rQ = 0;
 		head = -1;
@@ -49,7 +50,7 @@ public:
 
 	Route(const Route& r) {
 
-		this->routeID = r.routeID;
+		this->routeId = r.routeId;
 		this->rCustCnt = r.rCustCnt;
 		this->rQ = r.rQ;
 		this->head = r.head;
@@ -63,7 +64,7 @@ public:
 
 	Route(int rid) {
 
-		this->routeID = rid;
+		this->routeId = rid;
 		this->rCustCnt = 0; //没有计算仓库
 		this->head = -1;
 		this->tail = -1;
@@ -78,7 +79,7 @@ public:
 
 		if (this != &r) {
 
-			this->routeID = r.routeID;
+			this->routeId = r.routeId;
 			this->rCustCnt = r.rCustCnt;
 			this->rQ = r.rQ;
 			this->head = r.head;
@@ -139,17 +140,17 @@ struct RTS {
 	bool push_back(Route& r1) {
 
 #if LYH_CHECKING
-		lyhCheckTrue(r1.routeID >= 0);
+		lyhCheckTrue(r1.routeId >= 0);
 #endif // LYH_CHECKING
 
-		if (r1.routeID >= static_cast<int>(posOf.size()) ) {
-			size_t newSize = posOf.size() + std::max<size_t>(r1.routeID + 1, posOf.size() / 2 + 1);
+		if (r1.routeId >= static_cast<int>(posOf.size()) ) {
+			size_t newSize = posOf.size() + std::max<size_t>(r1.routeId + 1, posOf.size() / 2 + 1);
 			ve.resize(newSize, Route());
 			posOf.resize(newSize, -1);
 		}
 
 		ve[cnt] = r1;
-		posOf[r1.routeID] = cnt;
+		posOf[r1.routeId] = cnt;
 		++cnt;
 		return true;
 	}
@@ -161,16 +162,16 @@ struct RTS {
 		}
 
 		if (index != cnt - 1) {
-			int id = ve[index].routeID;
+			int id = ve[index].routeId;
 
-			int cnt_1_id = ve[cnt - 1].routeID;
+			int cnt_1_id = ve[cnt - 1].routeId;
 			posOf[cnt_1_id] = index;
 			posOf[id] = -1;
 			ve[index] = ve[cnt - 1];
 			cnt--;
 		}
 		else {
-			int id = ve[index].routeID;
+			int id = ve[index].routeId;
 			posOf[id] = -1;
 			cnt--;
 		}
@@ -178,7 +179,7 @@ struct RTS {
 		return true;
 	}
 
-	Route& getRouteByRid(int rid) {
+	Route& getRouteByRouteId(int rid) {
 
 #if LYH_CHECKING
 		lyhCheckTrue(rid >= 0);
@@ -198,7 +199,7 @@ struct RTS {
 
 	bool reset() {
 		for (int i = 0; i < cnt; ++i) {
-			posOf[ve[i].routeID] = -1;
+			posOf[ve[i].routeId] = -1;
 		}
 		cnt = 0;
 		return true;
@@ -430,7 +431,7 @@ public:
 	//int id = -1;
 	int prev = -1;
 	int next = -1;
-	int routeID = -1;
+	int routeId = -1;
 
 	DisType av = 0;
 	DisType zv = 0;
@@ -451,7 +452,7 @@ public:
 		//id = -1;
 		prev = -1;
 		next = -1;
-		routeID = -1;
+		routeId = -1;
 
 		av = 0;
 		zv = 0;
@@ -500,7 +501,6 @@ public:
 
 	ConfSet PtwConfRts, PcConfRts;
 
-	//LL EPIter = 1;
 	int minEPcus = IntInf;
 
 	struct Position {
@@ -548,8 +548,6 @@ public:
 		}
 	};
 
-	//Solver();
-
 	Solver(Input* input,YearTable* yearTable,BKS* bks);
 
 	Solver(const Solver& s);
@@ -593,9 +591,9 @@ public:
 
 	CircleSector rGetCircleSector(Route& r);
 
-	void sumRtsPenalty();
+	void sumRoutesPenalty();
 
-	void sumRtsCost();
+	void sumRoutesCost();
 
 	DisType updatePenalty(const DeltaPenalty& delt);
 
@@ -659,49 +657,49 @@ public:
 	//开区间(twbegin，twend) twbegin，twend的各项值都是可靠的，开区间中间的点可以变化 twbegin，twend可以是仓库 
 	DisType getaRangeOffPtw(int twbegin, int twend);
 
-	DeltaPenalty _2optOpenvv_(int v, int w);
+	DeltaPenalty twoOptStarOpenvv_(int v, int w);
 
-	DeltaPenalty _2optOpenvvj(int v, int w);
+	DeltaPenalty twoOptStarOpenvvj(int v, int w);
 
-	DeltaPenalty outrelocatevToww_(int v, int w, int oneR);
+	DeltaPenalty outOnevToww_(int v, int w, int oneR);
 
-	DeltaPenalty outrelocatevTowwj(int v, int w, int oneR);
+	DeltaPenalty outOnevTowwj(int v, int w, int oneR);
 
-	DeltaPenalty inrelocatevv_(int v, int w, int oneR);
+	DeltaPenalty inOnevv_(int v, int w, int oneR);
 
-	DeltaPenalty inrelocatevvj(int v, int w, int oneR);
+	DeltaPenalty inOnevvj(int v, int w, int oneR);
 
-	DeltaPenalty exchangevw(int v, int w, int oneR);
+	DeltaPenalty swapOneOnevw(int v, int w, int oneR);
 
-	DeltaPenalty exchangevw_(int v, int w, int oneR);
+	DeltaPenalty swapOneOnevw_(int v, int w, int oneR);
 
-	DeltaPenalty exchangevwj(int v, int w, int oneR);
+	DeltaPenalty swapOneOnevwj(int v, int w, int oneR);
 
-	DeltaPenalty exchangevvjw(int v, int w, int oneR);
+	DeltaPenalty swapTwoOnevvjw(int v, int w, int oneR);
 
-	DeltaPenalty exchangevwwj(int v, int w, int oneR);
+	DeltaPenalty swapOneTwovwwj(int v, int w, int oneR);
 
-	DeltaPenalty exchangevvjvjjwwj(int v, int w, int oneR);
+	DeltaPenalty swapThreeTwovvjvjjwwj(int v, int w, int oneR);
 
-	DeltaPenalty exchangevvjvjjw(int v, int w, int oneR);
+	DeltaPenalty swapThreeOnevvjvjjw(int v, int w, int oneR);
 
-	DeltaPenalty outrelocatevvjTowwj(int v, int w, int oneR);
+	DeltaPenalty outTwovvjTowwj(int v, int w, int oneR);
 
-	DeltaPenalty outrelocatevv_Toww_(int v, int w, int oneR);
+	DeltaPenalty outTwovv_Toww_(int v, int w, int oneR);
 
 	DeltaPenalty reversevw(int v, int w);
 
-	DeltaPenalty _Nopt(Vector<int>& nodes);
+	DeltaPenalty nOptStar(Vector<int>& nodes);
 
 	bool doMoves(TwoNodeMove& M);
 
-	bool twoOptStar(TwoNodeMove& M);
+	bool doTwoOptStar(TwoNodeMove& M);
 
-	bool outRelocate(TwoNodeMove& M);
+	bool doOutRelocate(TwoNodeMove& M);
 
-	bool inRelocate(TwoNodeMove& M);
+	bool doInRelocate(TwoNodeMove& M);
 
-	bool exchange(TwoNodeMove& M);
+	bool doExchange(TwoNodeMove& M);
 
 	bool doReverse(TwoNodeMove& M);
 
@@ -713,13 +711,13 @@ public:
 
 	bool resetConfRtsByOneMove(Vector<int> ids);
 
-	bool doEjection(Vector<eOneRNode>& XSet);
+	void doEjection(Vector<eOneRNode>& XSet);
 
-	bool EPNodesCanEasilyPut();
+	void simpleClearEP();
 
 	bool managerCusMem(Vector<int>& releaseNodes);
 
-	bool removeOneRouteByRid(int rId = -1);
+	bool removeOneRouteByRouteId(int rId = -1);
 
 	DisType verify();
 
@@ -759,9 +757,9 @@ public:
 
 	int splitLocalSearch();
 
-	int CVB2ClearEPAllowNewR(int kind);
+	void reInsertCustomersIntoSolution(int kind);
 
-	int simulatedannealing(int kind, int iterMax, double temperature, int ruinNum);
+	void ruin(int kind, int iterMax, double temperature, int ruinNum);
 
 	inline DisType  getDeltDistanceCostIfRemoveCustomer(int v) {
 		DisType delta = 0;
@@ -779,9 +777,9 @@ public:
 
 	bool perturbBasedRuin(int perturbkind, int ruinCusNum, int clearEPKind);
 
-	bool ejectLocalSearch();
+	bool AWLS();
 
-	bool patternAdjustment(int Irand = -1);
+	void perturb(int Irand = -1);
 
 	void perturbBasedEjectionPool(int ruinCusNum);
 

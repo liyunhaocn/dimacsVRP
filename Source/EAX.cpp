@@ -32,7 +32,7 @@ EAX::EAX(Solver& pa, Solver& pb) :
 	}
 #endif // LYH_CHECKING
 
-	classifyEdges();
+	generateGab();
 };
 
 /* 从边到哈希码 */
@@ -49,7 +49,7 @@ EAX::Edge EAX::toEdge(int code) {
 }
 
 /* 双亲边集分类 */
-bool EAX::classifyEdges() {
+void EAX::generateGab() {
 
 	auto getAllEdgeInSol = [&](Solver& ps, Owner owner) {
 
@@ -129,12 +129,10 @@ bool EAX::classifyEdges() {
 		Logger::ERROR("pb->rts.cnt:", pb->rts.cnt);
 	}
 	#endif // LYH_CHECKING
-
-	return true;
 }
 
 /* 分解 GAB, 获得 AB-Cycle */
-bool EAX::generateCycles() {
+void EAX::generateCycles() {
 
 	tabuCyIds.clear();
 	abCycleSet.clear();
@@ -289,8 +287,6 @@ bool EAX::generateCycles() {
 
 	//TODO: 这玩意只在生成abcy换之后才发生变化 所以放在这里
 	getUnionArr();
-
-	return true;
 }
 
 /* 仅复制个体的客户节点连接信息 */
@@ -519,7 +515,7 @@ int EAX::removeSubring(Solver& pc) {
 		w = retW;
 		int wj = pc.customers[w].next;
 
-		Route& r = pc.rts.getRouteByRid(pc.customers[v].routeID);
+		Route& r = pc.rts.getRouteByRouteId(pc.customers[v].routeId);
 		pc.customers[v].next = wj;
 		pc.customers[wj].prev = v;
 

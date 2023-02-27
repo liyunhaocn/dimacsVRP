@@ -15,7 +15,7 @@ void AlgorithmParameters::displayInfo() {
 	//maxStagnationIterOfRepair = 199;
 	//squIterStepUp = 10;
 	//weightUpStep = 1;
-	//patternAdjustmentIrand = 400;
+	//perturbIrand = 400;
 	//runTimer = 1800; //s
 	//neiMoveKind = 16;
 	//Pwei0 = 1;
@@ -30,7 +30,7 @@ void AlgorithmParameters::displayInfo() {
 	//populationSizeMax = 50;
 	//repairExitStep = 5;
 	//namaEaxCh = 20;
-	//patternAdjustmentNeiborRange = 60;
+	//perturbNeiborRange = 60;
 	//patternAdjustmentGetM = 10;
 	//broaden = 1.2;
 	//broadenWhenPos_0 = 20;
@@ -65,7 +65,7 @@ void AlgorithmParameters::check(int cusCnt) {
 
 	assert(outNeiborSize < cusCnt);
 	assert(broadenWhenPos_0<=cusCnt);
-	assert(patternAdjustmentNeiborRange<cusCnt);
+	assert(perturbNeiborRange<cusCnt);
 	assert(neiborRange[0] < cusCnt);
 	assert(neiborRange[1] < cusCnt);
 	assert(ruinC_ < cusCnt);

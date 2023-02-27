@@ -11,15 +11,13 @@ struct Goal {
 	int routeNumberLowerBound = 0;
 	int routeNumberUpperBound = 0;
 	UnorderedMap<int, Vector<Solver>> mapOfPopulation;
-	
-	YearTable yearTable;
-	
-	int curSearchRouteNumber = -1;
-
 	AlgorithmParameters* aps = nullptr;
+	Input* input = nullptr;
+
+	YearTable yearTable;
+	int curSearchRouteNumber = -1;
 	Random* random = nullptr;
 	RandomX* randomx = nullptr;
-	Input* input = nullptr;
 	Timer* timer = nullptr;
 	
 	BKS bks;
@@ -35,7 +33,7 @@ struct Goal {
 
 	bool perturbOneSolution(Solver& sol);
 
-	int EAMA(int rn);
+	void EAMA(int rn);
 
 	int gotoPopulationAtRouteNumber(int rn);
 

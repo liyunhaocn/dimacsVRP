@@ -12,23 +12,18 @@
         "populationSizeMax": 50,
 
         "maxStagnationIterOfRepair": 200,
-
+        
         "minKmax": 1,
         "maxKmax": 4,
-
-        "namaEaxCh": 20,
+        "eamaEaxCh": 20,
         "abCycleWinkRate": 99,
-
-        "patternAdjustmentNeiborRange": 60,
-        
-        "patternAdjustmentIrand": 400,
-
+        "perturbNeiborRange": 60,
+        "perturbIrand": 400,
         "neiborSizeMin": 20,
         "neiborSizeMax": 50,
 
-        "ruinSplitRate": 0, 
+        "ruinSplitRate": 0,
         "ruinLmax": 20,
-        
         "ruinC_Min": 15,
         "ruinC_Max": 35,
         "ruinWinkRate": 90,

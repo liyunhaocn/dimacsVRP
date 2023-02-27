@@ -40,7 +40,7 @@ DisType Goal::doTwoKindEAX(Solver& pa, Solver& pb, int kind) {
 
 	int contiNotRepair = 1;
 
-	for (int ch = 1; ch <= aps->namaEaxCh; ++ch) {
+	for (int ch = 1; ch <= aps-> eamaEaxCh; ++ch) {
 
 		Solver pc = pa;
 		int eaxState = 0;
@@ -135,7 +135,7 @@ bool Goal::perturbOneSolution(Solver& sol) {
 		}
 		else{
 			int step = random->pick(static_cast<int>(sclone.input->customerNumer * 0.2),static_cast<int>( sclone.input->customerNumer * 0.3));
-			sclone.patternAdjustment(step);
+			sclone.perturb(step);
 		}
 		 
 		auto diff = EAX::getDiffCusofPb(sol, sclone);
@@ -153,7 +153,7 @@ bool Goal::perturbOneSolution(Solver& sol) {
 	return isPerOnePerson;
 }
 
-int Goal::EAMA(int rn) { // 1 代表更新了最优解 0表示没有
+void Goal::EAMA(int rn) { // 1 代表更新了最优解 0表示没有
 
 	auto& pool = mapOfPopulation[rn];
 
@@ -222,7 +222,6 @@ int Goal::EAMA(int rn) { // 1 代表更新了最优解 0表示没有
 	}
 
 	Logger::INFO("curSearchRouteNumber:",curSearchRouteNumber,"getMinRoutesCostInPool():", getMinRoutesCostInPool(curSearchRouteNumber));
-	return 0;
 }
 
 int Goal::gotoPopulationAtRouteNumber(int rn) {
@@ -284,7 +283,7 @@ int Goal::gotoPopulationAtRouteNumber(int rn) {
 			}
 #endif // LYH_CHECKING
 
-			sol.patternAdjustment(100);
+			sol.perturb(100);
 			isAdj = true;
 		}
 		else {
@@ -339,10 +338,10 @@ int Goal::callSimulatedannealing() {
 	st.adjustRouteNumber(ourTarget);
 
 	st.simpleLocalSearch(0, {});
-	st.simulatedannealing(0,1000, 20.0, 1);
+	st.ruin(0,1000, 20.0, 1);
 	bks.updateBKSAndPrint(st, "Simulatedannealing(0,1000, 20.0, 1)");
 
-	st.simulatedannealing(1, 1000, 20.0, aps->ruinC_);
+	st.ruin(1, 1000, 20.0, aps->ruinC_);
 	bks.updateBKSAndPrint(st,"Simulatedannealing(1, 1000, 20.0, aps->ruinC_)");
 
 	//saveSlnFile();
@@ -359,8 +358,8 @@ bool Goal::test() {
 	for (;;) {
 		aps->ruinLmax = input->customerNumer / sol.rts.cnt;
 		//aps->ruinC_ = (aps->ruinLmax + 1);
-		sol.simulatedannealing(1, 500, 100.0, aps->ruinC_);
-		sol.patternAdjustment(100);
+		sol.ruin(1, 500, 100.0, aps->ruinC_);
+		sol.perturb(100);
 	}
 	return true;
 }
@@ -413,7 +412,7 @@ void Goal::initialMapOfPopulation() {
 	int& neiborRange1 = aps->neiborRange[1];
 	neiborRange1 = 40;
 
-	sol.simulatedannealing(1, 1000, 100.0, aps->ruinC_);
+	sol.ruin(1, 1000, 100.0, aps->ruinC_);
 	
 	if (input->customerNumer < sol.rts.cnt * 25 ) {
 		//short route
@@ -442,7 +441,7 @@ void Goal::initialMapOfPopulation() {
 
 		if (i <= 4 ) {
 			aps->ruinLmax = input->customerNumer / poolt[i].rts.cnt;
-			poolt[i].simulatedannealing(1, 500, 100.0, aps->ruinC_);
+			poolt[i].ruin(1, 500, 100.0, aps->ruinC_);
 			updateMapOfPopulation(poolt[i], i);
 			
 		}
@@ -535,7 +534,7 @@ void Goal::initialMapOfPopulation() {
 			alreadyBound.push(i);
 			alreadyBound.push(index);
 			sol = (index == aps->populationSizeMax ? bks.bestSolFound : mapOfPopulation[routeNumberLowerBound][index]);
-			sol.patternAdjustment(100);
+			sol.perturb(100);
 		}
 	}
 
@@ -613,11 +612,8 @@ int Goal::getNextRouteNumerToRun() {
 int Goal::run() {
 
 	initialMapOfPopulation();
-
 	int nextRouteNumber = getNextRouteNumerToRun();
-
 	curSearchRouteNumber = gotoPopulationAtRouteNumber(nextRouteNumber);
-
 	populationSize = aps->populationSizeMin;
 
 	DisType bksLastLoop = bks.bestSolFound.RoutesCost;
@@ -634,7 +630,6 @@ int Goal::run() {
 			"neiSize:", neiSize);
 
 		bksLastLoop = bks.bksAtRn[curSearchRouteNumber];
-
 		auto& pool = mapOfPopulation[curSearchRouteNumber];
 		
 		EAMA(curSearchRouteNumber);
@@ -646,14 +641,14 @@ int Goal::run() {
 			int index = arr[i];
 			Solver& sol = pool[index];
 			Solver clone = sol;
-			clone.simulatedannealing(1, 100, 50.0, aps->ruinC_);
+			clone.ruin(1, 100, 50.0, aps->ruinC_);
 			bks.updateBKSAndPrint(clone, " pool sol simulate 1");
 			updateMapOfPopulation(sol, i);
 		}
 
 		Solver& sol = bks.bestSolFound;
 		Solver clone = sol;
-		clone.simulatedannealing(1, 500, 100.0, aps->ruinC_);
+		clone.ruin(1, 500, 100.0, aps->ruinC_);
 		bks.updateBKSAndPrint(clone, " bks ruin simulate 1");
 		updateMapOfPopulation(sol, 0);
 		
