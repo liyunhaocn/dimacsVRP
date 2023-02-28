@@ -4882,7 +4882,7 @@ Vector<int> Solver::ruinGetRuinCusBySting(int ruinKmax, int ruinLmax) {
 		int n = r.rCustCnt;
 		int index = static_cast<int>(std::find(a.begin(), a.end(),beg) - a.begin());
 
-		//ruin m+t 个 把t个放回来
+		//refinement m+t 个 把t个放回来
 
 		int ruinL = random->pick(1, ruinLmax + 1);
 
@@ -5407,7 +5407,7 @@ int Solver::CVB2ruinLS(int ruinCusNum) {
 	return true;
 }
 
-void Solver::ruin(int kind,int iterMax, double temperature,int ruinNum) {
+void Solver::refinement(int kind,int iterMax, double temperature,int ruinNum) {
 
 	Solver pBest = *this;
 	Solver s = *this;
@@ -5433,7 +5433,7 @@ void Solver::ruin(int kind,int iterMax, double temperature,int ruinNum) {
 			sStar.CVB2ruinLS(ruinNum);
 		}
 		
-		bks->updateBKSAndPrint(sStar,"from ruin sStart");
+		bks->updateBKSAndPrint(sStar,"from refinement sStart");
 
 		auto deltDouble = temperature * log(double(random->pick(1, 100000)) / (double)100000);
 		DisType delt = static_cast<DisType>(deltDouble);
@@ -5481,7 +5481,7 @@ Vector<int> Solver::getRuinCustomers(int perturbkind, int ruinCusNum) {
 		ruinCus = ruinGetRuinCusByRandOneR(ruinCusNum);
 	}
 	else {
-		Logger::ERROR("no this kind of ruin");
+		Logger::ERROR("no this kind of refinement");
 	}
 	return ruinCus;
 }

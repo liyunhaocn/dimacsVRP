@@ -759,7 +759,7 @@ public:
 
 	void reInsertCustomersIntoSolution(int kind);
 
-	void ruin(int kind, int iterMax, double temperature, int ruinNum);
+	void refinement(int kind, int iterMax, double temperature, int ruinNum);
 
 	inline DisType  getDeltDistanceCostIfRemoveCustomer(int v) {
 		DisType delta = 0;

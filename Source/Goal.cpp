@@ -338,10 +338,10 @@ int Goal::callSimulatedannealing() {
 	st.adjustRouteNumber(ourTarget);
 
 	st.simpleLocalSearch(0, {});
-	st.ruin(0,1000, 20.0, 1);
+	st.refinement(0,1000, 20.0, 1);
 	bks.updateBKSAndPrint(st, "Simulatedannealing(0,1000, 20.0, 1)");
 
-	st.ruin(1, 1000, 20.0, aps->ruinC_);
+	st.refinement(1, 1000, 20.0, aps->ruinC_);
 	bks.updateBKSAndPrint(st,"Simulatedannealing(1, 1000, 20.0, aps->ruinC_)");
 
 	//saveSlnFile();
@@ -358,7 +358,7 @@ bool Goal::test() {
 	for (;;) {
 		aps->ruinLmax = input->customerNumer / sol.rts.cnt;
 		//aps->ruinC_ = (aps->ruinLmax + 1);
-		sol.ruin(1, 500, 100.0, aps->ruinC_);
+		sol.refinement(1, 500, 100.0, aps->ruinC_);
 		sol.perturb(100);
 	}
 	return true;
@@ -412,7 +412,7 @@ void Goal::initialMapOfPopulation() {
 	int& neiborRange1 = aps->neiborRange[1];
 	neiborRange1 = 40;
 
-	sol.ruin(1, 1000, 100.0, aps->ruinC_);
+	sol.refinement(1, 1000, 100.0, aps->ruinC_);
 	
 	if (input->customerNumer < sol.rts.cnt * 25 ) {
 		//short route
@@ -441,7 +441,7 @@ void Goal::initialMapOfPopulation() {
 
 		if (i <= 4 ) {
 			aps->ruinLmax = input->customerNumer / poolt[i].rts.cnt;
-			poolt[i].ruin(1, 500, 100.0, aps->ruinC_);
+			poolt[i].refinement(1, 500, 100.0, aps->ruinC_);
 			updateMapOfPopulation(poolt[i], i);
 			
 		}
@@ -641,15 +641,15 @@ int Goal::run() {
 			int index = arr[i];
 			Solver& sol = pool[index];
 			Solver clone = sol;
-			clone.ruin(1, 100, 50.0, aps->ruinC_);
+			clone.refinement(1, 100, 50.0, aps->ruinC_);
 			bks.updateBKSAndPrint(clone, " pool sol simulate 1");
 			updateMapOfPopulation(sol, i);
 		}
 
 		Solver& sol = bks.bestSolFound;
 		Solver clone = sol;
-		clone.ruin(1, 500, 100.0, aps->ruinC_);
-		bks.updateBKSAndPrint(clone, " bks ruin simulate 1");
+		clone.refinement(1, 500, 100.0, aps->ruinC_);
+		bks.updateBKSAndPrint(clone, " bks refinement simulate 1");
 		updateMapOfPopulation(sol, 0);
 		
 		if (bks.bksAtRn[curSearchRouteNumber] < bksLastLoop) {
