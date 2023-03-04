@@ -3,8 +3,8 @@
 #include "pch.h"
 
 // test the all Neighorhood will take too much time, you can test them use the follow second line code.
-TEST(SolverTest, DISABLED_AllNeighborhood) {
-//TEST(SolverNeighborhoodTest, AllNeighborhood) {
+//TEST(SolverTest, DISABLED_AllNeighborhood) {
+TEST(SolverNeighborhoodTest, AllNeighborhood) {
 
 	using namespace hust;
 	using namespace lyhtest;
@@ -18,8 +18,8 @@ TEST(SolverTest, DISABLED_AllNeighborhood) {
 		auto solver = genator.generateSolver(argvItem);
 		solver->initSolution(0);
 
-		for (int v = 1; v <= genator.input->custCnt; ++v) {
-			for (int w = v + 1; w <= genator.input->custCnt; ++w) {
+		for (int v = 1; v <= genator.input->customerNumer; ++v) {
+			for (int w = v + 1; w <= genator.input->customerNumer; ++w) {
 				for (int kind = 0; kind <= 15; ++kind) {
 
 					auto deltPen = solver->estimatevw(kind,v, w, 1);
@@ -61,10 +61,10 @@ TEST(SolverNeighborhoodTest, SimplyTest) {
 		auto solver = genator.generateSolver(argvItem);
 		solver->initSolution(0);
 
-		int v = (rand() % genator.input->custCnt) + 1;
-		int w = (rand() % genator.input->custCnt) + 1;
+		int v = (rand() % genator.input->customerNumer) + 1;
+		int w = (rand() % genator.input->customerNumer) + 1;
 		while (w == v) {
-			w = (rand() % genator.input->custCnt) + 1;
+			w = (rand() % genator.input->customerNumer) + 1;
 		}
 		int kind = rand() % 15;
 

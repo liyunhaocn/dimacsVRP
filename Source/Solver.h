@@ -105,11 +105,7 @@ struct RTS {
 
 	RTS(int maxSize) {
 		cnt = 0;
-		ve.reserve(maxSize);
-		for (int i = 0; i < maxSize; ++i) {
-			Route r;
-			ve.push_back(r);
-		}
+		ve.resize(maxSize, Route());
 		posOf = Vector<int>(maxSize, -1);
 	}
 
@@ -128,38 +124,33 @@ struct RTS {
 	}
 
 	Route& operator [](int index) {
-
-#if LYH_CHECKING
-		lyhCheckTrue(index < ve.size());
+		lyhCheckTrue(index < static_cast<int>(ve.size()));
 		lyhCheckTrue(index >= 0);
-#endif // LYH_CHECKING
-
 		return ve[index];
 	}
 
-	bool push_back(Route& r1) {
+	bool push_back(Route routeNew) {
 
-#if LYH_CHECKING
-		lyhCheckTrue(r1.routeId >= 0);
-#endif // LYH_CHECKING
+		lyhCheckTrue(routeNew.routeId >= 0);
 
-		if (r1.routeId >= static_cast<int>(posOf.size()) ) {
-			size_t newSize = posOf.size() + std::max<size_t>(r1.routeId + 1, posOf.size() / 2 + 1);
+		if (cnt >= static_cast<int>(posOf.size()) 
+			|| routeNew.routeId >= static_cast<int>(posOf.size())
+			) {
+			size_t oldSize = posOf.size();
+			size_t newSize = oldSize + oldSize / 2 + 1;
 			ve.resize(newSize, Route());
 			posOf.resize(newSize, -1);
 		}
 
-		ve[cnt] = r1;
-		posOf[r1.routeId] = cnt;
+		ve[cnt] = routeNew;
+		posOf[routeNew.routeId] = cnt;
 		++cnt;
 		return true;
 	}
 
 	bool removeIndex(int index) {
 
-		if (index < 0 || index >= cnt) {
-			return false;
-		}
+		lyhCheckTrue(index >= 0 && index < cnt);
 
 		if (index != cnt - 1) {
 			int id = ve[index].routeId;
@@ -168,12 +159,12 @@ struct RTS {
 			posOf[cnt_1_id] = index;
 			posOf[id] = -1;
 			ve[index] = ve[cnt - 1];
-			cnt--;
+			--cnt;
 		}
 		else {
 			int id = ve[index].routeId;
 			posOf[id] = -1;
-			cnt--;
+			--cnt;
 		}
 
 		return true;
@@ -181,18 +172,14 @@ struct RTS {
 
 	Route& getRouteByRouteId(int rid) {
 
-#if LYH_CHECKING
 		lyhCheckTrue(rid >= 0);
-		lyhCheckTrue(rid < posOf.size());
+		lyhCheckTrue(rid < static_cast<int>(posOf.size()));
 		lyhCheckTrue(posOf[rid] >= 0);
-#endif // LYH_CHECKING
 
 		int index = posOf[rid];
 
-#if LYH_CHECKING
 		lyhCheckTrue(index >= 0);
 		lyhCheckTrue(index < cnt);
-#endif // LYH_CHECKING
 
 		return ve[index];
 	}
@@ -281,9 +268,8 @@ struct ConfSet {
 	}
 
 	int randomPeek(Random* random) {
-		if (cnt == 0) {
-			Logger::ERROR("container.cnt == 0");
-		}
+
+		lyhCheckTrue(cnt > 0);
 		int index = random->pick(cnt);
 		return ve[index];
 	}
@@ -474,10 +460,13 @@ struct Solver
 {
 public:
 
-	Vector<Customer> customers;
-	RTS rts;
 	Input* input = nullptr;
 	AlgorithmParameters* aps = nullptr;
+	Vector<Customer> customers;
+	RTS rts;
+	ConfSet EP;
+	ConfSet PtwConfRts;
+	ConfSet PcConfRts;
 
 	YearTable* yearTable = nullptr;
 
@@ -485,7 +474,7 @@ public:
 	Random* random = nullptr;
 	RandomX* randomx = nullptr;
 	Timer* timer = nullptr;
-	
+
 	DisType penalty = 0;
 	DisType Ptw = 0;
 	DisType PtwNoWei = 0;
@@ -496,10 +485,6 @@ public:
 	DisType gamma = 1;
 
 	DisType RoutesCost = DisInf;
-	
-	ConfSet EP;
-
-	ConfSet PtwConfRts, PcConfRts;
 
 	int minEPcus = IntInf;
 
@@ -601,16 +586,18 @@ public:
 
 	Position findBestPositionInSolutionForInitial(int w);
 
-	bool initSolutionBySecOrder();
+	void initSolutionRandomly();
+	
+	void initSolutionBySecOrder();
 
-	bool initSolutionSortOrder(int kind);
+	void initSolutionSortOrder(int kind);
 
-	bool initSolutionMaxRoute();
+	void initSolutionMaxRoute();
 
 	//bool loadIndividual(const Individual* indiv);
 	//void exportIndividual(Individual* indiv);
 
-	bool initSolution(int kind);
+	void initSolution(int kind);
 
 	DeltaPenalty estimatevw(int kind, int v, int w, int oneR);
 

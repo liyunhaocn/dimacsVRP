@@ -13,7 +13,7 @@ TEST(SovlerSimulatedannealingTest, kind0) {
 
 		auto solver = genator.generateSolver(argvItem);
 		solver->initSolution(0);
-		solver->simulatedannealing(0, 100, 100.0, 10);
+		solver->refinement(0, 100, 100.0, 10);
 
 		EXPECT_EQ(solver->RoutesCost, solver->verify());
 		EXPECT_EQ(solver->penalty, 0);
@@ -37,7 +37,7 @@ TEST(SovlerSimulatedannealingTest, kind1) {
 
 		auto solver = genator.generateSolver(argvItem);
 		solver->initSolution(0);
-		solver->simulatedannealing(1, 100, 100.0, 10);
+		solver->refinement(1, 100, 100.0, 10);
 
 		EXPECT_EQ(solver->RoutesCost, solver->verify());
 		EXPECT_EQ(solver->penalty, 0);

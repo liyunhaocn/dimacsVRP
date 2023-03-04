@@ -51,6 +51,6 @@ TEST(EAXTest, generateCycles) {
 		}
 
 		// test if there is a subtour in solution
-		EXPECT_EQ(totalCustomerNumer, genatorPa.input->custCnt);
+		EXPECT_EQ(totalCustomerNumer, genatorPa.input->customerNumer);
 	}
 }

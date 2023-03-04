@@ -267,17 +267,10 @@ void Input::readInstanceFormatCVRPLIB() {
 
 	this->customerNumer = 0;
 	this->vehicleCapacity = INT_MAX;
-	mustDispatchNumber = -1;
-	DisType totalDemand = 0;
 
 	String content, content2, content3;
 	int node = 0;
-	durationLimit = INT_MAX;
-	int serviceTimeData = 0;
-	bool hasServiceTimeSection = false;
-	// Read INPUT dataset
-	//std::ifstream inputFile(config.pathInstance);
-	//Logger::INFO("cl.config.isNpsRun:", cl.config.isNpsRun);
+	DisType totalDemad = 0;
 
 	auto x = freopen(commandLine->instancePath.data(), "r", stdin);
 	if (x == nullptr) {
@@ -302,6 +295,7 @@ void Input::readInstanceFormatCVRPLIB() {
 			// Get the number of vehicles and the capacity of the vehicles
 			getline(std::cin, content);  // NUMBER    CAPACITY
 			std::cin >> this->vehicleNumber >> vehicleCapacity;
+			vehicleCapacity *= 10;
 
 			// Skip the next four lines
 			getline(std::cin, content);
@@ -322,11 +316,17 @@ void Input::readInstanceFormatCVRPLIB() {
 				// Scale coordinates by factor 10, later the distances will be rounded so we optimize with 1 decimal distances
 				datas[customerNumer].XCOORD *= 10;
 				datas[customerNumer].YCOORD *= 10;
+				datas[customerNumer].DEMAND *= 10;
 				datas[customerNumer].READYTIME *= 10;
 				datas[customerNumer].DUEDATE *= 10;
 				datas[customerNumer].SERVICETIME *= 10;
-				datas[customerNumer].polarAngle = CircleSector::positive_mod(static_cast<int>(32768. * atan2(datas[customerNumer].YCOORD - datas[0].YCOORD, datas[customerNumer].XCOORD - datas[0].XCOORD) / PI));
+				DisType deltaY = datas[customerNumer].YCOORD - datas[0].YCOORD;
+				DisType deltaX = datas[customerNumer].XCOORD - datas[0].XCOORD;
 
+				datas[customerNumer].polarAngle = 
+					CircleSector::positive_mod(static_cast<int>(32768. * 
+						atan2(static_cast<double>(deltaY), static_cast<double>(deltaX)) / PI));
+				totalDemad += datas[customerNumer].DEMAND;
 				++customerNumer;
 			}
 
@@ -351,10 +351,11 @@ void Input::readInstanceFormatCVRPLIB() {
 				for (int j = i + 1; j <= customerNumer; ++j) {
 					Data& d1 = datas[i];
 					Data& d2 = datas[j];
-					double dis = sqrt((d1.XCOORD - d2.XCOORD) * (d1.XCOORD - d2.XCOORD)
-						+ (d1.YCOORD - d2.YCOORD) * (d1.YCOORD - d2.YCOORD));
-					//disOf[j][i] = disOf[i][j] = dis+0.5;
-					disOf[j][i] = disOf[i][j] = static_cast<DisType>(ceil(dis));
+
+					DisType deltaX = d1.XCOORD - d2.XCOORD;
+					DisType deltaY = d1.YCOORD - d2.YCOORD;
+
+					disOf[j][i] = disOf[i][j] = static_cast<DisType>(sqrt(static_cast<double>(deltaX * deltaX + deltaY * deltaY)));
 				}
 			}
 		}
@@ -375,23 +376,10 @@ void Input::readInstanceFormatCVRPLIB() {
 				else if (content == "EDGE_WEIGHT_TYPE")
 				{
 					std::cin >> content2 >> content3;
-					if (content3 == "EXPLICIT")
-					{
-						//isExplicitDistanceMatrix = true;
-					}
 				}
 				else if (content == "EDGE_WEIGHT_FORMAT")
 				{
 					std::cin >> content2 >> content3;
-					if (!isExplicitDistanceMatrix)
-					{
-						throw String("EDGE_WEIGHT_FORMAT can only be used with EDGE_WEIGHT_TYPE : EXPLICIT");
-					}
-
-					if (content3 != "FULL_MATRIX")
-					{
-						throw String("EDGE_WEIGHT_FORMAT only supports FULL_MATRIX");
-					}
 				}
 				else if (content == "CAPACITY")
 				{
@@ -400,34 +388,17 @@ void Input::readInstanceFormatCVRPLIB() {
 				else if (content == "VEHICLES" || content == "SALESMAN")
 				{
 					// Set vehicle count from instance only if not specified on CLI.
-					std::cin >> content2;
-					if (vehicleNumber == INT_MAX) {
-						std::cin >> vehicleNumber;
-					}
-					else {
-						// Discard vehicle count
-						int _;
-						std::cin >> _;
-					}
-				}
-				else if (content == "DISTANCE")
-				{
-					std::cin >> content2 >> durationLimit; isDurationConstraint = true;
+					std::cin >> content2 >> vehicleNumber;
 				}
 				// Read the data on the service time (used when the service time is constant for all clients)
 				else if (content == "SERVICE_TIME")
 				{
+					int serviceTimeData = 0;
 					std::cin >> content2 >> serviceTimeData;
 				}
 				// Read the edge weights of an explicit distance matrix
 				else if (content == "EDGE_WEIGHT_SECTION")
 				{
-					if (!isExplicitDistanceMatrix)
-					{
-						throw String("EDGE_WEIGHT_SECTION can only be used with EDGE_WEIGHT_TYPE : EXPLICIT");
-					}
-					maxDist = 0;
-					
 
 					disOf = util::Array2D <DisType>(customerNumer + 1, customerNumer + 1, DisType(0));
 
@@ -436,12 +407,8 @@ void Input::readInstanceFormatCVRPLIB() {
 						for (int j = 0; j <= customerNumer; ++j)
 						{
 							// Keep track of the largest distance between two clients (or the depot)
-							int cost;
+							DisType cost;
 							std::cin >> cost;
-							if (cost > maxDist)
-							{
-								maxDist = cost;
-							}
 							disOf[i][j] = static_cast<DisType>(cost);
 						}
 					}
@@ -462,10 +429,14 @@ void Input::readInstanceFormatCVRPLIB() {
 								+ "i + 1:" + std::to_string(i + 1);
 						}
 						datas[i].CUSTNO--;
-						datas[i].polarAngle = CircleSector::positive_mod(static_cast<int>(32768. * atan2(datas[i].YCOORD - datas[0].YCOORD, datas[i].XCOORD - datas[0].XCOORD) / PI));
-					}
 
-					mustDispatchNumber = customerNumer;
+						DisType deltaY = datas[i].YCOORD - datas[0].YCOORD;
+						DisType deltaX = datas[i].XCOORD - datas[0].XCOORD;
+
+						datas[i].polarAngle =
+							CircleSector::positive_mod(static_cast<int>(32768. *
+								atan2(static_cast<double>(deltaY), static_cast<double>(deltaX)) / PI));
+					}
 				}
 				// Read the DEMAND of each client (including the depot, which should have DEMAND 0)
 				else if (content == "DEMAND_SECTION")
@@ -474,19 +445,12 @@ void Input::readInstanceFormatCVRPLIB() {
 					{
 						int clientNr = 0;
 						std::cin >> clientNr >> datas[i].DEMAND;
-
+						totalDemad += datas[i].DEMAND;
 						// Check if the clients are in order
 						if (clientNr != i + 1)
 						{
 							throw String("Clients are not in order in the list of demands");
 						}
-
-						// Keep track of the max and total DEMAND
-						if (datas[i].DEMAND > maxDemand)
-						{
-							maxDemand = datas[i].DEMAND;
-						}
-						totalDemand += datas[i].DEMAND;
 					}
 					// Check if the depot has DEMAND 0
 					if (datas[0].DEMAND != 0)
@@ -540,31 +504,10 @@ void Input::readInstanceFormatCVRPLIB() {
 					{
 						throw String("Service duration for depot should be 0");
 					}
-					hasServiceTimeSection = true;
 				}
-				//else if (content == "RELEASE_TIME_SECTION")
-				//{
-				//	for (int i = 0; i <= customerNumer; i++)
-				//	{
-				//		int clientNr = 0;
-				//		std::cin >> clientNr >> datas[i].releaseTime;
-
-				//		// Check if the clients are in order
-				//		if (clientNr != i + 1)
-				//		{
-				//			throw String("Clients are not in order in the list of release times");
-				//		}
-				//	}
-				//	// Check if the service duration of the depot is 0
-				//	if (datas[0].releaseTime != 0)
-				//	{
-				//		throw String("Release time for depot should be 0");
-				//	}
-				//}
-				// Read the time windows of all the clients (the depot should have a time window from 0 to max)
+				
 				else if (content == "TIME_WINDOW_SECTION")
 				{
-					isTimeWindowConstraint = true;
 					for (int i = 0; i <= customerNumer; i++)
 					{
 						int clientNr = 0;
@@ -589,14 +532,6 @@ void Input::readInstanceFormatCVRPLIB() {
 				{
 					Logger::ERROR("Unexpected data in input file: " + content);
 					throw String("Unexpected data in input file: " + content);
-				}
-			}
-
-			if (!hasServiceTimeSection)
-			{
-				for (int i = 0; i <= customerNumer; i++)
-				{
-					datas[i].SERVICETIME = (i == 0) ? 0 : serviceTimeData;
 				}
 			}
 
@@ -627,21 +562,20 @@ void Input::readInstanceFormatCVRPLIB() {
 	std::cin.clear();
 	fclose(stdin);
 
-	// Default initialization if the number of vehicles has not been provided by the user
-	if (vehicleNumber == INT_MAX)
-	{
-		// Safety margin: 30% + 3 more vehicles than the trivial bin packing LB
-		vehicleNumber = static_cast<int>(std::ceil(1.3 * totalDemand / vehicleCapacity) + 3.);
-		Logger::INFO("----- FLEET SIZE WAS NOT SPECIFIED: DEFAULT INITIALIZATION TO ", vehicleNumber, " VEHICLES");
+	int approximateNumberOfVehicles = static_cast<int>(totalDemad / vehicleCapacity);
+
+	aps->ruinLmax = customerNumer / approximateNumberOfVehicles;
+
+	if (aps->ruinLmax < 25) {
+		//short route
+		aps->populationSizeMin = 5;
+		aps->populationSizeMax = 10;
+		aps->neiborSizeMax = 25;
 	}
-	else if (vehicleNumber == -1)
-	{
-		vehicleNumber = customerNumer;
-		Logger::INFO("----- FLEET SIZE UNLIMITED: SET TO UPPER BOUND OF ", vehicleNumber, " VEHICLES");
-	}
-	else
-	{
-		Logger::INFO("----- FLEET SIZE SPECIFIED IN THE COMMANDLINE: SET TO ", vehicleNumber, " VEHICLES");
+	else {//long route
+		aps->populationSizeMin = 4;
+		aps->populationSizeMax = 50;
+		aps->neiborSizeMax = 35;
 	}
 }
 

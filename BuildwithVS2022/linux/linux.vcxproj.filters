@@ -4,9 +4,6 @@
     <Filter Include="Source">
       <UniqueIdentifier>{739d6b67-4500-4617-99ad-bbd6681a9ca7}</UniqueIdentifier>
     </Filter>
-    <Filter Include="Source\nlohmann">
-      <UniqueIdentifier>{94d4d7bb-31dd-4b88-aaf7-6e40de3aa2e9}</UniqueIdentifier>
-    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\..\Source\AlgorithmParameters.cpp">
@@ -65,8 +62,8 @@
     <ClInclude Include="..\..\Source\YearTable.h">
       <Filter>Source</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\Source\nlohmann\json.hpp">
-      <Filter>Source\nlohmann</Filter>
+    <ClInclude Include="..\..\Source\json.h">
+      <Filter>Source</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>

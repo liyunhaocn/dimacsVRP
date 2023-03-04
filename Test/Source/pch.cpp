@@ -15,7 +15,13 @@ namespace lyhtest {
 
 std::vector< std::vector< std::string> > getTestCommandLineArgv() {
 	static std::vector< std::vector< std::string> > argvs = {
-		{ "./DLLSMA","-instancePath", "../../Instances/Homberger/C1_8_2.txt", "-time", "3600", "-psizemulpsum", "0", "-seed", "1665441954","-ejectLSMaxIter","10","-bksDataFileBasePath","../../Instances/DataFromLiterature/"},
+
+		//{ "./DLLSMA", "../../Instances/Homberger/C1_8_2.txt",
+		//"../../SolverParameters.json","../../Results"},
+
+		{ "./DLLSMA",
+		"../../Instances/ortec-instances/ORTEC-VRPTW-ASYM-00c5356f-d1-n258-k12.txt",
+		"../../SolverParameters.json","../../Results"},
 	};
 	return argvs;
 }

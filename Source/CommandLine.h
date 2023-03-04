@@ -64,7 +64,7 @@ public:
 			displayHelpInfo();
 			exit(0);
 		}
-		if (argv[1] == "-h" || argv[1] == "--help") {
+		if (String(argv[1]) == "-h" || String(argv[1]) == "--help") {
 			displayHelpInfo();
 			exit(0);
 		}

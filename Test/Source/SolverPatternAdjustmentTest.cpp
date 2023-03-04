@@ -13,7 +13,7 @@ TEST(SovlerPatternAdjustmentTest, SimplyTest) {
 
 		auto solver = genator.generateSolver(argvItem);
 		solver->initSolution(0);
-		solver->patternAdjustment();
+		solver->perturb();
 
 		EXPECT_EQ(solver->RoutesCost, solver->verify());
 		EXPECT_EQ(solver->penalty, 0);

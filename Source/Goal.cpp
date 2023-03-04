@@ -5,26 +5,25 @@
 namespace hust {
 
 Goal::Goal(Input*input): 
+aps(input->aps),
 input(input),
 yearTable(input),
 bks(input),
-aps(input->aps),
 random(&input->random),
-randomx(&input->randomx)
+randomx(&input->randomx),
+timer(&input->timer)
 {}
 
 DisType Goal::getMinRoutesCostInPool(int rn) {
 	DisType bestSolInPool = DisInf;
 	auto& pool = mapOfPopulation[rn];
-	for (int i = 0; i < pool.size(); ++i) {
+	for (int i = 0; i < static_cast<int>(pool.size()); ++i) {
 		bestSolInPool = std::min<DisType>(bestSolInPool, pool[i].RoutesCost);
 	}
 	return bestSolInPool;
 }
 
 DisType Goal::doTwoKindEAX(Solver& pa, Solver& pb, int kind) {
-
-	int retState = 0; // 0 表示没有成功更新最优解，1表示更新了最优解 -1表示这两个解无法进行eax
 
 	EAX eax(pa, pb);
 	eax.generateCycles();
@@ -52,12 +51,10 @@ DisType Goal::doTwoKindEAX(Solver& pa, Solver& pb, int kind) {
 		}
 
 		if (eaxState == -1) {
-			//break;
 			eax.generateCycles();
 			continue;
 		}
 
-		//++genSol;
 		if (eax.repairSolNum == 0) {
 			++contiNotRepair;
 			if (contiNotRepair >= 3) {
@@ -69,19 +66,12 @@ DisType Goal::doTwoKindEAX(Solver& pa, Solver& pb, int kind) {
 			contiNotRepair = 1;
 		}
 
-		//++repSol;
 		auto newCus = EAX::getDiffCusofPb(pa, pc);
 
 		if (newCus.size() > 0) {
-			//pc.mRLLocalSearch(0, {});
 			pc.simpleLocalSearch(1, newCus);
-			//auto cus1 = EAX::getDiffCusofPb(pa, pc);
-			//if (cus1.size() == 0) {
-			//	//debug("pa is same as pa");
-			//}
 		}
 		else {
-			//debug("pa is same as pa");
 		}
 
 		if (pc.RoutesCost < paBest.RoutesCost) {
@@ -90,11 +80,8 @@ DisType Goal::doTwoKindEAX(Solver& pa, Solver& pb, int kind) {
 			bool isup = bks.updateBKSAndPrint(pc," eax ls, kind:" + std::to_string(kind));
 			if (isup) {
 				ch = 1;
-				retState = 1;
-				//Logger::INFO("bestSolFound cost:", bestSolFound.RoutesCost, ", kind, "choosecyIndex:", eax.choosecyIndex, "chooseuId:", eax.unionIndex);
 			}
 		}
-
 	}
 
 	if (paBest.RoutesCost < pa.RoutesCost) {
@@ -105,7 +92,6 @@ DisType Goal::doTwoKindEAX(Solver& pa, Solver& pb, int kind) {
 				pa = paBest;
 			}
 			else {
-				//Logger::INFO("replace with pb,kind:", kind);
 				pb = paBest;
 			}
 		}
@@ -116,53 +102,14 @@ DisType Goal::doTwoKindEAX(Solver& pa, Solver& pb, int kind) {
 	return paBest.RoutesCost;
 }
 
-bool Goal::perturbOneSolution(Solver& sol) {
-
-	//auto before = sol.RoutesCost;
-	Solver sclone = sol;
-
-	bool isPerOnePerson = false;
-	for (int i = 0; i < 10; ++i) {
-
-		//尝试使用 100度的模拟退火进行扰动
-		//sclone.Simulatedannealing(0,100,100.0,aps->ruinC_);
-		
-		if (random->pick(2)==0) {
-			int perkind = random->pick(5);
-			int clearEPkind = random->pick(6);
-			int ruinCusNum = std::min<int>(input->customerNumer/2, aps->ruinC_);
-			sclone.perturbBasedRuin(perkind, ruinCusNum, clearEPkind);
-		}
-		else{
-			int step = random->pick(static_cast<int>(sclone.input->customerNumer * 0.2),static_cast<int>( sclone.input->customerNumer * 0.3));
-			sclone.perturb(step);
-		}
-		 
-		auto diff = EAX::getDiffCusofPb(sol, sclone);
-		//Logger::INFO("i:",i,"diff.size:",diff.size());
-		if (static_cast<int>(diff.size()) > static_cast<int>(sol.input->customerNumer * 0.2)) {
-			sclone.simpleLocalSearch(1, diff);
-			sol = sclone;
-			isPerOnePerson = true;
-			break;
-		}
-		else {
-			sclone = sol;
-		}
-	}
-	return isPerOnePerson;
-}
-
 void Goal::EAMA(int rn) { // 1 代表更新了最优解 0表示没有
 
 	auto& pool = mapOfPopulation[rn];
 
 	auto& ords = randomx->getMN(populationSize, populationSize);
-	//random->shuffleVec(ords);
 
 	DisType bestSolInPool = getMinRoutesCostInPool(curSearchRouteNumber);
 
-	//TODO[-1]:naMA这里改10了
 	for (int ct = 0; ct < 10; ct++) {
 		random->shuffleVec(ords);
 		for (int i = 0; i < populationSize; ++i) {
@@ -170,18 +117,6 @@ void Goal::EAMA(int rn) { // 1 代表更新了最优解 0表示没有
 			int pbIndex = ords[(i + 1) % populationSize];
 			Solver& pa = pool[paIndex];
 			Solver& pb = pool[pbIndex];
-
-#if LYH_CHECKING
-			if (pa.verify() < 0) {
-				Logger::ERROR("pa.verify():", pa.verify());
-			}
-
-			if (pb.verify() < 0) {
-				Logger::ERROR("pb.verify():", pb.verify());
-			}
-#endif // LYH_CHECKING
-
-			
 
 			doTwoKindEAX(pa, pb, 0);
 		}
@@ -193,7 +128,6 @@ void Goal::EAMA(int rn) { // 1 代表更新了最优解 0表示没有
 		}
 	}
 
-	//TODO[-1]:naMA这里改10了
 	bestSolInPool = getMinRoutesCostInPool(curSearchRouteNumber);
 	for (int ct = 0; ct < 10; ct++) {
 		random->shuffleVec(ords);
@@ -220,111 +154,29 @@ void Goal::EAMA(int rn) { // 1 代表更新了最优解 0表示没有
 			doTwoKindEAX(pa, pb, 1);
 		}
 	}
-
-	Logger::INFO("curSearchRouteNumber:",curSearchRouteNumber,"getMinRoutesCostInPool():", getMinRoutesCostInPool(curSearchRouteNumber));
 }
 
 int Goal::gotoPopulationAtRouteNumber(int rn) {
 
-	//TODO[-1]:注释掉了
-	if (mapOfPopulation[rn].size() == 0) {
-		Solver sol(input, &yearTable, &bks);
-		fillPopulation(rn);
+	if (rn < routeNumberLowerBound || rn > routeNumberUpperBound) { //r如果是
+		return routeNumberLowerBound;
 	}
+
+	lyhCheckTrue(static_cast<int>(mapOfPopulation[rn].size()) == aps->populationSizeMax);
 	
-	//TODO[0]:Lmax和ruinLmax的定义
 	aps->ruinLmax = input->customerNumer / rn;
-	//aps->ruinC_ = (aps->ruinLmax + 1)/2;
-	//aps->ruinC_ = (aps->ruinLmax + 1);
-	//aps->ruinC_ = 15;
-	//aps->ruinC_ = std::max<int>(aps->ruinC_, (aps->ruinLmax + 1) / 2);
+	auto& poolAtRouteNumberRn = mapOfPopulation[rn];
 
-	auto& pool = mapOfPopulation[rn];
-
-	if (rn == routeNumberLowerBound) { //r如果是
-		return rn;
-	}
-
-	for (int pIndex = 0; pIndex < populationSize; ++pIndex) {
-
-		auto& sol = pool[pIndex];
-		//if (sol.rts.cnt != rn) {
-
-		bool isAdj = false;
-
-		//TODO[-1]:从刚才搜索的位置跳
-		int downRn = -1;
-		DisType minRc = DisInf;
-
-		for (int i = routeNumberUpperBound; i >= routeNumberLowerBound; --i) {
-			if (mapOfPopulation[i][pIndex].rts.cnt == i) {
-				if (mapOfPopulation[i][pIndex].RoutesCost < minRc) {
-					minRc = mapOfPopulation[i][pIndex].RoutesCost;
-					downRn = i;
-				}
-			}
-		}
-
-#if LYH_CHECKING
-		if (downRn == -1) {
-			Logger::ERROR("downRn:", downRn);
-			Logger::ERROR("rn:", rn);
-		}
-#endif // LYH_CHECKING
-
-		if (downRn == rn) {
-
-#if LYH_CHECKING
-			if (sol.rts.cnt != rn) {
-				Logger::ERROR("sol.rts.cnt != rn");
-				Logger::ERROR("sol.rts.cnt:", sol.rts.cnt);
-				Logger::ERROR("rn:",rn);
-				Logger::ERROR("rn:",rn);
-			}
-#endif // LYH_CHECKING
-
-			sol.perturb(100);
-			isAdj = true;
-		}
-		else {
-			sol = mapOfPopulation[downRn][pIndex];
-			isAdj = sol.adjustRouteNumber(rn);
-			
-		}
-
-		if (!isAdj) {
-
-			sol = mapOfPopulation[routeNumberLowerBound][pIndex];
-			isAdj = sol.adjustRouteNumber(rn);
-		}
-
-#if LYH_CHECKING
-		if (sol.rts.cnt != rn) {
-			Logger::ERROR("downRn:", downRn);
-			Logger::ERROR("isAdj:", isAdj);
-			Logger::ERROR("rn:", rn);
-			Logger::ERROR("sol.rts.cnt:", sol.rts.cnt);
-			Logger::ERROR("sol.rts.cnt:", sol.rts.cnt);
-		}
-#endif // LYH_CHECKING
-
-		updateMapOfPopulation(sol, pIndex);
+	for (int pIndex = 0; pIndex < aps->populationSizeMax; ++pIndex) {
+		auto& sol = poolAtRouteNumberRn[pIndex];
+		sol = mapOfPopulation[random->pick(routeNumberLowerBound, rn+1)][pIndex];
+		sol.adjustRouteNumber(rn);
+		lyhCheckTrue(sol.adjustRouteNumber(rn) == true);
+		sol.perturb(500);
+		lyhCheckTrue(sol.rts.cnt == rn);
 		bks.updateBKSAndPrint(sol, "adjust from cur + ls");
-	//}
 	}
 	return rn;
-}
-
-bool Goal::fillPopulation(int rn) {
-
-	auto& pool = mapOfPopulation[rn];
-
-	if (pool.size() == 0 ) {
-		Solver sol(input, &yearTable, &bks);
-		pool.resize(aps->populationSizeMax,sol);
-	}
-
-	return true;
 }
 
 int Goal::callSimulatedannealing() {
@@ -381,169 +233,89 @@ bool Goal::callRouteNumberMinimization() {
 	return true;
 }
 
-void Goal::updateMapOfPopulation(Solver& sol, int index) {
-	int tar = sol.rts.cnt;
+void Goal::addSolverToMapOfPopulation(Solver& sol) {
+	int routeNumner = sol.rts.cnt;
 
-	if (mapOfPopulation[tar].size() == 0) {
-		Solver sol(input,&yearTable,&bks);
-		mapOfPopulation[tar].resize(aps->populationSizeMax,sol);
+	if (static_cast<int>(mapOfPopulation[routeNumner].size()) < aps->populationSizeMax) {
+		mapOfPopulation[routeNumner].push_back(sol);
 	}
-	if (sol.RoutesCost < mapOfPopulation[tar][index].RoutesCost) {
-		Logger::INFO("update mapOfPopulation rn:", tar, "index:", index);
-		mapOfPopulation[tar][index] = sol;
+	else {
+		for (int index = 0; index < aps->populationSizeMax; ++index) {
+			if (sol.RoutesCost < mapOfPopulation[routeNumner][index].RoutesCost) {
+				mapOfPopulation[routeNumner][index] = sol;
+				break;
+			}
+		}
 	}
 };
 
 void Goal::initialMapOfPopulation() {
 
-	Solver sol(input, &yearTable, &bks);
-	
-	sol.initSolution(0);
+	Solver solver(input, &yearTable, &bks);
+	solver.initSolution(1);
 
-	int adjBig = std::min<int>(input->vehicleNumber, sol.rts.cnt + 15);
+	int moreNumberOfRoutes = std::min<int>(input->vehicleNumber, solver.rts.cnt + 10);
+	solver.adjustRouteNumber(moreNumberOfRoutes);
 
-	if (adjBig > sol.rts.cnt) {
-		sol.adjustRouteNumber(adjBig);
-	}
-	
-	aps->ruinLmax = input->customerNumer / sol.rts.cnt;
-	//aps->ruinC_ = (aps->ruinLmax + 1);
-	
 	int& neiborRange1 = aps->neiborRange[1];
 	neiborRange1 = 40;
+	solver.refinement(1, 100, 100.0, aps->ruinC_);
 
-	sol.refinement(1, 1000, 100.0, aps->ruinC_);
-	
-	if (input->customerNumer < sol.rts.cnt * 25 ) {
-		//short route
-		aps->populationSizeMin = 2;
-		aps->populationSizeMax = 6;
-		populationSize = aps->populationSizeMin;
-		aps->neiborSizeMax = 25;
-	}
-	else {//long route
-		aps->populationSizeMin = 4;
-		aps->populationSizeMax = 50;
-		populationSize = aps->populationSizeMin;
-		aps->neiborSizeMax = 35;
-	}
-
-	Vector<Solver> poolt(aps->populationSizeMax,sol);
-	updateMapOfPopulation(sol, 0);
+	addSolverToMapOfPopulation(solver);
 	input->initDetail();
 
-	for (int i = 1; i < aps->populationSizeMax; ++i) {
-		int kind = (i == 4 ? 4 : i % 4);
-		poolt[i].initSolution(kind);
-		int adjBig = std::min<int>(input->vehicleNumber, poolt[i].rts.cnt + 15);
+	populationSize = aps->populationSizeMin;
 
-		poolt[i].adjustRouteNumber(adjBig);
+	routeNumberUpperBound = std::min<int>(input->vehicleNumber, solver.rts.cnt);
+	routeNumberLowerBound = routeNumberUpperBound;
 
-		if (i <= 4 ) {
-			aps->ruinLmax = input->customerNumer / poolt[i].rts.cnt;
-			poolt[i].refinement(1, 500, 100.0, aps->ruinC_);
-			updateMapOfPopulation(poolt[i], i);
-			
-		}
-		bks.updateBKSAndPrint(poolt[i], " poolt[i] init");
+	int testBound = 0;
+
+	Logger::INFO("initialPops aps->populationSizeMax:", aps->populationSizeMax);
+	for (int index = 0; index < std::min<int>(5,aps->populationSizeMax); ++index) {
+		
+		solver.initSolution(index%5);
+
+		do {
+			addSolverToMapOfPopulation(solver);
+			bks.updateBKSAndPrint(solver);
+			routeNumberLowerBound = std::min<int>(routeNumberLowerBound,solver.rts.cnt);
+		} while (solver.adjustRouteNumber(solver.rts.cnt-1) && solver.rts.cnt > testBound);
+		testBound = std::max<int>(testBound, solver.rts.cnt);
 	}
-	
-	bks.resetBksAtRn();
-	neiborRange1 = aps->neiborSizeMin;
-
-	Vector <Vector<Solver>> soles(aps->populationSizeMax);
-
-	int glbound = IntInf;
-
-	for (int peopleIndex = 0; peopleIndex < aps->populationSizeMax; ++peopleIndex) {
-		auto& sol = poolt[peopleIndex];
-		soles[peopleIndex].push_back(sol);
-
-		if (sol.rts.cnt < 2) {
-			sol.adjustRouteNumber(5);
-		}
-
-		glbound = std::min<int>(glbound, poolt[peopleIndex].rts.cnt);
-		int bound = (peopleIndex == 0 ? 2 : glbound);
-		while (sol.rts.cnt > bound) {
-			soles[peopleIndex].push_back(sol);
-			bool isDel = sol.minimizeRouteNumber(sol.rts.cnt - 1);
-			if (!isDel) {
-				break;
-			}
-			bks.updateBKSAndPrint(sol, " poolt[0] mRLS(0, {})");
-		}
-	}
-
-	routeNumberUpperBound = 0;
-	routeNumberLowerBound = IntInf;
-	for (int i = 0; i < aps->populationSizeMax; ++i) {
-		//Logger::DEBUG(i);
-		routeNumberUpperBound = std::max<int>(routeNumberUpperBound, soles[i].front().rts.cnt);
-		routeNumberLowerBound = std::min<int>(routeNumberLowerBound, soles[i].back().rts.cnt);
-	}
-
-	routeNumberUpperBound = std::min<int>(routeNumberLowerBound + 15, input->customerNumer);
-	routeNumberUpperBound = std::max<int>(routeNumberUpperBound,bks.bestSolFound.rts.cnt);
-	routeNumberLowerBound = std::min<int>(routeNumberLowerBound,bks.bestSolFound.rts.cnt);
-
-	//TODO[-1]:这个很重要 考虑了vehicleCnt！！！
-	routeNumberUpperBound = std::min<int>(routeNumberUpperBound, input->vehicleNumber);
-
-	Logger::INFO("routeNumberLowerBound:",routeNumberLowerBound,"routeNumberUpperBound:", routeNumberUpperBound);
 
 	if (routeNumberLowerBound > input->vehicleNumber) {
-		Logger::ERROR("!!!!!this alg finshed! even cant get a sol sat vehicleNumber");
+		Logger::ERROR("sovler finshed! even cant get a feasible vehicleNumber");
+		exit(0);
 	}
-	Logger::INFO("soles.size():", soles.size());
+
+	routeNumberUpperBound = std::min<int>(routeNumberUpperBound, routeNumberLowerBound + 10);
+
+	for (auto it = mapOfPopulation.begin(); it != mapOfPopulation.end();) {
+		if (it->first < routeNumberLowerBound || it->first > routeNumberUpperBound) {
+			it = mapOfPopulation.erase(it);
+		}
+		else {
+			++it;
+		}
+	}
+	
+	auto& popAtRouteNumberBound = mapOfPopulation[routeNumberLowerBound];
+	lyhCheckTrue(popAtRouteNumberBound.size() > 0);
 
 	for (int rn = routeNumberLowerBound; rn <= routeNumberUpperBound; ++rn) {
-		fillPopulation(rn);
-	}
-
-	// 所有解
-	for (int popIndex = 0;popIndex< aps->populationSizeMax;++popIndex) {
-		auto& deorsoles = soles[popIndex];
-		for (auto& sol : deorsoles) {
-			if (sol.rts.cnt >= routeNumberLowerBound
-				&& sol.rts.cnt <= routeNumberUpperBound) {
-				mapOfPopulation[sol.rts.cnt][popIndex] = sol;
-			}
+		auto& popAtRouteNumberI = mapOfPopulation[rn];
+		
+		while ( static_cast<int>(popAtRouteNumberI.size()) < aps->populationSizeMax) {
+			int chooseIndex = random->pick(static_cast<int>(popAtRouteNumberBound.size()));
+			solver = popAtRouteNumberBound[chooseIndex];
+			solver.adjustRouteNumber(rn);
+			solver.perturb(100);
+			popAtRouteNumberI.push_back(solver);
 		}
+		lyhCheckTrue(static_cast<int>(mapOfPopulation[rn].size()) == aps->populationSizeMax);
+		lyhCheckTrue( mapOfPopulation[rn][0].rts.cnt == rn);
 	}
-
-	std::queue<int> alreadyBound;
-
-	for (int i = 0; i < aps->populationSizeMax; ++i) {
-		if (mapOfPopulation[routeNumberLowerBound][i].rts.cnt == routeNumberLowerBound) {
-			alreadyBound.push(i);
-		}
-	}
-	if (bks.bestSolFound.rts.cnt == routeNumberLowerBound) {
-		alreadyBound.push(aps->populationSizeMax);
-	}
-
-	Logger::INFO("alreadyBound.size():", alreadyBound.size());
-	lyhCheckTrue(alreadyBound.size() > 0);
-	
-	for (int i = 0; i < aps->populationSizeMax ; ++i) {
-		auto& sol = mapOfPopulation[routeNumberLowerBound][i];
-		if (sol.rts.cnt != routeNumberLowerBound) {
-			int index = alreadyBound.front();
-			alreadyBound.pop();
-			alreadyBound.push(i);
-			alreadyBound.push(index);
-			sol = (index == aps->populationSizeMax ? bks.bestSolFound : mapOfPopulation[routeNumberLowerBound][index]);
-			sol.perturb(100);
-		}
-	}
-
-	populationSize = aps->populationSizeMax;
-	//for (int i = routeNumberUpperBound ; i >= routeNumberLowerBound; --i) {
-	for (int i = routeNumberLowerBound  ; i <= routeNumberUpperBound; ++i) {
-		curSearchRouteNumber = gotoPopulationAtRouteNumber(i);
-	}
-	populationSize = aps->populationSizeMin;
 }
 
 void Goal::fillAlternativeRouteNumbers() {
@@ -601,9 +373,6 @@ int Goal::getNextRouteNumerToRun() {
 		}
 	}
 
-	Logger::INFO("aps->populationSize:", populationSize);
-	Logger::INFO("queNext.size():", alternativeRouteNumbers.size());
-
 	int ret = alternativeRouteNumbers.front();
 	alternativeRouteNumbers.pop();
 	return ret;
@@ -617,7 +386,7 @@ int Goal::run() {
 	populationSize = aps->populationSizeMin;
 
 	DisType bksLastLoop = bks.bestSolFound.RoutesCost;
-	int stagnation = 1;
+	int stagnation = 0;
 
 	while (true) {
 		
@@ -643,35 +412,26 @@ int Goal::run() {
 			Solver clone = sol;
 			clone.refinement(1, 100, 50.0, aps->ruinC_);
 			bks.updateBKSAndPrint(clone, " pool sol simulate 1");
-			updateMapOfPopulation(sol, i);
+			addSolverToMapOfPopulation(sol);
 		}
 
 		Solver& sol = bks.bestSolFound;
 		Solver clone = sol;
 		clone.refinement(1, 500, 100.0, aps->ruinC_);
 		bks.updateBKSAndPrint(clone, " bks refinement simulate 1");
-		updateMapOfPopulation(sol, 0);
+		addSolverToMapOfPopulation(sol);
 		
 		if (bks.bksAtRn[curSearchRouteNumber] < bksLastLoop) {
-			stagnation = 1;
+			stagnation = 0;
 		}
 		else {
 			++stagnation;
 		}
 
-		int planGotoRouterNumber = -1;
 		if (stagnation >= 2) {
-			planGotoRouterNumber = getNextRouteNumerToRun();
-		}
-
-		if (planGotoRouterNumber != -1) {
+			int planGotoRouterNumber = getNextRouteNumerToRun();
 			curSearchRouteNumber = gotoPopulationAtRouteNumber(planGotoRouterNumber);
-			if (curSearchRouteNumber == planGotoRouterNumber) {
-				Logger::INFO("jump succeed curSearchRouteNumber", curSearchRouteNumber);
-			}
-			else {
-				Logger::INFO("jump fail curSearchRouteNumber", curSearchRouteNumber, "planGotoRouterNumber:", planGotoRouterNumber);
-			}
+			stagnation = 0;
 		}
 	}
 

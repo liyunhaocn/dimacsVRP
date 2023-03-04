@@ -32,10 +32,10 @@ TEST(SolverEjectionTest, DoEject) {
 		EXPECT_EQ(solver->customers[r.head].QX_, rQStart);
 		EXPECT_EQ(solver->customers[r.tail].Q_X, rQStart);
 
-		Vec<int> v1 = solver->rPutCustomersInVector(r);
-		Vec<int> v2;
+		Vector<int> v1 = solver->rPutCustomersInVector(r);
+		Vector<int> v2;
 
-		for (int pt = solver->customers[r.tail].pre; pt <= genator.input->custCnt; pt = solver->customers[pt].pre) {
+		for (int pt = solver->customers[r.tail].prev; pt <= genator.input->customerNumer; pt = solver->customers[pt].prev) {
 			v2.push_back(pt);
 		}
 		EXPECT_EQ(v1.size(), v2.size());

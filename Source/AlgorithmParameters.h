@@ -13,7 +13,7 @@ namespace hust {
 struct AlgorithmParameters {
 	
 	//static Vector<int> nieborMoves;
-
+	int initSetSize = 50;
 	int populationSizeMin = 4;
 	int populationSizeMax = 50;
 
@@ -41,8 +41,14 @@ struct AlgorithmParameters {
 	int ruinWinkRate = 90; // 100
 	int initWinkRate = 80; // 100
 
+	int customersWeight1 = 1;
+	int customersWeight2 = 2;
+
 	void to_json(Json& j, const AlgorithmParameters& aps) {
 		j = Json{
+			{"initSetSize", aps.initSetSize },
+			{"customersWeight1", aps.customersWeight1 },
+			{"customersWeight2", aps.customersWeight2 },
 			{"populationSizeMin", aps.populationSizeMin },
 			{"populationSizeMax", aps.populationSizeMax },
 			{"populationSizeMin", aps.populationSizeMin},
@@ -66,6 +72,9 @@ struct AlgorithmParameters {
 	}
 
 	void from_json(const Json& j, AlgorithmParameters& aps){
+		j.at("initSetSize").get_to(aps.initSetSize);
+		j.at("customersWeight1").get_to(aps.customersWeight1);
+		j.at("customersWeight2").get_to(aps.customersWeight2);
 		j.at("populationSizeMin").get_to(aps.populationSizeMin);
 		j.at("populationSizeMax").get_to(aps.populationSizeMax);
 		j.at("maxStagnationIterOfRepair").get_to(aps.maxStagnationIterOfRepair);
@@ -95,14 +104,13 @@ struct AlgorithmParameters {
 	Vector<int> neiborRange = { 10,20 };
 	int neiMoveKind = 16;
 	int outNeiborSize = 50;
-	int customersWeight1 = 1;
-	int customersWeight2 = 2;
+
 	int ruinC_ = 15;
 	int weightUpStep = 1;
 	int yearTabuLen = 10;
 	int yearTabuRand = 10;
 	// TODO[0]:看需不需要频繁构造 1000 stepC2_8_7 需要20s C1_6_6 需要6s
-	int ejectLSMaxIter = 200;
+	int ejectLSMaxIter = 50;
 
 	~AlgorithmParameters() {}
 };

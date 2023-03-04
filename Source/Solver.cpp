@@ -6,20 +6,18 @@
 
 namespace hust{
 
-//Solver::Solver(){}
-
 Solver::Solver(Input* input,YearTable* yearTable,BKS* bks) :
 	input(input),
+	aps(input->aps),
+	rts(input->customerNumer / 8),
+	EP(input->customerNumer / 8),
+	PtwConfRts(input->customerNumer / 8),
+	PcConfRts(input->customerNumer / 8),
+	yearTable(yearTable),
+	bks(bks),
 	random(&input->random),
 	randomx(&input->randomx),
-	timer(&input->timer),
-	aps(input->aps),
-	bks(bks),
-	yearTable(yearTable),
-	PtwConfRts(input->customerNumer/8),
-	PcConfRts(input->customerNumer/8),
-	rts(input->customerNumer/8)
-	
+	timer(&input->timer)
 {
 
 	customers = Vector<Customer>( static_cast<int>((input->customerNumer + 1) * 1.5) );
@@ -35,14 +33,12 @@ Solver::Solver(Input* input,YearTable* yearTable,BKS* bks) :
 	RoutesCost = DisInf;
 }
 
-Solver::Solver(const Solver& s) :
-	input(s.input),
-	PtwConfRts(s.PtwConfRts),
-	PcConfRts(s.PcConfRts),
-	rts(s.rts)
-{
+Solver::Solver(const Solver& s) {
 
-	//this->output = s.output;
+	this->input = s.input;
+	this->rts = s.rts;
+	this->PtwConfRts = s.PtwConfRts;
+	this->PcConfRts = s.PcConfRts;
 	this->customers = s.customers;
 	this->penalty = s.penalty;
 	this->Ptw = s.Ptw;
@@ -53,7 +49,6 @@ Solver::Solver(const Solver& s) :
 	this->gamma = s.gamma;
 	this->RoutesCost = s.RoutesCost;
 	this->EP = s.EP;
-
 	this->aps = s.aps;
 	this->random = s.random;
 	this->randomx = s.randomx;
@@ -80,7 +75,6 @@ Solver& Solver::operator = (const Solver& s) {
 		this->Pc = s.Pc;
 		this->RoutesCost = s.RoutesCost;
 		this->EP = s.EP;
-
 		this->aps = s.aps;
 		this->random = s.random;
 		this->randomx = s.randomx;
@@ -97,8 +91,9 @@ Route Solver::rCreateRoute(int id) {
 	Route r(id);
 	int index = input->customerNumer + rts.cnt * 2 + 1;
 
-	while (index + 1 >= static_cast<int>(customers.size())) {
-		customers.push_back(customers[0]);
+	if (index + 1 >= static_cast<int>(customers.size())) {
+		int oldSize = static_cast<int>(customers.size());
+		customers.resize(oldSize + oldSize / 2 + 1, customers[0]);
 	}
 
 	r.head = index;
@@ -425,17 +420,6 @@ CircleSector Solver::rGetCircleSector(Route& r) {
 	ret.initialize(input->datas[ve.front()].polarAngle);
 	for (int j = 1; j < static_cast<int>(ve.size()); ++j) {
 		ret.extend(input->datas[ve[j]].polarAngle);
-		
-		#if LYH_CHECKING
-		if (!ret.isEnclosed(input->datas[ve[j]].polarAngle)) {
-			Logger::ERROR(ret.start);
-			Logger::ERROR(ret.end);
-			Logger::ERROR(input->datas[ve[j]].polarAngle);
-			for (int v : ve) {
-				Logger::ERROR(input->datas[v].polarAngle);
-			}
-		}
-		#endif // LYH_CHECKING
 	}
 	return ret;
 }
@@ -525,9 +509,9 @@ Solver::Position Solver::findBestPositionInSolution(int w) {
 
 			rPtw = rPtw - oldrPtw;
 
-			DisType cost = input->getDisof2(w,v)
+			DisType cost = input->getDisof2(v,w)
 				+ input->getDisof2(w,vj)
-				- input->getDisof2(vj,v);
+				- input->getDisof2(v,vj);
 
 			int vre = v > input->customerNumer ? 0 : v;
 			int vjre = vj > input->customerNumer ? 0 : vj;
@@ -591,9 +575,9 @@ Solver::Position Solver::findBestPositionInSolutionForInitial(int w) {
 
 			rtPtw = rtPtw - rt.rPtw;
 
-			DisType cost = input->getDisof2(w, v)
+			DisType cost = input->getDisof2(v, w)
 				+ input->getDisof2(w, vj)
-				- input->getDisof2(vj, v);
+				- input->getDisof2(v, vj);
 
 			Position pt(i,v, rtPtw + rtPc,cost,secDis);
 
@@ -614,7 +598,7 @@ Solver::Position Solver::findBestPositionInSolutionForInitial(int w) {
 		}
 	}
 
-	if (bestPos.cost > input->getDisof2(0,w) * 2) {
+	if (bestPos.cost > input->getDisof2(0,w) + input->getDisof2(w, 0)) {
 		return Position();
 	}
 
@@ -679,7 +663,7 @@ Solver::Position Solver::findBestPositionForRuin(int w) {
 			rPtw = rPtw - oldrPtw;
 
 			//TODO[-1]:这里的距离计算方式改变了
-			DisType cost = input->getDisof2(w,v)
+			DisType cost = input->getDisof2(v,w)
 				+ input->getDisof2(w,vj)
 				- input->getDisof2(v,vj);
 			//int year = (*yearTable)(w,v)] + (*yearTable)(w,vj)];
@@ -694,13 +678,13 @@ Solver::Position Solver::findBestPositionForRuin(int w) {
 		}
 	}
 
-	if (ret.cost > input->getDisof2(0,w) * 2) {
+	if (ret.cost > input->getDisof2(0,w) + input->getDisof2(w, 0)) {
 		return Position();
 	}
 	return ret;
 }
 
-bool Solver::initSolutionBySecOrder() {
+void Solver::initSolutionBySecOrder() {
 
 	Vector<int>que1(input->customerNumer);
 	std::iota(que1.begin(), que1.end(), 1);
@@ -749,11 +733,9 @@ bool Solver::initSolutionBySecOrder() {
 		rReCalculateRouteCost(r);
 	}
 	sumRoutesPenalty();
-
-	return true;
 }
 
-bool Solver::initSolutionSortOrder(int kind) {
+void Solver::initSolutionSortOrder(int kind) {
 
 	Vector<int>que1(input->customerNumer);
 	std::iota(que1.begin(), que1.end(), 1);
@@ -812,11 +794,9 @@ bool Solver::initSolutionSortOrder(int kind) {
 		rReCalculateRouteCost(r);
 	}
 	sumRoutesPenalty();
-	//perturb();
-	return true;
 }
 
-bool Solver::initSolutionMaxRoute() {
+void Solver::initSolutionMaxRoute() {
 
 	Vector<int>que1(input->customerNumer);
 	std::iota(que1.begin(), que1.end(), 1);
@@ -838,7 +818,7 @@ bool Solver::initSolutionMaxRoute() {
 		bool isSucceed = false;
 		int eaIndex = -1;
 
-		for (int i = 0; i < que1.size(); ++i) {
+		for (int i = 0; i < static_cast<int>(que1.size()); ++i) {
 			int cus = que1[i];
 			//Position tPos = findBestPosForRuin(cus);
 			Position tPos = findBestPositionInSolutionForInitial(cus);
@@ -879,11 +859,43 @@ bool Solver::initSolutionMaxRoute() {
 		rReCalculateRouteCost(r);
 	}
 	sumRoutesPenalty();
-	//perturb();
-	return true;
 }
 
-bool Solver::initSolution(int kind) {//5种
+void Solver::initSolutionRandomly() {
+
+	rts.reset();
+
+	Vector<int> orderCustomers(input->customerNumer);
+	std::iota(orderCustomers.begin(), orderCustomers.end(), 1);
+	
+	//TODO[-1]:这里的排序，现在是乱序
+	random->shuffleVec(orderCustomers);
+
+	int routeId = 0;
+
+	Route routeNew = rCreateRoute(routeId++);
+	rts.push_back(routeNew);
+
+	for(int c: orderCustomers) {
+
+		auto& r = rts.getRouteByRouteId(routeId-1);
+
+		rInsAtPosPre(r, r.tail, c);
+		rUpdateAvQFrom(r, r.head);
+		if (r.rPc == 0 && r.rPtw == 0) {
+			;
+		}
+		else {
+			rRemoveAtPosition(r,c);
+			Route routeNew = rCreateRoute(routeId++);
+			rts.push_back(routeNew);
+			auto& r = rts.getRouteByRouteId(routeId-1);
+			rInsAtPosPre(r, r.tail, c);
+		}
+	}
+}
+
+void Solver::initSolution(int kind) {// 5种
 
 	rts.reset();
 
@@ -894,27 +906,15 @@ bool Solver::initSolution(int kind) {//5种
 		initSolutionSortOrder(kind);
 	}
 	else if (kind == 4) {
-		initSolutionMaxRoute();
+		initSolutionRandomly();
+		//initSolutionMaxRoute();
 	}
 	
 	else {
 		Logger::ERROR("no this kind of init");
 	}
-	#if 0
-	else if (kind == 5) {
-		initByDimacsBKS();
-	}
-	else if (kind == 6) {
-		initByLKHBKS();
-	}
-	#endif // 0
-
 	reCalRtsCostAndPen();
-	Logger::INFO("init penalty:",penalty);
-	Logger::INFO("init rts.size:",rts.cnt);
-	Logger::INFO("init rtcost:",RoutesCost);
 
-	return true;
 }
 
 DeltaPenalty Solver::estimatevw(int kind, int v, int w, int oneR) {
@@ -966,14 +966,7 @@ DisType Solver::getaRangeOffPtw(int twbegin, int twend) {
 		pt = customers[pt].next;
 	}
 
-
-
-#if LYH_CHECKING
 	lyhCheckTrue(pt == twend);
-	if (pt != twend) {
-		Logger::ERROR("pt != twend:", pt != twend);
-	}
-#endif // LYH_CHECKING
 
 	newwvPtw += std::max<DisType>(0, lastav - customers[twend].zv);
 	return newwvPtw;
@@ -1118,7 +1111,7 @@ DeltaPenalty Solver::twoOptStarOpenvvj(int v, int w) { //1
 
 		DisType delt = 0;
 		delt -= input->getDisof2(v,vj);
-		delt -= input->getDisof2(w,w_);
+		delt -= input->getDisof2(w_,w);
 
 		delt += input->getDisof2(v,w);
 		delt += input->getDisof2(w_,vj);
@@ -1181,6 +1174,8 @@ DeltaPenalty Solver::outOnevToww_(int v, int w, int oneR) { //2
 			int front = getFrontofTwoCus(v, w);
 			//int back = (front == v ? w : v);
 
+			lyhCheckTrue(front == v || front == w);
+
 			if (front == v) {
 
 				// v_ v vj ....w_ w ===> {v_ vj ...w_,v,w}
@@ -1202,17 +1197,6 @@ DeltaPenalty Solver::outOnevToww_(int v, int w, int oneR) { //2
 				newvwPtw = getPtwWithVectorOfCustomers(arr);
 
 			}
-			#if LYH_CHECKING
-			else {
-
-				//rNextDisp(rv);
-				Logger::ERROR(front);
-				Logger::ERROR(v);
-				Logger::ERROR(w);
-				Logger::ERROR(rv.head);
-				Logger::ERROR(rv.tail);
-			}
-			#endif // LYH_CHECKING
 
 			newv_vjPtw = newvwPtw;
 
@@ -1254,10 +1238,10 @@ DeltaPenalty Solver::outOnevToww_(int v, int w, int oneR) { //2
 
 		DisType delt = 0;
 		delt -= input->getDisof2(v,vj);
-		delt -= input->getDisof2(v,v_);
-		delt -= input->getDisof2(w,w_);
+		delt -= input->getDisof2(v_,v);
+		delt -= input->getDisof2(w_,w);
 
-		delt += input->getDisof2(v,w_);
+		delt += input->getDisof2(w_,v);
 		delt += input->getDisof2(v,w);
 		delt += input->getDisof2(v_,vj);
 
@@ -1382,10 +1366,10 @@ DeltaPenalty Solver::outOnevTowwj(int v, int w, int oneR) { //3
 		// inset v to w and (w+)
 		DisType delt = 0;
 		delt -= input->getDisof2(v,vj);
-		delt -= input->getDisof2(v,v_);
+		delt -= input->getDisof2(v_,v);
 		delt -= input->getDisof2(w,wj);
 
-		delt += input->getDisof2(v,w);
+		delt += input->getDisof2(w,v);
 		delt += input->getDisof2(v,wj);
 		delt += input->getDisof2(v_,vj);
 
@@ -1514,12 +1498,12 @@ DeltaPenalty Solver::inOnevv_(int v, int w, int oneR) { //4
 
 		// inset w to v and (v-)
 		DisType delt = 0;
-		delt -= input->getDisof2(v,v_);
-		delt -= input->getDisof2(w,w_);
+		delt -= input->getDisof2(v_,v);
+		delt -= input->getDisof2(w_,w);
 		delt -= input->getDisof2(w,wj);
 
+		delt += input->getDisof2(v_, w);
 		delt += input->getDisof2(w,v);
-		delt += input->getDisof2(w,v_);
 		delt += input->getDisof2(w_,wj);
 
 		bestM.deltCost = delt * gamma;
@@ -1540,7 +1524,7 @@ DeltaPenalty Solver::inOnevv_(int v, int w, int oneR) { //4
 	return bestM;
 }
 
-DeltaPenalty Solver::inOnevvj(int v, int w, int oneR) { //5
+DeltaPenalty Solver::inOnevvj(int v, int w, int oneR) { // 5
 
 	// insert w to (v,v+)
 	Route& rv = rts.getRouteByRouteId(customers[v].routeId);
@@ -1637,10 +1621,10 @@ DeltaPenalty Solver::inOnevvj(int v, int w, int oneR) { //5
 		// insert w to (v,v+)
 		DisType delt = 0;
 		delt -= input->getDisof2(v,vj);
-		delt -= input->getDisof2(w,w_);
+		delt -= input->getDisof2(w_,w);
 		delt -= input->getDisof2(w,wj);
 
-		delt += input->getDisof2(w,v);
+		delt += input->getDisof2(v,w);
 		delt += input->getDisof2(w,vj);
 		delt += input->getDisof2(w_,wj);
 
@@ -1709,7 +1693,7 @@ DeltaPenalty Solver::swapOneOnevw(int v, int w, int oneR) { // 8
 				newwPtw = newvPtw = getPtwWithVectorOfCustomers({ w__,w,w_,wj });
 			}
 			else {
-
+				
 				// swapOneOnevw
 				int fr = getFrontofTwoCus(v, w);
 
@@ -1781,30 +1765,34 @@ DeltaPenalty Solver::swapOneOnevw(int v, int w, int oneR) { // 8
 			// w-> v
 
 			delt -= input->getDisof2(v,vj);
-			delt -= input->getDisof2(w,w_);
+			delt -= input->getDisof2(w_,w);
+			delt -= input->getDisof2(w,v);
 
-			delt += input->getDisof2(v,w_);
+			delt += input->getDisof2(v,w);
+			delt += input->getDisof2(w_,v);
 			delt += input->getDisof2(w,vj);
 		}
 		else if (w_ == v) {
 
 			// v w
-			delt -= input->getDisof2(v,v_);
+			delt -= input->getDisof2(v_,v);
 			delt -= input->getDisof2(w,wj);
+			delt -= input->getDisof2(v,w);
 
+			delt += input->getDisof2(w,v);
 			delt += input->getDisof2(v,wj);
-			delt += input->getDisof2(w,v_);
+			delt += input->getDisof2(v_,w);
 		}
 		else {
 
 			delt -= input->getDisof2(v,vj);
-			delt -= input->getDisof2(v,v_);
+			delt -= input->getDisof2(v_,v);
 			delt -= input->getDisof2(w,wj);
-			delt -= input->getDisof2(w,w_);
+			delt -= input->getDisof2(w_,w);
 
+			delt += input->getDisof2(w_, v);
 			delt += input->getDisof2(v,wj);
-			delt += input->getDisof2(v,w_);
-			delt += input->getDisof2(w,v_);
+			delt += input->getDisof2(v_,w);
 			delt += input->getDisof2(w,vj);
 
 		}
@@ -1981,38 +1969,37 @@ DeltaPenalty Solver::swapTwoOnevvjw(int v, int w, int oneR) { // 11 2换1
 		// exchange vvj and (w)
 		DisType delt = 0;
 		if (v_ == w) {
-			// w - v vj
+			// w - (v vj)
 			delt -= input->getDisof2(w,v);
-			delt -= input->getDisof2(w,w_);
+			delt -= input->getDisof2(w_,w);
 			delt -= input->getDisof2(vj,vjj);
 			//w v vj -> v vj w
-			delt += input->getDisof2(w,vj);
+			delt += input->getDisof2(vj,w);
 			delt += input->getDisof2(w,vjj);
-			delt += input->getDisof2(v,w_);
+			delt += input->getDisof2(w_,v);
 		}
 		else if (w_ == vj) {
-			//v vj w -> w v vj
-			delt -= input->getDisof2(v,v_);
+			// (v vj) w w+ =>
+			delt -= input->getDisof2(v_,v);
 			delt -= input->getDisof2(w,wj);
 			delt -= input->getDisof2(vj,w);
 
-			delt += input->getDisof2(w,v_);
+			delt += input->getDisof2(v_,w);
+			delt += input->getDisof2(vj, wj);
 			delt += input->getDisof2(w,v);
-			delt += input->getDisof2(vj,wj);
 		}
 		else {
-
+			// (v vj)  w_ (w) w+ =>
 			delt -= input->getDisof2(vj,vjj);
-			delt -= input->getDisof2(v,v_);
+			delt -= input->getDisof2(v_,v);
 			delt -= input->getDisof2(w,wj);
-			delt -= input->getDisof2(w,w_);
+			delt -= input->getDisof2(w_,w);
 
-			delt += input->getDisof2(w,v_);
+			delt += input->getDisof2(v_,w);
 			delt += input->getDisof2(w,vjj);
-			delt += input->getDisof2(v, w_);
+			delt += input->getDisof2(w_, v);
 			delt += input->getDisof2(vj,wj);
 		}
-
 
 		bestM.deltCost = delt * gamma;
 
@@ -2190,33 +2177,33 @@ DeltaPenalty Solver::swapThreeTwovvjvjjwwj(int v, int w, int oneR) { // 9 3换2
 
 		if (v3j == w) {
 			delt -= input->getDisof2(vjj,w);
-			delt -= input->getDisof2(v,v_);
+			delt -= input->getDisof2(v_,v);
 			delt -= input->getDisof2(wj,wjj);
 
-			delt += input->getDisof2(w,v_);
+			delt += input->getDisof2(v_,w);
 			delt += input->getDisof2(wj,v);
 			delt += input->getDisof2(vjj,wjj);
 		}
 		else if (wj == v_) {
 			// (ww+) and v vj vjj and 
 
-			delt -= input->getDisof2(w,w_);
+			delt -= input->getDisof2(w_,w);
 			delt -= input->getDisof2(vjj,v3j);
 			delt -= input->getDisof2(wj,v);
 
 			delt += input->getDisof2(vjj,w);
-			delt += input->getDisof2(v,w_);
+			delt += input->getDisof2(w_,v);
 			delt += input->getDisof2(wj,v3j);
 		}
 		else {
 			delt -= input->getDisof2(vjj,v3j);
-			delt -= input->getDisof2(v,v_);
+			delt -= input->getDisof2(v_,v);
 			delt -= input->getDisof2(wj,wjj);
-			delt -= input->getDisof2(w,w_);
+			delt -= input->getDisof2(w_,w);
 
-			delt += input->getDisof2(w,v_);
+			delt += input->getDisof2(v_,w);
 			delt += input->getDisof2(wj,v3j);
-			delt += input->getDisof2(v,w_);
+			delt += input->getDisof2(w_,v);
 			delt += input->getDisof2(vjj,wjj);
 		}
 
@@ -2375,33 +2362,33 @@ DeltaPenalty Solver::swapThreeOnevvjvjjw(int v, int w, int oneR) { // 10 三换一
 		if (v == wj) {
 			//w v vj vjj -> v vj vjj w
 			delt -= input->getDisof2(w,v);
-			delt -= input->getDisof2(w,w_);
+			delt -= input->getDisof2(w_,w);
 			delt -= input->getDisof2(vjj,v3j);
 
-			delt += input->getDisof2(w,vjj);
+			delt += input->getDisof2(vjj,w);
 			delt += input->getDisof2(w,v3j);
-			delt += input->getDisof2(v,w_);
+			delt += input->getDisof2(w_,v);
 		}
 		else if (w_ == vjj) {
 
 			//v vj vjj w -> w v vj vjj 
-			delt -= input->getDisof2(w,vjj);
+			delt -= input->getDisof2(vjj,w);
 			delt -= input->getDisof2(w,wj);
-			delt -= input->getDisof2(v,v_);
+			delt -= input->getDisof2(v_,v);
 
 			delt += input->getDisof2(w,v);
-			delt += input->getDisof2(w,v_);
+			delt += input->getDisof2(v_,w);
 			delt += input->getDisof2(vjj,wj);
 		}
 		else {
 			delt -= input->getDisof2(vjj,v3j);
-			delt -= input->getDisof2(v,v_);
+			delt -= input->getDisof2(v_,v);
 			delt -= input->getDisof2(w,wj);
-			delt -= input->getDisof2(w,w_);
+			delt -= input->getDisof2(w_,w);
 
-			delt += input->getDisof2(w,v_);
+			delt += input->getDisof2(v_,w);
 			delt += input->getDisof2(w,v3j);
-			delt += input->getDisof2(v,w_);
+			delt += input->getDisof2(w_,v);
 			delt += input->getDisof2(vjj,wj);
 		}
 
@@ -2543,10 +2530,10 @@ DeltaPenalty Solver::outTwovvjTowwj(int v, int w, int oneR) {  //13 扔两个
 		// outrelocate v vj To w wj
 		DisType delt = 0;
 		delt -= input->getDisof2(vj,vjj);
-		delt -= input->getDisof2(v,v_);
+		delt -= input->getDisof2(v_,v);
 		delt -= input->getDisof2(w,wj);
 
-		delt += input->getDisof2(v,w);
+		delt += input->getDisof2(w,v);
 		delt += input->getDisof2(vj,wj);
 		delt += input->getDisof2(v_,vjj);
 
@@ -2670,12 +2657,21 @@ DeltaPenalty Solver::reversevw(int v, int w) {//15 翻转
 
 		// outrelocate  v_ vTo w_ w 
 		DisType delt = 0;
-		delt -= input->getDisof2(front,f_);
-		delt -= input->getDisof2(back,bj);
 
-		delt += input->getDisof2(back,f_);
-		delt += input->getDisof2(front,bj);
+		delt -= input->getDisof2(f_, front);
+		delt -= input->getDisof2(back, bj);
+		
+		delt += input->getDisof2(f_, back);
+		delt += input->getDisof2(front, bj);
 
+		for (int pt = front; pt !=-1 ; pt = customers[pt].next) {
+			int ptnext = customers[pt].next;
+			delt -= input->getDisof2(pt, ptnext);
+			delt += input->getDisof2(ptnext, pt);
+			if (ptnext == back) {
+				break;
+			}
+		}
 		bestM.deltCost = delt * gamma;
 
 	};
@@ -3543,9 +3539,7 @@ Vector<int> Solver::getPtwNodes(Route& r, int ptwKind) {
 	Vector<int> ptwNodes;
 	ptwNodes.reserve(r.rCustCnt);
 
-	#if LYH_CHECKING
 	lyhCheckTrue(r.rPtw > 0);
-	#endif // LYH_CHECKING
 
 	auto getPtwNodesByFirstPtw = [&]() {
 
@@ -3595,11 +3589,8 @@ Vector<int> Solver::getPtwNodes(Route& r, int ptwKind) {
 				v = customers[v].next;
 			}
 		}
-		#if LYH_CHECKING
-		if (v != endNode) {
-			Logger::ERROR(v != endNode);
-		}
-		#endif // LYH_CHECKING
+
+		lyhCheckTrue(v == endNode);
 
 	};
 
@@ -3710,9 +3701,7 @@ Vector<int> Solver::getPtwNodes(Route& r, int ptwKind) {
 		getPtwNodesByLastPtw();
 	}
 
-	#if LYH_CHECKING
 	lyhCheckTrue(ptwNodes.size() > 0);
-	#endif // LYH_CHECKING
 
 	return ptwNodes;
 }
@@ -3956,9 +3945,7 @@ TwoNodeMove Solver::getMovesRandomly
 
 	Route& r = rts.getRouteByRouteId(rId);
 
-	#if LYH_CHECKING
 	lyhCheckTrue(r.rPc > 0 || r.rPtw > 0);
-	#endif // LYH_CHECKING
 
 	if (r.rPtw > 0) {
 
@@ -4112,31 +4099,6 @@ bool Solver::resetConfRtsByOneMove(Vector<int> ids) {
 
 void Solver::doEjection(Vector<eOneRNode>& XSet) {
 
-	#if LYH_CHECKING
-
-	int cnt = 0;
-	for (int i : PtwConfRts.pos) {
-		if (i >= 0) {
-			++cnt;
-		}
-	}
-	lyhCheckTrue(cnt == PtwConfRts.cnt);
-	for (int i = 0; i < PtwConfRts.cnt; ++i) {
-		Route& r = rts.getRouteByRouteId(PtwConfRts.ve[i]);
-		lyhCheckTrue(r.rPtw > 0);
-	}
-
-	for (int i = 0; i < PcConfRts.cnt; ++i) {
-		Route& r = rts.getRouteByRouteId(PcConfRts.ve[i]);
-		lyhCheckTrue(r.rPc > 0);
-	}
-
-	for (eOneRNode& en : XSet) {
-		lyhCheckTrue(en.ejeVe.size() > 0);
-	}
-
-	#endif // LYH_CHECKING
-
 	for (eOneRNode& en : XSet) {
 
 		Route& r = rts.getRouteByRouteId(en.rId);
@@ -4148,19 +4110,15 @@ void Solver::doEjection(Vector<eOneRNode>& XSet) {
 		rUpdateAvQFrom(r, r.head);
 		rUpdateZvQFrom(r, r.tail);
 
-		#if LYH_CHECKING
 		lyhCheckTrue(r.rPc == 0 && r.rPtw == 0);
-		#endif // LYH_CHECKING
 	}
 
 	resetConfRts();
 	sumRoutesPenalty();
 
-	#if LYH_CHECKING
 	lyhCheckTrue(penalty == 0);
 	lyhCheckTrue(PtwConfRts.cnt == 0);
 	lyhCheckTrue(PcConfRts.cnt == 0);
-	#endif // LYH_CHECKING
 }
 
 bool Solver::managerCusMem(Vector<int>& releaseNodes) {
@@ -4498,8 +4456,8 @@ bool Solver::routeWeightedRepair() {
 		#if LYH_CHECKING
 		if (bestM.deltPen.PcOnly == DisInf || bestM.deltPen.PtwOnly == DisInf) {
 			Logger::ERROR("squeeze fail find move");
-			Logger::ERROR("yearTable->iter:",yearTable->squIter);
-			++contiNotDe;
+			Logger::ERROR("yearTable->iter:",yearTable->iter);
+			++stagnation;
 			continue;
 		}
 		Vector<Vector<int>> oldRoutes;
@@ -4507,25 +4465,13 @@ bool Solver::routeWeightedRepair() {
 		Vector<int> oldrw;
 
 		DisType oldpenalty = penalty;
-		DisType oldPtw = Ptw;
-		DisType oldPc = Pc;
-		DisType oldPtwNoWei = PtwNoWei;
 		DisType oldPtwOnly = PtwNoWei;
 		DisType oldPcOnly = Pc;
-		DisType oldRcost = RoutesCost;
 
 		Route& rv = rts.getRouteByRouteId(customers[bestM.v].routeId);
 		Route& rw = rts.getRouteByRouteId(customers[bestM.w].routeId);
 		oldrv = rPutCustomersInVector(rv);
 		oldrw = rPutCustomersInVector(rw);
-
-		for (int i = 0; i < rts.cnt; ++i) {
-			Route& r = rts[i];
-			if (rPutCustomersInVector(r).size() != r.rCustCnt) {
-				lyhCheckTrue(rPutCustomersInVector(r).size() == r.rCustCnt);
-				lyhCheckTrue(rPutCustomersInVector(r).size() == r.rCustCnt);
-			}
-		}
 
 		#endif // LYH_CHECKING
 
@@ -4543,7 +4489,7 @@ bool Solver::routeWeightedRepair() {
 
 		#if LYH_CHECKING
 		DisType penaltyaferup = penalty;
-		sumRtsPen();
+		sumRoutesPenalty();
 
 		lyhCheckTrue(penaltyaferup == penalty)
 			bool penaltyWeiError =
@@ -4554,40 +4500,10 @@ bool Solver::routeWeightedRepair() {
 		lyhCheckTrue(!penaltyWeiError);
 		lyhCheckTrue(!penaltyError);
 
-		for (int i = 0; i < rts.cnt; ++i) {
-			Route& r = rts[i];
-			lyhCheckTrue(rPutCustomersInVector(r).size() == r.rCustCnt);
-
-			int pt = r.head;
-			while (pt != -1) {
-				lyhCheckTrue(pt <= customers.size());
-				pt = customers[pt].next;
-			}
-		}
-
 		if (penaltyWeiError || penaltyError) {
 
-			Logger::ERROR("squeeze penalty update error!");
-
-			Logger::ERROR("bestM.v:",bestM.v);
-			Logger::ERROR("bestM.w:",bestM.w);
-			Logger::ERROR("bestM.kind:",bestM.kind);
-			Logger::ERROR("penaltyWeiError:",penaltyWeiError);
-			Logger::ERROR("penaltyError:", penaltyError);
-
-			Logger::ERROR("penaltyaferup:",penaltyaferup);
-			Logger::ERROR("penalty:",penalty);
-			Logger::ERROR("Ptw:",Ptw);
-			Logger::ERROR("Pc:",Pc);
-
-			Logger::ERROR("bestM.deltPen.deltPtw:",bestM.deltPen.deltPtw);
-			Logger::ERROR("oldPtw:", oldPtw);
-			Logger::ERROR("oldPc:", oldPc);
-
 			Logger::ERROR("rv.routeId == rw.routeId:",rv.routeId == rw.routeId);
-
 			std::cout << "oldrv: ";
-
 			for (auto i : oldrv) {
 				std::cout << i << " ,";
 			}
@@ -4597,10 +4513,6 @@ bool Solver::routeWeightedRepair() {
 				std::cout << i << " ,";
 			}
 			std::cout << std::endl;
-
-			rNextDisplay(rv);
-			rNextDisplay(rw);
-			rNextDisplay(rw);
 		}
 		#endif // LYH_CHECKING
 
@@ -4651,7 +4563,7 @@ bool Solver::routeWeightedRepair() {
 
 		#if LYH_CHECKING
 		DisType oldp = penalty;
-		sumRtsPen();
+		sumRoutesPenalty();
 		lyhCheckTrue(oldp == penalty);
 		#endif // LYH_CHECKING		
 
@@ -4965,24 +4877,9 @@ Vector<int> Solver::ruinGetRuinCusByRound(int ruinCusNum) {
 
 Vector<int> Solver::ruinGetRuinCusByRand(int ruinCusNum) {
 
-	int left = std::max<int>(ruinCusNum * 0.7, 1);
-	int right = std::min<int>(input->customerNumer - 1, ruinCusNum * 1.3);
+	int left = std::max<int>(static_cast<int>(ruinCusNum * 0.7), 1);
+	int right = std::min<int>(input->customerNumer - 1, static_cast<int>(ruinCusNum * 1.3));
 	ruinCusNum = random->pick(left, right + 1);
-
-	//int v = random->pick(input->customerNumer)+1;
-	//ruinCusNum = 40;
-	//Vector<int> ret;
-	//ret.reserve(ruinCusNum);
-	//ret.push_back(v);
-
-	//for (int i = 0; i < ruinCusNum; ++i) {
-	//	int wpos = i;
-	//	int w = input->sectorClose[v][wpos];
-	//	if (customers[w].routeId != -1) {
-	//		ret.push_back(w);
-	//	}
-	//}
-	//return ret;
 
 	auto& arr = randomx->getMN(input->customerNumer, ruinCusNum);
 	random->shuffleVec(arr);
@@ -5330,22 +5227,9 @@ void Solver::reInsertCustomersIntoSolution(int kind) {
 		}
 	}
 
-	sumRoutesPenalty();
-	for (auto rId : insRts) {
-		Route& r = rts.getRouteByRouteId(rId);
-		rReCalculateRouteCost(r);
-	}
-	sumRoutesCost();
+	reCalRtsCostAndPen();
 
-	#if LYH_CHECKING
-	if (RoutesCost != verify()) {
-		Logger::printElementInContainer(insRts);
-
-		Logger::ERROR(RoutesCost);
-		Logger::ERROR(verify());
-		Logger::ERROR(verify());
-	}
-	#endif // LYH_CHECKING
+	lyhCheckTrue(RoutesCost == verify());
 }
 
 int Solver::CVB2ruinLS(int ruinCusNum) {
@@ -5653,10 +5537,7 @@ Vector<Solver::eOneRNode> Solver::ejectFromPatialSol() {
 		//	retNode = ejectOneRouteMinPsumGreedy(r, retNode);
 		//}
 
-
-		#if LYH_CHECKING
 		lyhCheckTrue(retNode.ejeVe.size() > 0);
-		#endif // LYH_CHECKING
 
 		ret.push_back(retNode);
 	}
@@ -5670,9 +5551,8 @@ Solver::eOneRNode Solver::ejectOneRouteOnlyHasPcMinP(Route& r, int Kmax) {
 	noTabuN.Psum = 0;
 
 	Vector<int> R = rPutCustomersInVector(r);
-
+#if 0
 	auto cmpMinP = [&](const int& a, const int& b) {
-
 		if (input->P[a] == input->P[b]) {
 			return input->datas[a].DEMAND > input->datas[b].DEMAND;
 		}
@@ -5681,6 +5561,7 @@ Solver::eOneRNode Solver::ejectOneRouteOnlyHasPcMinP(Route& r, int Kmax) {
 		}
 		return false;
 	};
+#endif 
 
 	auto cmpMinD = [&](const int& a, const int& b) -> bool {
 
@@ -5822,10 +5703,8 @@ Solver::eOneRNode Solver::ejectOneRouteOnlyP(Route& r, int kind, int Kmax) {
 		int prev = customers[pt].prev;
 		int next = customers[pt].next;
 
-		#if LYH_CHECKING
 		lyhCheckTrue(prev != -1);
 		lyhCheckTrue(next != -1);
-		#endif // LYH_CHECKING
 
 		DisType ptw = 0;
 
@@ -5855,23 +5734,8 @@ Solver::eOneRNode Solver::ejectOneRouteOnlyP(Route& r, int kind, int Kmax) {
 			pt = next;
 			next = customers[next].next;
 		}
-
 		return etemp;
 
-	};
-
-	auto restoreWholeR = [&]() {
-
-		int pt = r.head;
-		int ptn = customers[pt].next;
-
-		while (pt != -1 && ptn != -1) {
-
-			customers[ptn].prev = pt;
-			pt = ptn;
-			ptn = customers[ptn].next;
-		}
-		rUpdateAvQFrom(r, r.head);
 	};
 
 	Vector<int> R = rPutCustomersInVector(r);
@@ -5898,10 +5762,8 @@ Solver::eOneRNode Solver::ejectOneRouteOnlyP(Route& r, int kind, int Kmax) {
 	int N = static_cast<int>(ptwArr.size()) - 1;
 	Vector<int> ve(Kmax + 1, -1);
 
-	/*etemp = getPtwIfRemoveOneNode(r.head);
-	updateEje();*/
-
-	//debug(ptwArr.size())
+	//etemp = getPtwIfRemoveOneNode(r.head);
+	//updateEje();
 
 	do {
 
@@ -6006,15 +5868,15 @@ Solver::eOneRNode Solver::ejectOneRouteMinPsumGreedy
 		return false;
 	};
 	
-	auto cmpD = [&](const int& a, const int& b) ->bool {
-		if (input->datas[a].DEMAND == input->datas[b].DEMAND) {
-			return input->P[a] > input->P[b];
-		}
-		else {
-			return input->datas[a].DEMAND > input->datas[b].DEMAND;
-		}
-		return false;
-	};
+	//auto cmpD = [&](const int& a, const int& b) ->bool {
+	//	if (input->datas[a].DEMAND == input->datas[b].DEMAND) {
+	//		return input->P[a] > input->P[b];
+	//	}
+	//	else {
+	//		return input->datas[a].DEMAND > input->datas[b].DEMAND;
+	//	}
+	//	return false;
+	//};
 
 	std::priority_queue<int, Vector<int>, decltype(cmpP)> qu(cmpP);
 
@@ -6111,9 +5973,6 @@ bool Solver::resetSolver() {
 void Solver::simpleClearEP() {
 
 	for (int EPIndex = 0; EPIndex < EP.size();) {
-		#if LYH_CHECKING
-		DisType oldpenalty = PtwNoWei + Pc;
-		#endif // LYH_CHECKING
 
 		Vector<int> arr = EP.putElementInVector();
 		int top = arr[EPIndex];
@@ -6136,10 +5995,6 @@ void Solver::simpleClearEP() {
 
 			sumRoutesPenalty();
 			resetConfRts();
-
-			#if LYH_CHECKING
-			lyhCheckTrue(oldpenalty + bestP.pen == PtwNoWei + Pc);
-			#endif // LYH_CHECKING
 
 		}
 		else {
@@ -6291,7 +6146,7 @@ bool Solver::minimizeRouteNumber(int ourTarget) {
 		if (isDelete) {
 
 			//saveOutAsSintefFile();
-			Logger::INFO("rts.cnt:", rts.cnt);
+			//Logger::INFO("rts.cnt:", rts.cnt);
 			if (rts.cnt == input->Qbound) {
 				break;
 			}
@@ -6392,7 +6247,6 @@ bool Solver::adjustRouteNumber(int ourTarget) {
 
 	if (rts.cnt > ourTarget) {
 		minimizeRouteNumber(ourTarget);
-		//Logger::INFO("minimizeRN adjust rn rts.cnt:", rts.cnt);
 	}
 	else if (rts.cnt < ourTarget) {
 		
@@ -6598,14 +6452,8 @@ bool Solver::simpleLocalSearch(int hasRange,Vector<int> newCus) {
 		}
 	};
 	
-	#if LYH_CHECKING
-	if (hasRange == 0 && newCus.size() > 0) {
-		Logger::ERROR("hasRange == 0 && newCus.size() > 0");
-	}
-	if (hasRange == 1 && newCus.size() == 0) {
-		Logger::ERROR("hasRange == 1 && newCus.size() == 0");
-	}
-	#endif // LYH_CHECKING
+	lyhCheckTrue((hasRange == 0 && newCus.size() == 0)
+		|| (hasRange == 1 && newCus.size() > 0));
 
 	if (hasRange == 0) {
 		newCus = randomx->getMN(input->customerNumer + 1, input->customerNumer + 1);
@@ -6616,10 +6464,6 @@ bool Solver::simpleLocalSearch(int hasRange,Vector<int> newCus) {
 	for (int i : newCus) {
 		qu.push(i);
 	}
-
-	//auto& nei = aps->neiborRange;
-	//Vector<int> bugOrder(nei[1]-nei[0]);
-	//std::iota(bugOrder.begin(), bugOrder.end(), nei[0]);
 
 	auto getMovesGivenRange = [&](int range) {
 
@@ -6733,9 +6577,6 @@ bool Solver::simpleLocalSearch(int hasRange,Vector<int> newCus) {
 		Vector<int> oldrw;
 
 		DisType oldpenalty = penalty;
-		DisType oldPtw = Ptw;
-		DisType oldPc = Pc;
-		DisType oldPtwNoWei = PtwNoWei;
 		DisType oldPtwOnly = PtwNoWei;
 		DisType oldPcOnly = Pc;
 		DisType oldRcost = RoutesCost;
@@ -6784,39 +6625,40 @@ bool Solver::simpleLocalSearch(int hasRange,Vector<int> newCus) {
 		DisType penaltyafterupdatePen = penalty;
 		DisType costafterplus = RoutesCost;
 
-		sumRtsPen();
+		sumRoutesPenalty();
 		reCalRtsCostSumCost();
 
 		if (!(costafterplus == RoutesCost)) {
 			Logger::ERROR("costafterplus:", costafterplus);
+			Logger::ERROR("rvid:", rvid);
+			Logger::ERROR("rwid:", rwid);
+			Logger::ERROR("bestM.kind:", bestM.kind);
 			Logger::ERROR("RoutesCost:", RoutesCost);
+			Logger::ERROR("bestM.v:", bestM.v);
+			Logger::ERROR("bestM.w:", bestM.w);
+			Logger::ERROR("RoutesCost:", RoutesCost);
+			for (int i : oldrv) {
+				std::cout << i << ", ";
+			}
+			std::cout << std::endl;
+
 			Logger::ERROR("RoutesCost:", RoutesCost);
 		}
 
 		lyhCheckTrue(penaltyafterupdatePen == penalty);
 		lyhCheckTrue(costafterplus == RoutesCost);
-
 		lyhCheckTrue(oldpenalty + bestM.deltPen.deltPc + bestM.deltPen.deltPtw == penalty);
 		lyhCheckTrue(oldPcOnly + oldPtwOnly + bestM.deltPen.PcOnly + bestM.deltPen.PtwOnly == PtwNoWei + Pc);
 		lyhCheckTrue(oldRcost + bestM.deltPen.deltCost == RoutesCost);
-		DisType ver = verify();
-		lyhCheckTrue(ver > 0)
+		lyhCheckTrue(verify() > 0)
+		lyhCheckTrue(oldpenalty + bestM.deltPen.deltPc + bestM.deltPen.deltPtw == penalty);
 
-		if (!(oldpenalty + bestM.deltPen.deltPc + bestM.deltPen.deltPtw == penalty)) {
-			Logger::ERROR(1111);
-		}
 		#endif // LYH_CHECKING
 
 	}
 
 	//TODO[5]:这个更新必须有 因为搜索工程中没有更新每一条路径的routeCost
 	sumRoutesCost();
-	//auto rc = RoutesCost;
-	//reCalRtsCostSumCost();
-	//if (rc != RoutesCost) {
-	//	Logger::DEBUG(rc);
-	//	Logger::DEBUG(RoutesCost);
-	//}
 
 	return true;
 }
@@ -6865,20 +6707,8 @@ bool BKS::updateBKSAndPrint(Solver& newSol, String opt) {
 		std::min<DisType>(bksAtRn[newSol.rts.cnt], newSol.RoutesCost);
 	}
 
-	#if LYH_CHECKING
-	for (int i = 0; i < this->bestSolFound.rts.cnt; ++i) {
-		auto rold = this->bestSolFound.rts[i].routeCost;
-		this->bestSolFound.rReCalculateRouteCost(this->bestSolFound.rts[i]);
-		if (rold != this->bestSolFound.rts[i].routeCost) {
-			Logger::ERROR(this->bestSolFound.rts[i].routeId);
-			Logger::ERROR(this->bestSolFound.rts[i].routeId);
-		}
-	}
-	#endif // LYH_CHECKING
-
 	bool ret = false;
 
-	
 	if (newSol.RoutesCost <= bestSolFound.RoutesCost && newSol.rts.cnt <= newSol.input->vehicleNumber) {
 
 		if (bestSolFound.input->commandLine->dimacsPrint == 1) {

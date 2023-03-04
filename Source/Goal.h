@@ -13,31 +13,29 @@ struct Goal {
 	UnorderedMap<int, Vector<Solver>> mapOfPopulation;
 	AlgorithmParameters* aps = nullptr;
 	Input* input = nullptr;
-
+	
 	YearTable yearTable;
+	BKS bks;
+
 	int curSearchRouteNumber = -1;
 	Random* random = nullptr;
 	RandomX* randomx = nullptr;
 	Timer* timer = nullptr;
 	
-	BKS bks;
+	
 	std::queue<int> alternativeRouteNumbers;
 
 	Goal(Input*input);
 
-	void updateMapOfPopulation(Solver& sol, int index);
+	void addSolverToMapOfPopulation(Solver& sol);
 
 	DisType getMinRoutesCostInPool(int rn);
 
 	DisType doTwoKindEAX(Solver& pa, Solver& pb, int kind);
 
-	bool perturbOneSolution(Solver& sol);
-
 	void EAMA(int rn);
 
 	int gotoPopulationAtRouteNumber(int rn);
-
-	bool fillPopulation(int rn);
 
 	int callSimulatedannealing();
 

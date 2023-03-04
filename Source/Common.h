@@ -9,11 +9,13 @@
 #include <iostream>
 #include <list>
 #include <climits>
+#include <cassert>
 
 #include "Arr2D.h"
 #include "json.h"
 
 #define LYH_CHECKING 0
+#if LYH_CHECKING
 
 #define lyhCheckTrue(x) {				\
 	if(!(x) ){							\
@@ -22,8 +24,12 @@
 		<< "[line:" << __LINE__ << "]"  \
 		<< "[" << __FUNCTION__ << "]: " \
 		<< #x <<std::endl;				\
+		assert(x);						\
 	}									\
-}
+}										
+#else
+#define lyhCheckTrue(x) ;
+#endif // LYH_CHECKING
 
 namespace hust {
 

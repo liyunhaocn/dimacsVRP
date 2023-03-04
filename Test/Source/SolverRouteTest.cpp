@@ -20,12 +20,12 @@ TEST(SolverRouteTest, CustomersTest) {
 		for (int i = 0; i < rts.cnt; ++i) {
 
 			Route& r = rts[i];
-			Vec<int> cus1;
-			Vec<int> cus2;
+			Vector<int> cus1;
+			Vector<int> cus2;
 
 			int pt = r.head;
 			while (pt != -1) {
-				EXPECT_EQ(solver->customers[pt].routeID, r.routeID) << "pt:" << pt << " r.routeID: " << r.routeID << std::endl;
+				EXPECT_EQ(solver->customers[pt].routeId, r.routeId) << "pt:" << pt << " r.routeId: " << r.routeId << std::endl;
 				cus1.push_back(pt);
 				pt = solver->customers[pt].next;
 			}
@@ -33,7 +33,7 @@ TEST(SolverRouteTest, CustomersTest) {
 			pt = r.tail;
 			while (pt != -1) {
 				cus2.push_back(pt);
-				pt = solver->customers[pt].pre;
+				pt = solver->customers[pt].prev;
 			}
 
 			EXPECT_EQ(cus1.size(), cus2.size()) << "cus1.size():" << cus1.size() << " cus2.size():" << cus2.size() << std::endl;

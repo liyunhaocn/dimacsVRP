@@ -63,12 +63,12 @@ void AlgorithmParameters::displayInfo() {
 
 void AlgorithmParameters::check(int cusCnt) {
 
-	assert(outNeiborSize < cusCnt);
-	assert(broadenWhenPos_0<=cusCnt);
-	assert(perturbNeiborRange<cusCnt);
-	assert(neiborRange[0] < cusCnt);
-	assert(neiborRange[1] < cusCnt);
-	assert(ruinC_ < cusCnt);
+	lyhCheckTrue(outNeiborSize < cusCnt);
+	lyhCheckTrue(broadenWhenPos_0<=cusCnt);
+	lyhCheckTrue(perturbNeiborRange<cusCnt);
+	lyhCheckTrue(neiborRange[0] < cusCnt);
+	lyhCheckTrue(neiborRange[1] < cusCnt);
+	lyhCheckTrue(ruinC_ < cusCnt);
 }
 
 }

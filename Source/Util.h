@@ -7,8 +7,6 @@
 #ifndef CN_HUST_LYH_UTILITY_H
 #define CN_HUST_LYH_UTILITY_H
 
-#pragma warning(disable:4996)
-
 #include <algorithm>
 #include <chrono>
 #include <initializer_list>
@@ -59,7 +57,7 @@ public:
     template<typename ...T>
     static void ERROR(const T&... args) {
         if (errorFlag == true) {
-            printlnerr_("[INFO]:", args...);
+            printlnerr_("[ERROR]:", args...);
         }
     }
 
@@ -330,7 +328,7 @@ public:
     }
 
     static double durationInSecond(const TimePoint& start, const TimePoint& end) {
-        return std::chrono::duration_cast<Millisecond>(end - start).count() / MillisecondsPerSecond;
+        return static_cast<double>(std::chrono::duration_cast<Millisecond>(end - start).count()) / MillisecondsPerSecond;
     }
 
     static Microsecond durationInMicrosecond(const TimePoint& start, const TimePoint& end) {

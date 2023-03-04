@@ -3,7 +3,8 @@
 #include<vector>
 #include "Goal.h"
 
-//../Instances/Homberger/C1_8_2.txt ../SolverParameters.json ../Results
+//../Instances/Homberger/C1_8_2.txt ../SolverParameters.json ../Results 
+// bks 24974.1
 
 int main(int argc, char* argv[])
 {

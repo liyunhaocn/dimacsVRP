@@ -103,14 +103,6 @@ struct Input {
 	RandomX randomx;
 	Timer timer;
 	
-	int mustDispatchNumber = -1;
-	bool isExplicitDistanceMatrix = false;
-	int totalDemand;													// Total demand required by the clients
-	int maxDemand;														// Maximum demand of a client
-	int maxDist;														// Maximum distance between two clients
-	bool isDurationConstraint;											// Indicates if the problem includes duration constraints
-	bool isTimeWindowConstraint;										// Indicates if the problem includes time window constraints
-	int durationLimit;													// Route duration limit
 	util::Array2D<DisType> disOf;
 
 	//// disOf[v][w] 表示w和v之间的距离

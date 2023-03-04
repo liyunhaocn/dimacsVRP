@@ -52,7 +52,7 @@
     <ClInclude Include="..\..\Source\EAX.h" />
     <ClInclude Include="..\..\Source\Goal.h" />
     <ClInclude Include="..\..\Source\Input.h" />
-    <ClInclude Include="..\..\Source\nlohmann\json.hpp" />
+    <ClInclude Include="..\..\Source\json.h" />
     <ClInclude Include="..\..\Source\Solver.h" />
     <ClInclude Include="..\..\Source\Util.h" />
     <ClInclude Include="..\..\Source\YearTable.h" />
