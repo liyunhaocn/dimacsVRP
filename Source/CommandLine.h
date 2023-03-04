@@ -75,10 +75,23 @@ public:
 	}
 
 	void check() {
-		// TODO: check the dir exist
-		//std::fstream fstr1;
-		//fstr1.open(this->instancePath.c_str(),std::ios::in);
-		//assert(fstr);
+
+		// check the dir exist
+		std::fstream fs1;
+		std::fstream fs2;
+		std::fstream fs3;
+		fs1.open(this->instancePath.c_str(),std::ios::in);
+		fs2.open(this->parametersPath.c_str(),std::ios::in);
+		fs3.open(this->outputDir.c_str(),std::ios::in);
+		assert(fs1 != nullptr);
+		assert(fs2 != nullptr);
+		assert(fs3 != nullptr);
+		fs1.clear();
+		fs2.clear();
+		fs3.clear();
+		fs1.close();
+		fs2.close();
+		fs3.close();
 	}
 
 	void displayInfo() {

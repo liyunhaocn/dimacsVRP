@@ -139,7 +139,7 @@ DisType Solver::rUpdatePc(Route& r) {
 
 bool Solver::rReset(Route& r) {
 
-	r.rCustCnt = 0; //没有计算仓库
+	r.rCustCnt = 0; //not include depot
 	//r.routeId = -1;
 	r.routeCost = 0;
 	r.rPc = 0;
@@ -609,7 +609,6 @@ Solver::Position Solver::findBestPositionForRuin(int w) {
 
 	Position ret;
 
-	// 惩罚最大的排在最前面
 	auto updatePool = [&](Position& pos) {
 
 		if (random->pick(100) < aps->ruinWinkRate) {
@@ -620,7 +619,6 @@ Solver::Position Solver::findBestPositionForRuin(int w) {
 			else if (pos.pen == ret.pen) {
 
 				if (pos.cost < ret.cost) {
-					// TODO[8]:眨眼率可以调 5%合适？
 					ret = pos;
 				}
 			}
@@ -662,12 +660,9 @@ Solver::Position Solver::findBestPositionForRuin(int w) {
 			
 			rPtw = rPtw - oldrPtw;
 
-			//TODO[-1]:这里的距离计算方式改变了
 			DisType cost = input->getDisof2(v,w)
 				+ input->getDisof2(w,vj)
 				- input->getDisof2(v,vj);
-			//int year = (*yearTable)(w,v)] + (*yearTable)(w,vj)];
-			//year >>= 1;
 
 			Position posTemp(i,v, rPtw + rPc,cost);
 			//posTemp.year = year;
@@ -699,7 +694,7 @@ void Solver::initSolutionBySecOrder() {
 	int indexBeg = random->pick(input->customerNumer);
 
 	//int indexBeg = 100;
-	// TODO[0]:init方向，+inupt.customerNumer-1 相当于反方向转动
+	// NOTE[0]:init，+inupt.customerNumer-1 is means reverse traversal
 	int deltstep = input->customerNumer - 1;
 	if (random->pick(2) == 0) {
 		deltstep = 1;
@@ -801,7 +796,7 @@ void Solver::initSolutionMaxRoute() {
 	Vector<int>que1(input->customerNumer);
 	std::iota(que1.begin(), que1.end(), 1);
 	
-	//TODO[-1]:这里的排序，现在是乱序
+	//OPT[init max route]:can shuffle
 	//random->shuffleVec(que1);
 
 	auto cmp = [&](int x, int y) {
@@ -868,7 +863,7 @@ void Solver::initSolutionRandomly() {
 	Vector<int> orderCustomers(input->customerNumer);
 	std::iota(orderCustomers.begin(), orderCustomers.end(), 1);
 	
-	//TODO[-1]:这里的排序，现在是乱序
+	//OPT[-1]:random order
 	random->shuffleVec(orderCustomers);
 
 	int routeId = 0;
@@ -895,7 +890,7 @@ void Solver::initSolutionRandomly() {
 	}
 }
 
-void Solver::initSolution(int kind) {// 5种
+void Solver::initSolution(int kind) {//  find kind to init solution
 
 	rts.reset();
 
@@ -918,7 +913,7 @@ void Solver::initSolution(int kind) {// 5种
 }
 
 DeltaPenalty Solver::estimatevw(int kind, int v, int w, int oneR) {
-	// TODO[move]:查看邻域动作的编号
+	
 	switch (kind) {
 	case 0:return twoOptStarOpenvv_(v, w);
 	case 1:return twoOptStarOpenvvj(v, w);
@@ -944,7 +939,9 @@ DeltaPenalty Solver::estimatevw(int kind, int v, int w, int oneR) {
 	return bestM;
 }
 
-//开区间(twbegin，twend) twbegin，twend的各项值都是可靠的，开区间中间的点可以变化 twbegin，twend可以是仓库 
+//open interval(twbegin，twend) 
+// twbegin，twend the value is correct 
+// twbegin，twend are allowed be depot 
 DisType Solver::getaRangeOffPtw(int twbegin, int twend) {
 
 	DisType newwvPtw = customers[twbegin].TW_X;
@@ -1308,7 +1305,6 @@ DeltaPenalty Solver::outOnevTowwj(int v, int w, int oneR) { //3
 			//int back = (front == v ? w : v);
 
 			if (front == v) {
-
 				// v_ v vj  ... w wj ====> v_ vj ... w v wj
 				Vector<int> arr = { v_ };
 				auto vjTow = putCustomersInVectorBetweenTwoCus(vj, w);
@@ -1817,9 +1813,6 @@ DeltaPenalty Solver::swapOneOnevw(int v, int w, int oneR) { // 8
 DeltaPenalty Solver::swapOneOnevw_(int v, int w, int oneR) { // 6
 
 	// exchange v and (w_)
-	/*Route& rv = rts.getRouteByRouteId(customers[v].routeId);
-	Route& rw = rts.getRouteByRouteId(customers[w].routeId);*/
-
 	DeltaPenalty bestM;
 
 	int w_ = customers[w].prev;
@@ -1834,8 +1827,6 @@ DeltaPenalty Solver::swapOneOnevw_(int v, int w, int oneR) { // 6
 DeltaPenalty Solver::swapOneOnevwj(int v, int w, int oneR) { // 7
 
 	// exchange v and (w+)
-	/*Route& rv = rts.getRouteByRouteId(customers[v].routeId);
-	Route& rw = rts.getRouteByRouteId(customers[w].routeId);*/
 
 	DeltaPenalty bestM;
 
@@ -1847,7 +1838,7 @@ DeltaPenalty Solver::swapOneOnevwj(int v, int w, int oneR) { // 7
 	return swapOneOnevw(v, wj, oneR);
 }
 
-DeltaPenalty Solver::swapTwoOnevvjw(int v, int w, int oneR) { // 11 2换1
+DeltaPenalty Solver::swapTwoOnevvjw(int v, int w, int oneR) { // 11 swap(2,1)
 
 	// exchange vvj and (w)
 
@@ -2019,7 +2010,7 @@ DeltaPenalty Solver::swapTwoOnevvjw(int v, int w, int oneR) { // 11 2换1
 	return bestM;
 }
 
-DeltaPenalty Solver::swapOneTwovwwj(int v, int w, int oneR) { // 12 1换2
+DeltaPenalty Solver::swapOneTwovwwj(int v, int w, int oneR) { // 12 swap(1,2)
 
 	// exchange v and (ww+)
 	DeltaPenalty bestM;
@@ -2033,7 +2024,7 @@ DeltaPenalty Solver::swapOneTwovwwj(int v, int w, int oneR) { // 12 1换2
 
 }
 
-DeltaPenalty Solver::swapThreeTwovvjvjjwwj(int v, int w, int oneR) { // 9 3换2
+DeltaPenalty Solver::swapThreeTwovvjvjjwwj(int v, int w, int oneR) { // 9 swap(3,2)
 
 	// exchange vvjvjj and (ww+)
 	DeltaPenalty bestM;
@@ -2225,7 +2216,7 @@ DeltaPenalty Solver::swapThreeTwovvjvjjwwj(int v, int w, int oneR) { // 9 3换2
 	return bestM;
 }
 
-DeltaPenalty Solver::swapThreeOnevvjvjjw(int v, int w, int oneR) { // 10 三换一
+DeltaPenalty Solver::swapThreeOnevvjvjjw(int v, int w, int oneR) { // 10 swap(3,1)
 
 	// exchange vvjvjj and (w)
 	Route& rv = rts.getRouteByRouteId(customers[v].routeId);
@@ -2410,7 +2401,7 @@ DeltaPenalty Solver::swapThreeOnevvjvjjw(int v, int w, int oneR) { // 10 三换一
 	return bestM;
 }
 
-DeltaPenalty Solver::outTwovvjTowwj(int v, int w, int oneR) {  //13 扔两个
+DeltaPenalty Solver::outTwovvjTowwj(int v, int w, int oneR) {  //13 out two
 
 	DeltaPenalty bestM;
 
@@ -2555,7 +2546,7 @@ DeltaPenalty Solver::outTwovvjTowwj(int v, int w, int oneR) {  //13 扔两个
 	return bestM;
 }
 
-DeltaPenalty Solver::outTwovv_Toww_(int v, int w, int oneR) {  //14 扔两个左边
+DeltaPenalty Solver::outTwovv_Toww_(int v, int w, int oneR) {  //14 out two
 
 	DeltaPenalty bestM;
 
@@ -2580,7 +2571,7 @@ DeltaPenalty Solver::outTwovv_Toww_(int v, int w, int oneR) {  //14 扔两个左边
 
 }
 
-DeltaPenalty Solver::reversevw(int v, int w) {//15 翻转
+DeltaPenalty Solver::reversevw(int v, int w) {//15 reverse
 
 	DeltaPenalty bestM;
 
@@ -3220,7 +3211,7 @@ bool Solver::doExchange(TwoNodeMove& M) {
 	}
 	else if (M.kind == 9) {
 
-		//swapThreeTwovvjvjjwwj 3换2
+		//swapThreeTwovvjvjjwwj swap(3,2)
 		int wj = customers[w].next;
 		int vj = customers[v].next;
 		int vjj = customers[vj].next;
@@ -3294,7 +3285,7 @@ bool Solver::doExchange(TwoNodeMove& M) {
 	}
 	else if (M.kind == 10) {
 
-		//swapThreeOnevvjvjjw 3换1
+		//swapThreeOnevvjvjjw swap(3,1)
 		int v_ = customers[v].prev;
 		int vj = customers[v].next;
 		int vjj = customers[vj].next;
@@ -3360,7 +3351,7 @@ bool Solver::doExchange(TwoNodeMove& M) {
 		}
 	}
 	else if (M.kind == 11) {
-		//swapTwoOnevvjw 2换1
+		//swapTwoOnevvjw swap(2,1)
 		int v_ = customers[v].prev;
 		int vj = customers[v].next;
 		int w_ = customers[w].prev;
@@ -3630,10 +3621,6 @@ Vector<int> Solver::getPtwNodes(Route& r, int ptwKind) {
 			}
 			pt = customers[pt].next;
 		}
-		//TODO[7]:记得注释掉下面的
-		//if (pt != endNode) {
-		//	debug(pt);
-		//}
 	};
 
 	auto findRangeCanDePtw1 = [&]() {
@@ -3697,7 +3684,8 @@ Vector<int> Solver::getPtwNodes(Route& r, int ptwKind) {
 		getPtwNodesByFirstPtw();
 	}
 	else if (ptwKind == 1) {
-		// TODO[1]: 一定可以加速 从后向前找last 从前向后找first
+		// OPT[1]: Tips for acceleration,
+		//find last:begin from back of route,find first:begin from front of route
 		getPtwNodesByLastPtw();
 	}
 
@@ -4574,7 +4562,7 @@ bool Solver::routeWeightedRepair() {
 
 void Solver::ruinClearEP(int kind) {
 
-	// 保存放入节点的路径，放入结束之后只更新这些路径的cost值
+	// save the route ids，where only change these routes,only update data of them
 	std::unordered_set<int> insRts;
 	
 	Vector<int> EPArr = EP.putElementInVector();
@@ -4709,92 +4697,13 @@ Vector<int> Solver::ruinGetRuinCusBySting(int ruinKmax, int ruinLmax) {
 		++wpos;
 	}
 
-	#if 0
-	auto splitAndmiddle = [&](int beg) {
-
-		Route& r = rts.getRouteByRouteId(customers[beg].routeId);
-
-		int ruinL = random->pick(1, ruinLmax + 1);
-
-		int ruinCusNumInRoute = std::min<int>(r.rCustCnt, ruinL);
-		
-		int mputBack = 0;
-		if (random->pick(100) < aps->ruinSplitRate) {
-			int maxMCusPutBack = r.rCustCnt - ruinCusNumInRoute;
-			if (maxMCusPutBack > 0) {
-				mputBack = ruinGetSplitDepth(maxMCusPutBack);
-			}
-		}
-
-		if (mputBack != 0) {
-			ruinCusNumInRoute += mputBack;
-		}
-		int cusNumAfterbeg = 0;
-		int pbeg = beg;
-		for (; pbeg <= input->customerNumer; pbeg = customers[pbeg].next) {
-			++cusNumAfterbeg;
-		}
-		cusNumAfterbeg -= 1;
-		// 在beg的位置最多向前走ruinCusNumInRoute-1 步数
-		//// 在beg的位置至少向前走ruinCusNumInRoute - (cusNumAfterbeg + 1) 步数
-		int minStepFward = ruinCusNumInRoute - (cusNumAfterbeg + 1);
-		
-		int cusNumbegorebeg = r.rCustCnt - cusNumAfterbeg - 1;
-		minStepFward =std::max<int>(0, minStepFward);
-
-		int preStep = random->pick(minStepFward, cusNumbegorebeg + 1);
-		
-		int pt = beg;
-		for (int i = 0; i < preStep; ++i) {
-			//int wposMax = random->pick(1, avg * 2 + 1);
-			if (pt > input->customerNumer) {
-				break;
-			}
-			//arr.push_back(pt);
-			pt = customers[pt].prev;
-		}
-
-		if (pt > input->customerNumer) {
-			pt = customers[pt].next;
-		}
-
-		// 第一段长度是(ruinCusNumInRoute - mputBack) / 2
-		int firstPartMax = (ruinCusNumInRoute - mputBack) / 2;
-		int firstPart = 0;
-		for (int i = 0; i < firstPartMax; ++i) {
-			//int wposMax = random->pick(1, avg * 2 + 1);
-			if (pt > input->customerNumer) {
-				break;
-			}
-			++firstPart;
-			uset.insert(pt);
-			pt = customers[pt].next;
-		}
-
-		//跳过mputBack个
-		for (int i = 0; i < mputBack; ++i) {
-			pt = customers[pt].next;
-		}
-
-		int secPart = ruinCusNumInRoute - mputBack - firstPart;
-
-		for (int i = 0; i < secPart; ++i) {
-			if (pt > input->customerNumer) {
-				break;
-			}
-			uset.insert(pt);
-			pt = customers[pt].next;
-		}
-
-	};
-	#else
 	auto splitAndmiddle = [&](int beg) {
 		Route& r = rts.getRouteByRouteId(customers[beg].routeId);
 		auto a = rPutCustomersInVector(r);
 		int n = r.rCustCnt;
 		int index = static_cast<int>(std::find(a.begin(), a.end(),beg) - a.begin());
 
-		//refinement m+t 个 把t个放回来
+		//refinement m+t put back t customers
 
 		int ruinL = random->pick(1, ruinLmax + 1);
 
@@ -5000,8 +4909,7 @@ void Solver::perturbBasedEjectionPool(int ruinCusNum) {
 	sumRoutesPenalty();
 	bool isej = AWLS();
 	if (isej) {
-		//TODO[-1]:这里去掉了
-		//reCalRtsCostAndPen();
+		;
 	}
 	else {
 		*this = clone;
@@ -5047,8 +4955,7 @@ bool Solver::perturbBasedRuin(int perturbkind, int ruinCusNum,int clearEPKind) {
 	ruinCusNum = std::min<int>(ruinCusNum,input->customerNumer / 2);
 
 	gamma = 1;
-	//TODO[4][1]:这里可能可以去掉，如果之前每一条路径的cost都维护的话
-	//TODO[4][2]:但是接到扰动后面就不太行了
+	//OPT[4][1]:this recalucate may can be delete
 	reCalRtsCostSumCost();
 
 	Solver pClone = *this;
@@ -5071,7 +4978,7 @@ bool Solver::perturbBasedRuin(int perturbkind, int ruinCusNum,int clearEPKind) {
 				;
 			}
 		}
-		else { // has pen
+		else { // has penalty
 			if (this->penalty < penMinSol.penalty) {
 				hasPenMinSol = true;
 				penMinSol = *this;
@@ -5111,8 +5018,7 @@ bool Solver::perturbBasedRuin(int perturbkind, int ruinCusNum,int clearEPKind) {
 int Solver::ruinLocalSearchNotNewR(int ruinCusNum) {
 
 	gamma = 1;
-	//TODO[4][1]:这里可能可以去掉，如果之前每一条路径的cost都维护的话
-	//TODO[4][2]:但是接到扰动后面就不太行了
+	//OPT[ruin local search not new route]:this recalucate may be can be deletes
 	reCalRtsCostSumCost();
 
 	auto solclone = *this;
@@ -5281,9 +5187,6 @@ int Solver::CVB2ruinLS(int ruinCusNum) {
 		simpleLocalSearch(1, cuses);
 	}
 
-	//TODO[-1]:这里去掉了reCalRtsCostAndPen
-	//reCalRtsCostAndPen();
-
 	if (RoutesCost < solClone.RoutesCost) {
 		++pcRuKind.data[perturbkind];
 		++pcCLKind.data[clearKind];
@@ -5352,13 +5255,11 @@ Vector<int> Solver::getRuinCustomers(int perturbkind, int ruinCusNum) {
 		int avgLen = input->customerNumer / rts.cnt;
 		int Lmax = std::min<int>(aps->ruinLmax, avgLen);
 		int ruinKmax = 4 * ruinCusNum / (1 + Lmax) - 1;
-		//TODO[-1]:!!!!!!
 		ruinKmax = std::min<int>(rts.cnt - 1, ruinKmax);
 		ruinKmax = std::max<int>(1, ruinKmax);
 		ruinCus = ruinGetRuinCusBySting(ruinKmax, Lmax);
 	}
 	else if (perturbkind == 3) {
-		// TODO[-1]:随机删除customers
 		ruinCus = ruinGetRuinCusByRand(ruinCusNum);
 	}
 	else if (perturbkind == 4) {
@@ -5404,8 +5305,6 @@ void Solver::perturb(int Irand) {
 			for (int i = 0; i < m; ++i) {
 				int wpos = ve[i];
 
-				//TODO[-1]:这里改成了addSTclose
-				//int w = input->allCloseOf[v][wpos];
 				int w = input->addSTclose[v][wpos];
 				if (customers[w].routeId == -1
 					//|| customers[w].routeId == customers[v].routeId
@@ -5676,7 +5575,6 @@ Solver::eOneRNode Solver::ejectOneRouteOnlyP(Route& r, int kind, int Kmax) {
 		updateAvfromSubRoute(next);
 	};
 
-	// 使用公式二 利用v的avp计算Ptw
 	auto getPtwUseEq2 = [&](int v) {
 
 		DisType avp = getAvpOf(v);
@@ -5714,7 +5612,7 @@ Solver::eOneRNode Solver::ejectOneRouteOnlyP(Route& r, int kind, int Kmax) {
 			DisType avnp = customers[prev].av + input->datas[prev].SERVICETIME + input->getDisof2(prev,next);
 			ptw = std::max<DisType>(0, avnp - customers[next].zv) + customers[next].TWX_ + customers[prev].TW_X;
 
-			if (customers[prev].TW_X > 0) { // 剪枝 删除ik之后 前面的时间窗没有消除
+			if (customers[prev].TW_X > 0) { // prune after delte ik, the ptw still exist
 				return etemp;
 			}
 
@@ -5774,8 +5672,7 @@ Solver::eOneRNode Solver::ejectOneRouteOnlyP(Route& r, int kind, int Kmax) {
 
 			int delv = ptwArr[ve[k]];
 
-			// 考虑相同所有Psum 的方案 >
-			// 不考虑相同所有Psum 的方案 >=
+			// only compare the Psum  > , not conside the equal
 			while (etemp.Psum + input->P[delv] > noTabuN.Psum && ve[k] < N) {
 				++ve[k];
 				delv = ptwArr[ve[k]];
@@ -5804,8 +5701,7 @@ Solver::eOneRNode Solver::ejectOneRouteOnlyP(Route& r, int kind, int Kmax) {
 
 			++ve[k];
 
-			// 考虑相同所有Psum 的方案 >
-			// 不考虑相同所有Psum 的方案 >=
+			// only compare the Psum  > , not conside the equal
 			if (etemp.Psum > noTabuN.Psum) {
 				;
 			}
@@ -5978,8 +5874,6 @@ void Solver::simpleClearEP() {
 		int top = arr[EPIndex];
 
 		Position bestP = findBestPositionInSolution(top);
-		//TODO[0]:这里改了findBestPosInSolForInit
-		//Position bestP = findBestPosInSolForInit(top);
 
 		if (bestP.pen == 0) {
 
@@ -6033,7 +5927,7 @@ bool Solver::AWLS() {
 			if (EpCusNoDown % 10000 == 0) {
 
 				//aps->minKmax = 1;
-				// 调整 minKmax 在1 2 之间切换
+				// change minKmax between 1 and 2
 				//aps->minKmax = 3 - aps->minKmax;
 				Logger::INFO("aps->minKmax:", aps->minKmax);
 			}
@@ -6048,8 +5942,6 @@ bool Solver::AWLS() {
 		int top = EP.randomPeek(random);
 
 		Position bestP = findBestPositionInSolution(top);
-		//TODO[0]:这里改了findBestPosInSolForInit
-		//Position bestP = findBestPosInSolForInit(top);
 
 		Route& r = rts[bestP.rIndex];
 		EP.removeVal(top);
@@ -6253,8 +6145,7 @@ bool Solver::adjustRouteNumber(int ourTarget) {
 		while (rts.cnt < ourTarget) {
 
 			int index = -1;
-			//int choseNum = 0;
-			//TODO[-1]:这里修改成了顾客平均间距最大的
+
 			for (int i = 0; i < rts.cnt; ++i) {
 				Route& ri = rts[i];
 
@@ -6276,9 +6167,6 @@ bool Solver::adjustRouteNumber(int ourTarget) {
 			auto vsp = findBestPosToSplit(r);
 
 			auto arr = rPutCustomersInVector(r);
-
-			//Logger::INFO("vsp", vsp);
-			//printve(arr);
 
 			for (int i = 0; i < static_cast<int>(arr.size()); ++i) {
 				rRemoveAtPosition(r, arr[i]);
@@ -6365,7 +6253,7 @@ bool Solver::repair() {
 		if (contiNotDe > repairExitStep) {
 			break;
 		}
-		//TODO[2][repair]:这里修复的邻域动作究竟怎么选
+		//OPT[repair]:how to choose neiboorhood may be improved
 		TwoNodeMove bestM = getMovesRandomly(updateBestM);
 
 		if (bestM.deltPen.PcOnly + bestM.deltPen.PtwOnly > 0) {
@@ -6406,8 +6294,6 @@ bool Solver::repair() {
 			++contiNotDe;
 		}
 	}
-	//TODO[2][repair]:打印修复贡献
-	//printve(moveContribute);
 
 	reCalRtsCostAndPen();
 
@@ -6470,7 +6356,7 @@ bool Solver::simpleLocalSearch(int hasRange,Vector<int> newCus) {
 		MRLbestM.reset();
 		bool isFind = false;
 
-		//TODO[-1]:这里给邻域动作按照贡献排序了
+		//OPT[simple local search]:sort the neiborhood by attribution
 		std::sort(moveKindOrder.begin(), moveKindOrder.end(), [&](int a, int b) {
 			return contribution[a] > contribution[b];
 		});
@@ -6501,7 +6387,6 @@ bool Solver::simpleLocalSearch(int hasRange,Vector<int> newCus) {
 
 				int wpos = i;
 
-				//TODO[-1]:这里改成了addSTclose
 				int w = input->addSTclose[v][wpos];
 
 				if (customers[w].routeId == -1) {
@@ -6604,7 +6489,6 @@ bool Solver::simpleLocalSearch(int hasRange,Vector<int> newCus) {
 
 		RoutesCost += bestM.deltPen.deltCost;
 
-		//TODO[-1]如果不更新下面两条路径的cost 会把没有更新的cost赋值给bks
 		rReCalculateRouteCost(rv);
 		rReCalculateRouteCost(rw);
 
@@ -6657,7 +6541,6 @@ bool Solver::simpleLocalSearch(int hasRange,Vector<int> newCus) {
 
 	}
 
-	//TODO[5]:这个更新必须有 因为搜索工程中没有更新每一条路径的routeCost
 	sumRoutesCost();
 
 	return true;

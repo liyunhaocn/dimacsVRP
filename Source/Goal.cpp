@@ -102,7 +102,7 @@ DisType Goal::doTwoKindEAX(Solver& pa, Solver& pb, int kind) {
 	return paBest.RoutesCost;
 }
 
-void Goal::EAMA(int rn) { // 1 代表更新了最优解 0表示没有
+void Goal::EAMA(int rn) { // 1 update bks 0 not update bks
 
 	auto& pool = mapOfPopulation[rn];
 
@@ -158,7 +158,7 @@ void Goal::EAMA(int rn) { // 1 代表更新了最优解 0表示没有
 
 int Goal::gotoPopulationAtRouteNumber(int rn) {
 
-	if (rn < routeNumberLowerBound || rn > routeNumberUpperBound) { //r如果是
+	if (rn < routeNumberLowerBound || rn > routeNumberUpperBound) {
 		return routeNumberLowerBound;
 	}
 

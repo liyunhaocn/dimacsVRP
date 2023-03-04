@@ -35,12 +35,12 @@ EAX::EAX(Solver& pa, Solver& pb) :
 	generateGab();
 };
 
-/* 从边到哈希码 */
+/* from edge to hash code */
 int EAX::toCode(int i, int j) {
 	return i * supportNumNodes + j;
 }
 
-/* 从哈希码到边 */
+/* get edge from hash code */
 EAX::Edge EAX::toEdge(int code) {
 	Edge e;
 	e.a = code / supportNumNodes;
@@ -48,7 +48,6 @@ EAX::Edge EAX::toEdge(int code) {
 	return e;
 }
 
-/* 双亲边集分类 */
 void EAX::generateGab() {
 
 	auto getAllEdgeInSol = [&](Solver& ps, Owner owner) {
@@ -131,7 +130,6 @@ void EAX::generateGab() {
 	#endif // LYH_CHECKING
 }
 
-/* 分解 GAB, 获得 AB-Cycle */
 void EAX::generateCycles() {
 
 	tabuCyIds.clear();
@@ -142,13 +140,10 @@ void EAX::generateCycles() {
 	}
 
 	Vector<Vector<int>> cusVisitTime(eaxCusCnt + 1);
-	//TODO[-1]bug!!!!!
-	//cusVisitTime.reserve(eaxRCnt * 2);
+
 	for (int i = 1; i <= eaxCusCnt; ++i) {
 		cusVisitTime[i].reserve(4);
 	}
-	//记录一个customer是第几步访问到的
-	//*(cusCnt + rCnt)
 
 	Vector<int> genAbCy(2 * (eaxCusCnt + eaxRCnt), 0);
 
@@ -285,12 +280,10 @@ void EAX::generateCycles() {
 		}
 	}
 
-	//TODO: 这玩意只在生成abcy换之后才发生变化 所以放在这里
+	// this change only abcyle changed,so call at this
 	getUnionArr();
 }
 
-/* 仅复制个体的客户节点连接信息 */
-//对个体应用给定 AB-Cycle; 目标路径数为 `params.preprocess.numRoutes`
 bool EAX::applyOneCycle(int& cycleIndex, Solver& pc) {
 
 	Vector<int>& cycle = abCycleSet[cycleIndex];
@@ -352,7 +345,7 @@ bool EAX::applyOneCycle(int& cycleIndex, Solver& pc) {
 	return true;
 }
 
-/* 对个体应用给定 eSet 集合; */
+// eset
 bool EAX::applyCycles(const Vector<int>& cyclesIndexes, Solver& pc) {
 	for (int index : cyclesIndexes) {
 		applyOneCycle(index, pc);
@@ -361,12 +354,6 @@ bool EAX::applyCycles(const Vector<int>& cyclesIndexes, Solver& pc) {
 }
 
 bool updateBestPos(Solver::Position& ret,Solver::Position& temp) {
-
-	//if (temp.cost + 0*temp.pen < ret.cost + 0*ret.pen) {
-	//	ret = temp;
-	//	return true;
-	//}
-	//return false;
 
 	if (temp.pen < ret.pen) {
 		ret = temp;
@@ -405,10 +392,6 @@ Solver::Position EAX::findBestPosRemoveSubtour(Solver& pc, int w, int wj, DisTyp
 		DisType rPc = std::max<DisType>(0, rt.rQ + deInSub - pc.input->vehicleCapacity);
 		rPc = rPc - oldrPc;
 
-		//if (rPc > ret.pen) {
-		//	continue;
-		//}
-
 		while (v != -1 && vj != -1) {
 
 			DisType oldrPtw = pc.rts[i].rPtw;
@@ -442,7 +425,6 @@ Solver::Position EAX::findBestPosRemoveSubtour(Solver& pc, int w, int wj, DisTyp
 			posTemp.pos = v;
 			//posTemp.year = year;
 			//posTemp.secDis = abs(input->datas[w].polarAngle - input->datas[v].polarAngle);
-			// TODO[-1]:移除子环的方式，目标函数
 
 			updateBestPos(ret,posTemp);
 
@@ -592,11 +574,11 @@ void EAX::getUnionArr() {
 	}
 }
 
-//TODO[!]eax 返回值的含义
 /*
-	返回值的含义：-1 全部被禁忌了没有能选的abcy，但是可以再次重新生成abcy
-				1 正常修复
-				0 没能正常修复
+*	return：	
+*	-1 all abcycle is tabu,there no cycle can be chose
+*	1 can repair 
+*	0 can not repair
 */
 
 int EAX::doNaEAX(Solver& pc) {
@@ -632,7 +614,6 @@ int EAX::doNaEAX(Solver& pc) {
 	removeSubring(pc);
 	pc.reCalRtsCostAndPen();
 		
-	//TODO[0]:这里考虑是否可以在没有子换的情况下再禁忌
 	if (aps->abCycleWinkRate == 100) {
 		tabuCyIds.insert(choosecyIndex);
 	}
@@ -663,26 +644,17 @@ int EAX::doNaEAX(Solver& pc) {
 
 int EAX::doPrEAX(Solver& pc) {
 
-	//generateCycles();
 	repairSolNum = 0;
 	generSolNum = 1;
 
-	//TODO[lyh][001]:最多放置多少个abcycle[2,(abcyNum)/2],pick 是开区间
+	// the number of apply abcycle [2,(abcyNum)/2]
 	int abcyNum = static_cast<int>(abCycleSet.size());
-
-	//static ProbControl probc(input->customerNumer/2);
-	////int numABCyUsed = 2;
-	//int numABCyUsed = probc.getIndexBasedData(3) + 2;
-	////int numABCyUsed = probc.getIndexBasedData(std::min<int>(2,abcyNum / 2 + 1) ) + 2;
-	////int numABCyUsed = random->pick(2, abcyNum/2+1);
-	////int numABCyUsed = random->pick(2, 10);
-	//numABCyUsed = std::min<int>(numABCyUsed, abcyNum-1);
 
 	int putMax = abcyNum/2;
 	//int putMax = random->pick(2, abcyNum / 2 + 1);
 	int numABCyUsed = 2;
 	for (int i = 3; i <= putMax; ++i) {
-		// TODO[-1]:这里可以调整 放置多少个abcy
+		// OPT[abcyle]:this can be changed to adjust number of abcys to use
 		if (random->pick(100) < 80) {
 			numABCyUsed = i;
 		}
@@ -710,7 +682,7 @@ int EAX::doPrEAX(Solver& pc) {
 
 	for (int uId : unionIndexOrder) {
 
-		//将一个并查集的所有abcyindex保存起来
+		// save all abcycles indexs
 		for (int cy : unionArr[uId]) {
 			cyInUnion.insert(cy);
 		}

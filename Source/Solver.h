@@ -35,7 +35,7 @@ public:
 	Route() {
 
 		routeId = -1;
-		rCustCnt = 0; //没有计算仓库
+		rCustCnt = 0; //not include depot
 		rQ = 0;
 		head = -1;
 		tail = -1;
@@ -65,7 +65,7 @@ public:
 	Route(int rid) {
 
 		this->routeId = rid;
-		this->rCustCnt = 0; //没有计算仓库
+		this->rCustCnt = 0; //not include depot
 		this->head = -1;
 		this->tail = -1;
 		this->rQ = 0;
@@ -641,7 +641,6 @@ public:
 		return newPtw + std::max<DisType>(0, lastav - customers[cusv.back()].zv);
 	}
 
-	//开区间(twbegin，twend) twbegin，twend的各项值都是可靠的，开区间中间的点可以变化 twbegin，twend可以是仓库 
 	DisType getaRangeOffPtw(int twbegin, int twend);
 
 	DeltaPenalty twoOptStarOpenvv_(int v, int w);

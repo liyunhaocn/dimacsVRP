@@ -69,29 +69,6 @@ void Input::initDetail() {
 	for (int v = 0; v <= customerNumer; ++v) {
 
 		auto cmp = [&](const int a, const int b) {
-
-			//TODO[-1] 这里的比较方式进行了修改
-			//return disOf[v][a] < disOf[v][b];
-			//return disOf[v][a] + datas[a].SERVICETIME <
-			//	disOf[v][b] + datas[b].SERVICETIME;
-
-			//if (disOf[a][v] == disOf[b][v]) {
-			//	return datas[a].DUEDATE < datas[b].DUEDATE;
-			//}
-			//else {
-			//	return disOf[a][v] < disOf[b][v];
-			//}
-			//return true;
-
-			//int aLinkv = canLinkNode(a, v);
-			//int bLinkv = canLinkNode(b, v);
-			//if ((aLinkv && bLinkv) || (!aLinkv && !bLinkv)) {
-			//	return disOf[v][a] + datas[a].SERVICETIME <
-			//		disOf[v][b] + datas[b].SERVICETIME;
-			//}
-			//else {
-			//	return aLinkv ? true : false;
-			//}
 			
 			int aLinkv = canLinkNode(a, v);
 			int bLinkv = canLinkNode(b, v);
@@ -166,11 +143,10 @@ void Input::initInput() {
 	Qbound = std::max<int>(Qbound, 2);
 
 	/*
-		sqrt函数有三种形式
+		sqrt have three kind
 		double sqrt(double x);
 		float sqrtf(float x);
 		long double sqrtl(long double x);
-		float精度最低，double较高，long double精度最高
 	*/
 
 	sectorClose = util::Array2D<int>(customerNumer + 1, customerNumer,0);
@@ -189,7 +165,7 @@ void Input::initInput() {
 			return abs(datas[a].polarAngle - datas[v].polarAngle)
 				< abs(datas[b].polarAngle - datas[v].polarAngle);
 		};
-		//TODO[-1]:这里的排序比较浪费时间，去掉可以节省一般的初始化时间
+		//OPT[init] the sort will take much time, it can be quick when sort in initDetial
 		std::sort(sectorClose[v], sectorClose[v] + sectorClose.size2(), cmp);
 	}
 
@@ -207,7 +183,7 @@ void Input::initInput() {
 
 		auto cmp = [&](const int a, const int b) {
 
-			//TODO[-1] 这里的比较方式进行了修改
+			//OPT[-1] this can be changed below
 			//return disOf[v][a] < disOf[v][b];
 			//return disOf[v][a] + datas[a].SERVICETIME <
 			//	disOf[v][b] + datas[b].SERVICETIME;
@@ -580,9 +556,6 @@ void Input::readInstanceFormatCVRPLIB() {
 }
 
 int Input::partition(int* arr, int start, int end, std::function<bool(int, int)>cmp) {
-	//int index = ( [start, end] (void)  //我试图利用随机法，但是这不是快排，外部输入不能保证end-start!=0，所以可能发生除零异常
-	//              {return random()%(end-start)+start;} )(); 
-	//std::swap(arr[start], arr[end]);
 
 	int small = start - 1;
 	for (int index = start; index < end; ++index) {

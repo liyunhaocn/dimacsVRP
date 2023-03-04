@@ -109,7 +109,7 @@ struct AlgorithmParameters {
 	int weightUpStep = 1;
 	int yearTabuLen = 10;
 	int yearTabuRand = 10;
-	// TODO[0]:看需不需要频繁构造 1000 stepC2_8_7 需要20s C1_6_6 需要6s
+	// 1000 step:C2_8_7 took 20s C1_6_6 took 6s
 	int ejectLSMaxIter = 50;
 
 	~AlgorithmParameters() {}
