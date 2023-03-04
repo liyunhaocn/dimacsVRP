@@ -549,6 +549,16 @@ static inline std::string int_str(int s) {
     return ss.str();
 }
 
+static inline void removeChar(std::string& str, const char c) {
+    for (auto it = str.begin(); it != str.end();) {
+        if (*it == c) {
+            it = str.erase(it);
+        }else{
+            ++it;
+        }
+    }
+}
+
 }
 
 namespace vectool {

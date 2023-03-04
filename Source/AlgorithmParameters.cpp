@@ -10,51 +10,6 @@ namespace hust {
 
 void AlgorithmParameters::displayInfo() {
 
-	//squContiIter = 100;
-	//squMinContiIter = 100;
-	//maxStagnationIterOfRepair = 199;
-	//squIterStepUp = 10;
-	//weightUpStep = 1;
-	//perturbIrand = 400;
-	//runTimer = 1800; //s
-	//neiMoveKind = 16;
-	//Pwei0 = 1;
-	//Pwei1 = 2;
-	//minKmax = 1;
-	//maxKmax = 4;
-	//yearTabuLen = 10;
-	//yearTabuRand = 10;
-	//ejectLSMaxIter = 200;
-	//populationSize = 4;
-	//populationSizeMin = 4;
-	//populationSizeMax = 50;
-	//repairExitStep = 5;
-	//namaEaxCh = 20;
-	//perturbNeiborRange = 60;
-	//patternAdjustmentGetM = 10;
-	//broaden = 1.2;
-	//broadenWhenPos_0 = 20;
-	//outNeiborSize = 50;
-	//neiborSizeMin = 20;
-	//neiborSizeMax = 50;
-	//ruinLocalSearchNextNeiBroad = 5;
-	//ruinSplitRate = 0; // %100 means ruinSplitRate%
-	//ruinLmax = 20;
-	//ruinC_ = 15;
-	//ruinC_Min = 15;
-	//ruinC_Max = 35;
-	//ruinWinkRate = 90; // 100
-	//initWinkRate = 80; // 100
-	//abCycleWinkRate = 99; // 100
-	//sintefRecRN = -1;
-	//sintefRecRL = -1;
-	//naRecRN = -1;
-	//naRecRL = -1;
-	//d15RecRN = -1;
-	//d15RecRL = -1;
-	//lkhRN = -1;
-	//lkhRL = -1;
-	//cmdIsopt = -1;
 	Logger::INFO("customersWeight1:", customersWeight1);
 	Logger::INFO("customersWeight2:", customersWeight2);
 	Logger::INFO("minKmax:", minKmax);
@@ -63,13 +18,13 @@ void AlgorithmParameters::displayInfo() {
 
 void AlgorithmParameters::check(int cusCnt) {
 
-	assert(outNeiborSize < cusCnt);
-	assert(broadenWhenPos_0<=cusCnt);
-	assert(perturbNeiborRange<cusCnt);
-	assert(neiborRange[0] < cusCnt);
-	assert(neiborRange[1] < cusCnt);
-	assert(neiborRange[0] <= neiborRange[1]);
-	assert(ruinC_ < cusCnt);
+	if (outNeiborSize >= cusCnt) throw std::string("outNeiborSize >= cusCnt");
+	if(broadenWhenPos_0 > cusCnt)throw std::string("broadenWhenPos_0 > cusCnt");
+	if(perturbNeiborRange >= cusCnt)throw std::string("perturbNeiborRange >= cusCnt");
+	if(neiborRange[0] >= cusCnt)throw std::string("neiborRange[0] >= cusCnt");
+	if(neiborRange[1] >= cusCnt)throw std::string("neiborRange[1] >= cusCnt");
+	if(neiborRange[0] > neiborRange[1])throw std::string("neiborRange[0] > neiborRange[1]");
+	if(ruinC_ >= cusCnt)throw std::string("ruinC_ >= cusCnt");
 }
 
 }

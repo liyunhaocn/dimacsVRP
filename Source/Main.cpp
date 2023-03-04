@@ -5,11 +5,10 @@
 
 //../Instances/Homberger/C1_8_2.txt ../SolverParameters.json ../Results 
 // bks 24974.1
-
+//../Instances/ortec/ORTEC-VRPTW-ASYM-00c5356f-d1-n258-k12
 int main(int argc, char* argv[])
 {
 	using namespace hust;
-
 	CommandLine commandLine(argc, argv);
 
 	Json parameters;
@@ -26,17 +25,15 @@ int main(int argc, char* argv[])
 	}
 
 	Input input(&commandLine);
-
 	commandLine.check();
 	commandLine.aps.check(input.customerNumer);
-
 	commandLine.displayInfo();
 	input.displayInfo();
 	commandLine.aps.displayInfo();
 
 	Goal goal(&input);
-
 	goal.run();
+	goal.saveBestFoundSolution();
 
 	return 0;
 }

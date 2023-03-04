@@ -4739,9 +4739,7 @@ Vector<int> Solver::ruinGetRuinCusBySting(int ruinKmax, int ruinLmax) {
 			uset.insert(a[strbeg + t + i]);
 			//eArr.push_back(a[strbeg + frontStr + t + i]);
 		}
-
 	};
-	#endif
 
 	for (int beg : begCusSet) {
 		splitAndmiddle(beg);

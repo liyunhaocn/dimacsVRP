@@ -14,7 +14,7 @@
 #include "Arr2D.h"
 #include "json.h"
 
-#define LYH_CHECKING 0
+#define LYH_CHECKING 1
 #if LYH_CHECKING
 
 #define lyhCheckTrue(x) {				\

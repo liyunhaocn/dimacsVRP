@@ -18,19 +18,6 @@ Input::Input(CommandLine* commandLine):
 	randomx(commandLine->seed),
 	timer(commandLine->runTimer) {
 
-	//String example = aps->inputPath;
-	//int txtPos = example.find(".txt");
-	//example = example.substr(0, txtPos);
-	//int slich = example.find("Homberger/");
-	//if (slich != -1) {
-	//	slich += 9;
-	//}
-	//else {
-	//	slich = example.find("Solomon/");
-	//	slich += 7;
-	//}
-	//example = example.substr(slich + 1);
-
 	readInstanceFormatCVRPLIB();
 
 	initInput();

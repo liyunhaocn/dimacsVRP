@@ -22,7 +22,6 @@ struct Goal {
 	RandomX* randomx = nullptr;
 	Timer* timer = nullptr;
 	
-	
 	std::queue<int> alternativeRouteNumbers;
 
 	Goal(Input*input);
@@ -50,6 +49,9 @@ struct Goal {
 	int run();
 
 	void initialMapOfPopulation();
+
+	void saveBestFoundSolution();
+
 };
 
 

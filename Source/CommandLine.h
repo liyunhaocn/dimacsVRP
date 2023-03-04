@@ -72,26 +72,44 @@ public:
 		this->instancePath = String(argv[1]);
 		this->parametersPath = String(argv[2]);
 		this->outputDir = String(argv[3]);
+
+		if (this->outputDir.size() == 0) {
+			throw std::invalid_argument("the output directory is required");
+		}
+
+		if (this->outputDir.back() == '\\' || this->outputDir.back() == '/') {
+			;
+		}
+		else {
+			this->outputDir += '/';
+		}
+
+		String outputName = instancePath;
+		strtool::removeChar(outputName, '\\');
+		strtool::removeChar(outputName, '/');
+		strtool::removeChar(outputName, '.');
+		std::fstream fs1(this->outputDir + outputName + ".txt", std::ios::in | std::ios::out | std::ios::app);
+		if (!fs1)
+			throw std::invalid_argument("something wrong with output directory: " + this->outputDir);
+		this->outputDir += outputName + ".txt";
+		fs1.clear();
+		fs1.close();
 	}
 
 	void check() {
 
 		// check the dir exist
-		std::fstream fs1;
-		std::fstream fs2;
-		std::fstream fs3;
-		fs1.open(this->instancePath.c_str(),std::ios::in);
-		fs2.open(this->parametersPath.c_str(),std::ios::in);
-		fs3.open(this->outputDir.c_str(),std::ios::in);
-		assert(fs1 != nullptr);
-		assert(fs2 != nullptr);
-		assert(fs3 != nullptr);
+		std::fstream fs1(this->instancePath);
+		if (!fs1)
+			throw std::invalid_argument("Impossible to instance file: " + this->instancePath);
+		std::fstream fs2(this->parametersPath);
+		if (!fs2)
+			throw std::invalid_argument("Impossible to parameters file: " + this->parametersPath);
+		
 		fs1.clear();
 		fs2.clear();
-		fs3.clear();
 		fs1.close();
 		fs2.close();
-		fs3.close();
 	}
 
 	void displayInfo() {

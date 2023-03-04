@@ -388,7 +388,7 @@ int Goal::run() {
 	DisType bksLastLoop = bks.bestSolFound.RoutesCost;
 	int stagnation = 0;
 
-	while (true) {
+	while (!timer->isTimeOut()) {
 		
 		int& neiSize = aps->neiborRange[1];
 
@@ -439,6 +439,32 @@ int Goal::run() {
 	timer->disp();
 
 	return true;
+}
+
+void Goal::saveBestFoundSolution() {
+
+	String outputFilePath = input->commandLine->outputDir;
+
+	std::fstream fs1(outputFilePath, std::ios::in | std::ios::out | std::ios::app);
+
+	auto& bestSolFound = bks.bestSolFound;
+
+	for (int i = 0; i < bestSolFound.rts.cnt; ++i) {
+		Route& r = bestSolFound.rts[i];
+		fs1<< "Route #" << i + 1<<":";
+		auto arr = bestSolFound.rPutCustomersInVector(r);
+		for (int pt :arr) {
+			fs1<<" "<< pt;
+		}
+		fs1 << std::endl; 
+	}
+
+	char a[30];
+	snprintf(a,30,"Cost %.1lf\n", double(bestSolFound.RoutesCost) / 10);
+	fs1 << a;
+
+	fs1.clear();
+	fs1.close();
 }
 
 }
