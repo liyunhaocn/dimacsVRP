@@ -542,7 +542,7 @@ public:
 	// route function
 	Route rCreateRoute(int id);
 
-	DisType rUpdatePc(Route& r);
+	void rUpdatePc(Route& r);
 
 	bool rReset(Route& r);
 
@@ -558,7 +558,7 @@ public:
 
 	void rNextDisplay(Route& r);
 
-	bool rUpdateAvQFrom(Route& r, int vv);
+	void rUpdateAvQFrom(Route& r, int vv);
 
 	void rUpdateZvQFrom(Route& r, int vv);
 

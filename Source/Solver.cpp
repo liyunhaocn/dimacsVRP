@@ -125,7 +125,7 @@ Route Solver::rCreateRoute(int id) {
 
 }
 
-DisType Solver::rUpdatePc(Route& r) {
+void Solver::rUpdatePc(Route& r) {
 
 	int pt = r.head;
 	r.rQ = 0;
@@ -134,7 +134,6 @@ DisType Solver::rUpdatePc(Route& r) {
 		pt = customers[pt].next;
 	}
 	r.rPc = std::max<DisType>(0, r.rQ - input->vehicleCapacity);
-	return r.rPc;
 }
 
 bool Solver::rReset(Route& r) {
@@ -259,7 +258,7 @@ void Solver::rNextDisplay(Route& r) {
 	std::cout << std::endl;
 }
 
-bool Solver::rUpdateAvQFrom(Route& r, int vv) {
+void Solver::rUpdateAvQFrom(Route& r, int vv) {
 
 	int v = vv;
 	if (v == r.head) {
@@ -293,7 +292,6 @@ bool Solver::rUpdateAvQFrom(Route& r, int vv) {
 	r.rQ = customers[r.tail].Q_X;
 	r.rPc = std::max<DisType>(0, r.rQ - input->vehicleCapacity);
 
-	return true;
 }
 
 void Solver::rUpdateZvQFrom(Route& r, int vv) {
@@ -4185,8 +4183,10 @@ DisType Solver::verify() {
 		Route& r = rts[i];
 
 		//cusCnt += r.rCustCnt;
-		Ptw += rUpdateAvQFrom(r, r.head);
-		Pc += rUpdatePc(r);
+		rUpdateAvQFrom(r, r.head);
+		rUpdatePc(r);
+		Ptw += r.rPtw;
+		Pc += r.rPc;
 
 		Vector<int> cusve = rPutCustomersInVector(r);
 		for (int pt : cusve) {
