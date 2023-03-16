@@ -92,6 +92,8 @@ struct AlgorithmParameters {
 		j.at("ruinC_Max").get_to(aps.ruinC_Max);
 		j.at("ruinLmax").get_to(aps.ruinLmax);
 		j.at("ruinWinkRate").get_to(aps.ruinWinkRate);
+
+		aps.populationSizeMax = aps.initSetSize;
 	}
 
 	void displayInfo();
