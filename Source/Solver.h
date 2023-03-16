@@ -349,7 +349,7 @@ struct WeightedEjectPool {
 	}
 };
 
-class YearTable;
+struct YearTable;
 
 struct DeltaPenalty {
 

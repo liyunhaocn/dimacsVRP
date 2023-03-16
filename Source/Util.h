@@ -32,7 +32,7 @@
 
 namespace hust {
 
-class Logger {
+struct Logger {
 
 public:
 
@@ -270,7 +270,7 @@ public:
     Generator rgen;
 };
 
-class Sampling {
+struct Sampling {
 public:
     Sampling(Random &randomNumberGenerator, int targetNumber)
         : rgen(randomNumberGenerator), targetNum(targetNumber), pickCount(0) {}
@@ -338,18 +338,6 @@ public:
     static Millisecond toMillisecond(double second) {
         return Millisecond(static_cast<int>(second * MillisecondsPerSecond));
     }
-
-    // there is no need to free the pointer. the format of the format string is 
-    // the same as std::strftime() in http://en.cppreference.com/w/cpp/chrono/c/strftime.
-    static const char* getLocalTime(const char* format = "%Y-%m-%d(%a)%H:%M:%S") {
-        static constexpr int DateBufSize = 64;
-        static char buf[DateBufSize];
-        time_t t = time(NULL);
-        tm* date = localtime(&t);
-        strftime(buf, DateBufSize, format, date);
-        return buf;
-    }
-    static const char* getTightLocalTime() { return getLocalTime("%Y%m%d%H%M%S"); }
 
     bool isTimeOut() const {
         return (Clock::now() > endTime);

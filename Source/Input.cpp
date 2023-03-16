@@ -9,6 +9,8 @@
 #include "Input.h"
 #include "Util.h"
 
+#pragma warning(disable:4996)
+
 namespace hust {
 
 Input::Input(CommandLine* commandLine):

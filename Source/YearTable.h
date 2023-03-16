@@ -6,7 +6,7 @@
 
 namespace hust {
 
-class Solver;
+struct Solver;
 struct TwoNodeMove;
 
 struct YearTable{

@@ -33,6 +33,7 @@ int main(int argc, char* argv[])
 
 	Goal goal(&input);
 	goal.run();
+	//goal.callRouteNumberMinimization();
 	goal.saveBestFoundSolution();
 
 	return 0;
