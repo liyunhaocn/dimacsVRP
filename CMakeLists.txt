@@ -1,8 +1,6 @@
 
-cmake_minimum_required (VERSION 3.18)
-project (vrptw)
 cmake_minimum_required(VERSION 3.12)
-project(test07)
+project (vrptw)
 
 aux_source_directory(${PROJECT_SOURCE_DIR}/src src_dirs)
 

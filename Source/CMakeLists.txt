@@ -1,5 +1,5 @@
 
-cmake_minimum_required (VERSION 3.18)
+cmake_minimum_required(VERSION 3.12)
 
 aux_source_directory(. ALL_SRCS)
 
