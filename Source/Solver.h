@@ -6,6 +6,7 @@
 #include <functional>
 #include <set>
 #include <limits.h>
+#include <cstdarg>
 
 #include "Common.h"
 #include "Util.h"
@@ -373,6 +374,7 @@ struct DeltaPenalty {
 		this->PcOnly = d.PcOnly;
 		this->deltCost = d.deltCost;
 	}
+    DeltaPenalty& operator =(const DeltaPenalty& d) = default;
 };
 
 struct TwoNodeMove {
@@ -387,7 +389,7 @@ struct TwoNodeMove {
 		v(v), w(w), kind(kind), deltPen(d) {
 	}
 
-	TwoNodeMove(Vector<int> ve, int kind, DeltaPenalty d) :
+	TwoNodeMove(int kind,const DeltaPenalty& d) :
 		kind(kind), deltPen(d) {}
 
 	TwoNodeMove() :
@@ -615,18 +617,6 @@ public:
 		}
 		return -1;
 	}
-	
-	// begin is at front of end in a route
-	inline Vector<int> putCustomersInVectorBetweenTwoCus(int customerBegin, int customerEnd) {
-		Vector<int> arr;
-		for (int i = customerBegin; i != -1; i = customers[i].next) {
-			arr.push_back(i);
-			if (i == customerEnd) {
-				break;
-			}
-		}
-		return arr;
-	}
 
 	inline DisType getPtwWithVectorOfCustomers(const Vector<int>& cusv) {
 
@@ -640,6 +630,29 @@ public:
 		}
 		return newPtw + std::max<DisType>(0, lastav - customers[cusv.back()].zv);
 	}
+
+    inline DisType getPtwWithVectorOfCustomersArg(int n, ...) {
+
+        va_list ap;
+        va_start(ap, n);
+
+        int vpre = va_arg(ap, int);
+        DisType newPtw = customers[vpre].TW_X;
+        DisType lastav = customers[vpre].av;
+
+        int v = vpre;
+        for (int i = 1; i < n; ++i) {
+            v = va_arg(ap, int);
+            DisType avp = lastav + input->datas[vpre].SERVICETIME + input->getDisof2(vpre, v);
+            newPtw += std::max<DisType>(0, avp - input->datas[v].DUEDATE);
+            lastav = avp > input->datas[v].DUEDATE ? input->datas[v].DUEDATE : std::max<DisType>(avp, input->datas[v].READYTIME);
+            vpre = v;
+        }
+
+        newPtw += customers[v].TWX_;
+        va_end(ap);
+        return newPtw + std::max<DisType>(0, lastav - customers[v].zv);
+    }
 
 	DisType getaRangeOffPtw(int twbegin, int twend);
 
@@ -745,6 +758,10 @@ public:
 
 	void reInsertCustomersIntoSolution(int kind);
 
+    Vector<int> dynamicPartialClearDynamicEP(int kind, WeightedEjectPool& dynamicEP);
+
+    void dynamicRuin(int ruinCusNum);
+
 	void refinement(int kind, int iterMax, double temperature, int ruinNum);
 
 	inline DisType  getDeltDistanceCostIfRemoveCustomer(int v) {
@@ -771,9 +788,9 @@ public:
 
 	Vector<eOneRNode> ejectFromPatialSol();
 
-	eOneRNode ejectOneRouteOnlyHasPcMinP(Route& r, int Kmax);
+	eOneRNode ejectOneRouteOnlyHasPcMinP(Route& r);
 
-	eOneRNode ejectOneRouteOnlyP(Route& r, int kind, int Kmax);
+	eOneRNode ejectOneRouteOnlyP(Route& r, int Kmax);
 
 	eOneRNode ejectOneRouteMinPsumGreedy
 	(Route& r, eOneRNode cutBranchNode = eOneRNode());

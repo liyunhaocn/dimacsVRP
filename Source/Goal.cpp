@@ -200,27 +200,44 @@ int Goal::callSimulatedannealing() {
 	return true;
 }
 
-bool Goal::test() {
-	
-	Solver sol(input, &yearTable,&bks);
-	sol.initSolution(0);
+void Goal::test() {
 
-	sol.simpleLocalSearch(0, {});
+	Solver solver(input, &yearTable,&bks);
+	solver.initSolution(0);
+    timer->reStart();
 
-	for (;;) {
-		aps->ruinLmax = input->customerNumer / sol.rts.cnt;
-		//aps->ruinC_ = (aps->ruinLmax + 1);
-		sol.refinement(1, 500, 100.0, aps->ruinC_);
-		sol.perturb(100);
-	}
-	return true;
+//    Vector<int> kindes = { 0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15 };
+    Vector<int> kindes = { 13 };
+    for (int kind : kindes) {
+        Timer t(20);
+
+        for (int i = 0; i < solver.rts.cnt; ++i) {
+            auto cuses = solver.rPutCustomersInVector(solver.rts[i]);
+            for (int x = 0; x < 10000; ++x) {
+
+                for (int vindex = 0; vindex < cuses.size(); ++vindex) {
+                    for (int windex = 0; windex < cuses.size(); ++windex) {
+                        solver.estimatevw(kind,cuses[vindex], cuses[windex],1);
+                    }
+                }
+            }
+        }
+
+        //for (int v = 1; v <= input->customerNumer; ++v) {
+        //	for (int w = 1; w <= input->customerNumer; ++w) {
+        //		solver.makeMove(v, w, kind);
+        //	}
+        //}
+        Logger::INFO("kind:", kind, "t->elapsedSeconds():", t.elapsedSeconds());
+    }
+    Logger::INFO("timer->elapsedSeconds():", timer->elapsedSeconds());
 }
 
-bool Goal::callRouteNumberMinimization() {
+void Goal::callRouteNumberMinimization() {
 	//input->initDetail();
 
 	Solver solver(input, &yearTable,&bks);
-	solver.initSolution(3);
+	solver.initSolution(4);
 	aps->ejectLSMaxIter = IntInf;
 	timer->reStart();
 
@@ -231,8 +248,8 @@ bool Goal::callRouteNumberMinimization() {
 	else {
 		Logger::INFO("fail to delete");
 	}
+    timer->disp();
 	bks.bestSolFound = solver;
-	return true;
 }
 
 void Goal::addSolverToMapOfPopulation(Solver& sol) {
@@ -276,7 +293,8 @@ void Goal::initialMapOfPopulation() {
 	Logger::INFO("initialPops aps->populationSizeMax:", aps->populationSizeMax);
 	for (int index = 0; index < std::min<int>(5,aps->populationSizeMax); ++index) {
 		
-		solver.initSolution(index%5);
+//		solver.initSolution(index%5);
+		solver.initSolution(4);
 
 		do {
 			addSolverToMapOfPopulation(solver);
@@ -443,6 +461,15 @@ int Goal::run() {
 	return true;
 }
 
+void Goal::penaltiesAndDroppingVisits() {
+
+    Solver solver(input,&yearTable,&bks);
+    solver.initSolution(0);
+    solver.dynamicRuin(aps->ruinC_);
+    bks.bestSolFound = solver;
+    saveBestFoundSolution();
+}
+
 void Goal::saveBestFoundSolution() {
 
 	String outputFilePath = input->commandLine->outputDir;
@@ -469,4 +496,59 @@ void Goal::saveBestFoundSolution() {
 	fs1.close();
 }
 
+void Goal::exportCSVFile(String path, const Solver& solver) {
+
+        for (auto& c : path) {
+            if (c == ' ' || c == ':') {
+                c = '_';
+            }
+        }
+
+        bool isGood = false;
+
+        {
+            std::ifstream f(path.c_str());
+            isGood = f.good();
+        }
+
+        std::ofstream rgbData;
+
+        rgbData.open(path, std::ios::app | std::ios::out);
+
+        if (!rgbData) {
+            Logger::INFO("output file open errno");
+            return ;
+        }
+        if (!isGood) {
+            rgbData << "ins,isopt,lyhrl,lyhrn,time,gap,lkhrn,lkhrl,d15rn,d15RL,sinrn,sinrl,narn,narl,rts,seed" << std::endl;
+        }
+
+        rgbData << toCsvFileLine(person) << std::endl;
+    }
+
+String Goal::toCsvFileLine(Solver& solver) {
+
+    std::stringstream ss;
+
+    ss << input->instanceName << ",";
+
+    ss << solver.RoutesCost << ",";
+
+    ss << solver.rts.cnt << ",";
+
+    ss << timer->getRunTime() << ",";
+
+    for (size_t i = 0; i < solver.rts.cnt; ++i) {
+        ss << "Route  " << i + 1 << " : ";
+        auto r = solver.rPutCustomersInVector(solver.rts[i]);
+        for (int c : r) {
+            ss << c << " ";
+        }
+    }
+
+    ss << ",";
+    ss << input->commandLine->seed <<",";
+    return ss.str();
+//	rgbData << std::endl;
+}
 }

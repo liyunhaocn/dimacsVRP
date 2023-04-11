@@ -569,7 +569,7 @@ Solver::Position Solver::findBestPositionInSolutionForInitial(int w) {
 
 		while (v != -1 && vj != -1) {
 
-			DisType rtPtw = getPtwWithVectorOfCustomers({ v,w,vj });
+			DisType rtPtw = getPtwWithVectorOfCustomersArg(3, v,w,vj );
 
 			rtPtw = rtPtw - rt.rPtw;
 
@@ -584,10 +584,8 @@ Solver::Position Solver::findBestPositionInSolutionForInitial(int w) {
 			}
 			else if (pt.pen == bestPos.pen) {
 
-				if (pt.cost < bestPos.cost) {
-					if (random->pick(100) < aps->initWinkRate) {
-						bestPos = pt;
-					}
+				if (pt.cost < bestPos.cost && random->pickDouble(0.0,1.0) < aps->initWinkRate) {
+                    bestPos = pt;
 				}
 			}
 
@@ -596,7 +594,7 @@ Solver::Position Solver::findBestPositionInSolutionForInitial(int w) {
 		}
 	}
 
-	if (bestPos.cost > input->getDisof2(0,w) + input->getDisof2(w, 0)) {
+	if (bestPos.secDis > vd4fpi || bestPos.cost > input->getDisof2(0,w) + input->getDisof2(w, 0)) {
 		return Position();
 	}
 
@@ -609,7 +607,7 @@ Solver::Position Solver::findBestPositionForRuin(int w) {
 
 	auto updatePool = [&](Position& pos) {
 
-		if (random->pick(100) < aps->ruinWinkRate) {
+		if (random->pickDouble(0.0, 1.0) < aps->ruinWinkRate) {
 
 			if (pos.pen < ret.pen) {
 				ret = pos;
@@ -654,7 +652,7 @@ Solver::Position Solver::findBestPositionForRuin(int w) {
 			//}
 
 			DisType oldrPtw = rts[i].rPtw;
-			DisType rPtw = getPtwWithVectorOfCustomers({ v,w,vj });
+			DisType rPtw = getPtwWithVectorOfCustomersArg(3, v,w,vj );
 			
 			rPtw = rPtw - oldrPtw;
 
@@ -991,9 +989,9 @@ DeltaPenalty Solver::twoOptStarOpenvv_(int v, int w) { //0
 		DisType vPtw = rv.rPtw * rv.rWeight;
 		DisType wPtw = rw.rPtw * rw.rWeight;
 
-		DisType newwvPtw = getPtwWithVectorOfCustomers({w,v});
+		DisType newwvPtw = getPtwWithVectorOfCustomersArg(2,w,v);
 		// (v-) -> (w+)
-		DisType newv_wjPtw = getPtwWithVectorOfCustomers({ v_,wj });
+		DisType newv_wjPtw = getPtwWithVectorOfCustomersArg(2, v_,wj );
 
 		bestM.PtwOnly = newwvPtw + newv_wjPtw - rv.rPtw - rw.rPtw;
 		bestM.deltPtw = newwvPtw * rw.rWeight + newv_wjPtw * rv.rWeight - vPtw - wPtw;
@@ -1073,10 +1071,10 @@ DeltaPenalty Solver::twoOptStarOpenvvj(int v, int w) { //1
 		DisType wPtw = rw.rPtw * rw.rWeight;
 
 		// v->w
-		DisType newwvPtw = getPtwWithVectorOfCustomers({ v,w });
+		DisType newwvPtw = getPtwWithVectorOfCustomersArg(2, v,w);
 
 		// (w-) -> (v+)
-		DisType neww_vjPtw = getPtwWithVectorOfCustomers({ w_,vj });
+		DisType neww_vjPtw = getPtwWithVectorOfCustomersArg(2,w_,vj);
 
 		bestM.PtwOnly = newwvPtw + neww_vjPtw - rv.rPtw - rw.rPtw;
 		bestM.deltPtw = newwvPtw * rv.rWeight + neww_vjPtw * rw.rWeight - vPtw - wPtw;
@@ -1150,6 +1148,10 @@ DeltaPenalty Solver::outOnevToww_(int v, int w, int oneR) { //2
 		if (oneR == 0) {
 			return bestM;
 		}
+
+        if (v == w || v == w_) {
+            return bestM;
+        }
 	}
 
 	auto getDeltPtw = [&]()->void {
@@ -1161,49 +1163,38 @@ DeltaPenalty Solver::outOnevToww_(int v, int w, int oneR) { //2
 		DisType newvwPtw = 0;
 
 		if (rw.routeId == rv.routeId) {
-			
-			if (v == w || v == w_) {
-				return;
-			}
 
-			int front = getFrontofTwoCus(v, w);
-			//int back = (front == v ? w : v);
+            int frontCustomer = getFrontofTwoCus(v, w);
+            //int back = (front == v ? w : v);
 
-			lyhCheckTrue(front == v || front == w);
+            lyhCheckTrue(frontCustomer == v || frontCustomer == w);
+            //OutOnevToww_
+            int twbegin = -1, twend = -1;
+            if (frontCustomer == v) {
+                twbegin = v_;
+                twend = w;
+            }
+            else {
+                twbegin = w_;
+                twend = vj;
+            }
 
-			if (front == v) {
+            rRemoveAtPosition(rv, v);
+            rInsertAtPosition(rv, w_, v);
 
-				// v_ v vj ....w_ w ===> {v_ vj ...w_,v,w}
-				Vector<int> arr = {v_};
-				auto vjTow_ = putCustomersInVectorBetweenTwoCus(vj,w_);
-				vectool::pushVectorBToBackOFVectorA(arr,vjTow_);
-				vectool::pushVectorBToBackOFVectorA(arr, {v,w});
-				newvwPtw = getPtwWithVectorOfCustomers(arr);
+            newvwPtw = getaRangeOffPtw(twbegin, twend);
 
-			}
-			else if (front == w) {
-
-				// w_ w .... v_ v vj ===> {w_ v w ... v_ vj}
-
-				Vector<int> arr = { w_,v };
-				auto wTov_ = putCustomersInVectorBetweenTwoCus(w, v_);
-				vectool::pushVectorBToBackOFVectorA(arr, wTov_);
-				vectool::pushVectorBToBackOFVectorA(arr, {vj});
-				newvwPtw = getPtwWithVectorOfCustomers(arr);
-
-			}
-
-			newv_vjPtw = newvwPtw;
+            rRemoveAtPosition(rv, v);
+            rInsertAtPosition(rv, v_, v);
 
 			bestM.PtwOnly = newvwPtw - rw.rPtw;
 			bestM.deltPtw = (newvwPtw - rw.rPtw) * rw.rWeight * alpha;
-			bestM.deltPtw *= alpha;
 
 		}
 		else {
 			
-			newvwPtw = getPtwWithVectorOfCustomers({ w_,v,w });
-			newv_vjPtw = getPtwWithVectorOfCustomers({ v_,vj });
+			newvwPtw = getPtwWithVectorOfCustomersArg(3, w_,v,w );
+			newv_vjPtw = getPtwWithVectorOfCustomersArg(2, v_,vj );
 
 			bestM.PtwOnly = newvwPtw + newv_vjPtw - rv.rPtw - rw.rPtw;
 			bestM.deltPtw = newvwPtw * rw.rWeight + newv_vjPtw * rv.rWeight - vPtw - wPtw;
@@ -1279,6 +1270,10 @@ DeltaPenalty Solver::outOnevTowwj(int v, int w, int oneR) { //3
 		if (oneR == 0) {
 			return bestM;
 		}
+
+        if (v == w || v == wj) {
+            return bestM;
+        }
 	}
 
 	auto getDeltPtw = [&]()->void {
@@ -1290,37 +1285,25 @@ DeltaPenalty Solver::outOnevTowwj(int v, int w, int oneR) { //3
 
 		if (rw.routeId == rv.routeId) {
 
-			if (v == w || v == wj) {
-				return;
-			}
+            int frontCustomer = getFrontofTwoCus(v, w);
+            // OutOnevTowwj
+            int twbegin = -1, twend = -1;
+            if (frontCustomer == v) {
+                twbegin = v_;
+                twend = wj;
+            }
+            else {
+                twbegin = w;
+                twend = vj;
+            }
 
+            rRemoveAtPosition(rv, v);
+            rInsertAtPosition(rv, w, v);
 
-			//int w_ = customers[w].prev;
-			////////////////////////
-			newv_vjPtw = newvwPtw = 0;
+            newvwPtw = getaRangeOffPtw(twbegin, twend);
 
-			int front = getFrontofTwoCus(v, w);
-			//int back = (front == v ? w : v);
-
-			if (front == v) {
-				// v_ v vj  ... w wj ====> v_ vj ... w v wj
-				Vector<int> arr = { v_ };
-				auto vjTow = putCustomersInVectorBetweenTwoCus(vj, w);
-				vectool::pushVectorBToBackOFVectorA(arr, vjTow);
-				vectool::pushVectorBToBackOFVectorA(arr, { v,wj });
-				newvwPtw = getPtwWithVectorOfCustomers(arr);
-
-			}
-			else if (front == w) {
-
-				// {w wj ....v_ v vj } ===> w v wj ... v_ vj
-				Vector<int> arr = { w,v };
-				auto vjTow = putCustomersInVectorBetweenTwoCus(wj, v_);
-				vectool::pushVectorBToBackOFVectorA(arr, vjTow);
-				vectool::pushVectorBToBackOFVectorA(arr, { vj });
-				newvwPtw = getPtwWithVectorOfCustomers(arr);
-
-			}
+            rRemoveAtPosition(rv, v);
+            rInsertAtPosition(rv, v_, v);
 
 			bestM.PtwOnly = newvwPtw - rw.rPtw;
 			bestM.deltPtw = (newvwPtw - rw.rPtw) * rw.rWeight * alpha;
@@ -1329,8 +1312,8 @@ DeltaPenalty Solver::outOnevTowwj(int v, int w, int oneR) { //3
 		else {
 
 			// insert v to (w,wj)
-			newvwPtw += getPtwWithVectorOfCustomers({ w,v,wj });
-			newv_vjPtw += getPtwWithVectorOfCustomers({ v_,vj });
+			newvwPtw += getPtwWithVectorOfCustomersArg(3, w,v,wj );
+			newv_vjPtw += getPtwWithVectorOfCustomersArg(2, v_,vj );
 
 			bestM.PtwOnly = newvwPtw + newv_vjPtw - rv.rPtw - rw.rPtw;
 			bestM.deltPtw = newvwPtw * rw.rWeight + newv_vjPtw * rv.rWeight - vPtw - wPtw;
@@ -1460,9 +1443,9 @@ DeltaPenalty Solver::inOnevv_(int v, int w, int oneR) { //4
 		else {
 
 			// insert w to v and (v-)
-			newwvPtw = getPtwWithVectorOfCustomers({ v_, w,v });
+			newwvPtw = getPtwWithVectorOfCustomersArg(3, v_, w,v );
 			// insert w to (v,v-)
-			neww_wjPtw = getPtwWithVectorOfCustomers({ w_,w });
+			neww_wjPtw = getPtwWithVectorOfCustomersArg(2, w_,w );
 
 			bestM.PtwOnly = newwvPtw + neww_wjPtw - rv.rPtw - rw.rPtw;
 			bestM.deltPtw = newwvPtw * rv.rWeight + neww_wjPtw * rw.rWeight - vPtw - wPtw;
@@ -1585,8 +1568,8 @@ DeltaPenalty Solver::inOnevvj(int v, int w, int oneR) { // 5
 		else {
 
 			// insert w to (v,v+)
-			newwvPtw = getPtwWithVectorOfCustomers({v,w,vj});
-			neww_wjPtw = getPtwWithVectorOfCustomers({ w_,wj });
+			newwvPtw = getPtwWithVectorOfCustomersArg(3,v,w,vj);
+			neww_wjPtw = getPtwWithVectorOfCustomersArg(2, w_,wj );
 
 			bestM.PtwOnly = newwvPtw + neww_wjPtw - rv.rPtw - rw.rPtw;
 			bestM.deltPtw = newwvPtw * rv.rWeight + neww_wjPtw * rw.rWeight - vPtw - wPtw;
@@ -1679,12 +1662,12 @@ DeltaPenalty Solver::swapOneOnevw(int v, int w, int oneR) { // 8
 			if (v_ == w) {
 				// (v--) (v-) (v) (v+) ===> (v--) v (v-) vj
 				int v__ = customers[v_].prev;
-				newwPtw = newvPtw = getPtwWithVectorOfCustomers({ v__,v,v_,vj });
+				newwPtw = newvPtw = getPtwWithVectorOfCustomersArg(4, v__,v,v_,vj );
 			}
 			else if (w_ == v) {
 				// (w--)->(w-)->(w)->(w+) ===> w__,w,w_,wj
 				int w__ = customers[w_].prev;
-				newwPtw = newvPtw = getPtwWithVectorOfCustomers({ w__,w,w_,wj });
+				newwPtw = newvPtw = getPtwWithVectorOfCustomersArg(4, w__,w,w_,wj );
 			}
 			else {
 				
@@ -1718,8 +1701,8 @@ DeltaPenalty Solver::swapOneOnevw(int v, int w, int oneR) { // 8
 		}
 		else {
 
-			newvPtw = getPtwWithVectorOfCustomers({ v_,w,vj });
-			newwPtw += getPtwWithVectorOfCustomers({ w_,v,wj });
+			newvPtw = getPtwWithVectorOfCustomersArg(3, v_,w,vj );
+			newwPtw += getPtwWithVectorOfCustomersArg(3,w_,v,wj );
 
 			bestM.PtwOnly = newwPtw + newvPtw - rv.rPtw - rw.rPtw;
 			bestM.deltPtw = newwPtw * rw.rWeight + newvPtw * rv.rWeight - vPtw - wPtw;
@@ -1877,12 +1860,12 @@ DeltaPenalty Solver::swapTwoOnevvjw(int v, int w, int oneR) { // 11 swap(2,1)
 		if (rv.routeId == rw.routeId) {
 
 			if (v_ == w) {
-				newvPtw = newwPtw = getPtwWithVectorOfCustomers({ w_,v,vj,w,vjj });
+				newvPtw = newwPtw = getPtwWithVectorOfCustomersArg(5,w_,v,vj,w,vjj );
 			}
 			else if (w_ == vj) {
 
 				// exchange vvj and (w)
-				newvPtw = newwPtw = getPtwWithVectorOfCustomers({ v_,w,v,vj,wj });
+				newvPtw = newwPtw = getPtwWithVectorOfCustomersArg(5, v_,w,v,vj,wj);
 			}
 			else {
 
@@ -1919,9 +1902,9 @@ DeltaPenalty Solver::swapTwoOnevvjw(int v, int w, int oneR) { // 11 swap(2,1)
 		else {
 
 			// (v-)->(w)->(vjj)
-			newvPtw = getPtwWithVectorOfCustomers({ v_,w,vjj });
+			newvPtw = getPtwWithVectorOfCustomersArg(3, v_,w,vjj );
 			// (w-) -> (v) -> (v+) -> (wj)
-			newwPtw = getPtwWithVectorOfCustomers({ w_,v,vj,wj });
+			newwPtw = getPtwWithVectorOfCustomersArg(4,w_,v,vj,wj);
 			
 			bestM.PtwOnly = newwPtw + newvPtw - rv.rPtw - rw.rPtw;
 			bestM.deltPtw = newwPtw * rw.rWeight + newvPtw * rv.rWeight - vPtw - wPtw;
@@ -2072,12 +2055,12 @@ DeltaPenalty Solver::swapThreeTwovvjvjjwwj(int v, int w, int oneR) { // 9 swap(3
 			//exchange vvjvjj and (ww + )
 			if (v_ == wj) {
 				//w_ w wj v vj vjj v3j ==> w_,  v,vj,vjj , w,wj, v3j
- 				newvPtw = newwPtw = getPtwWithVectorOfCustomers({ w_,  v,vj,vjj , w,wj, v3j});
+ 				newvPtw = newwPtw = getPtwWithVectorOfCustomersArg(7, w_,v,vj,vjj, w,wj, v3j);
 			}
 			else if (w_ == vjj) {
 				//exchange vvjvjj and (ww + )
 				// v_ v vj vjj/w_ w wj wjj ===> 
-				newvPtw = newwPtw = getPtwWithVectorOfCustomers({ v_, w,wj, v,vj,vjj,wjj });
+				newvPtw = newwPtw = getPtwWithVectorOfCustomersArg(7, v_, w,wj, v,vj,vjj,wjj);
 			}
 			else {
 
@@ -2126,9 +2109,9 @@ DeltaPenalty Solver::swapThreeTwovvjvjjwwj(int v, int w, int oneR) { // 9 swap(3
 		else {
 			//v vj vjj
 			// (v-)->(w)->(w+)->(v3j)
-			newvPtw = getPtwWithVectorOfCustomers({ v_,w,wj,v3j });
+			newvPtw = getPtwWithVectorOfCustomersArg(4, v_,w,wj,v3j);
 			// (w-) -> (v) -> (vj) -> (vjj)-> (wjj)
-			newwPtw += getPtwWithVectorOfCustomers({ w_,v,vj,vjj,wjj });
+			newwPtw += getPtwWithVectorOfCustomersArg(5, w_,v,vj,vjj,wjj);
 			
 			bestM.PtwOnly = newwPtw + newvPtw - rv.rPtw - rw.rPtw;
 			bestM.deltPtw = newwPtw * rw.rWeight + newvPtw * rv.rWeight - vPtw - wPtw;
@@ -2262,11 +2245,11 @@ DeltaPenalty Solver::swapThreeOnevvjvjjw(int v, int w, int oneR) { // 10 swap(3,
 			// exchange vvjvjj and (w)
 			 // w_ (w) (v vj vjj)  v3j
 			if (v == wj) {
-				newvPtw = newwPtw = getPtwWithVectorOfCustomers({ w_, v,vj,vjj,w ,v3j });
+				newvPtw = newwPtw = getPtwWithVectorOfCustomersArg(6, w_, v,vj,vjj,w ,v3j );
 			}
 			else if (w_ == vjj) {
 				// v_ (v vj vjj/w_) (w) wj
-				newvPtw = newwPtw = getPtwWithVectorOfCustomers({ v_ , w, v,vj,vjj, wj });
+				newvPtw = newwPtw = getPtwWithVectorOfCustomersArg(6, v_ , w, v,vj,vjj, wj);
 			}
 			else {
 
@@ -2307,9 +2290,9 @@ DeltaPenalty Solver::swapThreeOnevvjvjjw(int v, int w, int oneR) { // 10 swap(3,
 		else {
 			//v vj vjj
 			// (v-)->(w)->(v3j)
-			newvPtw = getPtwWithVectorOfCustomers({ v_,w,v3j });
+			newvPtw = getPtwWithVectorOfCustomersArg(3, v_,w,v3j );
 			// (w-) -> (v) -> (vj) -> (vjj)-> (wj)
-			newwPtw = getPtwWithVectorOfCustomers({ w_,v,vj,vjj,wj });
+			newwPtw = getPtwWithVectorOfCustomersArg(5, w_,v,vj,vjj,wj );
 			
 			bestM.PtwOnly = newwPtw + newvPtw - rv.rPtw - rw.rPtw;
 			bestM.deltPtw = newwPtw * rw.rWeight + newvPtw * rv.rWeight - vPtw - wPtw;
@@ -2478,9 +2461,9 @@ DeltaPenalty Solver::outTwovvjTowwj(int v, int w, int oneR) {  //13 out two
 
 			// insert (v,vj) to between w and wj
 			// w -> v -> vj -> (wj)
-			newwPtw = getPtwWithVectorOfCustomers({ w,v,vj,wj });
+			newwPtw = getPtwWithVectorOfCustomersArg(4, w,v,vj,wj );
 			// link v- and vjj
-			newvPtw = getPtwWithVectorOfCustomers({ v_,vjj });
+			newvPtw = getPtwWithVectorOfCustomersArg(2, v_,vjj);
 			
 			bestM.PtwOnly = newwPtw + newvPtw - rv.rPtw - rw.rPtw;
 			bestM.deltPtw = newwPtw * rw.rWeight + newvPtw * rv.rWeight - vPtw - wPtw;
@@ -4710,7 +4693,7 @@ Vector<int> Solver::ruinGetRuinCusBySting(int ruinKmax, int ruinLmax) {
 		int m = std::min<int>(r.rCustCnt, ruinL);
 
 		int t = 0;
-		if (random->pick(100) < aps->ruinSplitRate) {
+		if (random->pickDouble(0.0,1.0) < aps->ruinSplitRate) {
 
 			//if (n-m > 0) {
 			//	t = ruinGetSplitDepth(n-m);
@@ -4805,6 +4788,7 @@ Vector<int> Solver::ruinGetRuinCusByRandOneR(int ruinCusNum) {
 	//		index = i;
 	//	}
 	//}
+    (void)ruinCusNum;
 	int index = random->pick(rts.cnt);
 	Route& r = rts[index];
 	auto arr = rPutCustomersInVector(r);
@@ -5192,6 +5176,194 @@ int Solver::CVB2ruinLS(int ruinCusNum) {
 	return true;
 }
 
+Vector<int> Solver::dynamicPartialClearDynamicEP(int kind, WeightedEjectPool& dynamicEP) {
+
+    std::unordered_set<int> insRts;
+    Vector<int> EPArr = dynamicEP.putElementInVector();
+
+    auto cmp1 = [&](int a, int b) {
+        return input->datas[a].DEMAND > input->datas[b].DEMAND;
+    };
+    auto cmp2 = [&](int a, int b) {
+        return input->datas[a].DUEDATE - input->datas[a].READYTIME
+               < input->datas[b].DUEDATE - input->datas[b].READYTIME;
+    };
+
+    auto cmp3 = [&](int a, int b) {
+        return input->getDisof2(a, 0) < input->getDisof2(b, 0);
+    };
+
+    auto cmp4 = [&](int a, int b) {
+        return input->datas[a].READYTIME > input->datas[b].READYTIME;
+    };
+
+    auto cmp5 = [&](int a, int b) {
+        return input->datas[a].DUEDATE < input->datas[b].DUEDATE;
+    };
+
+    switch (kind) {
+        case 0:
+            random ->shuffleVec(EPArr);
+            break;
+        case 1:
+            std::sort(EPArr.begin(), EPArr.end(), cmp1);
+            break;
+        case 2:
+            std::sort(EPArr.begin(), EPArr.end(), cmp2);
+            break;
+        case 3:
+            std::sort(EPArr.begin(), EPArr.end(), cmp3);
+            break;
+        case 4:
+            std::sort(EPArr.begin(), EPArr.end(), cmp4);
+            break;
+        case 5:
+            std::sort(EPArr.begin(), EPArr.end(), cmp5);
+            break;
+        default:
+            break;
+    }
+
+    Vector<int> ret;
+
+
+    for (int i = 0; i < static_cast<int>(EPArr.size()); ++i) {
+        //for (int i = EPArr.size() - 1;i>=0;--i) {
+        int pt = EPArr[i];
+
+        //++P[pt];
+        auto bestPos = findBestPositionForRuin(pt);
+
+        if (bestPos.pen == 0) {
+            if (bestPos.cost - input->P[pt] < 0
+                || random->pickDouble(0.0, 1.0) < aps -> rateOfDynamicInAndOut
+                    ) {
+                Route& r = rts[bestPos.rIndex];
+                insRts.insert(r.routeId);
+                rInsertAtPosition(r, bestPos.pos, pt);
+                rUpdateAvQFrom(r, pt);
+                rUpdateZvQFrom(r, pt);
+                dynamicEP.remove(pt);
+                ret.push_back(pt);
+            }
+        }
+        else {
+
+            if (input->getDisof2(0, pt) + input->getDisof2(pt, 0) - input->P[pt] < 0
+                || random->pickDouble(0.0,1.0) < aps->rateOfDynamicInAndOut
+                    ) {
+                int rid = getARouteIdCanUsed();
+                Route r1 = rCreateRoute(rid);
+                rInsAtPosPre(r1, r1.tail, pt);
+                rUpdateAvQFrom(r1, r1.head);
+                rUpdateZvQFrom(r1, r1.tail);
+                rts.push_back(r1);
+                insRts.insert(rid);
+                dynamicEP.remove(pt);
+                ret.push_back(pt);
+            }
+        }
+    }
+
+    sumRoutesPenalty();
+    for (auto rId : insRts) {
+        Route& r = rts.getRouteByRouteId(rId);
+        rReCalculateRouteCost(r);
+    }
+    sumRoutesCost();
+    return ret;
+}
+
+void Solver::dynamicRuin(int ruinCusNum) {
+
+    static ProbControl pcRuKind(5,&input->random);
+    //static ProbControl pcRuKind(3);
+    static ProbControl pcCLKind(6, &input->random);
+    WeightedEjectPool dynamicEP(input);
+
+    auto solBestFound = *this;
+    auto bestDynamicEP = dynamicEP;
+
+    int perturbkind = pcRuKind.getIndexBasedData();
+    int clearKind = pcCLKind.getIndexBasedData();
+
+    auto reInsert = [&]() {
+
+        Vector<int> ejectedCuses = dynamicPartialClearDynamicEP(clearKind, dynamicEP);
+//        refinement(1, 10, 20.0, aps->ruinC_);
+        simpleLocalSearch(0, {});
+    };
+
+    auto update = [&]() {
+        if (RoutesCost + dynamicEP.sumCost < solBestFound.RoutesCost + bestDynamicEP.sumCost) {
+            ++pcRuKind.data[perturbkind];
+            ++pcCLKind.data[clearKind];
+            solBestFound = *this;
+            bestDynamicEP = dynamicEP;
+            Logger::DEBUG(solBestFound.RoutesCost,dynamicEP.container.cnt,dynamicEP.sumCost);
+        }
+    };
+
+    auto ruin = [&]() {
+
+        auto ruinCus = getRuinCustomers(perturbkind, ruinCusNum);
+        std::unordered_set<int> rIds;
+        for (int cus: ruinCus) {
+            if (input->datas[cus].must_dispatch == true || customers[cus].routeId == -1) {
+                continue;
+            }
+
+            DisType delt = getDeltDistanceCostIfRemoveCustomer(cus);
+            if (dynamicEP.size() < input->customerNumer &&
+                (
+                        input->P[cus] + delt < 0
+                        || random->pick(100) < aps->rateOfDynamicInAndOut
+                )) {
+
+                Route &r = rts.getRouteByRouteId(customers[cus].routeId);
+                rIds.insert(r.routeId);
+                rRemoveAtPosition(r, cus);
+
+                dynamicEP.insert(cus);
+
+                if (r.rCustCnt == 0) {
+                    if (rIds.count(r.routeId) > 0) {
+                        rIds.erase(rIds.find(r.routeId));
+                    }
+                    removeOneRouteByRouteId(r.routeId);
+                }
+            }
+        }
+
+        for (auto rid: rIds) {
+            Route &r = rts.getRouteByRouteId(rid);
+            rUpdateAvQFrom(r, r.head);
+            rUpdateZvQFrom(r, r.tail);
+            rReCalculateRouteCost(r);
+        }
+
+        sumRoutesCost();
+        sumRoutesPenalty();
+
+        simpleLocalSearch(0, {});
+//        refinement(1, 10, 100.0, aps->ruinC_);
+    };
+
+    while(not timer->isTimeOut() ){
+        perturbkind = pcRuKind.getIndexBasedData();
+        clearKind = pcCLKind.getIndexBasedData();
+        ruin();
+        update();
+        reInsert();
+        update();
+    }
+
+    *this = solBestFound;
+    dynamicEP = bestDynamicEP;
+    bks->bestSolFound = *this;
+}
+
+
 void Solver::refinement(int kind,int iterMax, double temperature,int ruinNum) {
 
 	Solver pBest = *this;
@@ -5321,10 +5493,10 @@ void Solver::perturb(int Irand) {
 					}
 
 					if (d.deltPc + d.deltPtw == 0) {
-						TwoNodeMove m(v, w, kind, d);
-						ret = m;
-						if (yearTable->iter >= yearTable->getYearOfMove(this,m)) {
-							return m;
+						TwoNodeMove move(v, w, kind, d);
+						ret = move;
+						if (yearTable->iter >= yearTable->getYearOfMove(this,move)) {
+							return move;
 						}
 					}
 
@@ -5381,7 +5553,7 @@ Vector<Solver::eOneRNode> Solver::ejectFromPatialSol() {
 
 		while (tKmax <= aps->maxKmax) {
 
-			auto en = ejectOneRouteOnlyP(r, 2, tKmax);
+			auto en = ejectOneRouteOnlyP(r, tKmax);
 
 			if (retNode.ejeVe.size() == 0) {
 				retNode = en;
@@ -5442,7 +5614,7 @@ Vector<Solver::eOneRNode> Solver::ejectFromPatialSol() {
 	return ret;
 }
 
-Solver::eOneRNode Solver::ejectOneRouteOnlyHasPcMinP(Route& r, int Kmax) {
+Solver::eOneRNode Solver::ejectOneRouteOnlyHasPcMinP(Route& r) {
 
 	eOneRNode noTabuN(r.routeId);
 	noTabuN.Psum = 0;
@@ -5495,7 +5667,7 @@ Solver::eOneRNode Solver::ejectOneRouteOnlyHasPcMinP(Route& r, int Kmax) {
 
 }
 
-Solver::eOneRNode Solver::ejectOneRouteOnlyP(Route& r, int kind, int Kmax) {
+Solver::eOneRNode Solver::ejectOneRouteOnlyP(Route& r, int Kmax) {
 
 	eOneRNode noTabuN(r.routeId);
 
@@ -5645,7 +5817,7 @@ Solver::eOneRNode Solver::ejectOneRouteOnlyP(Route& r, int kind, int Kmax) {
 	}
 	else if (r.rPc > 0) {
 
-		return ejectOneRouteOnlyHasPcMinP(r, Kmax);
+		return ejectOneRouteOnlyHasPcMinP(r);
 		ptwArr = R;
 		Kmax = std::min<int>(Kmax,static_cast<int>(ptwArr.size()) - 1);
 

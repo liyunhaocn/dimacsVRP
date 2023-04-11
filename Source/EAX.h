@@ -46,23 +46,21 @@ public:
 
 		/* 设置数据 */
 		bool set(
-			int index,
-			Edge e,
-			int code, // 边的哈希码
-			Owner owner, // 边的所有权属性 0 pa 1 pb 2 pc -1 未知
-			int visited, // 是否已访问
-			int cycleID)
-		{
-
-			this->index = index;
-			this->e = e;
-			this->code = code;
-			this->owner = owner;
-			//baseRouteID(-1), goalRouteID(-1),
-			this->visited = visited;
-			//this->cycleID = cycleID;
-			return true;
-		}
+            int index,
+            Edge e,
+            int code, // 边的哈希码
+            Owner owner, // 边的所有权属性 0 pa 1 pb 2 pc -1 未知
+            int visited // 是否已访问
+        ){
+            this->index = index;
+            this->e = e;
+            this->code = code;
+            this->owner = owner;
+            //baseRouteID(-1), goalRouteID(-1),
+            this->visited = visited;
+            //this->cycleID = cycleID;
+            return true;
+        }
 	};
 
 	/* 可支持节点数 */

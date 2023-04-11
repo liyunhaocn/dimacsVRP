@@ -22,7 +22,7 @@ TEST(SolverEjectionTest, DoEject) {
 		DisType depot0TW_XStart = solver->customers[r.head].TWX_;
 		DisType depotN1TW_XStart = solver->customers[r.tail].TW_X;
 
-		solver->ejectOneRouteOnlyP(r, 2, 4);
+		solver->ejectOneRouteOnlyP(r, 4);
 
 		EXPECT_EQ(r.rQ, rQStart);
 		EXPECT_EQ(PcStart, r.rPc);

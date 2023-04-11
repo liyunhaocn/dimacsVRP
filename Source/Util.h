@@ -50,14 +50,14 @@ public:
     template<typename ...T>
     static void DEBUG(const T&... args) {
         if (debugFlag == true) {
-            printlnerr_("[INFO]:", args...);
+            printlnerr_("[DEBU]:", args...);
         }
     }
 
     template<typename ...T>
     static void ERROR(const T&... args) {
         if (errorFlag == true) {
-            printlnerr_("[ERROR]:", args...);
+            printlnerr_("[ERRO]:", args...);
         }
     }
 
@@ -183,6 +183,11 @@ public:
 
     void shuffleVec(Vector<int>& v) {
         std::shuffle(v.begin(), v.end(), this->rgen);
+    }
+
+    double pickDouble(double a, double b) {
+        std::uniform_real_distribution<double> dis2(a, b);
+        return dis2(rgen);
     }
 };
 

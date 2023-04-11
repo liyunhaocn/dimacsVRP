@@ -9,8 +9,6 @@
 #include "Input.h"
 #include "Util.h"
 
-#pragma warning(disable:4996)
-
 namespace hust {
 
 Input::Input(CommandLine* commandLine):
@@ -67,7 +65,6 @@ void Input::initDetail() {
 			else {
 				return aLinkv ? true : false;
 			}
-
 		};
 
 		std::sort(addSTclose[v], addSTclose[v]+addSTclose.size2(), cmp);
@@ -174,8 +171,8 @@ void Input::initInput() {
 
 			//OPT[-1] this can be changed below
 			//return disOf[v][a] < disOf[v][b];
-			//return disOf[v][a] + datas[a].SERVICETIME <
-			//	disOf[v][b] + datas[b].SERVICETIME;
+//			return disOf[v][a] + datas[a].SERVICETIME <
+//				disOf[v][b] + datas[b].SERVICETIME;
 
 			if (disOf[a][v] == disOf[b][v]) {
 				return datas[a].DUEDATE < datas[b].DUEDATE;
@@ -185,15 +182,15 @@ void Input::initInput() {
 			}
 			return true;
 
-			//int aLinkv = canLinkNode(a, v);
-			//int bLinkv = canLinkNode(b, v);
-			//if ((aLinkv && bLinkv) || (!aLinkv && !bLinkv)) {
-			//	return disOf[v][a] + datas[a].SERVICETIME <
-			//		disOf[v][b] + datas[b].SERVICETIME;
-			//}
-			//else {
-			//	return aLinkv ? true : false;
-			//}
+//			int aLinkv = canLinkNode(a, v);
+//			int bLinkv = canLinkNode(b, v);
+//			if ((aLinkv && bLinkv) || (!aLinkv && !bLinkv)) {
+//				return disOf[v][a] + datas[a].SERVICETIME <
+//					disOf[v][b] + datas[b].SERVICETIME;
+//			}
+//			else {
+//				return aLinkv ? true : false;
+//			}
 
 		};
 		//std::sort(addSTclose[v].begin(), addSTclose[v].end(), cmp);
@@ -431,7 +428,7 @@ void Input::readInstanceFormatCVRPLIB() {
 						throw String("Expected depot index 1 instead of " + content2);
 					}
 				}
-				else if (content == "CUSTOMER_WEIGHT")
+				else if (content == "CUSTOMER_WEIGHT_SECTION")
 				{
 					for (int i = 0; i <= customerNumer; ++i)
 					{
@@ -451,6 +448,24 @@ void Input::readInstanceFormatCVRPLIB() {
 						throw String("P[0] should be 0");
 					}
 				}
+                else if (content == "MUST_DISPATCH_SECTION")
+                {
+                    for (int i = 0; i <= customerNumer; i++)
+                    {
+                        int clientNr = 0;
+                        std::cin >> clientNr >> datas[i].must_dispatch;
+                        // Check if the clients are in order
+                        if (clientNr != i + 1)
+                        {
+                            throw std::string("Clients are not in order in the list of MUST_DISPATCH");
+                        }
+                    }
+                    // Check if the service duration of the depot is 0
+                    if (datas[0].must_dispatch != 1)
+                    {
+                        throw std::string("must_dispatch depot should be 1");
+                    }
+                }
 				else if (content == "SERVICE_TIME_SECTION")
 				{
 					for (int i = 0; i <= customerNumer; i++)

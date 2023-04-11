@@ -575,7 +575,7 @@ void EAX::getUnionArr() {
 }
 
 /*
-*	return£º	
+*	returnï¿½ï¿½	
 *	-1 all abcycle is tabu,there no cycle can be chose
 *	1 can repair 
 *	0 can not repair
@@ -614,7 +614,7 @@ int EAX::doNaEAX(Solver& pc) {
 	removeSubring(pc);
 	pc.reCalRtsCostAndPen();
 		
-	if (aps->abCycleWinkRate == 100) {
+	if ( abs(1.0-aps->abCycleWinkRate) < 1e-5) {
 		tabuCyIds.insert(choosecyIndex);
 	}
 	else {

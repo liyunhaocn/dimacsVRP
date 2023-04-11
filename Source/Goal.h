@@ -38,9 +38,9 @@ struct Goal {
 
 	int callSimulatedannealing();
 
-	bool test();
+	void test();
 
-	bool callRouteNumberMinimization();
+	void callRouteNumberMinimization();
 
 	void fillAlternativeRouteNumbers();
 	
@@ -48,9 +48,15 @@ struct Goal {
 
 	int run();
 
+    void penaltiesAndDroppingVisits();
+
 	void initialMapOfPopulation();
 
 	void saveBestFoundSolution();
+
+    void exportCSVFile(String path,const Solver& solver);
+
+    String toCsvFileLine(Solver& solver);
 
 };
 

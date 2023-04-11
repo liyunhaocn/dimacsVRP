@@ -78,6 +78,7 @@ struct CircleSector
 
 struct Data {
 	int CUSTNO = -1;
+	int must_dispatch = 1;
 	DisType XCOORD = -1;
 	DisType YCOORD = -1;
 	DisType DEMAND = -1;

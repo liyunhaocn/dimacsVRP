@@ -1,9 +1,9 @@
 {
-    "seed": 1,
-    "runTimer": 1800,
+    "seed": -1,
+    "runTimer": 7200,
     "dimacsPrint": 0,
     "infoFlag": 1,
-    "debugFlag": 0,
+    "debugFlag": 1,
     "errorFlag":1,
 
   "AlgorithmParameters": {
@@ -17,7 +17,7 @@
     "minKmax": 1,
     "maxKmax": 4,
     "eamaEaxCh": 20,
-    "abCycleWinkRate": 99,
+    "abCycleWinkRate": 0.99,
     "perturbNeiborRange": 60,
     "perturbIrand": 400,
     "neiborSizeMin": 20,
@@ -25,11 +25,11 @@
     "customersWeight1":1,
     "customersWeight2":2,
 
-    "ruinSplitRate": 0,
+    "ruinSplitRate": 0.0,
     "ruinLmax": 20,
     "ruinC_Min": 15,
     "ruinC_Max": 35,
-    "ruinWinkRate": 90,
-    "initWinkRate": 80
+    "ruinWinkRate": 0.90,
+    "initWinkRate": 0.99
   }
 }

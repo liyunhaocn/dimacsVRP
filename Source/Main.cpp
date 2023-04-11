@@ -21,9 +21,12 @@ int main(int argc, char* argv[])
 		ifs >> allJson;
 		Json apsJson = allJson["AlgorithmParameters"];
 		// initial commandLine with Josn
-		commandLine.from_json(allJson, commandLine);
+		from_json(allJson, commandLine);
 	}
 
+    if( commandLine.seed ==-1 ){
+        commandLine.seed = std::random_device{}() % IntInf;
+    }
 	Input input(&commandLine);
 	commandLine.check();
 	commandLine.aps.check(input.customerNumer);
@@ -33,7 +36,10 @@ int main(int argc, char* argv[])
 
 	Goal goal(&input);
 	goal.run();
-	//goal.callRouteNumberMinimization();
+//    goal.penaltiesAndDroppingVisits();
+//	goal.callRouteNumberMinimization();
+//  goal.test();
+
 	goal.saveBestFoundSolution();
 
 	return 0;

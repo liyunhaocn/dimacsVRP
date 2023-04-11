@@ -20,7 +20,7 @@ std::vector< std::vector< std::string> > getTestCommandLineArgv() {
 		//"../../SolverParameters.json","../../Results"},
 
 		{ "./DLLSMA",
-		"../../Instances/ortec-instances/ORTEC-VRPTW-ASYM-00c5356f-d1-n258-k12.txt",
+		"../../Instances/Homberger/C2_8_7.txt",
 		"../../SolverParameters.json","../../Results"},
 	};
 	return argvs;
