@@ -496,7 +496,7 @@ void Goal::saveBestFoundSolution() {
 	fs1.close();
 }
 
-void Goal::exportCSVFile(String path, const Solver& solver) {
+void Goal::exportCSVFile(String path, Solver& solver) {
 
         for (auto& c : path) {
             if (c == ' ' || c == ':') {
@@ -520,10 +520,10 @@ void Goal::exportCSVFile(String path, const Solver& solver) {
             return ;
         }
         if (!isGood) {
-            rgbData << "ins,isopt,lyhrl,lyhrn,time,gap,lkhrn,lkhrl,d15rn,d15RL,sinrn,sinrl,narn,narl,rts,seed" << std::endl;
+            rgbData << "ins,lyhrl,lyhrn,time,rts,seed" << std::endl;
         }
 
-        rgbData << toCsvFileLine(person) << std::endl;
+        rgbData << toCsvFileLine(solver) << std::endl;
     }
 
 String Goal::toCsvFileLine(Solver& solver) {
@@ -538,7 +538,7 @@ String Goal::toCsvFileLine(Solver& solver) {
 
     ss << timer->getRunTime() << ",";
 
-    for (size_t i = 0; i < solver.rts.cnt; ++i) {
+    for (int i = 0; i < solver.rts.cnt; ++i) {
         ss << "Route  " << i + 1 << " : ";
         auto r = solver.rPutCustomersInVector(solver.rts[i]);
         for (int c : r) {

@@ -41,6 +41,6 @@ int main(int argc, char* argv[])
 //  goal.test();
 
 	goal.saveBestFoundSolution();
-
+    goal.exportCSVFile(commandLine.outputDir+__DATE__ + ".csv",goal.bks.bestSolFound);
 	return 0;
 }

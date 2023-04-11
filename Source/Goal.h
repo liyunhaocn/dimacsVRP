@@ -54,7 +54,7 @@ struct Goal {
 
 	void saveBestFoundSolution();
 
-    void exportCSVFile(String path,const Solver& solver);
+    void exportCSVFile(String path,Solver& solver);
 
     String toCsvFileLine(Solver& solver);
 
