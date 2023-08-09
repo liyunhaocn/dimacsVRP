@@ -462,15 +462,6 @@ int Goal::run() {
 	return true;
 }
 
-void Goal::penaltiesAndDroppingVisits() {
-
-    Solver solver(input,&yearTable,&bks);
-    solver.initSolution(0);
-    solver.dynamicRuin(aps->ruinC_);
-    bks.bestSolFound = solver;
-    saveBestFoundSolution();
-}
-
 void Goal::saveBestFoundSolution() {
 
 	String outputFilePath = input->commandLine->outputDir;

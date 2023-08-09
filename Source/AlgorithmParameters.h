@@ -78,8 +78,6 @@ struct AlgorithmParameters {
 	// 1000 step:C2_8_7 took 20s C1_6_6 took 6s
 	int ejectLSMaxIter = 50;
 
-    double rateOfDynamicInAndOut = 0.50;
-
 	BSKInfo bksInfo;
 
 	~AlgorithmParameters() {}

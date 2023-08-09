@@ -48,8 +48,6 @@ struct Goal {
 
 	int run();
 
-    void penaltiesAndDroppingVisits();
-
 	void initialMapOfPopulation();
 
 	void saveBestFoundSolution();

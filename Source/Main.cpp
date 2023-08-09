@@ -42,7 +42,6 @@ int main(int argc, char* argv[])
 		goal.run();
 	}
 
-//  goal.penaltiesAndDroppingVisits();
 //  goal.test();
 	//goal.saveBestFoundSolution();
     goal.exportCSVFile(commandLine.outputDir+__DATE__ + ".csv",goal.bks.bestSolFound);

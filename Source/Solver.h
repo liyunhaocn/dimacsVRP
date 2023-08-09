@@ -766,10 +766,6 @@ public:
 
 	void reInsertCustomersIntoSolution(int kind);
 
-    Vector<int> dynamicPartialClearDynamicEP(int kind, WeightedEjectPool& dynamicEP);
-
-    void dynamicRuin(int ruinCusNum);
-
 	void refinement(int kind, int iterMax, double temperature, int ruinNum);
 
 	inline DisType  getDeltDistanceCostIfRemoveCustomer(int v) {
