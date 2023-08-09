@@ -237,11 +237,12 @@ void Goal::callRouteNumberMinimization() {
 	//input->initDetail();
 
 	Solver solver(input, &yearTable,&bks);
-	solver.initSolution(4);
+	
+	solver.initSolution(5);
 	aps->ejectLSMaxIter = IntInf;
 	timer->reStart();
 
-	bool succeed = solver.minimizeRouteNumber(72);
+	bool succeed = solver.minimizeRouteNumber(input->aps->bksInfo.sintefRN);
 	if (succeed) {
 		Logger::INFO("succeed to delete");
 	}

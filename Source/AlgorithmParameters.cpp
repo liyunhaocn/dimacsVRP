@@ -14,6 +14,7 @@ void AlgorithmParameters::displayInfo() {
 	Logger::INFO("customersWeight2:", customersWeight2);
 	Logger::INFO("minKmax:", minKmax);
 	Logger::INFO("maxKmax:", maxKmax);
+	Logger::INFO("routeWeightUpStep:", routeWeightUpStep);
 }
 
 void AlgorithmParameters::check(int cusCnt) {
@@ -51,7 +52,8 @@ void AlgorithmParameters::check(int cusCnt) {
                 {"ruinC_Min", aps.ruinC_Min},
                 {"ruinC_Max", aps.ruinC_Max},
                 {"ruinLmax", aps.ruinLmax},
-                {"ruinWinkRate", aps.ruinWinkRate}
+                {"ruinWinkRate", aps.ruinWinkRate},
+                {"routeWeightUpStep", aps.routeWeightUpStep}
         };
     }
 
@@ -77,6 +79,7 @@ void AlgorithmParameters::check(int cusCnt) {
         j.at("ruinLmax").get_to(aps.ruinLmax);
         j.at("ruinWinkRate").get_to(aps.ruinWinkRate);
         j.at("initWinkRate").get_to(aps.initWinkRate);
+        j.at("routeWeightUpStep").get_to(aps.routeWeightUpStep);
 
         aps.populationSizeMax = aps.initSetSize;
     }

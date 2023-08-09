@@ -225,6 +225,57 @@ LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.*/
 
+struct InstanceData {
+	int minRouteNumber = 0;
+	double minRouteDistance = 0;
+	int isOptimal = 0;
+	InstanceData() :minRouteNumber(0), minRouteDistance(0), isOptimal(0) {}
+	InstanceData(int routeNumber, double routeDistance, int isOptimal) :
+		minRouteNumber(routeNumber), minRouteDistance(routeDistance), isOptimal(isOptimal) {}
+};
+
+InstanceData getInstanceDataFromFile(std::string path, std::string instanceName) {
+
+	std::ifstream inStream(path, std::ios::in);
+	if (!inStream) {
+		Logger::INFO("fail to open the file:", path);
+		return InstanceData{};
+	}
+
+	std::string line;
+
+	while (getline(inStream, line)) {
+
+		std::stringstream sin(line);
+		std::string item;
+
+		getline(sin, item, ',');
+
+		std::string instanceNameInLine = item;
+		strtool::trim(instanceName);
+
+		getline(sin, item, ',');
+		//std::cout << atoi(item.c_str()) << " ";
+		int routeNumber = atoi(item.c_str());
+
+		getline(sin, item, ',');
+		//std:: cout << atof(item.c_str()) << " ";
+		double routeDistance = atof(item.c_str());
+
+		getline(sin, item);
+		//std::cout << atoi(item.c_str()) << std::endl;
+		int isOptimal = atoi(item.c_str());
+		if (instanceNameInLine == instanceName) {
+			inStream.close();
+			return InstanceData{ routeNumber,routeDistance,isOptimal };
+		}
+
+	}
+	inStream.close();
+
+	return InstanceData{};
+}
+
 void Input::readInstanceFormatCVRPLIB() {
 
 	this->customerNumer = 0;
@@ -238,6 +289,12 @@ void Input::readInstanceFormatCVRPLIB() {
 	if (x == nullptr) {
 		throw String("x== nullptr return of freopen");
 	}
+
+	DisType multiple = 10;
+	if (commandLine->callMinRouteNumber) {
+		multiple = 10000;
+	}
+	
 
 	if (true)
 	{
@@ -257,7 +314,7 @@ void Input::readInstanceFormatCVRPLIB() {
 			// Get the number of vehicles and the capacity of the vehicles
 			getline(std::cin, content);  // NUMBER    CAPACITY
 			std::cin >> this->vehicleNumber >> vehicleCapacity;
-			vehicleCapacity *= 10;
+			vehicleCapacity *= multiple;
 
 			// Skip the next four lines
 			getline(std::cin, content);
@@ -276,12 +333,12 @@ void Input::readInstanceFormatCVRPLIB() {
 				std::cin >> datas[customerNumer].XCOORD >> datas[customerNumer].YCOORD >> datas[customerNumer].DEMAND >> datas[customerNumer].READYTIME >> datas[customerNumer].DUEDATE >> datas[customerNumer].SERVICETIME;
 
 				// Scale coordinates by factor 10, later the distances will be rounded so we optimize with 1 decimal distances
-				datas[customerNumer].XCOORD *= 10;
-				datas[customerNumer].YCOORD *= 10;
-				datas[customerNumer].DEMAND *= 10;
-				datas[customerNumer].READYTIME *= 10;
-				datas[customerNumer].DUEDATE *= 10;
-				datas[customerNumer].SERVICETIME *= 10;
+				datas[customerNumer].XCOORD *= multiple;
+				datas[customerNumer].YCOORD *= multiple;
+				datas[customerNumer].DEMAND *= multiple;
+				datas[customerNumer].READYTIME *= multiple;
+				datas[customerNumer].DUEDATE *= multiple;
+				datas[customerNumer].SERVICETIME *= multiple;
 				DisType deltaY = datas[customerNumer].YCOORD - datas[0].YCOORD;
 				DisType deltaX = datas[customerNumer].XCOORD - datas[0].XCOORD;
 
@@ -316,8 +373,13 @@ void Input::readInstanceFormatCVRPLIB() {
 
 					DisType deltaX = d1.XCOORD - d2.XCOORD;
 					DisType deltaY = d1.YCOORD - d2.YCOORD;
-
-					disOf[j][i] = disOf[i][j] = static_cast<DisType>(sqrt(static_cast<double>(deltaX * deltaX + deltaY * deltaY)));
+					double disDouble = sqrtl(static_cast<double>(deltaX * deltaX + deltaY * deltaY));
+					if (commandLine->callMinRouteNumber == 1) {
+						disOf[j][i] = disOf[i][j] = static_cast<DisType>(ceil(disDouble));
+					}
+					else {
+						disOf[j][i] = disOf[i][j] = static_cast<DisType>(disDouble);
+					}
 				}
 			}
 		}
@@ -557,6 +619,17 @@ void Input::readInstanceFormatCVRPLIB() {
 		aps->populationSizeMax = 50;
 		aps->neiborSizeMax = 35;
 	}
+
+	String dirPath = commandLine->instancePath;
+
+	size_t index = dirPath.find("/Instances/") + String("/Instances/").size();
+	dirPath = dirPath.substr(0, index) + "DataFromLiterature/";
+
+	const auto& sintef = getInstanceDataFromFile(dirPath + "BKSfromSINTEF.csv", instanceName);
+
+	aps->bksInfo.sintefRN = sintef.minRouteNumber;
+	aps->bksInfo.sintefRC = static_cast<DisType>((DisType)sintef.minRouteDistance * multiple);
+
 }
 
 int Input::partition(int* arr, int start, int end, std::function<bool(int, int)>cmp) {

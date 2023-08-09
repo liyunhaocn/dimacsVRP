@@ -148,6 +148,7 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="..\..\Source\AlgorithmParameters.cpp" />
+    <ClCompile Include="..\..\Source\CommandLine.cpp" />
     <ClCompile Include="..\..\Source\EAX.cpp" />
     <ClCompile Include="..\..\Source\Goal.cpp" />
     <ClCompile Include="..\..\Source\Main.cpp" />

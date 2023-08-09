@@ -6,7 +6,7 @@
     <DebuggerWorkingDirectory>$(SolutionDir)..\Deploy</DebuggerWorkingDirectory>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
-    <RemoteDebuggerCommandArguments>../Instances/ortec/ORTEC-VRPTW-ASYM-00c5356f-d1-n258-k12.txt ../SolverParameters.json ../Results </RemoteDebuggerCommandArguments>
+    <RemoteDebuggerCommandArguments>../Instances/Homberger/C1_8_2.txt ../SolverParameters.json ../Results</RemoteDebuggerCommandArguments>
     <DebuggerFlavor>LinuxWSLDebugger</DebuggerFlavor>
     <DebuggerWorkingDirectory>$(SolutionDir)..\Deploy</DebuggerWorkingDirectory>
   </PropertyGroup>

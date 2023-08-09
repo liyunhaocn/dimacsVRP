@@ -898,7 +898,9 @@ void Solver::initSolution(int kind) {//  find kind to init solution
 	}
 	else if (kind == 4) {
 		initSolutionRandomly();
-		//initSolutionMaxRoute();
+	}
+	else if (kind == 5) {
+		initSolutionMaxRoute();
 	}
 	
 	else {
@@ -3916,46 +3918,94 @@ TwoNodeMove Solver::getMovesRandomly
 
 	lyhCheckTrue(r.rPc > 0 || r.rPtw > 0);
 
+	auto rUpdateAvFromLimitLen = [&](int x, int len) {
+
+		int xnext = customers[x].next;
+
+		while (xnext != -1 && --len >= 0) {
+
+			customers[xnext].avp =
+				customers[xnext].av = customers[x].av + input->getDisof2(x, xnext) + input->datas[x].SERVICETIME;
+
+			customers[xnext].TW_X = customers[x].TW_X
+				+ std::max<DisType>(customers[xnext].avp - input->datas[xnext].DUEDATE, 0);
+
+			customers[xnext].av = customers[xnext].avp <= input->datas[xnext].DUEDATE ?
+				std::max<DisType>(customers[xnext].avp, input->datas[xnext].READYTIME) :
+				input->datas[xnext].DUEDATE;
+
+			x = xnext;
+			xnext = customers[xnext].next;
+		}
+	};
+
+
+	auto intraRouteMovesEffectively = [&](int v) ->void {
+
+		int maxL = std::max<int>(5, r.rCustCnt / 3);
+
+		int v_ = customers[v].prev;
+		int vj = customers[v].next;
+
+		removeCustomer(v);
+		rUpdateAvFromLimitLen(v_, maxL);
+		customers[v].next = vj;
+		customers[v].prev = v_;
+
+		int w = v_;
+
+		for (int i = 0; i < maxL; ++i) {
+			w = customers[w].next;
+			int wj = customers[w].next;
+			if (wj == -1) {
+				break;
+			}
+			DeltaPenalty delta;
+			delta.deltPc = delta.PcOnly = 0;
+			delta.PtwOnly = getPtwWithVectorOfCustomersArg(3, w, v, wj) - r.rPtw;
+			delta.deltPtw = delta.PtwOnly * r.rWeight * alpha;
+			TwoNodeMove m3(v, w, 3, delta);
+			updateBestM(m3, bestM);
+		}
+
+		rInsertAtPosition(r, v_, v);
+		rUpdateAvFromLimitLen(v_, maxL + 1);
+
+		maxL = std::max<int>(5, r.rCustCnt / 5);
+		w = v;
+		for (int i = 1; i <= maxL; ++i) {
+			w = customers[w].next;
+			//if (input->isDepot(w)) {
+			//	break;
+			//}
+			if (w > input->customerNumer) {
+				break;
+			}
+
+			TwoNodeMove m8(v, w, 8, swapOneOnevw(v, w, 1));
+			updateBestM(m8, bestM);
+			//if (i >= 2) {
+			//	TwoNodeMove m3 = makeMove(v, w, 3);
+			//	updateBestM(m3, bestM);
+			//}
+			if (i >= 3) {
+				
+				TwoNodeMove m15(v, w, 15, reversevw(v, w));
+				updateBestM(m15, bestM);
+			}
+		}
+	};
+
 	if (r.rPtw > 0) {
 
-		Vector<int> ptwNodes = getPtwNodes(r,0);
-		
+		const Vector<int>&& ptwNodes = getPtwNodes(r, 0);
+
 		for (int v : ptwNodes) {
 
 			_2optEffectively(v);
 			outrelocateEffectively(v);
 			exchangevwEffectively(v);
-
-			//int v_ = customers[v].prev;
-			//int vj = customers[v].next;
-
-			//sectorArea(v);
-			//_3optEffectively(v);
-
-			int w = v;
-			int maxL = std::max<int>(5, r.rCustCnt / 5);
-			//int maxL = 5;
-			//debug(r.rCustCnt)
-
-			for (int i = 1; i <= maxL; ++i) {
-				w = customers[w].next;
-				if (w > input->customerNumer) {
-					break;
-				}
-
-				TwoNodeMove m8(v, w, 8, swapOneOnevw(v, w, 1));
-				updateBestM(m8, bestM);
-
-				if (i >= 2) {
-					TwoNodeMove m3(v, w, 3, outOnevTowwj(v, w, 1));
-					updateBestM(m3, bestM);
-				}
-
-				if (i >= 3) {
-					TwoNodeMove m15(v, w, 15, reversevw(v, w));
-					updateBestM(m15, bestM);
-				}
-			}
+			intraRouteMovesEffectively(v);
 		}
 	}
 	else {
@@ -4242,8 +4292,8 @@ bool Solver::addWeightToRoute(TwoNodeMove& bestM) {
 			//	}
 			//}
 
-			r.rWeight += aps->weightUpStep;
-			Ptw += r.rPtw;
+			r.rWeight += aps->routeWeightUpStep;
+			Ptw += r.rPtw * aps->routeWeightUpStep;
 		}
 		penalty = alpha * Ptw + beta * Pc;
 
@@ -5309,7 +5359,7 @@ void Solver::dynamicRuin(int ruinCusNum) {
         auto ruinCus = getRuinCustomers(perturbkind, ruinCusNum);
         std::unordered_set<int> rIds;
         for (int cus: ruinCus) {
-            if (input->datas[cus].must_dispatch == true || customers[cus].routeId == -1) {
+            if (input->datas[cus].must_dispatch == 1 || customers[cus].routeId == -1) {
                 continue;
             }
 
@@ -5443,7 +5493,7 @@ Vector<int> Solver::getRuinCustomers(int perturbkind, int ruinCusNum) {
 
 void Solver::perturb(int Irand) {
 
-	int I1000 = random->pick(1,aps->perturbIrand);
+	int I1000 = aps->perturbIrand;
 	if (Irand > 0) {
 		I1000 = Irand;
 	}
@@ -5452,7 +5502,7 @@ void Solver::perturb(int Irand) {
 	int iter = 0;
 	gamma = 0;
 
-	Vector<int> kindSet = { 0,1,6,7,8,9,10,2,3,4,5 };
+	Vector<int> kindSet = { 0,1,6,7/*,8,9,10,2,3,4,5*/ };
 	int patternAdjustmentGetM = 10;
 
 	int N = aps->perturbNeiborRange;
@@ -6177,10 +6227,10 @@ bool Solver::AWLS() {
 				}
 
 				doEjection(XSet);
-				//int Irand = input->customerNumer / EPr.rCustCnt / 4;
-				//Irand = std::max<int>(Irand,400);
-				//perturb(Irand);
-				perturb();
+				int Irand = input->customerNumer / EP.cnt / 4;
+				Irand = std::max<int>(Irand, input->aps->perturbIrand);
+				perturb(Irand);
+				//perturb();
 			}
 		}
 	}
@@ -6208,7 +6258,7 @@ bool Solver::minimizeRouteNumber(int ourTarget) {
 		if (isDelete) {
 
 			//saveOutAsSintefFile();
-			//Logger::INFO("rts.cnt:", rts.cnt);
+			Logger::INFO("rts.cnt:", rts.cnt);
 			if (rts.cnt == input->Qbound) {
 				break;
 			}

@@ -541,6 +541,14 @@ public:
 
 	Solver& operator = (const Solver& s);
 
+	inline Route& getRouteOfCustomer(int c) {
+		return rts.getRouteByRouteId(customers[c].routeId);
+	}
+	inline void removeCustomer(int cusId) {
+		Route& r = getRouteOfCustomer(cusId);
+		rRemoveAtPosition(r, cusId);
+	}
+
 	// route function
 	Route rCreateRoute(int id);
 

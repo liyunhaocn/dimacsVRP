@@ -26,6 +26,7 @@ public:
 	int infoFlag = 1;
 	int debugFlag = 0;
 	int errorFlag = 1;
+	int callMinRouteNumber = 0;
 
 	CommandLine(int argc, char* argv[]) {
 
@@ -53,16 +54,6 @@ public:
 			this->outputDir += '/';
 		}
 
-//		String outputName = instancePath;
-//		strtool::removeChar(outputName, '\\');
-//		strtool::removeChar(outputName, '/');
-//		strtool::removeChar(outputName, '.');
-//		std::fstream fs1(this->outputDir + outputName + ".txt", std::ios::in | std::ios::out | std::ios::app);
-//		if (!fs1)
-//			throw std::invalid_argument("something wrong with output directory: " + this->outputDir);
-//		this->outputDir += outputName + ".txt";
-//		fs1.clear();
-//		fs1.close();
 	}
 
 	void check() {

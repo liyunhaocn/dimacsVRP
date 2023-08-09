@@ -10,6 +10,22 @@
 
 namespace hust {
 
+struct BSKInfo {
+
+	String bksDataFileBasePath = "../Instances/DataFromLiterature/";
+
+	int sintefRN = 0;
+	DisType sintefRC = 0;
+	int naRecRN = 0;
+
+	int isOptimal = 0;
+
+	void displayInfo() {
+		Logger::INFO("sintefRN:", sintefRN);
+		Logger::INFO("naRecRN:", naRecRN);
+	}
+};
+
 struct AlgorithmParameters {
 	
 	//static Vector<int> nieborMoves;
@@ -27,7 +43,7 @@ struct AlgorithmParameters {
 
 	int perturbNeiborRange = 60;
 	
-	int perturbIrand = 400;
+	int perturbIrand = 100;
 
 	int neiborSizeMin = 20;
 	int neiborSizeMax = 50;
@@ -38,8 +54,8 @@ struct AlgorithmParameters {
 	
 	int ruinC_Min = 15;
 	int ruinC_Max = 35;
-	int ruinWinkRate = 0.90; // 100
-	int initWinkRate = 0.80; // 100
+	double ruinWinkRate = 0.90; // 100
+	double initWinkRate = 0.80; // 100
 
 	int customersWeight1 = 1;
 	int customersWeight2 = 2;
@@ -56,13 +72,15 @@ struct AlgorithmParameters {
 	int outNeiborSize = 50;
 
 	int ruinC_ = 15;
-	int weightUpStep = 1;
+	int routeWeightUpStep = 1;
 	int yearTabuLen = 10;
 	int yearTabuRand = 10;
 	// 1000 step:C2_8_7 took 20s C1_6_6 took 6s
 	int ejectLSMaxIter = 50;
 
-    int rateOfDynamicInAndOut = 0.50;
+    double rateOfDynamicInAndOut = 0.50;
+
+	BSKInfo bksInfo;
 
 	~AlgorithmParameters() {}
 };

@@ -35,12 +35,16 @@ int main(int argc, char* argv[])
 	commandLine.aps.displayInfo();
 
 	Goal goal(&input);
-	goal.run();
-//    goal.penaltiesAndDroppingVisits();
-//	goal.callRouteNumberMinimization();
-//  goal.test();
+	if (commandLine.callMinRouteNumber == 1) {
+		goal.callRouteNumberMinimization();
+	}
+	else {
+		goal.run();
+	}
 
-	goal.saveBestFoundSolution();
+//  goal.penaltiesAndDroppingVisits();
+//  goal.test();
+	//goal.saveBestFoundSolution();
     goal.exportCSVFile(commandLine.outputDir+__DATE__ + ".csv",goal.bks.bestSolFound);
 	return 0;
 }

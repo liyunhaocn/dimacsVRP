@@ -5,6 +5,8 @@
     "infoFlag": 1,
     "debugFlag": 1,
     "errorFlag":1,
+    "callMinRouteNumber":1,
+    
 
   "AlgorithmParameters": {
 
@@ -14,13 +16,14 @@
 
     "maxStagnationIterOfRepair": 200,
 
-    "minKmax": 1,
+    "minKmax": 2,
     "maxKmax": 4,
     "eamaEaxCh": 20,
     "abCycleWinkRate": 0.99,
     "perturbNeiborRange": 60,
-    "perturbIrand": 400,
+    "perturbIrand": 200,
     "neiborSizeMin": 20,
+    "routeWeightUpStep": 1,
     "neiborSizeMax": 50,
     "customersWeight1":1,
     "customersWeight2":2,

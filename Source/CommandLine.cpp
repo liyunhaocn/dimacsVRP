@@ -9,7 +9,8 @@ namespace hust{
                 {"dimacsPrint", cl.dimacsPrint},
                 {"infoFlag", cl.infoFlag},
                 {"debugFlag", cl.debugFlag},
-                {"errorFlag", cl.errorFlag}
+                {"errorFlag", cl.errorFlag},
+                {"callMinRouteNumber", cl.callMinRouteNumber}
         };
         Json t;
         to_json(t, cl.aps);
@@ -24,6 +25,7 @@ namespace hust{
         j.at("infoFlag").get_to(cl.infoFlag);
         j.at("debugFlag").get_to(cl.debugFlag);
         j.at("errorFlag").get_to(cl.errorFlag);
+        j.at("callMinRouteNumber").get_to(cl.callMinRouteNumber);
 
         Logger::infoFlag = cl.infoFlag;
         Logger::debugFlag = cl.debugFlag;
