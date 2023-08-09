@@ -213,10 +213,10 @@ void Goal::test() {
 
         for (int i = 0; i < solver.rts.cnt; ++i) {
             auto cuses = solver.rPutCustomersInVector(solver.rts[i]);
-            for (int x = 0; x < 10000; ++x) {
+            for (size_t x = 0; x < 10000; ++x) {
 
-                for (int vindex = 0; vindex < cuses.size(); ++vindex) {
-                    for (int windex = 0; windex < cuses.size(); ++windex) {
+                for (size_t vindex = 0; vindex < cuses.size(); ++vindex) {
+                    for (size_t windex = 0; windex < cuses.size(); ++windex) {
                         solver.estimatevw(kind,cuses[vindex], cuses[windex],1);
                     }
                 }
